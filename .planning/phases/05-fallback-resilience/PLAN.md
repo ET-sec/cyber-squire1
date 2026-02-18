@@ -130,7 +130,7 @@ const recentFailures = await queryFailures(chatId, 3, 600);
 if (recentFailures.length >= 3) {
   return {
     escalate: true,
-    message: "⚠️ AI systems experiencing issues. Manual intervention may be needed. Last 3 attempts failed. Please contact @ETcodin if urgent."
+    message: "⚠️ AI systems experiencing issues. Manual intervention may be needed. Last 3 attempts failed. Please contact @ET-sec if urgent."
   };
 }
 ```
@@ -146,7 +146,7 @@ if (response.statusCode === 429 || response.error?.includes('quota')) {
   logFailure(chatId, 'quota', 'gemini', errorDetail);
 
   return {
-    text: "🔧 AI capacity temporarily limited. System will retry in 1 hour. For urgent tasks, contact @ETcodin directly.",
+    text: "🔧 AI capacity temporarily limited. System will retry in 1 hour. For urgent tasks, contact @ET-sec directly.",
     fallback: true,
     retryAfter: 3600 // seconds
   };
@@ -359,7 +359,7 @@ return {
 const response = $input.first().json;
 const failureCount = response._escalation.failureCount;
 
-const escalationMessage = `⚠️ **AI System Alert**\n\nMultiple AI failures detected (${failureCount} in last 10 min). Manual intervention may be needed.\n\nFor urgent assistance, contact @ETcodin.\n\n---\n\n`;
+const escalationMessage = `⚠️ **AI System Alert**\n\nMultiple AI failures detected (${failureCount} in last 10 min). Manual intervention may be needed.\n\nFor urgent assistance, contact @ET-sec.\n\n---\n\n`;
 
 return {
   json: {
@@ -396,8 +396,8 @@ await $this.query(
 const isQuotaError = error.includes('429') || error.includes('quota');
 
 const fallbackMessage = isQuotaError
-  ? "🔧 AI capacity temporarily limited. System will retry in 1 hour. For urgent tasks, contact @ETcodin directly."
-  : "⚠️ AI systems experiencing issues. Your message has been logged. Please try again in a few moments or contact @ETcodin if urgent.";
+  ? "🔧 AI capacity temporarily limited. System will retry in 1 hour. For urgent tasks, contact @ET-sec directly."
+  : "⚠️ AI systems experiencing issues. Your message has been logged. Please try again in a few moments or contact @ET-sec if urgent.";
 
 return {
   json: {

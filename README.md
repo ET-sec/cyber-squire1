@@ -1,11 +1,11 @@
 # CoreDirective Automation Engine
 
-[![Live Portfolio](https://img.shields.io/badge/Portfolio-Live-00FF41?style=flat-square)](https://etcodin.github.io/portfolio/)
+[![Live Portfolio](https://img.shields.io/badge/Portfolio-Live-00FF41?style=flat-square)](https://et-sec.github.io/portfolio/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 **Production security platform on AWS — AI-augmented orchestration, Zero Trust architecture, Terraform IaC**
 
-Built and operated by [Emmanuel Tigoue](https://etcodin.github.io/portfolio/) | Security Engineer | CASP+ (SecurityX), SSCP, CCNA
+Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | Security Engineer | CASP+ (SecurityX), SSCP, CCNA
 
 ---
 
@@ -144,9 +144,9 @@ This repo is sanitized for public release:
 
 ## Contact
 
-**Portfolio:** [etcodin.github.io/portfolio](https://etcodin.github.io/portfolio/)
+**Portfolio:** [et-sec.github.io/portfolio](https://et-sec.github.io/portfolio/)
 **LinkedIn:** [linkedin.com/in/emmanuel-tigoue-672378307](https://www.linkedin.com/in/emmanuel-tigoue-672378307)
-**GitHub:** [github.com/ETcodin](https://github.com/ETcodin)
+**GitHub:** [github.com/ET-sec](https://github.com/ET-sec)
 
 ---
 

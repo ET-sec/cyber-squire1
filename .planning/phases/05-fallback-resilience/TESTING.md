@@ -415,7 +415,7 @@ docker stop ollama
 
        Multiple AI failures detected (3 in last 10 min). Manual intervention may be needed.
 
-       For urgent assistance, contact @ETcodin.
+       For urgent assistance, contact @ET-sec.
 
        ---
 
@@ -472,7 +472,7 @@ docker stop ollama
 - ✅ First 2 failures: standard error, no escalation
 - ✅ Third failure: escalation header present
 - ✅ Escalation message includes failure count
-- ✅ Escalation message includes contact info (@ETcodin)
+- ✅ Escalation message includes contact info (@ET-sec)
 - ✅ Escalation resets after 10 minutes
 - ✅ Database query correctly identifies escalation scenario
 
@@ -520,7 +520,7 @@ docker stop ollama
    - Via Telegram, send: "What should I do?"
    - **Expected Response:**
      ```
-     🔧 AI capacity temporarily limited. System will retry in 1 hour. For urgent tasks, contact @ETcodin directly.
+     🔧 AI capacity temporarily limited. System will retry in 1 hour. For urgent tasks, contact @ET-sec directly.
      ```
 
 3. **Verify Quota Error Logged**
