@@ -204,7 +204,7 @@ Is Duplicate? (IF node)
   "event": "message_received",
   "timestamp": "2026-02-04T18:45:23.142Z",
   "chatId": "7868965034",
-  "user": "etcodin",
+  "user": "ET-sec",
   "messageLength": 42,
   "executionId": "abc123def456",
   "rawText": "What should I focus on right now?"

@@ -154,7 +154,7 @@ Copy these node objects into the `nodes` array of `workflow_supervisor_agent.jso
 ```json
 {
   "parameters": {
-    "jsCode": "const inputCtx = $('Parse Input').first().json;\nconst error = $input.first().json.error?.message || 'Unknown error';\n\nconsole.log('GEMINI_FALLBACK_FAILED:', JSON.stringify({\n  timestamp: new Date().toISOString(),\n  chat_id: inputCtx.chatId,\n  error\n}));\n\nconst isQuotaError = error.includes('429') || error.toLowerCase().includes('quota');\n\nconst fallbackMessage = isQuotaError\n  ? \"🔧 AI capacity temporarily limited. For urgent tasks, contact @ETcodin directly.\"\n  : \"⚠️ AI systems experiencing issues. Please try again in a few moments.\";\n\nreturn {\n  json: {\n    output: fallbackMessage,\n    intermediate_steps: [],\n    _metadata: {\n      provider: 'none',\n      fallback: true,\n      complete_failure: true\n    }\n  }\n};"
+    "jsCode": "const inputCtx = $('Parse Input').first().json;\nconst error = $input.first().json.error?.message || 'Unknown error';\n\nconsole.log('GEMINI_FALLBACK_FAILED:', JSON.stringify({\n  timestamp: new Date().toISOString(),\n  chat_id: inputCtx.chatId,\n  error\n}));\n\nconst isQuotaError = error.includes('429') || error.toLowerCase().includes('quota');\n\nconst fallbackMessage = isQuotaError\n  ? \"🔧 AI capacity temporarily limited. For urgent tasks, contact @ET-sec directly.\"\n  : \"⚠️ AI systems experiencing issues. Please try again in a few moments.\";\n\nreturn {\n  json: {\n    output: fallbackMessage,\n    intermediate_steps: [],\n    _metadata: {\n      provider: 'none',\n      fallback: true,\n      complete_failure: true\n    }\n  }\n};"
   },
   "id": "handle-gemini-failure",
   "name": "Handle Gemini Failure",

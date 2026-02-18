@@ -236,7 +236,7 @@ User: "Give me a task"
     │
     ▼
 Response: "🔧 AI capacity temporarily limited.
-           For urgent tasks, contact @ETcodin."
+           For urgent tasks, contact @ET-sec."
 ```
 
 ## Database Schema

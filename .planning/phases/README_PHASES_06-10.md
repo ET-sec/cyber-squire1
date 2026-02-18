@@ -372,7 +372,7 @@ Log to scan_history
 ## Contact & Support
 
 **Project:** Cyber-Squire Telegram Router
-**Repository:** https://github.com/ETcodin/cyber-squire1
+**Repository:** https://github.com/ET-sec/cyber-squire1
 **Planning Directory:** `/Users/et/cyber-squire-ops/.planning/phases/`
 
 For questions or issues:
