@@ -45,7 +45,7 @@ nano .env
 docker-compose up -d
 ```
 **What happens:** 4 containers start (PostgreSQL, n8n, Ollama, Cloudflare Tunnel)
-**Note:** Moltbot service is currently disabled - enable later for automated lead enrichment
+**Note:** OpenClaw Gateway runs standalone (not managed by compose) - see docker-compose.yaml comments
 
 ### Step 5: Wait 2 Minutes
 (Docker pulls images and starts services)
