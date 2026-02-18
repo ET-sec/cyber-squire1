@@ -199,7 +199,7 @@ Bot: ✓ Added "deploy monitoring"  ← Remembers from 2 messages ago
 ### Step 1: Pre-Deployment Validation
 ```bash
 # Verify EC2 access
-ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@54.234.155.244
+ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@YOUR_EC2_IP
 
 # Verify PostgreSQL running
 docker ps | grep cd-service-db
@@ -225,7 +225,7 @@ cd /Users/et/cyber-squire-ops/.planning/phases/04-memory-context
 
 ### Step 3: Verify Workflow Configuration
 **Manual Check** (n8n UI):
-1. Open: http://54.234.155.244:5678
+1. Open: http://YOUR_EC2_IP:5678
 2. Workflow: "Telegram Supervisor Agent"
 3. Verify: Chat Memory node → Supervisor Agent connection
 4. Verify: Settings match IMPLEMENTATION.md spec
@@ -254,10 +254,10 @@ Follow TESTING.md test cases 4.1-4.4 (Telegram-based testing)
 ### Step 6: Production Monitoring
 ```bash
 # Watch memory stats
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
 
 # Monitor n8n logs
-ssh ubuntu@54.234.155.244 'docker logs -f n8n 2>&1 | grep -i memory'
+ssh ubuntu@YOUR_EC2_IP 'docker logs -f n8n 2>&1 | grep -i memory'
 ```
 
 **Duration**: Ongoing (24-hour monitoring recommended)
@@ -283,7 +283,7 @@ ssh ubuntu@54.234.155.244 'docker logs -f n8n 2>&1 | grep -i memory'
 
 ```bash
 # Nuclear rollback
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "DROP TABLE IF EXISTS chat_memory CASCADE;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "DROP TABLE IF EXISTS chat_memory CASCADE;"'
 ```
 
 ---
@@ -364,7 +364,7 @@ Support screenshots, documents in conversation context
 ## Dependencies
 
 ### Infrastructure
-- ✅ EC2 instance: 54.234.155.244 (running)
+- ✅ EC2 instance: YOUR_EC2_IP (running)
 - ✅ PostgreSQL 16: cd-service-db container (running)
 - ✅ n8n: Latest version with LangChain support
 - ✅ Database: cd_automation_db (exists)
@@ -478,7 +478,7 @@ cd /Users/et/cyber-squire-ops/.planning/phases/04-memory-context
 
 ### Monitoring Command
 ```bash
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
 ```
 
 ### Rollback Command

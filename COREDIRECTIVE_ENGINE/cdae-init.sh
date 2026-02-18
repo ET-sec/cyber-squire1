@@ -20,19 +20,14 @@ echo "[INFO] You must log out and back in to apply docker group changes."
 
 # 4. Create required directories
 echo "[4/7] Creating persistent volumes..."
-mkdir -p CD_VOL_POSTGRES CD_VOL_N8N CD_VOL_OLLAMA CD_VOL_MOLT media
+mkdir -p CD_VOL_POSTGRES CD_VOL_N8N CD_VOL_OLLAMA CD_VOL_WHISPER media
 
 # 5. Apply SELinux relabel for all project files
 echo "[5/7] Relabeling files for SELinux..."
 sudo chcon -Rt svirt_sandbox_file_t .
 
-# 6. Build Moltbot (if present)
-if [ -d "moltbot" ]; then
-  echo "[6/7] Building Moltbot image..."
-  cd moltbot && docker compose build && cd ..
-else
-  echo "[6/7] Skipping Moltbot build (moltbot directory not found)"
-fi
+# 6. OpenClaw Gateway runs standalone (not managed by compose)
+echo "[6/7] OpenClaw Gateway runs standalone - skipping build"
 
 # 7. Start the stack
 echo "[7/7] Starting Docker Compose stack..."

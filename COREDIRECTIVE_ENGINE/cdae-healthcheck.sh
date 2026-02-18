@@ -14,7 +14,7 @@ fi
 echo "[INFO] All containers are running."
 
 echo "[INFO] Checking logs for errors/warnings..."
-for svc in cd-service-db cd-service-n8n cd-service-ollama cd-service-moltbot tunnel-cyber-squire; do
+for svc in cd-service-db cd-service-n8n cd-service-ollama cd-service-whisper openclaw-gateway tunnel-cyber-squire; do
   if docker ps --format '{{.Names}}' | grep -q "$svc"; then
     echo "--- $svc logs (last 30 lines) ---"
     docker logs --tail=30 "$svc" | grep -iE 'error|fail|warn' || echo "No errors/warnings detected."
@@ -27,9 +27,8 @@ docker exec cd-service-n8n bash -c 'PGPASSWORD="$DB_POSTGRESDB_PASSWORD" psql -h
 echo "[INFO] Testing n8n → Ollama connectivity..."
 docker exec cd-service-n8n curl -sSf http://cd-service-ollama:11434/api/tags && echo "[OK] n8n can reach Ollama." || echo "[WARN] n8n cannot reach Ollama."
 
-echo "[INFO] Testing Moltbot → n8n and Ollama connectivity..."
-docker exec cd-service-moltbot curl -sSf http://cd-service-n8n:5678/healthz && echo "[OK] Moltbot can reach n8n." || echo "[WARN] Moltbot cannot reach n8n."
-docker exec cd-service-moltbot curl -sSf http://cd-service-ollama:11434/api/tags && echo "[OK] Moltbot can reach Ollama." || echo "[WARN] Moltbot cannot reach Ollama."
+echo "[INFO] Testing OpenClaw Gateway connectivity..."
+docker exec openclaw-gateway curl -sSf http://localhost:18789/health 2>/dev/null && echo "[OK] OpenClaw Gateway is healthy." || echo "[WARN] OpenClaw Gateway not reachable (runs standalone, may be on separate network)."
 
 echo "[INFO] Cloudflare Tunnel status:"
 docker logs --tail=20 tunnel-cyber-squire | grep -iE 'route|ready|error|fail|warn' || echo "No tunnel errors/warnings."

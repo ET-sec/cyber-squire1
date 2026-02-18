@@ -23,7 +23,7 @@
 
 ---
 
-## What's Live on EC2 (54.234.155.244)
+## What's Live on EC2
 
 ### Phase 1 Deliverables
 - ✓ Ollama KEEP_ALIVE=24h in docker-compose.yaml

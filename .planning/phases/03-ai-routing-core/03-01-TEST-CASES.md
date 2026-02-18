@@ -135,7 +135,7 @@ Each test should produce a console log entry in n8n execution logs:
 ### Logging Access
 ```bash
 # SSH to EC2 instance
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # View n8n container logs
 docker logs n8n -f --tail=100 | grep "ROUTING_DECISION"

@@ -287,7 +287,7 @@ Open browser: https://n8n.yourdomain.com
 ## SECTION 6: OPERATION NUCLEAR WORKFLOW (Creating Your First Outreach Batch)
 
 ### Step 1: Add Companies to Notion
-1. Open your Notion "Operation Nuclear" database
+1. Open your Notion "CoreDirective Operations" database
 2. Add 10 company names + CEO names (one row per company)
 3. Save
 
@@ -378,7 +378,7 @@ Once you complete this runbook, verify:
 - [ ] Ollama model downloaded (Qwen 3 ~4.7GB)
 - [ ] n8n accessible at `http://[IP]:5678`
 - [ ] PostgreSQL healthcheck passing
-- [ ] First Operation Nuclear workflow created
+- [ ] First CoreDirective Operations workflow created
 - [ ] 10+ test outreach emails generated
 - [ ] At least 1 email sent to real contact
 - [ ] Backup created and verified

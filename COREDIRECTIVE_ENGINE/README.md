@@ -6,7 +6,7 @@
 
 ## What This Is
 
-Your complete **sovereign business operating system** - a fully automated CNS that runs 24/7 on RHEL 9 with Zero Trust security, eliminating 90% of routine work while tracking your path from $60k debt to $120k-$170k annual revenue.
+Your complete **sovereign business operating system** - a fully automated CNS that runs 24/7 on RHEL 9 with Zero Trust security, eliminating 90% of routine work while tracking your path to sustainable growth.
 
 **Status: Production Ready** ✅
 
@@ -38,7 +38,7 @@ docker compose up -d
 1. **🏥 API Health Monitor** - Tests 6 API credentials every 6 hours
 2. **🤖 OpenClaw Generator** - Natural language → n8n workflow creation
 3. **📂 Drive Watcher** - Monitors 2TB Google Drive for new content
-4. **☢️ Operation Nuclear** - Lead enrichment → AI outreach → Auto-send
+4. **CoreDirective Operations** - Lead enrichment → AI outreach → Auto-send
 5. **🎬 YouTube Factory** - Video → Transcript → Metadata → 5 Shorts scripts
 6. **💰 Gumroad Solvency** - Sales → 60/30/10 allocation → Debt tracking
 7. **📋 Task Manager** - ADHD-optimized productivity system
@@ -90,7 +90,7 @@ docker compose up -d
 │  │       ▼                                              │  │
 │  │  ┌─────────────────────────────────────────┐        │  │
 │  │  │  8 Automated Workflows                  │        │  │
-│  │  │  • API Health    • Operation Nuclear    │        │  │
+│  │  │  • API Health    • CoreDirective Operations    │        │  │
 │  │  │  • Drive Watcher • YouTube Factory      │        │  │
 │  │  │  • Gumroad Track • Task Manager         │        │  │
 │  │  │  • OpenClaw Gen  • AI Router            │        │  │
@@ -132,7 +132,7 @@ docker compose up -d
 
 **Product:** Cyber-Squire OS at $47/sale
 **Break-even:** 2 sales/month ($94 revenue > $85 cost)
-**Target Revenue:** $120k-$170k/year
+**Target Revenue:** competitive compensation
 **Required Sales:** 7-10 sales/day (2,553-3,617/year)
 
 ### ROI Multiplier
@@ -161,7 +161,7 @@ Every workflow saves ~2-4 hours/week:
 - Multi-page PDF processing
 
 **2% of requests → Claude 3.5 (~$20/month)**
-- Strategic outreach (Operation Nuclear)
+- Strategic outreach (CoreDirective Operations)
 - Complex technical documentation
 - Business planning
 - Code architecture
@@ -202,7 +202,7 @@ All routing decisions logged to Notion for cost tracking and optimization.
 **Actions:** Route videos → YouTube Factory, log all files → Notion
 **Supports:** Videos, audio, documents, images
 
-### 4. Operation Nuclear (Lead Enrichment)
+### 4. CoreDirective Operations (Lead Enrichment)
 **Trigger:** Webhook POST `/webhook/lead-intake`
 **Pipeline:**
 1. Perplexity researches company (news, tech stack, pain points)
@@ -356,7 +356,7 @@ Volumes (created on first run):
 
 ### Phase 4: Verification (5 minutes)
 - [ ] Test AI Router webhook
-- [ ] Test Operation Nuclear webhook with dummy lead
+- [ ] Test CoreDirective Operations webhook with dummy lead
 - [ ] Upload test video to Google Drive
 - [ ] Check n8n executions - all green checkmarks
 - [ ] Review Notion databases - data populated correctly
@@ -467,7 +467,7 @@ chcon -Rt svirt_sandbox_file_t ./CD_VOL_N8N
 
 ### Next
 - Revenue optimization (A/B pricing, upsell sequences)
-- Expand Operation Nuclear to 50 leads/day
+- Expand CoreDirective Operations to 50 leads/day
 - YouTube cadence: 3x/week
 
 ---

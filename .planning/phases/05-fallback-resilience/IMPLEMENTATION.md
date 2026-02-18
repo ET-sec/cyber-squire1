@@ -12,7 +12,7 @@
 ### 2. Configure Environment Variables
 ```bash
 # SSH to EC2 instance
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # Navigate to COREDIRECTIVE_ENGINE directory
 cd /home/ec2-user/COREDIRECTIVE_ENGINE
@@ -41,7 +41,7 @@ echo "\n# Gemini API (Fallback AI)\nGEMINI_API_KEY=your_gemini_api_key_here" >> 
 ### 4. Create Database Schema
 ```bash
 # SSH to EC2
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # Access PostgreSQL
 docker exec -it postgresql psql -U n8n -d n8n
@@ -101,7 +101,7 @@ ls -la workflow_supervisor_agent_backup_*
 
 ### Step 1: Create n8n Credential for Gemini
 
-1. Access n8n web interface: `http://54.234.155.244:5678`
+1. Access n8n web interface: `http://YOUR_EC2_IP:5678`
 2. Navigate to **Credentials** → **Add Credential**
 3. Search for "HTTP Request" credential type
 4. Configure:
@@ -167,7 +167,7 @@ Open `workflow_supervisor_agent.json` and add the following nodes to the `nodes`
 ```json
 {
   "parameters": {
-    "jsCode": "const inputCtx = $('Parse Input').first().json;\n\n// Get chat memory from PostgreSQL\nconst memoryQuery = `\n  SELECT role, content, created_at\n  FROM chat_memory\n  WHERE session_id = $1\n  ORDER BY created_at DESC\n  LIMIT 5\n`;\n\nlet conversationHistory = '';\ntry {\n  const memoryResults = await this.helpers.dbQuery(memoryQuery, [inputCtx.chatId]);\n  conversationHistory = memoryResults\n    .reverse()\n    .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)\n    .join('\\n\\n');\n} catch (error) {\n  console.log('Memory fetch failed, proceeding without context:', error.message);\n}\n\nconst systemPrompt = `You are CYBER-SQUIRE, Emmanuel Tigoue's AI operations commander. You maintain Consultative Authority - you advise decisively, not passively.\n\n## CORE IDENTITY\n- User: Emmanuel (ET), Security Solutions Architect (CASP+, CCNA), Sickle Cell warrior\n- Framework: 12-Week Year (12WY) with ADHD-optimized execution\n- Energy: Finite and precious - every interaction must be high-ROI\n\n## RESPONSE FORMAT (ADHD-FRIENDLY)\n1. Lead with the answer - no preambles\n2. Use bullets and visual hierarchy\n3. Bold key actions: **Do this now**\n4. Keep responses under 200 words unless detail requested\n5. End with ONE clear next action\n\n## INSTRUCTIONS\nRespond to the user's message below. Be direct, actionable, and consultative. Current time: ${new Date().toISOString()}.`;\n\nconst fullPrompt = conversationHistory\n  ? `${systemPrompt}\\n\\n## Recent Conversation\\n${conversationHistory}\\n\\n## Current Message\\nUser: ${inputCtx.text}\\n\\nRespond as CYBER-SQUIRE.`\n  : `${systemPrompt}\\n\\nUser: ${inputCtx.text}\\n\\nRespond as CYBER-SQUIRE.`;\n\nreturn {\n  json: {\n    prompt: fullPrompt,\n    chatId: inputCtx.chatId,\n    messageId: inputCtx.messageId,\n    originalInput: inputCtx.text,\n    _execution: {\n      startTime: $('Ollama Agent Wrapper').first().json._execution.startTime,\n      provider: 'gemini',\n      attemptNumber: 2,\n      fallbackReason: 'ollama_failure'\n    }\n  }\n};"
+    "jsCode": "const inputCtx = $('Parse Input').first().json;\n\n// Get chat memory from PostgreSQL\nconst memoryQuery = `\n  SELECT role, content, created_at\n  FROM chat_memory\n  WHERE session_id = $1\n  ORDER BY created_at DESC\n  LIMIT 5\n`;\n\nlet conversationHistory = '';\ntry {\n  const memoryResults = await this.helpers.dbQuery(memoryQuery, [inputCtx.chatId]);\n  conversationHistory = memoryResults\n    .reverse()\n    .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)\n    .join('\\n\\n');\n} catch (error) {\n  console.log('Memory fetch failed, proceeding without context:', error.message);\n}\n\nconst systemPrompt = `You are CYBER-SQUIRE, Emmanuel Tigoue's AI operations commander. You maintain Consultative Authority - you advise decisively, not passively.\n\n## CORE IDENTITY\n- User: Emmanuel (ET), Security Engineer (CASP+, CCNA), resilience-focused professional\n- Framework: 12-Week Year (12WY) with ADHD-optimized execution\n- Energy: Finite and precious - every interaction must be high-ROI\n\n## RESPONSE FORMAT (ADHD-FRIENDLY)\n1. Lead with the answer - no preambles\n2. Use bullets and visual hierarchy\n3. Bold key actions: **Do this now**\n4. Keep responses under 200 words unless detail requested\n5. End with ONE clear next action\n\n## INSTRUCTIONS\nRespond to the user's message below. Be direct, actionable, and consultative. Current time: ${new Date().toISOString()}.`;\n\nconst fullPrompt = conversationHistory\n  ? `${systemPrompt}\\n\\n## Recent Conversation\\n${conversationHistory}\\n\\n## Current Message\\nUser: ${inputCtx.text}\\n\\nRespond as CYBER-SQUIRE.`\n  : `${systemPrompt}\\n\\nUser: ${inputCtx.text}\\n\\nRespond as CYBER-SQUIRE.`;\n\nreturn {\n  json: {\n    prompt: fullPrompt,\n    chatId: inputCtx.chatId,\n    messageId: inputCtx.messageId,\n    originalInput: inputCtx.text,\n    _execution: {\n      startTime: $('Ollama Agent Wrapper').first().json._execution.startTime,\n      provider: 'gemini',\n      attemptNumber: 2,\n      fallbackReason: 'ollama_failure'\n    }\n  }\n};"
   },
   "id": "prepare-gemini",
   "name": "Prepare Gemini Fallback",
@@ -455,17 +455,17 @@ python3 -m json.tool workflow_supervisor_agent.json > /dev/null && echo "JSON is
 # Copy to EC2
 scp -i ~/cyber-squire-ops/cyber-squire-ops.pem \
   workflow_supervisor_agent.json \
-  ec2-user@54.234.155.244:/home/ec2-user/COREDIRECTIVE_ENGINE/
+  ec2-user@YOUR_EC2_IP:/home/ec2-user/COREDIRECTIVE_ENGINE/
 
 # SSH to EC2
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # Navigate to n8n workflows directory
 cd /home/ec2-user/.n8n/
 
 # Import workflow via n8n CLI (if available) or manual import via UI
 # Manual import steps:
-# 1. Open n8n UI: http://54.234.155.244:5678
+# 1. Open n8n UI: http://YOUR_EC2_IP:5678
 # 2. Go to Workflows
 # 3. Click "..." menu on "Telegram Supervisor Agent"
 # 4. Select "Import from File"
@@ -486,7 +486,7 @@ cd /home/ec2-user/.n8n/
 ### Test 2: Ollama Failure Simulation
 ```bash
 # SSH to EC2
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # Stop Ollama temporarily
 docker stop ollama
@@ -656,7 +656,7 @@ If critical issues occur:
 
 ```bash
 # SSH to EC2
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # Restore backup
 cd /home/ec2-user/COREDIRECTIVE_ENGINE

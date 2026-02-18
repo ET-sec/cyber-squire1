@@ -35,7 +35,7 @@ SELECT COUNT(*) FROM ai_failures;
 1. **Baseline Test (Ollama Healthy)**
    ```bash
    # Verify Ollama is running
-   ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+   ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
    docker ps | grep ollama
    # Expected: ollama container running
 

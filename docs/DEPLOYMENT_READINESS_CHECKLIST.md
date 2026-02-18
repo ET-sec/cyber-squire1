@@ -57,7 +57,7 @@
 ### Executive/Business Layer
 
 - ✅ **docs/Employment_Proof.md** (6.4 KB, 15 pages)
-  - Operation Nuclear timeline (Jan-Mar 2026)
+  - CoreDirective Operations timeline (Jan-Mar 2026)
   - Three Pillars architecture overview
   - Cost analysis ($0 AI inference vs. $400/month GPU)
   - Success criteria & KPIs
@@ -85,7 +85,7 @@
   - Backup/restore procedures (PostgreSQL, .env)
   - Memory alert: > 7.5GB Ollama → restart
   - Cloudflare Tunnel setup steps
-  - Operation Nuclear workflow configuration
+  - CoreDirective Operations workflow configuration
   - Monthly maintenance checklist
   - Status: **COMPLETE - RHEL COMPATIBLE**
 
@@ -96,7 +96,7 @@
   - Phase 2: CD-AE deployment (docker-compose, .env, startup)
   - Phase 3: n8n access (browser login at :5678)
   - Phase 4: Cloudflare Tunnel setup
-  - Phase 5: Operation Nuclear configuration
+  - Phase 5: CoreDirective Operations configuration
   - Phase 5b: Rclone Google Drive mounting
   - Status: **COMPLETE - READY FOR EXECUTION**
 
@@ -326,7 +326,7 @@ Before running `terraform apply`:
 4. **Wait:** Bootstrap completes (5 min)
 5. **SSH:** Into instance and monitor logs (5 min)
 6. **Deploy:** Docker stack following `RHEL_System_Init.md` Phase 2 (20 min)
-7. **Launch:** First Operation Nuclear workflow (10 min)
+7. **Launch:** First CoreDirective Operations workflow (10 min)
 
 ### Total Time: ~50 minutes from start to first outreach email
 

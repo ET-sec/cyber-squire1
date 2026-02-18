@@ -22,7 +22,7 @@
 
 **Production Workflows (8 files, 71.1K total)**
 1. ✅ `workflow_api_healthcheck.json` (7.6K) - Monitor API health every 6h
-2. ✅ `workflow_moltbot_generator.json` (7.3K) - NLP → n8n workflow creation
+2. ✅ `workflow_openclaw_generator.json` (7.3K) - NLP → n8n workflow creation
 3. ✅ `workflow_gdrive_watcher.json` (6.4K) - Monitor 2TB Drive every 5min
 4. ✅ `workflow_operation_nuclear.json` (11K) - Lead enrichment pipeline
 5. ✅ `workflow_youtube_factory.json` (8.6K) - Video → content pipeline
@@ -108,7 +108,7 @@ Injecting: GitHub CoreDirective...
 Deploying: 🏥 API Health Check...
   ✓ Success (ID: abc123)
 
-Deploying: 🤖 Moltbot Workflow Generator...
+Deploying: 🤖 OpenClaw Workflow Generator...
   ✓ Success (ID: def456)
 
 [... 6 more workflows ...]
@@ -173,7 +173,7 @@ RHEL 9 AWS Instance
 | Workflow | Trigger | Purpose | AI Used |
 |----------|---------|---------|---------|
 | **API Health** | Every 6h | Test all 6 credentials | None |
-| **Moltbot Gen** | Webhook | NLP → n8n workflow | Qwen/Claude |
+| **OpenClaw Gen** | Webhook | NLP → n8n workflow | Qwen/Claude |
 | **Drive Watch** | Every 5min | Monitor 2TB for new files | None |
 | **Op Nuclear** | Webhook | Lead → Research → Outreach | Perplexity + Claude |
 | **YT Factory** | Webhook | Video → Transcript → Metadata | Gemini + Qwen |
@@ -198,8 +198,8 @@ RHEL 9 AWS Instance
 ### Revenue Pipeline
 - **Product:** Cyber-Squire OS at $47/sale
 - **Break-even:** 2 sales/month
-- **Target:** 7-10 sales/day for $120k-$170k/year
-- **Debt clearance:** 60% of every sale → $60k debt → $0
+- **Target:** 7-10 sales/day for competitive compensation
+- **Debt clearance:** 60% of every sale → financial targets → $0
 
 ### Automation Coverage
 - **Lead generation:** 100% automated (Op Nuclear)
@@ -225,7 +225,7 @@ curl -X POST https://n8n.yourdomain.com/webhook/ai-router \
   }'
 ```
 
-### Operation Nuclear (Lead Intake)
+### CoreDirective Operations (Lead Intake)
 ```bash
 curl -X POST https://n8n.yourdomain.com/webhook/lead-intake \
   -H "Content-Type: application/json" \
@@ -240,9 +240,9 @@ curl -X POST https://n8n.yourdomain.com/webhook/lead-intake \
   }'
 ```
 
-### Moltbot Workflow Generator
+### OpenClaw Workflow Generator
 ```bash
-curl -X POST https://n8n.yourdomain.com/webhook/moltbot-command \
+curl -X POST https://n8n.yourdomain.com/webhook/openclaw-command \
   -H "Content-Type: application/json" \
   -d '{
     "command": "Create workflow that checks Twitter mentions every hour",
@@ -272,7 +272,7 @@ curl -X POST https://n8n.yourdomain.com/webhook/youtube-content-factory \
 You need to create these in Notion and add IDs to workflows:
 
 1. **Tasks DB** - For Task Manager workflow
-2. **Leads DB** - For Operation Nuclear workflow
+2. **Leads DB** - For CoreDirective Operations workflow
 3. **Content DB** - For YouTube Factory workflow
 4. **Shorts DB** - For YouTube Factory (Shorts scripts)
 5. **Media DB** - For Drive Watcher workflow
@@ -333,7 +333,7 @@ Copy this ID into the corresponding workflow's webhook parameters.
 - [ ] 50+ videos published
 - [ ] 100+ sales ($4,700 revenue)
 - [ ] Debt reduced by $3,000+
-- [ ] Moltbot mobile interface connected
+- [ ] OpenClaw mobile interface connected
 
 ---
 
@@ -365,8 +365,8 @@ Copy this ID into the corresponding workflow's webhook parameters.
 4. Review AI Router logs → Verify cost optimization
 
 ### Medium-term (This Month)
-1. Build Moltbot mobile interface (WhatsApp/Telegram)
-2. Scale Operation Nuclear to 10 leads/day
+1. Build OpenClaw mobile interface (WhatsApp/Telegram)
+2. Scale CoreDirective Operations to 10 leads/day
 3. Establish YouTube posting cadence (3x/week)
 4. Launch Cyber-Squire OS product marketing
 

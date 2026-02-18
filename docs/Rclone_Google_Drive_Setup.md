@@ -520,7 +520,7 @@ With Rclone mounted, you now have:
 - **AI processing** (Qwen 3 can read/analyze directly)
 - **n8n orchestration** (trigger workflows on file changes)
 
-This is the **80% leverage point** for Operation Nuclear expansion into content production.
+This is the **80% leverage point** for CoreDirective Operations expansion into content production.
 
 ---
 

@@ -144,7 +144,7 @@ cd /Users/et/cyber-squire-ops/.planning/phases/04-memory-context
 ### Step 2: Verify Workflow Configuration
 **Manual Check in n8n UI**:
 
-1. Open n8n: `http://54.234.155.244:5678`
+1. Open n8n: `http://YOUR_EC2_IP:5678`
 2. Open workflow: "Telegram Supervisor Agent"
 3. Verify "Chat Memory" node settings:
    - Session ID Type: `customKey`
@@ -229,7 +229,7 @@ Bot: [References "Deploy Phase 4" from earlier context]
 ### Step 5: Monitor Performance
 ```bash
 # SSH to EC2
-ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@54.234.155.244
+ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@YOUR_EC2_IP
 
 # Check memory stats
 docker exec cd-service-db psql -U postgres -d cd_automation_db -c "
@@ -299,7 +299,7 @@ SELECT cron.schedule(
 **Diagnosis**:
 ```bash
 # Check if messages are being stored
-ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@54.234.155.244
+ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@YOUR_EC2_IP
 docker exec cd-service-db psql -U postgres -d cd_automation_db -c "
 SELECT session_id, COUNT(*) FROM chat_memory GROUP BY session_id;
 "
@@ -460,7 +460,7 @@ If memory implementation causes critical issues:
 
 2. **Or: Revert to Previous Workflow Version** (if backed up):
 ```bash
-scp backup_workflow_supervisor_agent.json ubuntu@54.234.155.244:/tmp/
+scp backup_workflow_supervisor_agent.json ubuntu@YOUR_EC2_IP:/tmp/
 # Import via n8n UI
 ```
 

@@ -349,7 +349,7 @@ export TELEGRAM_CHAT_ID="..."
 ## Dependencies
 
 ### Infrastructure (All Verified Present)
-- ✅ EC2: 54.234.155.244 (running)
+- ✅ EC2: YOUR_EC2_IP (running)
 - ✅ PostgreSQL: cd-service-db container (running)
 - ✅ Database: cd_automation_db (exists)
 - ✅ n8n: Latest with LangChain support
@@ -464,7 +464,7 @@ Files:
 ### Quick Orientation (5 minutes)
 For next session continuation:
 1. Read: [README.md](./README.md) → Quick Reference section
-2. Check: EC2 instance status (54.234.155.244)
+2. Check: EC2 instance status (YOUR_EC2_IP)
 3. Execute: `./deploy.sh` if not yet deployed
 4. Validate: `./test.sh` to verify deployment
 
@@ -472,7 +472,7 @@ For next session continuation:
 Before starting deployment:
 ```bash
 # Check if already deployed
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory;" 2>/dev/null'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory;" 2>/dev/null'
 
 # If error: Table doesn't exist → proceed with deployment
 # If returns number: Table exists → skip to validation

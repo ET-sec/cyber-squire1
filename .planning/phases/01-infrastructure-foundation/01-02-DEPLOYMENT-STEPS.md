@@ -35,7 +35,7 @@ Option A - Via n8n UI:
 
 Option B - Via SSH and Docker cp:
 ```bash
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 docker cp /tmp/workflow_error_handler.json cd-service-n8n:/tmp/
 # Then import via UI
 ```

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # Configuration
-EC2_HOST="54.234.155.244"
+EC2_HOST="YOUR_EC2_IP"
 SSH_KEY="${HOME}/.ssh/cyber-squire-ops.pem"
 SQL_FILE="/Users/et/cyber-squire-ops/COREDIRECTIVE_ENGINE/sql/chat_memory_13window.sql"
 

@@ -58,4 +58,4 @@ See [CHANGELOG_DEPRECATIONS.md](CHANGELOG_DEPRECATIONS.md) for full deprecation 
 ---
 
 **Maintained By:** Emmanuel Tigoue
-**Project:** CoreDirective Automation Engine (Operation Nuclear)
+**Project:** CoreDirective Automation Engine (CoreDirective Operations)

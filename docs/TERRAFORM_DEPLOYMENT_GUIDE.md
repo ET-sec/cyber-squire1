@@ -3,7 +3,7 @@
 **Version:** 1.0.0-ALPHA  
 **Target Date:** January 30, 2026  
 **Infrastructure:** AWS EC2 t3.xlarge (Amazon Linux 2023 / RHEL 9.x)  
-**Operation:** Operation Nuclear (C-suite outreach campaign)  
+**Operation:** CoreDirective Operations (C-suite outreach campaign)  
 
 ---
 
@@ -310,7 +310,7 @@ n8n_url = "http://54.123.45.67:5678"
 3. **Configure .env** with database passwords and API keys
 4. **Access n8n** at http://54.123.45.67:5678
 5. **Setup Cloudflare Tunnel** for zero-trust remote access (optional but recommended)
-6. **Configure Operation Nuclear** Notion database trigger workflow
+6. **Configure CoreDirective Operations** Notion database trigger workflow
 
 ---
 
@@ -444,7 +444,7 @@ aws ec2 describe-instances --filters "Name=instance-state-name,Values=running"
 
 ### Set CloudWatch Alarms (Optional)
 
-For production Operation Nuclear campaigns, configure CloudWatch alerts on:
+For production CoreDirective Operations campaigns, configure CloudWatch alerts on:
 - CPU usage > 80%
 - Memory usage > 14GB (leaving 2GB OS buffer)
 - Ollama container status (health check)

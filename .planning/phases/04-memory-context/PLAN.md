@@ -10,7 +10,7 @@ Implement PostgreSQL-backed chat memory to maintain conversation context across 
 - **SC-4.4**: Old messages automatically pruned beyond window
 
 ## Infrastructure Context
-- **EC2 Instance**: 54.234.155.244
+- **EC2 Instance**: YOUR_EC2_IP
 - **PostgreSQL**: cd-service-db container, database: cd_automation_db
 - **Workflow**: workflow_supervisor_agent.json
 - **Memory Node**: Already configured at lines 112-129
@@ -90,7 +90,7 @@ curl -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage \
   -d text="Remember this task: Deploy Phase 4"
 
 # Restart n8n
-ssh ubuntu@54.234.155.244 "cd /home/ubuntu/COREDIRECTIVE_ENGINE && docker-compose restart n8n"
+ssh ubuntu@YOUR_EC2_IP "cd /home/ubuntu/COREDIRECTIVE_ENGINE && docker-compose restart n8n"
 
 # Wait 30 seconds
 sleep 30

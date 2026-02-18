@@ -12,7 +12,7 @@
 I'm resuming Cyber-Squire development. Read .planning/STATE.md for current status.
 
 Server state:
-- Phases 1-3: EXECUTED on EC2 (54.234.155.244)
+- Phases 1-3: EXECUTED on EC2
 - Phases 4-10: PLANNED locally, not yet deployed
 
 Next action: Execute Phase 4 (Memory & Context)
@@ -75,8 +75,8 @@ Skip re-planning. Go straight to execution.
 
 ## Infrastructure
 
-- **EC2:** 54.234.155.244
-- **SSH:** `ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244`
+- **EC2:** (see .env)
+- **SSH:** `ssh cyber-squire-tunnel`
 - **n8n:** https://n8n.tigouetheory.com (port 5678)
 - **PostgreSQL:** cd-service-db container, database: cd_automation_db
 - **Ollama:** qwen2.5:7b (KEEP_ALIVE=24h)

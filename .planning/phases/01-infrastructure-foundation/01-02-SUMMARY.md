@@ -126,7 +126,7 @@ To complete this phase, execute the following via n8n UI:
 - **Original Issue**: Hardcoded bot token in `workflow_error_handler.json` line 25
 - **Pattern Source**: `telegram_direct.json` lines 54-59 (credential reference example)
 - **Chat ID Source**: Telegram bot configuration (7868965034)
-- **Deployment Location**: EC2 54.234.155.244, container `cd-service-n8n`
+- **Deployment Location**: EC2 YOUR_EC2_IP, container `cd-service-n8n`
 
 ## Time Tracking
 

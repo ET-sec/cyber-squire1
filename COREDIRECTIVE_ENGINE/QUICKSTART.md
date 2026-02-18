@@ -83,7 +83,7 @@ You need to create these Notion databases and add their IDs to each workflow:
 
 **Required Databases:**
 - Tasks DB (for Task Manager)
-- Leads DB (for Operation Nuclear)
+- Leads DB (for CoreDirective Operations)
 - Content DB (for YouTube Factory)
 - Media DB (for Drive Watcher)
 - Finance DB (for Gumroad Solvency)
@@ -156,7 +156,7 @@ Expected: Perplexity researches → Claude drafts email → Saved to Notion with
 - **Action:** Scans `/data/media` for new files → Routes videos to YouTube Factory → Logs all to Notion
 - **AI Used:** None (file system operations)
 
-### ☢️ Operation Nuclear
+### CoreDirective Operations
 - **Trigger:** Webhook (manual or automated lead import)
 - **Action:** Perplexity researches company → Claude drafts personalized outreach → Auto-sends if score >= 8
 - **AI Used:** Perplexity + Claude

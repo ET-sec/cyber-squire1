@@ -329,16 +329,16 @@ Open: https://n8n.yourdomain.com
 
 ---
 
-## Phase 5: Operation Nuclear Configuration
+## Phase 5: CoreDirective Operations Configuration
 
 ### Step 1: Create Notion Integration
-1. In Notion, create a database called "Operation Nuclear"
+1. In Notion, create a database called "CoreDirective Operations"
 2. Add columns: Company Name, CEO Name, Email, Status, Notes
 3. Get Notion API key from notion.so/my-integrations
 
 ### Step 2: Create n8n Workflow
 1. In n8n UI, click **"Create New Workflow"**
-2. Add **Notion Trigger**: Watch for new entries in Operation Nuclear database
+2. Add **Notion Trigger**: Watch for new entries in CoreDirective Operations database
 3. Add **AI Agent Node**: Call Qwen 3 to analyze and draft pitch
 4. Add **Slack Notification**: Send draft for approval
 5. Add **Gmail Send**: On approval, send email

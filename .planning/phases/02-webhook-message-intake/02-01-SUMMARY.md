@@ -70,22 +70,22 @@ https://n8n.tigouetheory.com/webhook/supervisor-agent-v1
 ```
 
 ### Task 3: Deployed Workflows to EC2 ✅
-**Target:** ec2-user@54.234.155.244
+**Target:** ec2-user@YOUR_EC2_IP
 
 **Files Transferred:**
 ```bash
 scp -i ~/cyber-squire-ops/cyber-squire-ops.pem \
   COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json \
-  ec2-user@54.234.155.244:/tmp/
+  ec2-user@YOUR_EC2_IP:/tmp/
 
 scp -i ~/cyber-squire-ops/cyber-squire-ops.pem \
   COREDIRECTIVE_ENGINE/workflow_startup_webhook.json \
-  ec2-user@54.234.155.244:/tmp/
+  ec2-user@YOUR_EC2_IP:/tmp/
 ```
 
 **Verification:**
 ```bash
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244 \
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP \
   'ls -lh /tmp/workflow_*.json'
 
 # Output shows both files present:
@@ -143,7 +143,7 @@ For each workflow:
 1. Navigate to **Workflows** > **Add workflow** > **Import from File**
 2. SSH to EC2 and cat the file, copy content:
    ```bash
-   ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244 \
+   ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP \
      'cat /tmp/workflow_supervisor_agent.json'
    ```
 3. Paste JSON into n8n import dialog
@@ -172,7 +172,7 @@ After activating the Startup Webhook workflow, verify it ran successfully:
 
 **Option B: Via Telegram API**
 ```bash
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # Get bot token from credentials (or use environment variable)
 docker exec cd-service-n8n printenv | grep TELEGRAM

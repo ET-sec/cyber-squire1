@@ -9,38 +9,38 @@ Use this checklist to track deployment progress and ensure all success criteria 
 ### Infrastructure Verification
 - [ ] EC2 instance accessible via SSH
   ```bash
-  ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@54.234.155.244 "echo connected"
+  ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@YOUR_EC2_IP "echo connected"
   ```
 - [ ] PostgreSQL container running
   ```bash
-  ssh ubuntu@54.234.155.244 "docker ps | grep cd-service-db"
+  ssh ubuntu@YOUR_EC2_IP "docker ps | grep cd-service-db"
   ```
 - [ ] Database `cd_automation_db` exists
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -lqt | grep cd_automation_db'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -lqt | grep cd_automation_db'
   ```
 - [ ] n8n container running
   ```bash
-  ssh ubuntu@54.234.155.244 "docker ps | grep n8n"
+  ssh ubuntu@YOUR_EC2_IP "docker ps | grep n8n"
   ```
 - [ ] Sufficient disk space (need ~100MB)
   ```bash
-  ssh ubuntu@54.234.155.244 "df -h /var/lib/docker"
+  ssh ubuntu@YOUR_EC2_IP "df -h /var/lib/docker"
   ```
 
 ### Backup & Safety
 - [ ] Backup current workflow JSON
   ```bash
-  scp ubuntu@54.234.155.244:/home/ubuntu/COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json \
+  scp ubuntu@YOUR_EC2_IP:/home/ubuntu/COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json \
       /Users/et/cyber-squire-ops/backups/workflow_supervisor_agent_$(date +%Y%m%d_%H%M%S).json
   ```
 - [ ] Backup existing PostgreSQL data (if any)
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db pg_dump -U postgres cd_automation_db > /tmp/cd_automation_db_backup.sql'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db pg_dump -U postgres cd_automation_db > /tmp/cd_automation_db_backup.sql'
   ```
 - [ ] Document current n8n execution count (baseline)
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM telegram_message_log;"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM telegram_message_log;"'
   ```
 
 ### Planning Review
@@ -78,7 +78,7 @@ Use this checklist to track deployment progress and ensure all success criteria 
 ### Step 2: Verify Workflow Configuration
 **Estimated Time**: 2 minutes
 
-- [ ] Open n8n UI: http://54.234.155.244:5678
+- [ ] Open n8n UI: http://YOUR_EC2_IP:5678
 - [ ] Open workflow: "Telegram Supervisor Agent"
 - [ ] Locate "Chat Memory" node
 - [ ] Verify settings:
@@ -176,11 +176,11 @@ Use this checklist to track deployment progress and ensure all success criteria 
 - [ ] Record timestamp: _______________
 - [ ] Verify message in database:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT content FROM chat_memory WHERE content LIKE '"'%Deploy Phase 4%'"' ORDER BY created_at DESC LIMIT 1;"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT content FROM chat_memory WHERE content LIKE '"'%Deploy Phase 4%'"' ORDER BY created_at DESC LIMIT 1;"'
   ```
 - [ ] Restart n8n container:
   ```bash
-  ssh ubuntu@54.234.155.244 'cd /home/ubuntu/COREDIRECTIVE_ENGINE && docker-compose restart n8n'
+  ssh ubuntu@YOUR_EC2_IP 'cd /home/ubuntu/COREDIRECTIVE_ENGINE && docker-compose restart n8n'
   ```
 - [ ] Wait 30 seconds for n8n to be ready
 - [ ] Send reference message:
@@ -191,7 +191,7 @@ Use this checklist to track deployment progress and ensure all success criteria 
 - [ ] Result: ✅ PASS / ❌ FAIL
 - [ ] Verify messages still in database:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory WHERE content LIKE '"'%Deploy Phase 4%'"';"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory WHERE content LIKE '"'%Deploy Phase 4%'"';"'
   ```
 - [ ] Notes: _______________________________________________
 
@@ -209,7 +209,7 @@ Use this checklist to track deployment progress and ensure all success criteria 
 - [ ] Automated test passed (Test 3: Context Window Function)
 - [ ] Manual verification:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM get_chat_context('"'YOUR_CHAT_ID'"');"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM get_chat_context('"'YOUR_CHAT_ID'"');"'
   ```
 - [ ] Result: _____ messages (should be ≤13)
 - [ ] Overall SC-4.2: ✅ SATISFIED / ❌ NOT SATISFIED
@@ -223,7 +223,7 @@ Use this checklist to track deployment progress and ensure all success criteria 
 - [ ] Manual verification (send 20 messages, check count):
   ```bash
   # Send 20 test messages via Telegram, then check:
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory WHERE session_id = '"'YOUR_CHAT_ID'"';"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory WHERE session_id = '"'YOUR_CHAT_ID'"';"'
   ```
 - [ ] Result: _____ messages (should be ≤13)
 - [ ] Overall SC-4.4: ✅ SATISFIED / ❌ NOT SATISFIED
@@ -243,14 +243,14 @@ Use this checklist to track deployment progress and ensure all success criteria 
 - [ ] n8n execution count (last 1h): _____
 - [ ] chat_memory table size:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT pg_size_pretty(pg_total_relation_size('"'chat_memory'"'));"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT pg_size_pretty(pg_total_relation_size('"'chat_memory'"'));"'
   ```
 - [ ] Result: _____ (expected: <100MB)
 
 ### Context Query Performance
 - [ ] Run performance test:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "EXPLAIN ANALYZE SELECT * FROM chat_memory ORDER BY created_at DESC LIMIT 13;"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "EXPLAIN ANALYZE SELECT * FROM chat_memory ORDER BY created_at DESC LIMIT 13;"'
   ```
 - [ ] Execution time: _____ ms (target: <10ms)
 - [ ] Result: ✅ PASS (<10ms) / ⚠️ WARN (10-50ms) / ❌ FAIL (>50ms)
@@ -262,15 +262,15 @@ Use this checklist to track deployment progress and ensure all success criteria 
 ### Hour 1
 - [ ] Check n8n logs for errors:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker logs n8n --since 1h 2>&1 | grep -i "error\|memory"'
+  ssh ubuntu@YOUR_EC2_IP 'docker logs n8n --since 1h 2>&1 | grep -i "error\|memory"'
   ```
 - [ ] Check PostgreSQL logs:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker logs cd-service-db --since 1h 2>&1 | grep -i "error\|memory"'
+  ssh ubuntu@YOUR_EC2_IP 'docker logs cd-service-db --since 1h 2>&1 | grep -i "error\|memory"'
   ```
 - [ ] Chat memory stats:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
   ```
 - [ ] Issues found: _________________________________________
 
@@ -278,7 +278,7 @@ Use this checklist to track deployment progress and ensure all success criteria 
 - [ ] Repeat checks from Hour 1
 - [ ] Message count per session (should be ≤13):
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT session_id, COUNT(*) FROM chat_memory GROUP BY session_id;"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT session_id, COUNT(*) FROM chat_memory GROUP BY session_id;"'
   ```
 - [ ] Issues found: _________________________________________
 
@@ -286,15 +286,15 @@ Use this checklist to track deployment progress and ensure all success criteria 
 - [ ] Repeat checks from Hour 1
 - [ ] Total messages in table:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory;"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory;"'
   ```
 - [ ] Table size:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT pg_size_pretty(pg_total_relation_size('"'chat_memory'"'));"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT pg_size_pretty(pg_total_relation_size('"'chat_memory'"'));"'
   ```
 - [ ] Index usage statistics:
   ```bash
-  ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT indexname, idx_scan FROM pg_stat_user_indexes WHERE tablename = '"'chat_memory'"';"'
+  ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT indexname, idx_scan FROM pg_stat_user_indexes WHERE tablename = '"'chat_memory'"';"'
   ```
 - [ ] Issues found: _________________________________________
 
@@ -328,7 +328,7 @@ Ask users:
 - [ ] ⚠️ Minor: Context works but occasionally incorrect (tune, don't rollback)
 
 ### Rollback Procedure (If Triggered)
-- [ ] Open n8n UI: http://54.234.155.244:5678
+- [ ] Open n8n UI: http://YOUR_EC2_IP:5678
 - [ ] Workflow: "Telegram Supervisor Agent"
 - [ ] Disconnect Chat Memory node from Supervisor Agent
 - [ ] Save workflow

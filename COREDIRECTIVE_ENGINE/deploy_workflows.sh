@@ -32,7 +32,7 @@ echo ""
 # Array of workflow files
 WORKFLOWS=(
     "workflow_api_healthcheck.json:🏥 API Health Check"
-    "workflow_moltbot_generator.json:🤖 Moltbot Workflow Generator"
+    "workflow_openclaw_generator.json:🤖 OpenClaw Workflow Generator"
     "workflow_gdrive_watcher.json:📂 Google Drive File Watcher"
     "workflow_operation_nuclear.json:☢️ Operation Nuclear Lead Enrichment"
     "workflow_youtube_factory.json:🎬 YouTube Content Factory"
@@ -108,7 +108,7 @@ if [ $DEPLOYED -gt 0 ]; then
     echo "     • Click 'Active' toggle to enable"
     echo ""
     echo -e "  5. ${YELLOW}Test webhooks:${NC}"
-    echo "     • Moltbot Generator: POST /webhook/moltbot-command"
+    echo "     • OpenClaw Generator: POST /webhook/openclaw-command"
     echo "     • Operation Nuclear: POST /webhook/lead-intake"
     echo "     • YouTube Factory: POST /webhook/youtube-content-factory"
     echo "     • AI Router: POST /webhook/ai-router"

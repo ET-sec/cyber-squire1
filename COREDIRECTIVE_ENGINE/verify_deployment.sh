@@ -63,7 +63,7 @@ echo ""
 # Check workflow files
 echo -e "${YELLOW}=== Workflow Files ===${NC}"
 check_status "API Health Check workflow" "test -f workflow_api_healthcheck.json"
-check_status "Moltbot Generator workflow" "test -f workflow_moltbot_generator.json"
+check_status "OpenClaw Generator workflow" "test -f workflow_openclaw_generator.json"
 check_status "Drive Watcher workflow" "test -f workflow_gdrive_watcher.json"
 check_status "Operation Nuclear workflow" "test -f workflow_operation_nuclear.json"
 check_status "YouTube Factory workflow" "test -f workflow_youtube_factory.json"
