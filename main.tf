@@ -1,1 +1,0 @@
-terraform/simple-ec2/main.tf

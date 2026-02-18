@@ -155,7 +155,7 @@ services:
   cd-service-db:          # PostgreSQL 16
   cd-service-n8n:         # n8n orchestrator
   cd-service-ollama:      # Ollama + Qwen 3
-  cd-service-moltbot:     # Lead enrichment & automation bot (currently disabled)
+  openclaw-gateway:        # Autonomous AI agent (@CDirective_bot, runs standalone)
 
 networks:
   cd-automation-net:      # Bridge network for inter-container communication

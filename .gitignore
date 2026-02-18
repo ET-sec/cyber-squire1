@@ -76,3 +76,10 @@ __pycache__/
 .venv/
 venv/
 credentials_cloudflare.json
+
+# ============================================
+# Project Build Artifacts
+# ============================================
+builds/
+.skills-staging/
+.claude/

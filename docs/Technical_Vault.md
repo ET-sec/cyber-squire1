@@ -83,7 +83,7 @@ NAT: Not required (instance is public-facing via Elastic IP)
 | PostgreSQL | postgres | 16-alpine | ~40 MB | x86_64 |
 | n8n | n8nio/n8n | latest | ~300 MB | x86_64 |
 | Ollama | ollama/ollama | latest | ~500 MB | x86_64 |
-| Moltbot | moltbot | latest | ~200 MB | x86_64 (custom build - Phase 2) |
+| OpenClaw Gateway | openclaw-gateway | latest | ~200 MB | x86_64 (standalone container) |
 
 ### Container Resource Allocation
 
@@ -116,7 +116,7 @@ Container IP Assignments (static):
 - cd-service-db:      172.28.0.2 (port 5432)
 - cd-service-n8n:     172.28.0.3 (port 5678)
 - cd-service-ollama:  172.28.0.4 (port 11434)
-- cd-service-moltbot: 172.28.0.5 (port 18789 - when enabled)
+- openclaw-gateway: runs standalone (port 18789, 18790)
 
 DNS Resolution (via Docker internal DNS at 127.0.0.11:53):
 - postgresql.cd-automation-net
@@ -150,7 +150,7 @@ max_wal_senders = 3
 wal_keep_segments = 64               -- Retain 1GB of WAL
 
 -- Connection Limits
-max_connections = 200                -- Handle n8n + Moltbot (future) + admin
+max_connections = 200                -- Handle n8n + OpenClaw + admin
 idle_in_transaction_session_timeout = 30min
 
 -- Query Optimization
@@ -216,7 +216,7 @@ DOCKER BRIDGE NETWORK (172.28.0.0/16)
         ├─→ cd-service-n8n (5678 internal)
         ├─→ cd-service-ollama (11434 internal)
         ├─→ cd-service-db (5432 internal)
-        └─→ cd-service-moltbot (18789 - Phase 2)
+        └─→ openclaw-gateway (18789, 18790 - standalone)
 ```
 
 ### Security Group Rules (AWS VPC)
