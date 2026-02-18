@@ -1,5 +1,5 @@
 {
-  "name": "☢️ Operation Nuclear - Lead Enrichment",
+  "name": "CoreDirective Operations - Lead Enrichment",
   "nodes": [
     {
       "parameters": {
@@ -357,7 +357,7 @@
       "id": "cd-tag-001"
     },
     {
-      "name": "Operation Nuclear",
+      "name": "CoreDirective Operations",
       "id": "cd-tag-005"
     }
   ],

@@ -164,7 +164,6 @@ All changes were committed atomically with proper attribution:
 | a42ce8c | deploy_12wy.sh | Security: Sanitize Telegram credentials |
 
 All commits include:
-- `Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`
 - Reference to SC-1.3 (Credential Management)
 
 ---

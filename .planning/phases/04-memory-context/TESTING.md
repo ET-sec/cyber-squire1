@@ -1,7 +1,7 @@
 # Phase 4: Memory & Context - Testing Guide
 
 ## Test Environment
-- **EC2**: 54.234.155.244
+- **EC2**: YOUR_EC2_IP
 - **Database**: cd-service-db/cd_automation_db
 - **Workflow**: workflow_supervisor_agent.json
 - **Telegram Bot**: @CyberSquireBot (configured in n8n)
@@ -9,7 +9,7 @@
 ## Prerequisites
 ```bash
 # Set environment variables
-export EC2_HOST="54.234.155.244"
+export EC2_HOST="YOUR_EC2_IP"
 export BOT_TOKEN="<your_telegram_bot_token>"
 export CHAT_ID="<your_telegram_chat_id>"
 export SSH_KEY="/path/to/cyber-squire-ops.pem"

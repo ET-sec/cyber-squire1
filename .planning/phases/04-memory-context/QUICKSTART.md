@@ -7,10 +7,10 @@
 ## Prerequisites
 ```bash
 # Verify EC2 access
-ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@54.234.155.244 "echo connected"
+ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@YOUR_EC2_IP "echo connected"
 
 # Verify PostgreSQL running
-ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@54.234.155.244 "docker ps | grep cd-service-db"
+ssh -i ~/.ssh/cyber-squire-ops.pem ubuntu@YOUR_EC2_IP "docker ps | grep cd-service-db"
 ```
 
 ---
@@ -84,7 +84,7 @@ Bot: [References first task from previous message]  ← Should work!
 ### Problem: Tests Fail
 ```bash
 # Check PostgreSQL logs
-ssh ubuntu@54.234.155.244 'docker logs cd-service-db --tail 50'
+ssh ubuntu@YOUR_EC2_IP 'docker logs cd-service-db --tail 50'
 
 # Re-deploy schema
 ./deploy.sh
@@ -93,7 +93,7 @@ ssh ubuntu@54.234.155.244 'docker logs cd-service-db --tail 50'
 ### Problem: Context Not Working
 ```bash
 # Check if messages are stored
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT COUNT(*) FROM chat_memory;"'
 
 # If 0 → verify workflow connection in n8n UI
 ```
@@ -101,7 +101,7 @@ ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_auto
 ### Problem: Performance Issues
 ```bash
 # Check query performance
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "
 EXPLAIN ANALYZE SELECT * FROM chat_memory ORDER BY created_at DESC LIMIT 13;
 "'
 
@@ -113,14 +113,14 @@ EXPLAIN ANALYZE SELECT * FROM chat_memory ORDER BY created_at DESC LIMIT 13;
 ## Rollback (if needed)
 
 **Option 1: Disable Memory (keeps workflow running)**
-1. Open n8n UI: http://54.234.155.244:5678
+1. Open n8n UI: http://YOUR_EC2_IP:5678
 2. Workflow: "Telegram Supervisor Agent"
 3. Disconnect Chat Memory node from Supervisor Agent
 4. Save workflow
 
 **Option 2: Drop Table (nuclear)**
 ```bash
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "DROP TABLE IF EXISTS chat_memory CASCADE;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "DROP TABLE IF EXISTS chat_memory CASCADE;"'
 ```
 
 ---

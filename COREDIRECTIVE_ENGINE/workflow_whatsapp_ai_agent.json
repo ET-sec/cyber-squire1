@@ -1,0 +1,288 @@
+{
+  "id": "WA54364b84dd8d4d",
+  "name": "WhatsApp AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-incoming",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "wa-webhook-trigger",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 400],
+      "webhookId": "whatsapp-incoming-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "event-check",
+              "leftValue": "={{ $json.body?.event === 'messages.upsert' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "not-from-me",
+              "leftValue": "={{ $json.body?.data?.key?.fromMe === false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "wa-filter-incoming",
+      "name": "Filter Incoming Only",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract message text and sender info from Evolution API payload\nconst body = $input.first().json.body || $input.first().json;\nconst data = body.data || {};\nconst key = data.key || {};\nconst message = data.message || {};\nconst pushName = data.pushName || 'User';\n\n// Extract text from either conversation or extendedTextMessage\nconst messageText = message.conversation \n  || message.extendedTextMessage?.text \n  || '';\n\n// Extract sender number from remoteJid (format: 5511999999999@s.whatsapp.net)\nconst remoteJid = key.remoteJid || '';\nconst senderNumber = remoteJid.replace('@s.whatsapp.net', '').replace('@g.us', '');\n\nif (!messageText) {\n  // No text content (could be image, audio, etc.) - skip\n  return [];\n}\n\nconsole.log('WA_MESSAGE_RECEIVED:', JSON.stringify({\n  sender: senderNumber,\n  pushName,\n  messageLength: messageText.length,\n  messageId: key.id,\n  timestamp: new Date().toISOString()\n}));\n\nreturn {\n  json: {\n    senderNumber,\n    remoteJid,\n    pushName,\n    messageText,\n    messageId: key.id || '',\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "wa-extract-message",
+      "name": "Extract Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build OpenAI-compatible payload for OpenClaw gateway (Claude Max)\nconst input = $input.first().json;\nconst userMessage = input.messageText;\nconst pushName = input.pushName;\n\nreturn {\n  json: {\n    ...input,\n    aiPayload: {\n      model: 'moltbot',\n      messages: [\n        {\n          role: 'system',\n          content: 'You are a helpful AI assistant available via WhatsApp for a SCAD capstone book design project (TheGreatBook). Keep responses concise (under 800 chars) since this is a chat medium. Be friendly, supportive, and helpful with design, Adobe InDesign, layout, and creative project questions.'\n        },\n        {\n          role: 'user',\n          content: pushName + ': ' + userMessage\n        }\n      ],\n      stream: false\n    }\n  }\n};"
+      },
+      "id": "wa-prepare-ai",
+      "name": "Prepare AI Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.17.0.1:18789/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $vars.OPENCLAW_GATEWAY_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.aiPayload) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "wa-call-ai",
+      "name": "Call AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 400],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse OpenAI-compatible response from OpenClaw gateway\nconst aiResponse = $input.first().json;\nconst messageCtx = $('Extract Message').first().json;\n\nlet responseText = '';\n\nif (aiResponse.error || !aiResponse.choices || !aiResponse.choices[0]) {\n  console.log('AI_ERROR:', JSON.stringify({\n    error: aiResponse.error || 'No choices in response',\n    sender: messageCtx.senderNumber\n  }));\n  responseText = 'Sorry, I\\'m having trouble right now. Please try again in a moment.';\n} else {\n  responseText = aiResponse.choices[0].message.content.trim();\n}\n\nif (responseText.length > 1500) {\n  responseText = responseText.substring(0, 1497) + '...';\n}\n\nreturn {\n  json: {\n    number: messageCtx.senderNumber,\n    text: responseText,\n    senderName: messageCtx.pushName,\n    messageId: messageCtx.messageId\n  }\n};"
+      },
+      "id": "wa-parse-response",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://cd-service-evolution:8080/message/sendText/arazi-whatsapp",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "apikey",
+              "value": "010a9622ab34088e4e8c5ca910bdab09e1ba8858c6395186"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $json.number, text: $json.text }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "wa-send-reply",
+      "name": "Send WhatsApp Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1680, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log successful send and return confirmation\nconst sendResult = $input.first().json;\nconst messageCtx = $('Extract Message').first().json;\n\nconsole.log('WA_REPLY_SENT:', JSON.stringify({\n  sender: messageCtx.senderNumber,\n  pushName: messageCtx.pushName,\n  messageId: messageCtx.messageId,\n  sendStatus: sendResult.status || 'sent',\n  timestamp: new Date().toISOString()\n}));\n\nreturn {\n  json: {\n    status: 'ok',\n    message: 'Reply sent successfully',\n    to: messageCtx.senderNumber,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "wa-log-complete",
+      "name": "Log Complete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Non-qualifying event (outgoing message, status update, etc.) - drop silently\nconsole.log('WA_FILTERED_OUT:', JSON.stringify({\n  event: $input.first().json.body?.event || 'unknown',\n  fromMe: $input.first().json.body?.data?.key?.fromMe,\n  timestamp: new Date().toISOString()\n}));\n\nreturn {\n  json: {\n    status: 'filtered',\n    reason: 'Not an incoming user message'\n  }\n};"
+      },
+      "id": "wa-drop-filtered",
+      "name": "Drop Filtered",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 600]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Filter Incoming Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Incoming Only": {
+      "main": [
+        [
+          {
+            "node": "Extract Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Drop Filtered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message": {
+      "main": [
+        [
+          {
+            "node": "Prepare AI Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare AI Request": {
+      "main": [
+        [
+          {
+            "node": "Call AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call AI": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Reply": {
+      "main": [
+        [
+          {
+            "node": "Log Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "errorWorkflow": "System: Error Handler"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "WhatsApp"
+    },
+    {
+      "name": "AI Agent"
+    },
+    {
+      "name": "Evolution API"
+    }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "notes": "WhatsApp AI Agent v2.0: Receives incoming WhatsApp messages via Evolution API webhook, filters for incoming user messages only, generates AI responses via Claude Opus 4.6 (via Max subscription), and sends replies back through Evolution API. Webhook path: /webhook/whatsapp-incoming. Instance: arazi-whatsapp.",
+    "evolutionApi": {
+      "instance": "arazi-whatsapp",
+      "endpoint": "http://cd-service-evolution:8080"
+    },
+    "claudeConfig": {
+      "model": "claude-opus-4-6",
+      "apiKeyVar": "$vars.ANTHROPIC_API_KEY",
+      "maxResponseChars": 1500
+    }
+  }
+}

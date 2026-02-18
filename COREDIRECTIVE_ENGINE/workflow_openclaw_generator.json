@@ -1,19 +1,19 @@
 {
-  "name": "🤖 Moltbot Workflow Generator",
+  "name": "🤖 OpenClaw Workflow Generator",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "moltbot-command",
+        "path": "openclaw-command",
         "responseMode": "responseNode",
         "options": {}
       },
       "id": "webhook-trigger",
-      "name": "Moltbot Command Webhook",
+      "name": "OpenClaw Command Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [240, 400],
-      "webhookId": "moltbot-workflow-gen"
+      "webhookId": "openclaw-workflow-gen"
     },
     {
       "parameters": {
@@ -30,7 +30,7 @@
       "position": [460, 400],
       "credentials": {
         "ollamaApi": {
-          "id": "ollama-local",
+          "id": "DDKhERoRj4skKmDw",
           "name": "Ollama Local"
         }
       }
@@ -84,7 +84,7 @@
       "position": [900, 500],
       "credentials": {
         "ollamaApi": {
-          "id": "ollama-local",
+          "id": "DDKhERoRj4skKmDw",
           "name": "Ollama Local"
         }
       }
@@ -99,7 +99,7 @@
           "parameters": [
             {
               "name": "X-N8N-API-KEY",
-              "value": "YOUR_N8N_API_KEY_HERE"
+              "value": "YOUR_N8N_API_KEY"
             }
           ]
         },
@@ -129,7 +129,7 @@
             {
               "type": "paragraph",
               "richText": true,
-              "text": "=New workflow generated via Moltbot\n\nWorkflow ID: {{ $json.id }}\nTrigger: {{ $json.trigger_type }}\nServices: {{ $json.services }}\n\nCreated: {{ $now.toISO() }}"
+              "text": "=New workflow generated via OpenClaw\n\nWorkflow ID: {{ $json.id }}\nTrigger: {{ $json.trigger_type }}\nServices: {{ $json.services }}\n\nCreated: {{ $now.toISO() }}"
             }
           ]
         }
@@ -141,7 +141,7 @@
       "position": [1340, 400],
       "credentials": {
         "notionApi": {
-          "id": "notion-cred",
+          "id": "NPNXZ45GxiU7SoaS",
           "name": "Notion Cyber-Squire API"
         }
       }
@@ -160,7 +160,7 @@
     }
   ],
   "connections": {
-    "Moltbot Command Webhook": {
+    "OpenClaw Command Webhook": {
       "main": [
         [
           {
@@ -255,7 +255,7 @@
       "id": "cd-tag-001"
     },
     {
-      "name": "Moltbot",
+      "name": "OpenClaw",
       "id": "cd-tag-003"
     }
   ]

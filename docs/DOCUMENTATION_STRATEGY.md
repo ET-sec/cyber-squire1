@@ -59,7 +59,7 @@ This project maintains **4 distinct documentation versions** for different audie
 **Security:** NEVER commit to public repo - use private repo or local-only
 
 **Should contain:**
-- Real EC2 IP addresses (54.234.155.244, etc.)
+- Real EC2 IP addresses (YOUR_EC2_IP, etc.)
 - Real domain names (n8n.your-real-domain.com)
 - Real email addresses (your-real-email@domain.com)
 - Actual Cloudflare Tunnel tokens

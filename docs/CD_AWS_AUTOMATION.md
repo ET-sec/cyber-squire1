@@ -385,7 +385,7 @@ cd-[function]-[resource]-[index]
 ### CD-AWS-AUTOMATION: Production & Teams
 
 **Ideal Scenarios**:
-1. **Production Campaigns**: Operation Nuclear (3-month outreach campaign)
+1. **Production Campaigns**: CoreDirective Operations (3-month outreach campaign)
 2. **Team Deployments**: 2+ operators modifying infrastructure
 3. **Compliance Requirements**: SOC 2, HIPAA, PCI-DSS audits
 4. **Long-Lived Infrastructure**: >30 days uptime, needs operational rigor
@@ -562,4 +562,4 @@ cd-[function]-[resource]-[index]
 **Last Updated**: 2026-01-30
 **Architecture**: CD-AWS-AUTOMATION v1.0
 **Author**: Emmanuel Tigoue
-**For**: Operation Nuclear Infrastructure
+**For**: CoreDirective Operations Infrastructure

@@ -49,7 +49,7 @@
 - [ ] Ollama running with qwen2.5:7b model
 - [ ] KEEP_ALIVE=24h configured (from Phase 1)
 - [ ] Telegram bot token configured in n8n credentials
-- [ ] SSH access to EC2 (54.234.155.244)
+- [ ] SSH access to EC2 (YOUR_EC2_IP)
 
 ---
 
@@ -70,10 +70,10 @@ cd /Users/et/cyber-squire-ops
 scp -i ~/.ssh/cyber-squire-key.pem \
     COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json \
     COREDIRECTIVE_ENGINE/workflow_tool_system_status.json \
-    ec2-user@54.234.155.244:/tmp/
+    ec2-user@YOUR_EC2_IP:/tmp/
 
 # SSH to EC2
-ssh -i ~/.ssh/cyber-squire-key.pem ec2-user@54.234.155.244
+ssh -i ~/.ssh/cyber-squire-key.pem ec2-user@YOUR_EC2_IP
 
 # Monitor n8n logs
 docker logs -f cd-service-n8n 2>&1 | grep "ROUTING_DECISION"

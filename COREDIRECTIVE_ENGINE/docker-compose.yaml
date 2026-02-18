@@ -36,14 +36,17 @@ services:
       - N8N_USER_MANAGEMENT_JWT_SECRET=${CD_N8N_JWT}
       - N8N_DEFAULT_USER_EMAIL=${CD_N8N_USER}
       - N8N_DEFAULT_USER_PASSWORD=${CD_N8N_PASS}
-      - N8N_HOST=https://n8n.yourdomain.com
+      - N8N_HOST=https://n8n.tigouetheory.com
       - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://n8n.yourdomain.com/
-      - N8N_EDITOR_BASE_URL=https://n8n.yourdomain.com
+      - WEBHOOK_URL=https://n8n.tigouetheory.com/
+      - N8N_EDITOR_BASE_URL=https://n8n.tigouetheory.com
       - OLLAMA_HOST=http://cd-service-ollama:11434
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=false
     volumes:
       - ./CD_VOL_N8N:/home/node/.n8n:z
       - ${CD_STORAGE_PATH}:/data/media:z
+      - /usr/local/bin/ffmpeg:/usr/local/bin/ffmpeg:ro
     depends_on:
       cd-service-db:
         condition: service_healthy
@@ -93,44 +96,72 @@ services:
       - cd-net
 
   # ==========================================
-  # Moltbot Service (Lead Enrichment & Automation Bot)
+  # OpenClaw Gateway (AI Agent - @CDirective_bot)
   # ==========================================
-  # Purpose: Automates lead discovery, enrichment, and qualification for Operation Nuclear
-  # - Scrapes company 10-K SEC filings for financial data
-  # - Extracts LinkedIn profiles for C-suite contacts  # - Identifies technical vulnerabilities and opportunities
-  # - Enriches Notion database with actionable intelligence
+  # Status: RUNNING STANDALONE (not managed by compose)
+  # Container: moltbot-gateway (ports 18789, 18790)
   #
-  # Status: Currently disabled (moltbot/ directory with source code not yet integrated)
-  # Port: 18789 (assigned, ready when service is enabled)
+
+  # ==========================================
+  # Evolution API (WhatsApp Gateway)
+  # ==========================================
+  # Purpose: WhatsApp integration via Baileys (personal number)
+  # - Provides web UI for QR code scanning at /manager
+  # - REST API for sending/receiving messages
+  # - Webhooks to n8n for AI-powered responses
   #
-  # To Enable:
-  # 1. Add moltbot/ directory with Dockerfile and application source
-  # 2. Uncomment this service definition
-  # 3. Run: docker compose build cd-service-moltbot
-  # 4. Run: docker compose up -d cd-service-moltbot
-  #
-  # Note: This service is critical for scaling Operation Nuclear automation.
-  # Stack operates without it, but manual lead enrichment is required.
-  #
-  # cd-service-moltbot:
-  #   build:
-  #     context: ./moltbot
-  #     dockerfile: Dockerfile
-  #   container_name: cd-service-moltbot
-  #   restart: always
-  #   ports:
-  #     - "18789:18789"
-  #   environment:
-  #     - OLLAMA_HOST=http://cd-service-ollama:11434
-  #     - N8N_HOST=http://cd-service-n8n:5678
-  #     - GATEWAY_TOKEN=${CD_MOLT_TOKEN}
-  #   volumes:
-  #     - ./CD_VOL_MOLT:/root/.moltbot:z
-  #   depends_on:
-  #     - cd-service-ollama
-  #     - cd-service-n8n
-  #   networks:
-  #     - cd-net
+  cd-service-evolution:
+    image: evoapicloud/evolution-api:latest
+    container_name: cd-service-evolution
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_NAME=evolution
+      - SERVER_TYPE=http
+      - SERVER_PORT=8080
+      - SERVER_URL=http://localhost:8080
+      - SERVER_DISABLE_MANAGER=false
+      - SERVER_DISABLE_DOCS=false
+      - CORS_ORIGIN=*
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://${CD_DB_USER}:${CD_DB_PASS}@cd-service-db:5432/evolution_api
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_MESSAGE_UPDATE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - DATABASE_SAVE_DATA_CHATS=true
+      - CACHE_REDIS_ENABLED=false
+      - CACHE_LOCAL_ENABLED=true
+      - CACHE_LOCAL_TTL=86400
+      - AUTHENTICATION_API_KEY=${CD_EVOLUTION_API_KEY}
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=false
+      - LOG_LEVEL=ERROR,WARN,INFO,LOG
+      - LOG_BAILEYS=error
+      - DEL_INSTANCE=false
+      - LANGUAGE=en
+      - QRCODE_LIMIT=30
+      - CONFIG_SESSION_PHONE_CLIENT=CyberSquire
+      - CONFIG_SESSION_PHONE_NAME=Chrome
+      - WEBHOOK_GLOBAL_URL=http://cd-service-n8n:5678/webhook/whatsapp-incoming
+      - WEBHOOK_GLOBAL_ENABLED=true
+      - WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=false
+      - WEBHOOK_EVENTS_MESSAGES_UPSERT=true
+      - WEBHOOK_EVENTS_CONNECTION_UPDATE=true
+      - WEBHOOK_EVENTS_QRCODE_UPDATED=true
+      - N8N_ENABLED=false
+      - OPENAI_ENABLED=false
+      - TYPEBOT_ENABLED=false
+      - CHATWOOT_ENABLED=false
+      - TELEMETRY_ENABLED=false
+    volumes:
+      - ./CD_VOL_EVOLUTION:/evolution/instances:z
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    networks:
+      - cd-net
 
   tunnel-cyber-squire:
     image: cloudflare/cloudflared:latest

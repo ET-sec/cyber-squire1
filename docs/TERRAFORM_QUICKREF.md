@@ -96,7 +96,7 @@ tail -20 /var/log/cloud-init-output.log
 - t3.xlarge compute: ~$122
 - 100GB gp3 SSD: ~$8
 - Data transfer: ~$5-15
-- **Total: ~$135-150/month** (within Operation Nuclear budget)
+- **Total: ~$135-150/month** (within CoreDirective Operations budget)
 
 ---
 
@@ -111,7 +111,7 @@ After `terraform apply` succeeds:
 5. **Deploy Docker stack** via `docker compose up -d`
 6. **Access n8n** at the output URL
 7. **Setup Cloudflare Tunnel** for zero-trust access
-8. **Configure Operation Nuclear** workflows
+8. **Configure CoreDirective Operations** workflows
 
 ---
 

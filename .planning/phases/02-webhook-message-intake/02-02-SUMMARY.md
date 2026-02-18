@@ -87,7 +87,7 @@ Is Duplicate? (If Node)
 ```
 
 ### 3. Database Deployment
-**Location:** EC2 instance 54.234.155.244
+**Location:** EC2 instance YOUR_EC2_IP
 **Container:** `cd-service-db`
 **Database:** `cd_automation_db`
 **User:** `tigoue_architect`
@@ -248,7 +248,7 @@ grep "telegram_message_log" COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json
 grep "ON CONFLICT" COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json
 
 # Verify PostgreSQL table on EC2
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244 \
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP \
   'docker exec cd-service-db psql -U tigoue_architect -d cd_automation_db -c "\d telegram_message_log"'
 
 # Test deduplication (manual)
@@ -282,7 +282,7 @@ cp COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json.backup \
    COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json
 
 # Drop table if needed (data loss!)
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244 \
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP \
   'docker exec cd-service-db psql -U tigoue_architect -d cd_automation_db -c "DROP TABLE telegram_message_log CASCADE;"'
 ```
 

@@ -399,10 +399,10 @@ N8N_EXECUTIONS_DATA_MAX_AGE=168h        # Keep 7 days
 OLLAMA_HOST=http://cd-service-ollama:11434
 ```
 
-### n8n Workflow Template: Operation Nuclear (Phase 1)
+### n8n Workflow Template: CoreDirective Operations (Phase 1)
 
 **Workflow Name:** `operation-nuclear-phase-1`  
-**Trigger:** Notion database update (Operation Nuclear table)  
+**Trigger:** Notion database update (CoreDirective Operations table)  
 **Execution Time:** ~15 seconds per lead  
 
 ```
@@ -523,7 +523,7 @@ curl -X POST http://localhost:11434/api/generate \
 ```
 Cold Start (model loaded into VRAM): 2-3 seconds
 Warm Cache (model resident): 0.5-1.0 second
-Average Prompt Tokens: 150 (Operation Nuclear email request)
+Average Prompt Tokens: 150 (CoreDirective Operations email request)
 Average Completion Tokens: 180 (personalized pitch)
 Total Time-to-Token: 1.2-1.5 seconds
 Total API Response Time: 1.5-2.0 seconds

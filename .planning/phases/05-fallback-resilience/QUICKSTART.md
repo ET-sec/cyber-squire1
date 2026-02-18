@@ -12,7 +12,7 @@
 ### 2. Configure Environment (1 min)
 ```bash
 # SSH to EC2
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 
 # Add to .env
 echo "GEMINI_API_KEY=your_key_here" >> /home/ec2-user/COREDIRECTIVE_ENGINE/.env
@@ -27,7 +27,7 @@ docker-compose restart
 # Copy SQL file to EC2
 scp -i ~/cyber-squire-ops/cyber-squire-ops.pem \
   /Users/et/cyber-squire-ops/COREDIRECTIVE_ENGINE/sql/05_ai_failures.sql \
-  ec2-user@54.234.155.244:/home/ec2-user/
+  ec2-user@YOUR_EC2_IP:/home/ec2-user/
 
 # Execute on PostgreSQL
 docker exec -i postgresql psql -U n8n -d n8n < /home/ec2-user/05_ai_failures.sql
@@ -39,7 +39,7 @@ docker exec -it postgresql psql -U n8n -d n8n -c "\d ai_failures"
 ### 4. Update Workflow (1 min)
 ```bash
 # Import updated workflow_supervisor_agent.json via n8n UI
-# http://54.234.155.244:5678
+# http://YOUR_EC2_IP:5678
 # Workflows → "Telegram Supervisor Agent" → ... → Import from File
 # Upload: /Users/et/cyber-squire-ops/COREDIRECTIVE_ENGINE/workflow_supervisor_agent.json
 ```

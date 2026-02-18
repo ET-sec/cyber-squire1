@@ -107,7 +107,7 @@ moltbot-gateway       Up 5 days           -
 
 ### Access Points
 - **n8n UI**: https://cyber-squire.tigouetheory.com
-- **SSH**: ec2-user@54.234.155.244
+- **SSH**: ec2-user@YOUR_EC2_IP
 - **SSH Key**: ~/cyber-squire-ops/cyber-squire-ops.pem
 
 ### Database Configuration

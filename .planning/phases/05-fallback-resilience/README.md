@@ -64,7 +64,7 @@
 open https://aistudio.google.com/apikey
 
 # 2. SSH to EC2 and configure
-ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@54.234.155.244
+ssh -i ~/cyber-squire-ops/cyber-squire-ops.pem ec2-user@YOUR_EC2_IP
 echo "GEMINI_API_KEY=your_key_here" >> /home/ec2-user/COREDIRECTIVE_ENGINE/.env
 cd /home/ec2-user/COREDIRECTIVE_ENGINE && docker-compose restart
 

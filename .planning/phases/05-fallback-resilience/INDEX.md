@@ -310,7 +310,7 @@ docker exec -it postgresql psql -U n8n -d n8n -c \
 
 ### Essential URLs
 - Gemini API Key: https://aistudio.google.com/apikey
-- n8n UI: http://54.234.155.244:5678
+- n8n UI: http://YOUR_EC2_IP:5678
 - PostgreSQL: localhost:5432 (via docker exec)
 
 ---

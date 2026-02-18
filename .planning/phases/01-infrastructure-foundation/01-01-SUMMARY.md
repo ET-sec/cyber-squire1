@@ -14,7 +14,7 @@ COMPLETED - 2026-02-04
 - Commit: 29ee8eb - "Configure Ollama to keep models loaded for 24 hours"
 
 ### 2. Deploy Configuration to EC2
-- Target: ec2-user@54.234.155.244
+- Target: ec2-user@YOUR_EC2_IP
 - Actions:
   - Uploaded updated docker-compose.yaml via SCP
   - Restarted cd-service-ollama container with `docker compose up -d`

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # Configuration
-EC2_HOST="54.234.155.244"
+EC2_HOST="YOUR_EC2_IP"
 SSH_KEY="${HOME}/.ssh/cyber-squire-ops.pem"
 CHAT_ID="${TELEGRAM_CHAT_ID:-}"
 BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"

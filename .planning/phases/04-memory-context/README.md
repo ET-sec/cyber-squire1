@@ -167,7 +167,7 @@ Each Telegram chat has independent memory (privacy-preserving)
 Creates: table, indexes, trigger, functions, view
 
 **Step 2: Verify Workflow Configuration** (2 min)
-- Open n8n UI: http://54.234.155.244:5678
+- Open n8n UI: http://YOUR_EC2_IP:5678
 - Verify Chat Memory node → Supervisor Agent connection
 - Check settings: session key, table name, window size
 
@@ -183,10 +183,10 @@ Follow [TESTING.md](./TESTING.md) test cases 4.1-4.4 via Telegram
 **Step 5: Monitor** (24 hours)
 ```bash
 # Check memory stats
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
 
 # Watch n8n logs
-ssh ubuntu@54.234.155.244 'docker logs -f n8n 2>&1 | grep -i memory'
+ssh ubuntu@YOUR_EC2_IP 'docker logs -f n8n 2>&1 | grep -i memory'
 ```
 
 📖 **See**: [IMPLEMENTATION.md](./IMPLEMENTATION.md) for detailed steps
@@ -276,7 +276,7 @@ SELECT cron.schedule(
 
 **Check 1**: Messages being stored?
 ```bash
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT session_id, COUNT(*) FROM chat_memory GROUP BY session_id;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT session_id, COUNT(*) FROM chat_memory GROUP BY session_id;"'
 ```
 
 **Solution**: If empty, verify Chat Memory node is connected in n8n UI
@@ -294,7 +294,7 @@ SELECT DISTINCT session_id FROM chat_memory;
 
 **Check**: Trigger exists?
 ```bash
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT tgname FROM pg_trigger WHERE tgrelid = '"'chat_memory'"'::regclass;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT tgname FROM pg_trigger WHERE tgrelid = '"'chat_memory'"'::regclass;"'
 ```
 
 **Solution**: Re-run `./deploy.sh`
@@ -304,7 +304,7 @@ ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_auto
 
 **Check**: Query performance
 ```bash
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "EXPLAIN ANALYZE SELECT * FROM chat_memory ORDER BY created_at DESC LIMIT 13;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "EXPLAIN ANALYZE SELECT * FROM chat_memory ORDER BY created_at DESC LIMIT 13;"'
 ```
 
 **Expected**: < 10ms execution time
@@ -320,7 +320,7 @@ ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_auto
 **Recovery Time**: 2 minutes
 
 **Steps**:
-1. Open n8n UI: http://54.234.155.244:5678
+1. Open n8n UI: http://YOUR_EC2_IP:5678
 2. Workflow: "Telegram Supervisor Agent"
 3. Disconnect Chat Memory node from Supervisor Agent
 4. Save workflow
@@ -331,7 +331,7 @@ ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_auto
 **Recovery Time**: 5 minutes
 
 ```bash
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "DROP TABLE IF EXISTS chat_memory CASCADE;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "DROP TABLE IF EXISTS chat_memory CASCADE;"'
 ```
 
 ---
@@ -339,7 +339,7 @@ ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_auto
 ## Dependencies
 
 ### Infrastructure (All Present)
-- ✅ EC2: 54.234.155.244 (running)
+- ✅ EC2: YOUR_EC2_IP (running)
 - ✅ PostgreSQL: cd-service-db container (running)
 - ✅ n8n: Latest with LangChain support
 - ✅ Database: cd_automation_db (exists)
@@ -497,7 +497,7 @@ cd /Users/et/cyber-squire-ops/.planning/phases/04-memory-context
 
 ### Monitor
 ```bash
-ssh ubuntu@54.234.155.244 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
+ssh ubuntu@YOUR_EC2_IP 'docker exec cd-service-db psql -U postgres -d cd_automation_db -c "SELECT * FROM chat_memory_stats;"'
 ```
 
 ### Rollback

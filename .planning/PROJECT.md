@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Telegram-first automation system that routes commands (text and voice) to specialized n8n workflows for government contract bidding, resume auditing, content generation, and financial tracking. Built for a cybersecurity specialist (CASP+, CCNA, SSCP) pursuing $150K income and $60K debt exit.
+A Telegram-first automation system that routes commands (text and voice) to specialized n8n workflows for task management, content generation, and security operations. Built for a cybersecurity specialist (CASP+, CCNA, SSCP).
 
 ## Core Value
 
@@ -32,22 +32,13 @@ A Telegram-first automation system that routes commands (text and voice) to spec
 ## Context
 
 **Principal Profile:**
-- Sickle Cell Anemia (Type RO) — energy is finite clinical resource, >10x ROI required
-- ADHD — systems must solve activation paralysis and executive dysfunction
-- Cybersecurity: CASP+, CCNA, SSCP, SecurityX, Zero Trust, NIST RMF, Akamai WAF
+- Cybersecurity: CASP+, CCNA, SSCP, SecurityX, Zero Trust, NIST RMF
 
-**Business Entities:**
-- CoreDirective: Career acceleration for security professionals
-- Tigoue Theory LLC: Automation & consumer psychology consultancy
-- Operation Nuclear: C-Suite outreach for high-stakes roles
-
-**Financial Targets:**
-- Primary: $60,000 debt exit
-- Income: $150,000+ annually
-- Business: $10K/month
+**Business Entity:**
+- CoreDirective: Security operations and automation
 
 **Infrastructure (Running):**
-- EC2 t3.xlarge @ 54.234.155.244 (16GB RAM)
+- EC2 t3.xlarge (16GB RAM)
 - n8n in Host Mode, Port 5678
 - PostgreSQL 16 @ localhost
 - Ollama + Qwen 3 8B (7.5GB)

@@ -6,7 +6,7 @@
 
 ## Architecture Overview
 
-The Cyber-Squire CNS is a **sovereign business operating system** designed to maximize output while accommodating physical constraints (Sickle Cell RO). It operates on a **Bridge Architecture** where all services communicate through a private Docker bridge network (`cd-net`) with Zero Trust security.
+The Cyber-Squire CNS is a **sovereign business operating system** designed to maximize output while accommodating physical constraints (health constraints). It operates on a **Bridge Architecture** where all services communicate through a private Docker bridge network (`cd-net`) with Zero Trust security.
 
 ### Core Principles
 
@@ -74,9 +74,9 @@ docker ps | grep cd-service
 **8 Workflows Deployed:**
 
 1. **🏥 API Health Check** - Monitors all API credentials every 6 hours
-2. **🤖 Moltbot Workflow Generator** - Natural language → n8n workflow JSON
+2. **🤖 OpenClaw Workflow Generator** - Natural language → n8n workflow JSON
 3. **📂 Google Drive File Watcher** - Monitors 2TB mount for new files
-4. **☢️ Operation Nuclear** - Lead enrichment → Claude outreach → Auto-send
+4. **CoreDirective Operations** - Lead enrichment → Claude outreach → Auto-send
 5. **🎬 YouTube Content Factory** - Video → Transcript → Metadata → Shorts scripts
 6. **💰 Gumroad Solvency Engine** - Sales → 60/30/10 allocation → Debt tracker
 7. **📋 Notion Task Manager** - ADHD-optimized task analysis & prioritization
@@ -101,7 +101,7 @@ Each workflow needs specific Notion database IDs. Update these in the n8n UI:
 - `notion_tasks_db` - Your Tasks database ID
 - `notion_strategy_page` - Daily strategy page ID
 
-**Operation Nuclear Workflow:**
+**CoreDirective Operations Workflow:**
 - `notion_leads_db` - Leads database ID
 
 **YouTube Factory Workflow:**
@@ -133,9 +133,9 @@ Each workflow needs specific Notion database IDs. Update these in the n8n UI:
 
 All webhooks are accessible via Cloudflare Tunnel:
 
-### Moltbot Workflow Generator
+### OpenClaw Workflow Generator
 ```bash
-curl -X POST https://n8n.yourdomain.com/webhook/moltbot-command \
+curl -X POST https://n8n.yourdomain.com/webhook/openclaw-command \
   -H "Content-Type: application/json" \
   -d '{
     "command": "Create a workflow that checks Twitter mentions every hour",
@@ -143,7 +143,7 @@ curl -X POST https://n8n.yourdomain.com/webhook/moltbot-command \
   }'
 ```
 
-### Operation Nuclear Lead Intake
+### CoreDirective Operations Lead Intake
 ```bash
 curl -X POST https://n8n.yourdomain.com/webhook/lead-intake \
   -H "Content-Type: application/json" \
@@ -215,7 +215,7 @@ curl -X POST https://n8n.yourdomain.com/webhook/ai-router \
 ### Claude 3.5 Sonnet
 **Cost:** ~$3 per 1M tokens
 **Use Cases:**
-- Operation Nuclear outreach drafting
+- CoreDirective Operations outreach drafting
 - Complex technical documentation
 - Strategic business planning
 - Code architecture decisions
@@ -227,7 +227,7 @@ curl -X POST https://n8n.yourdomain.com/webhook/ai-router \
 
 ---
 
-## Operation Nuclear Workflow
+## CoreDirective Operations Workflow
 
 ### Lead Enrichment Pipeline
 
@@ -330,7 +330,7 @@ Claude analyzes high-priority backlog and suggests:
 
 ---
 
-## Moltbot Integration
+## OpenClaw Integration
 
 ### Natural Language Workflow Creation
 
@@ -350,14 +350,14 @@ POSTs to n8n API → Workflow created & activated
 
 ### Mobile Control
 
-Text Moltbot from WhatsApp/Telegram:
+Text OpenClaw from WhatsApp/Telegram:
 ```
 "Check if my workflows are running"
 "Show me today's leads"
 "Generate a thank you email for the last Gumroad customer"
 ```
 
-Moltbot triggers relevant n8n workflows and returns results.
+OpenClaw triggers relevant n8n workflows and returns results.
 
 ---
 
@@ -376,7 +376,7 @@ Runs every 6 hours to test:
 **On Failure:**
 - Logs error to Notion
 - Creates alert page
-- Can trigger notification via Moltbot
+- Can trigger notification via OpenClaw
 
 ### Log Analysis
 
@@ -416,7 +416,7 @@ All AI requests logged to Notion:
 
 **Cyber-Squire OS Product:** $47/sale
 **Break-even:** 2 sales/month
-**Target Revenue:** $120k-$170k/year
+**Target Revenue:** competitive compensation
 **Required Sales:** 2,553-3,617 sales/year (~7-10 sales/day)
 
 ---
@@ -513,7 +513,7 @@ chcon -Rt svirt_sandbox_file_t ./CD_VOL_N8N
 
 ## Next Steps
 
-### Phase 5: Moltbot Mobile Bridge
+### Phase 5: OpenClaw Mobile Bridge
 
 Build the mobile interface for WhatsApp/Telegram control.
 
@@ -533,7 +533,7 @@ Build the mobile interface for WhatsApp/Telegram control.
 ### Phase 7: Scale Operations
 
 1. Hire virtual assistant for manual review queue
-2. Expand Operation Nuclear to 50 leads/day
+2. Expand CoreDirective Operations to 50 leads/day
 3. Launch YouTube content cadence (3x/week)
 4. Build community around Cyber-Squire methodology
 

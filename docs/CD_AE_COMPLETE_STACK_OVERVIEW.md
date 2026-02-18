@@ -4,7 +4,7 @@
 **Status:** 🟢 PRODUCTION-READY  
 **Date:** January 30, 2026  
 **Operation:** Nuclear (C-suite cybersecurity outreach campaign, Jan-Mar 2026)  
-**Goal:** $120k-$170k role targeting
+**Goal:** competitive compensation role targeting
 
 ---
 
@@ -139,7 +139,7 @@ docker compose ps  # Verify all 4 services "Up (healthy)"
 2. CD-AE deployment (docker-compose.yaml, .env setup)
 3. n8n access (browser login)
 4. Cloudflare Tunnel (zero-trust remote access)
-5. Operation Nuclear (Notion trigger + first batch)
+5. CoreDirective Operations (Notion trigger + first batch)
 
 **Time to Complete:** 30-45 minutes (manual)
 
@@ -149,7 +149,7 @@ docker compose ps  # Verify all 4 services "Up (healthy)"
 
 **Files:**
 - `docs/Employment_Proof.md` — Executive summary (15 pages)
-  - Operation Nuclear timeline, ROI, success criteria
+  - CoreDirective Operations timeline, ROI, success criteria
   
 - `docs/Technical_Vault.md` — Architecture deep-dive (15+ pages)
   - AWS instance optimization, PostgreSQL tuning, Ollama memory profiling
@@ -248,7 +248,7 @@ docker compose ps
 # Access n8n
 open http://54.xxx.xxx.xxx:5678
 
-# Configure first Operation Nuclear workflow
+# Configure first CoreDirective Operations workflow
 # (Notion trigger → Qwen 3 AI Agent → Gmail send)
 ```
 
@@ -359,7 +359,7 @@ cloudflared tunnel run cd-alpha-tunnel
 
 | Integration | Status | Purpose | Notes |
 |-------------|--------|---------|-------|
-| Notion API | Post-deployment | Lead database trigger | Fetch contacts from Operation Nuclear table |
+| Notion API | Post-deployment | Lead database trigger | Fetch contacts from CoreDirective Operations table |
 | Gmail API | Post-deployment | Email delivery | Send personalized outreach emails |
 | Slack Webhook | Post-deployment | Human approval gate | Notify before sending live emails |
 | Google Drive | Rclone mount | Content storage & backup | 2TB for media + PostgreSQL dumps |
@@ -502,7 +502,7 @@ terraform apply -var="my_ip=$(curl -s http://checkip.amazonaws.com)" --auto-appr
 3. **Deploy:** Run `terraform apply`
 4. **Wait:** Bootstrap completes (5 min)
 5. **Configure:** Follow RHEL_System_Init.md Phase 2-5
-6. **Launch:** Create first Operation Nuclear workflow
+6. **Launch:** Create first CoreDirective Operations workflow
 7. **Monitor:** Daily health checks via ADHD_Runbook.md
 
 ---
@@ -521,6 +521,6 @@ terraform apply -var="my_ip=$(curl -s http://checkip.amazonaws.com)" --auto-appr
 ---
 
 **CoreDirective Alpha-Engine v1.0.0  
-Deployed for Operation Nuclear  
+Deployed for CoreDirective Operations  
 January 30, 2026  
 Status: ✅ PRODUCTION-READY**

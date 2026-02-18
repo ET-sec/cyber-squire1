@@ -156,5 +156,5 @@ When deprecating content in the future, follow this template:
 ---
 
 **Maintained By:** Emmanuel Tigoue
-**Project:** CoreDirective Automation Engine (Operation Nuclear)
+**Project:** CoreDirective Automation Engine (CoreDirective Operations)
 **Last Updated:** 2026-01-30
