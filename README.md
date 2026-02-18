@@ -1,5 +1,8 @@
 # CoreDirective Automation Engine
 
+[![Live Portfolio](https://img.shields.io/badge/Portfolio-Live-00FF41?style=flat-square)](https://etcodin.github.io/portfolio/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+
 **Production security platform on AWS — AI-augmented orchestration, Zero Trust architecture, Terraform IaC**
 
 Built and operated by [Emmanuel Tigoue](https://etcodin.github.io/portfolio/) | Security Engineer | CASP+ (SecurityX), SSCP, CCNA
