@@ -21,7 +21,7 @@
         "url": "http://cd-service-ollama:11434/api/generate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"model\": \"qwen2.5:7b\",\n  \"prompt\": \"You are CoreDirective AI running on private AWS RHEL infrastructure with zero external API dependencies. Generate a brief 2-sentence system status confirmation.\",\n  \"stream\": false,\n  \"options\": { \"temperature\": 0.7, \"num_predict\": 100 }\n}",
+        "jsonBody": "{\n  \"model\": \"qwen3:8b\",\n  \"prompt\": \"You are CoreDirective AI running on private AWS RHEL infrastructure with zero external API dependencies. Generate a brief 2-sentence system status confirmation.\",\n  \"stream\": false,\n  \"options\": { \"temperature\": 0.7, \"num_predict\": 100 }\n}",
         "options": { "timeout": 60000 }
       },
       "id": "ollama-call",

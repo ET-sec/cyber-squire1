@@ -11,12 +11,12 @@ Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | S
 
 ## What This Is
 
-A 5-service containerized security platform running on a single EC2 instance. Integrates 17 services through a SOAR orchestration layer with zero external AI inference costs.
+A 5-service containerized security platform running on a single EC2 instance. Integrates 16 services through a SOAR orchestration layer with zero external AI inference costs.
 
 ```
 AWS EC2 t3.xlarge (16GB RAM) — RHEL 9 / Amazon Linux 2023
 ├── PostgreSQL 16          Workflow state + automation logs
-├── n8n SOAR               17-service orchestration engine
+├── n8n SOAR               16-service orchestration engine
 ├── Ollama (Qwen 3 8B)    Local AI inference ($0/month)
 ├── Faster-Whisper         Voice transcription (STT)
 ├── OpenClaw Gateway       Claude AI agent proxy
@@ -29,7 +29,7 @@ AWS EC2 t3.xlarge (16GB RAM) — RHEL 9 / Amazon Linux 2023
 
 | Metric | Value |
 |--------|-------|
-| Integrated Services | 17 |
+| Integrated Services | 16 |
 | NIST/CIS Coverage | 89% (16/18 controls) |
 | Attack Surface Reduction | 85% |
 | AI Inference Cost | $0/month |

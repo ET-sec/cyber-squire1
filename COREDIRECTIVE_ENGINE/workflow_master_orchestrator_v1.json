@@ -143,7 +143,7 @@
         ],
         "credentials": {
           "googleTasksOAuth2Api": {
-            "id": "zt7SPOC7sh007IWI",
+            "id": "zt7SPOC7sh007lWl",
             "name": "Google Tasks account"
           }
         }
@@ -166,7 +166,7 @@
         ],
         "credentials": {
           "googleSlidesOAuth2Api": {
-            "id": "1gzBvI1Q6fgf9NPv",
+            "id": "1gzBvl1Q6fgf9NPv",
             "name": "Google Slides account"
           }
         }
@@ -269,7 +269,7 @@
       {
         "parameters": {
           "resource": "repository",
-          "owner": "={{ $json.owner || 'ETcodin' }}",
+          "owner": "={{ $json.owner || 'ET-sec' }}",
           "repository": "={{ $json.repo || 'cyber-squire1' }}",
           "returnAll": true,
           "getRepositoryIssuesFilters": {}
@@ -295,7 +295,7 @@
           "url": "http://cd-service-ollama:11434/api/generate",
           "sendBody": true,
           "specifyBody": "json",
-          "jsonBody": "={{ JSON.stringify({ model: $json.model || 'qwen2.5:7b', prompt: $json.prompt || $json.query || 'hello', stream: false }) }}",
+          "jsonBody": "={{ JSON.stringify({ model: $json.model || 'qwen3:8b', prompt: $json.prompt || $json.query || 'hello', stream: false }) }}",
           "options": {
             "timeout": 120000
           }

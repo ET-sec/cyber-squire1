@@ -14,7 +14,7 @@ The CoreDirective Automation Engine (CD-AE) is a **production-grade, enterprise-
 ### The Core Stack
 
 1. **AI Inference (Ollama + Qwen 3 8B):** Local inference engine for security analysis and automation ($0/month)
-2. **Orchestrator (n8n):** SOAR platform coordinating 17 services via webhook-driven workflows
+2. **Orchestrator (n8n):** SOAR platform coordinating 16 services via webhook-driven workflows
 3. **Memory (PostgreSQL 16):** Persistent state for workflow execution and automation logs
 4. **AI Gateway (OpenClaw):** Claude AI proxy for advanced reasoning and task execution
 5. **Voice (Faster-Whisper):** Speech-to-text for voice command input
