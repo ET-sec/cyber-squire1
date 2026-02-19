@@ -76,7 +76,7 @@ Ensure these credentials exist and are properly configured:
 
 **Ollama credential settings:**
 - Base URL: `http://cd-service-ollama:11434`
-- Model: `qwen2.5:7b` (or `qwen2.5-coder:7b-instruct-q4_K_M` for RAM safety)
+- Model: `qwen3:8b`
 
 ## Step 5: Update Sub-Workflows
 
