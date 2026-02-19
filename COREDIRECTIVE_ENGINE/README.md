@@ -486,7 +486,7 @@ chcon -Rt svirt_sandbox_file_t ./CD_VOL_N8N
 
 ## License & Attribution
 
-**Built for:** Tigou E Theory - Cyber-Squire Operations
+**Built for:** CoreDirective - Cyber-Squire Operations
 **Purpose:** Sovereign business automation with clinical precision
 **Philosophy:** Deep work optimization, ADHD accommodation, debt-to-solvency pipeline
 
