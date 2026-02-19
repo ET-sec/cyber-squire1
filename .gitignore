@@ -52,6 +52,8 @@ docs/PRIVATE_OPERATIONS_MANUAL.md
 *.swo
 *~
 *.bak
+*.backup
+ssh_config_nuclear.txt
 
 # ============================================
 # OS Generated
