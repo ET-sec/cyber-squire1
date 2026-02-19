@@ -365,8 +365,7 @@ Copy this ID into the corresponding workflow's webhook parameters.
 4. Review AI Router logs → Verify cost optimization
 
 ### Medium-term (This Month)
-1. Build OpenClaw mobile interface (WhatsApp/Telegram)
-2. Scale CoreDirective Operations to 10 leads/day
+1. Scale CoreDirective Operations to 10 leads/day
 3. Establish YouTube posting cadence (3x/week)
 4. Launch Cyber-Squire OS product marketing
 
@@ -427,4 +426,4 @@ Copy this ID into the corresponding workflow's webhook parameters.
 
 ---
 
-**© 2026 Cyber-Squire Operations | Tigou E Theory**
+**© 2026 Cyber-Squire Operations | CoreDirective**

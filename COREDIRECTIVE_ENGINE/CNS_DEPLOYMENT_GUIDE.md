@@ -350,7 +350,7 @@ POSTs to n8n API → Workflow created & activated
 
 ### Mobile Control
 
-Text OpenClaw from WhatsApp/Telegram:
+Text OpenClaw from Telegram:
 ```
 "Check if my workflows are running"
 "Show me today's leads"
@@ -515,13 +515,12 @@ chcon -Rt svirt_sandbox_file_t ./CD_VOL_N8N
 
 ### Phase 5: OpenClaw Mobile Bridge
 
-Build the mobile interface for WhatsApp/Telegram control.
+Telegram bot integration for mobile control.
 
 **Components:**
-1. Twilio WhatsApp Business API integration
-2. Telegram Bot API connection
-3. NLP parser (Qwen) to interpret commands
-4. n8n webhook triggers
+1. Telegram Bot API connection
+2. NLP parser (Qwen) to interpret commands
+3. n8n webhook triggers
 
 ### Phase 6: Revenue Optimization
 
@@ -549,4 +548,4 @@ Build the mobile interface for WhatsApp/Telegram control.
 
 ---
 
-**© 2026 Cyber-Squire Operations | Tigou E Theory**
+**© 2026 Cyber-Squire Operations | CoreDirective**
