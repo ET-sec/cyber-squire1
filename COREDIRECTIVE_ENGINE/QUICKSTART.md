@@ -264,7 +264,7 @@ Two bots are live:
 
 ### @Coredirective_bot (n8n - Basic)
 - **Engine:** n8n webhook workflow
-- **Model:** Ollama/Qwen 2.5:7b (local, free)
+- **Model:** Ollama/Qwen 3 8B (local, free)
 - **Tools:** ADHD Commander, Finance Manager, System Status
 - **Workflow:** `workflow_supervisor_agent.json`
 
