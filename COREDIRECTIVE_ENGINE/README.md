@@ -48,14 +48,14 @@ docker compose up -d
 
 - **PostgreSQL 16** - Encrypted business data storage
 - **n8n** - Workflow orchestration with credential encryption
-- **Ollama (Qwen 2.5:7b)** - Local AI (zero cost)
+- **Ollama (Qwen 3 8B)** - Local AI (zero cost)
 - **OpenClaw Gateway** - Autonomous AI agent (@CDirective_bot via Claude Sonnet/Opus)
 - **Faster-Whisper** - Local voice transcription
 - **Cloudflare Tunnel** - Zero Trust access gateway
 
 ### Telegram Bots
 - **@CDirective_bot** → OpenClaw (Claude Sonnet 4.5 → Opus 4.5 fallback)
-- **@Coredirective_bot** → n8n workflow (Ollama/Qwen 2.5:7b)
+- **@Coredirective_bot** → n8n workflow (Ollama/Qwen 3 8B)
 
 ### Security
 
@@ -83,7 +83,7 @@ docker compose up -d
 │  │                                                       │  │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐          │  │
 │  │  │   n8n    │◄─┤PostgreSQL│  │ Ollama   │          │  │
-│  │  │  :5678   │  │   :5432  │  │(Qwen2.5) │          │  │
+│  │  │  :5678   │  │   :5432  │  │(Qwen3)   │          │  │
 │  │  └────┬─────┘  └──────────┘  └──────────┘          │  │
 │  │       │                                              │  │
 │  │       │ Orchestrates workflows                      │  │

@@ -12,7 +12,7 @@
 The CoreDirective Automation Engine (CD-AE) is a production-ready, enterprise-hardened automation stack deployed on AWS EC2 (t3.xlarge). It functions as an **AI-augmented security operations platform** integrating 17 services through a SOAR orchestration layer.
 
 ### Strategic Advantage
-- **Cost:** $0 inference cost (local Qwen 2.5 via Ollama vs. $400/month GPU or API fees)
+- **Cost:** $0 inference cost (local Qwen 3 8B via Ollama vs. $400/month GPU or API fees)
 - **Privacy:** 100% on-premise AI reasoning (no external API calls for sensitive analysis)
 - **Portability:** Entire stack containerized; can migrate to any server in <5 minutes
 - **Resilience:** PostgreSQL replaces SQLite to handle concurrent workflow execution at scale
@@ -22,7 +22,7 @@ The CoreDirective Automation Engine (CD-AE) is a production-ready, enterprise-ha
 ## The Three Pillars Architecture
 
 ### Pillar I: The Brain (Ollama + Qwen 3 8B)
-- **Model:** Qwen 2.5 (7B parameter, 4-bit quantization = ~5GB RAM)
+- **Model:** Qwen 3 (8B parameter, 4-bit quantization = ~5GB RAM)
 - **Purpose:** Security analysis, content synthesis, and automated reporting
 - **Capability:** Technical reasoning, threat analysis, SEO metadata generation
 - **Access:** Internal Docker network (port 11434), exposed via n8n AI Agent nodes
@@ -62,7 +62,7 @@ The CoreDirective Automation Engine (CD-AE) is a production-ready, enterprise-ha
 
 **Flow:**
 1. OpenClaw researches targets via browser + Tavily AI search
-2. Data enrichment passed to Qwen 2.5 via n8n AI Agent
+2. Data enrichment passed to Qwen 3 8B via n8n AI Agent
 3. AI analyzes findings and generates structured report
 4. Draft sent via Telegram for human review
 5. Upon approval, n8n routes to appropriate service (Gmail, Notion, Google Docs)
