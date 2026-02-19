@@ -201,7 +201,7 @@ The second phase expanded the automation stack into a production-grade orchestra
 
 **Architecture:**
 - **Webhook Interface:** POST → parse → Switch Router (v2) → service-specific nodes → response
-- **Services:** Google Tasks, Google Slides, Google Sheets, Google Drive, Google Docs, Gmail, Google Workspace Admin, Microsoft Excel, Perplexity AI, Gumroad, GitHub, Ollama (local LLM), PostgreSQL, Telegram, Cloudflare, Notion, Tavily Search
+- **Services:** Google Tasks, Google Slides, Google Sheets, Google Drive, Google Docs, Gmail, Google Workspace Admin, Microsoft Excel, Gumroad, GitHub, Ollama (local LLM), PostgreSQL, Telegram, Cloudflare, Notion, Tavily Search
 - **Router Logic:** Switch v2 with dynamic service routing based on action parameters
 - **State Persistence:** PostgreSQL transactions ensure consistency across multi-service workflows
 - **Availability:** All services tested and production-verified with fallback error handling

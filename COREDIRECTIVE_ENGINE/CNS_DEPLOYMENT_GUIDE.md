@@ -62,7 +62,7 @@ docker ps | grep cd-service
 - Google OAuth CoreDirective
 - Gumroad Sales API
 - Notion Cyber-Squire API
-- Perplexity API (PPLX)
+- Tavily API (stored as n8n variable)
 
 ### Phase 3: Workflow Deployment
 
@@ -232,7 +232,7 @@ curl -X POST https://n8n.yourdomain.com/webhook/ai-router \
 ### Lead Enrichment Pipeline
 
 ```
-Lead Intake → Perplexity Research → Claude Draft → Notion Save → Quality Check
+Lead Intake → Tavily Research → Claude Draft → Notion Save → Quality Check
                                                                         ↓
                                                     Score >= 8? → Auto-Send
                                                     Score < 8?  → Manual Review
@@ -370,7 +370,7 @@ Runs every 6 hours to test:
 - GitHub API
 - Notion API
 - Gumroad API
-- Perplexity API
+- Tavily API
 - Google OAuth status
 
 **On Failure:**
@@ -407,7 +407,7 @@ All AI requests logged to Notion:
 **API Usage (Projected):**
 - Anthropic Claude: ~$20/month (strategic tasks only)
 - Google Gemini: ~$5/month (transcriptions)
-- Perplexity: ~$10/month (lead research)
+- Tavily: ~$0/month (1k free searches/month)
 - Qwen/Ollama: $0 (local)
 
 **Total: ~$85/month**
@@ -481,7 +481,7 @@ docker logs cd-service-n8n | grep ERROR
 - Anthropic API key
 - GitHub PAT
 - Notion API key
-- Perplexity API key
+- Tavily API key
 
 **Every 180 Days:**
 - Google OAuth client secret

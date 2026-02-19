@@ -98,28 +98,6 @@
     },
     {
       "parameters": {
-        "url": "https://api.perplexity.ai/chat/completions",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "perplexityApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "{\n  \"model\": \"llama-3.1-sonar-small-128k-online\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"test\"}]\n}",
-        "options": {}
-      },
-      "id": "perplexity-check",
-      "name": "Test Perplexity API",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [460, 600],
-      "credentials": {
-        "perplexityApi": {
-          "id": "BAcnL6CxAfKMqEGF",
-          "name": "Perplexity"
-        }
-      }
-    },
-    {
-      "parameters": {
         "sendTo": "etigoue@tigouetheory.com",
         "subject": "=CoreDirective Health Check {{ $now.format('yyyy-MM-dd') }}",
         "emailType": "text",
@@ -141,7 +119,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const checks = ['Ollama/Qwen3', 'GitHub', 'Notion', 'Gumroad', 'Perplexity'];\nconst results = [];\nconst allItems = $input.all();\n\nfor (let i = 0; i < allItems.length; i++) {\n  const item = allItems[i];\n  const hasError = item.json.error || item.json.statusCode >= 400;\n  results.push({\n    service: checks[i] || `Service ${i}`,\n    status: hasError ? 'FAILED' : 'PASS',\n    timestamp: new Date().toISOString()\n  });\n}\n\nconst failures = results.filter(r => r.status === 'FAILED');\nconst summary = results.map(r => `${r.status === 'PASS' ? '✅' : '❌'} ${r.service}`).join('\\n');\n\nreturn [{\n  json: {\n    summary,\n    failures: failures.map(f => f.service),\n    hasFailures: failures.length > 0,\n    total: results.length,\n    passed: results.length - failures.length\n  }\n}];"
+        "jsCode": "const checks = ['Ollama/Qwen3', 'GitHub', 'Notion', 'Gumroad'];\nconst results = [];\nconst allItems = $input.all();\n\nfor (let i = 0; i < allItems.length; i++) {\n  const item = allItems[i];\n  const hasError = item.json.error || item.json.statusCode >= 400;\n  results.push({\n    service: checks[i] || `Service ${i}`,\n    status: hasError ? 'FAILED' : 'PASS',\n    timestamp: new Date().toISOString()\n  });\n}\n\nconst failures = results.filter(r => r.status === 'FAILED');\nconst summary = results.map(r => `${r.status === 'PASS' ? '✅' : '❌'} ${r.service}`).join('\\n');\n\nreturn [{\n  json: {\n    summary,\n    failures: failures.map(f => f.service),\n    hasFailures: failures.length > 0,\n    total: results.length,\n    passed: results.length - failures.length\n  }\n}];"
       },
       "id": "aggregate-results",
       "name": "Aggregate Results",
@@ -203,15 +181,13 @@
         { "node": "Test Ollama/Qwen3", "type": "main", "index": 0 },
         { "node": "Test GitHub API", "type": "main", "index": 0 },
         { "node": "Test Notion API", "type": "main", "index": 0 },
-        { "node": "Test Gumroad API", "type": "main", "index": 0 },
-        { "node": "Test Perplexity API", "type": "main", "index": 0 }
+        { "node": "Test Gumroad API", "type": "main", "index": 0 }
       ]]
     },
     "Test Ollama/Qwen3": { "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]] },
     "Test GitHub API": { "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]] },
     "Test Notion API": { "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]] },
     "Test Gumroad API": { "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]] },
-    "Test Perplexity API": { "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]] },
     "Aggregate Results": { "main": [[{ "node": "Any Failures?", "type": "main", "index": 0 }]] },
     "Any Failures?": {
       "main": [
@@ -221,5 +197,5 @@
     }
   },
   "settings": { "executionOrder": "v1" },
-  "meta": { "notes": "Daily health check: Tests Ollama, GitHub, Notion, Gumroad, Perplexity APIs. Alerts via Telegram on failure." }
+  "meta": { "notes": "Daily health check: Tests Ollama, GitHub, Notion, Gumroad APIs. Alerts via Telegram on failure." }
 }

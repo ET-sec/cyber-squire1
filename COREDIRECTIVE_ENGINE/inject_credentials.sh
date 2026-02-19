@@ -29,7 +29,7 @@ echo "✓ Found $VAULT_FILE"
 echo ""
 
 # Extract and inject each credential from vault
-CRED_KEYS=("anthropic" "github" "google_oauth" "gumroad" "notion" "perplexity")
+CRED_KEYS=("anthropic" "github" "google_oauth" "gumroad" "notion")
 
 for KEY in "${CRED_KEYS[@]}"; do
     # Extract credential from vault using jq
