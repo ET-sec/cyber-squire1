@@ -99,69 +99,8 @@ services:
   # OpenClaw Gateway (AI Agent - @CDirective_bot)
   # ==========================================
   # Status: RUNNING STANDALONE (not managed by compose)
-  # Container: moltbot-gateway (ports 18789, 18790)
+  # Container: openclaw-gateway (ports 18789, 18790)
   #
-
-  # ==========================================
-  # Evolution API (WhatsApp Gateway)
-  # ==========================================
-  # Purpose: WhatsApp integration via Baileys (personal number)
-  # - Provides web UI for QR code scanning at /manager
-  # - REST API for sending/receiving messages
-  # - Webhooks to n8n for AI-powered responses
-  #
-  cd-service-evolution:
-    image: evoapicloud/evolution-api:latest
-    container_name: cd-service-evolution
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      - SERVER_NAME=evolution
-      - SERVER_TYPE=http
-      - SERVER_PORT=8080
-      - SERVER_URL=http://localhost:8080
-      - SERVER_DISABLE_MANAGER=false
-      - SERVER_DISABLE_DOCS=false
-      - CORS_ORIGIN=*
-      - DATABASE_PROVIDER=postgresql
-      - DATABASE_CONNECTION_URI=postgresql://${CD_DB_USER}:${CD_DB_PASS}@cd-service-db:5432/evolution_api
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution
-      - DATABASE_SAVE_DATA_INSTANCE=true
-      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
-      - DATABASE_SAVE_MESSAGE_UPDATE=true
-      - DATABASE_SAVE_DATA_CONTACTS=true
-      - DATABASE_SAVE_DATA_CHATS=true
-      - CACHE_REDIS_ENABLED=false
-      - CACHE_LOCAL_ENABLED=true
-      - CACHE_LOCAL_TTL=86400
-      - AUTHENTICATION_API_KEY=${CD_EVOLUTION_API_KEY}
-      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=false
-      - LOG_LEVEL=ERROR,WARN,INFO,LOG
-      - LOG_BAILEYS=error
-      - DEL_INSTANCE=false
-      - LANGUAGE=en
-      - QRCODE_LIMIT=30
-      - CONFIG_SESSION_PHONE_CLIENT=CyberSquire
-      - CONFIG_SESSION_PHONE_NAME=Chrome
-      - WEBHOOK_GLOBAL_URL=http://cd-service-n8n:5678/webhook/whatsapp-incoming
-      - WEBHOOK_GLOBAL_ENABLED=true
-      - WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=false
-      - WEBHOOK_EVENTS_MESSAGES_UPSERT=true
-      - WEBHOOK_EVENTS_CONNECTION_UPDATE=true
-      - WEBHOOK_EVENTS_QRCODE_UPDATED=true
-      - N8N_ENABLED=false
-      - OPENAI_ENABLED=false
-      - TYPEBOT_ENABLED=false
-      - CHATWOOT_ENABLED=false
-      - TELEMETRY_ENABLED=false
-    volumes:
-      - ./CD_VOL_EVOLUTION:/evolution/instances:z
-    depends_on:
-      cd-service-db:
-        condition: service_healthy
-    networks:
-      - cd-net
 
   tunnel-cyber-squire:
     image: cloudflare/cloudflared:latest
