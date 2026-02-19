@@ -175,7 +175,7 @@ RHEL 9 AWS Instance
 | **API Health** | Every 6h | Test all 6 credentials | None |
 | **OpenClaw Gen** | Webhook | NLP → n8n workflow | Qwen/Claude |
 | **Drive Watch** | Every 5min | Monitor 2TB for new files | None |
-| **Op Nuclear** | Webhook | Lead → Research → Outreach | Perplexity + Claude |
+| **Op Nuclear** | Webhook | Lead → Research → Outreach | Tavily + Claude |
 | **YT Factory** | Webhook | Video → Transcript → Metadata | Gemini + Qwen |
 | **Gumroad Track** | Every 1h | Sales → 60/30/10 → Debt | Qwen |
 | **Task Manager** | Every 30min | Analyze tasks → Daily strategy | Qwen + Claude |

@@ -108,7 +108,7 @@ docker compose up -d
                      │
 ┌────────────────────┴────────────────────────────────────────┐
 │            External Services (via credentials)              │
-│  • Anthropic Claude  • Google Workspace  • Perplexity      │
+│  • Anthropic Claude  • Google Workspace  • Tavily Search   │
 │  • GitHub            • Gumroad           • Notion          │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -123,7 +123,7 @@ docker compose up -d
 - **Google Drive 2TB:** $10/month
 - **Claude API (strategic):** ~$20/month
 - **Gemini API (transcription):** ~$5/month
-- **Perplexity API (research):** ~$10/month
+- **Tavily Search (research):** ~$0 (1k free/month)
 - **Qwen/Ollama (local):** $0
 - **PostgreSQL (local):** $0
 - **Cloudflare Tunnel:** $0
@@ -185,10 +185,10 @@ All routing decisions logged to Notion for cost tracking and optimization.
 ## Workflow Details
 
 ### 1. API Health Monitor
-**Frequency:** Every 6 hours
+**Frequency:** Daily 6AM UTC
 **Purpose:** Validate all API credentials are active
-**On Failure:** Creates Notion alert page
-**Tests:** Anthropic, GitHub, Google, Gumroad, Notion, Perplexity
+**On Failure:** Telegram alert via @Coredirective_bot
+**Tests:** Ollama/Qwen3, GitHub, Notion, Gumroad
 
 ### 2. OpenClaw Workflow Generator
 **Trigger:** Webhook POST `/webhook/openclaw-command`
@@ -205,7 +205,7 @@ All routing decisions logged to Notion for cost tracking and optimization.
 ### 4. CoreDirective Operations (Lead Enrichment)
 **Trigger:** Webhook POST `/webhook/lead-intake`
 **Pipeline:**
-1. Perplexity researches company (news, tech stack, pain points)
+1. Tavily researches company (news, tech stack, pain points)
 2. Claude drafts hyper-personalized outreach email
 3. Saves to Notion with quality score (1-10)
 4. Auto-sends if score ≥ 8, flags for manual review if < 8
@@ -432,7 +432,7 @@ See [FIX_GOOGLE_OAUTH.md](FIX_GOOGLE_OAUTH.md) for complete resolution guide.
 - Anthropic API key
 - GitHub PAT
 - Notion API key
-- Perplexity API key
+- Tavily API key (stored as n8n variable)
 - Gumroad API credentials
 - n8n API key
 

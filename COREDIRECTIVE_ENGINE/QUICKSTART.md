@@ -135,7 +135,7 @@ curl -X POST https://n8n.yourdomain.com/webhook/lead-intake \
   }'
 ```
 
-Expected: Perplexity researches → Claude drafts email → Saved to Notion with quality score.
+Expected: Tavily researches → Claude drafts email → Saved to Notion with quality score.
 
 ---
 
@@ -158,8 +158,8 @@ Expected: Perplexity researches → Claude drafts email → Saved to Notion with
 
 ### CoreDirective Operations
 - **Trigger:** Webhook (manual or automated lead import)
-- **Action:** Perplexity researches company → Claude drafts personalized outreach → Auto-sends if score >= 8
-- **AI Used:** Perplexity + Claude
+- **Action:** Tavily researches company → Claude drafts personalized outreach → Auto-sends if score >= 8
+- **AI Used:** Tavily + Claude
 
 ### 🎬 YouTube Content Factory
 - **Trigger:** Webhook (from Drive Watcher when video detected)
