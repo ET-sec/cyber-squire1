@@ -217,7 +217,7 @@ The second phase expanded the automation stack into a production-grade orchestra
 Automated research workflow combining external data gathering with AI synthesis:
 - **Data Sources:** Tavily AI-optimized search integration with configurable depth (basic/advanced)
 - **Content Aggregation:** Multi-source document compilation (web, databases, APIs)
-- **AI Synthesis:** Ollama (Qwen 2.5:7b) generates structured research summaries
+- **AI Synthesis:** Ollama (Qwen 3 8B) generates structured research summaries
 - **Output Formats:** Markdown reports, JSON structured data, Google Sheets integration
 
 ### YouTube Content Factory
@@ -240,7 +240,7 @@ Production multi-bot configuration for flexible command handling:
 
 **Bot 2: @Coredirective_bot**
 - Engine: n8n workflow orchestration
-- Model: Ollama/Qwen 2.5:7b (local inference)
+- Model: Ollama/Qwen 3 8B (local inference)
 - Purpose: Routing bot for basic operations (task management, financial queries, status checks)
 - Commands: ADHD Commander (prioritization), Finance module (calculations), Status checks
 

@@ -17,7 +17,7 @@ A 5-service containerized security platform running on a single EC2 instance. In
 AWS EC2 t3.xlarge (16GB RAM) — RHEL 9 / Amazon Linux 2023
 ├── PostgreSQL 16          Workflow state + automation logs
 ├── n8n SOAR               17-service orchestration engine
-├── Ollama (Qwen 2.5 7B)  Local AI inference ($0/month)
+├── Ollama (Qwen 3 8B)    Local AI inference ($0/month)
 ├── Faster-Whisper         Voice transcription (STT)
 ├── OpenClaw Gateway       Claude AI agent proxy
 └── Cloudflare Tunnel      Zero-trust access (no exposed ports)
@@ -116,7 +116,7 @@ docker compose up -d && ./cdae-healthcheck.sh
 | CPU inference over GPU | 72% cost savings, zero quality loss for security analysis tasks |
 | PostgreSQL over SQLite | Concurrent workflow execution at scale (500+ daily) |
 | Cloudflare Tunnel over VPN | Zero-trust, no exposed ports, built-in DDoS protection |
-| Qwen 2.5 7B (4-bit) | Fits in 7.5GB RAM, <3s inference, $0/month |
+| Qwen 3 8B (4-bit) | Fits in 7.5GB RAM, <3s inference, $0/month |
 | Three-tier docs | Business (Employment_Proof), Technical (Vault), Operational (Runbook) |
 
 ---

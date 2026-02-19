@@ -357,7 +357,7 @@ Total Available: 16GB (16,384 MB)
 │ Purpose: Local AI inference (no GPU)                            │
 │                                                                  │
 │ Model Specs:                                                     │
-│   Base model: Qwen 2.5 Coder 7B                                 │
+│   Base model: Qwen 3 8B                                 │
 │   Quantization: 4-bit (Q4_K_M)                                  │
 │   Model file size: ~4.7GB on disk                               │
 │   Runtime memory: ~5.2GB (includes context window)              │
