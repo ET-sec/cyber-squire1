@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-The CoreDirective Automation Engine (CD-AE) is a production-ready, enterprise-hardened automation stack deployed on AWS EC2 (t3.xlarge). It functions as an **AI-augmented security operations platform** integrating 17 services through a SOAR orchestration layer.
+The CoreDirective Automation Engine (CD-AE) is a production-ready, enterprise-hardened automation stack deployed on AWS EC2 (t3.xlarge). It functions as an **AI-augmented security operations platform** integrating 16 services through a SOAR orchestration layer.
 
 ### Strategic Advantage
 - **Cost:** $0 inference cost (local Qwen 3 8B via Ollama vs. $400/month GPU or API fees)
@@ -52,7 +52,7 @@ The CoreDirective Automation Engine (CD-AE) is a production-ready, enterprise-ha
 **Network:** cd-automation-net (172.28.0.0/16 subnet)  
 **Volumes:** cd-vol-postgres, cd-vol-n8n, cd-vol-ollama  
 **Host:** AWS EC2 t3.xlarge (4 vCPUs, 16GB RAM, 100GB gp3 SSD)  
-**OS:** Ubuntu 24.04 LTS  
+**OS:** Amazon Linux 2023 (RHEL 9)  
 
 ---
 
@@ -175,7 +175,7 @@ Chose parallel architecture approach (Simple EC2 + CD-AWS-AUTOMATION) over migra
 - [x] n8n connected to PostgreSQL backend
 - [x] Cloudflare Tunnel configured for secure remote access
 - [x] Automation workflow templates created and deployed
-- [x] 17 services integrated through single webhook endpoint
+- [x] 16 services integrated through single webhook endpoint
 - [x] 99.2% workflow success rate over 30-day period
 - [x] Zero-trust access model fully implemented
 

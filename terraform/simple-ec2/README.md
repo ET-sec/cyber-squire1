@@ -155,7 +155,7 @@ docker exec cd-service-db pg_isready
 
 # Ollama model loaded
 docker exec cd-service-ollama ollama list
-# Expected: qwen2.5-coder:7b
+# Expected: qwen3:8b
 
 # n8n accessible
 curl -k http://localhost:5678/healthz

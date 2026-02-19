@@ -520,7 +520,7 @@
     },
     {
       "parameters": {
-        "model": "qwen2.5:7b",
+        "model": "qwen3:8b",
         "options": {
           "temperature": 0.4,
           "numPredict": 512
@@ -977,7 +977,7 @@
       "System_Status": "Infrastructure health checks and system monitoring"
     },
     "fallbackConfig": {
-      "primary": "ollama-qwen2.5:7b",
+      "primary": "ollama-qwen3:8b",
       "secondary": "gemini-2.0-flash",
       "escalationThreshold": 3
     },
