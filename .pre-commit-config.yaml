@@ -23,11 +23,4 @@ repos:
       - id: terraform_checkov
         files: terraform/cd-do-infrastructure/
         args:
-          - --args=--quiet
-          - --args=--compact
-          # CKV_TF_1: module commit hash -- not using modules
-          # CKV_TF_2: module version tag -- not using modules
-          # CKV_DIO_4: firewall ingress wide open -- SSH 22 open to 0.0.0.0/0
-          #   is intentional; Cloudflare Tunnel handles secure access, DO
-          #   firewall is a secondary layer with SSH key-only auth
-          - --args=--skip-check CKV_TF_1,CKV_TF_2,CKV_DIO_4
+          - --args=--config-file __GIT_WORKING_DIR__/terraform/cd-do-infrastructure/.checkov.yaml
