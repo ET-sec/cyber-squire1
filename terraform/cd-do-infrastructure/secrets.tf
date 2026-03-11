@@ -5,12 +5,12 @@
 
 data "onepassword_item" "do_token" {
   vault = "kf775hyunb4glc5xdzbpdaqkoe" # Core Infra vault UUID
-  title = "DigitalOcean API"
+  title = "DigitalOcean API Token"
 }
 
 data "onepassword_item" "cf_api_token" {
   vault = "kf775hyunb4glc5xdzbpdaqkoe" # Core Infra vault UUID
-  title = "Cloudflare API"
+  title = "Cloudflare"
 }
 
 # Future additions (Phase 4+):
