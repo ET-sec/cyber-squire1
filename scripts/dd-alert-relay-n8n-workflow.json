@@ -1,0 +1,193 @@
+{
+  "name": "Datadog Alert Relay to Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "dd-alert",
+        "httpMethod": "POST",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "dd-alert",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Severity Mapper: Datadog priority (P1-P5) to Cisco 7-tier severity\nconst body = $input.first().json.body || $input.first().json;\nconst priority = (body.priority || 'P3').toUpperCase();\n\nconst severityMap = {\n  'P1': { level: 0, name: 'Emergency', emoji: '\\ud83d\\udfe5' },\n  'P2': { level: 2, name: 'Critical', emoji: '\\ud83d\\udfe0' },\n  'P3': { level: 3, name: 'Error', emoji: '\\ud83d\\udfe1' },\n  'P4': { level: 4, name: 'Warning', emoji: '\\u26a0\\ufe0f' },\n  'P5': { level: 5, name: 'Notice', emoji: '\\u2139\\ufe0f' }\n};\n\nconst severity = severityMap[priority] || severityMap['P3'];\n\n// Only proceed for Sev 0-2 (Emergency, Alert, Critical)\nconst shouldAlert = severity.level <= 2;\n\nreturn [{\n  json: {\n    ...body,\n    severity_level: severity.level,\n    severity_name: severity.name,\n    severity_emoji: severity.emoji,\n    should_alert: shouldAlert,\n    original_priority: priority\n  }\n}];"
+      },
+      "id": "severity-mapper",
+      "name": "Severity Mapper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "should-alert-check",
+              "leftValue": "={{ $json.should_alert }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "severity-filter",
+      "name": "Severity Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// DND Check: 10 PM - 8:30 AM ET\n// During DND: only Sev 0 (Emergency) proceeds\n// Outside DND: Sev 0-2 all proceed\n\nconst item = $input.first().json;\n\n// Get current time in America/New_York\nconst now = new Date();\nconst etOptions = { timeZone: 'America/New_York', hour: 'numeric', minute: 'numeric', hour12: false };\nconst etTime = new Intl.DateTimeFormat('en-US', etOptions).format(now);\nconst [hourStr, minStr] = etTime.split(':');\nconst hour = parseInt(hourStr);\nconst minute = parseInt(minStr);\nconst timeDecimal = hour + (minute / 60);\n\n// DND: 22:00 (10 PM) to 08:30 (8:30 AM)\nconst isDND = timeDecimal >= 22 || timeDecimal < 8.5;\n\n// During DND, only Emergency (Sev 0) proceeds\nconst shouldProceed = !isDND || item.severity_level === 0;\n\nreturn [{\n  json: {\n    ...item,\n    is_dnd: isDND,\n    dnd_override: isDND && item.severity_level === 0,\n    should_proceed: shouldProceed,\n    current_time_et: etTime\n  }\n}];"
+      },
+      "id": "dnd-check",
+      "name": "DND Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "dnd-proceed-check",
+              "leftValue": "={{ $json.should_proceed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "dnd-filter",
+      "name": "DND Filter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Telegram message\nconst item = $input.first().json;\n\nconst status = (item.alert_status || 'Unknown').toLowerCase();\nconst statusIcon = status === 'recovered' ? '\\u2705' : (status === 'triggered' ? '\\ud83d\\udea8' : '\\u2753');\n\nlet msg = `${item.severity_emoji} <b>${item.severity_name}</b> | ${statusIcon} ${item.alert_status || 'Unknown'}\\n\\n`;\nmsg += `<b>${item.alert_title || 'Datadog Alert'}</b>\\n\\n`;\n\nif (item.event_msg) {\n  msg += `<b>Details:</b> ${item.event_msg}\\n\\n`;\n}\n\nif (item.tags) {\n  msg += `<b>Tags:</b> <code>${item.tags}</code>\\n`;\n}\n\nif (item.link) {\n  msg += `\\n<a href=\\\"${item.link}\\\">View in Datadog</a>`;\n}\n\nif (item.is_dnd && item.dnd_override) {\n  msg += `\\n\\n\\u26a1 <i>DND override: Emergency alert at ${item.current_time_et} ET</i>`;\n}\n\n// Truncate if needed\nif (msg.length > 3500) {\n  msg = msg.substring(0, 3450) + '\\n\\n... <i>[Full alert in Datadog]</i>';\n}\n\nreturn [{\n  json: {\n    telegram_text: msg\n  }\n}];"
+      },
+      "id": "format-message",
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 100]
+    },
+    {
+      "parameters": {
+        "chatId": "6691629392",
+        "text": "={{ $json.telegram_text }}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "send-telegram",
+      "name": "Send Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1560, 100],
+      "credentials": {
+        "telegramApi": {
+          "id": "kVdzT3vKPCZJvOrF",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// No-op for filtered alerts (severity too low)\nreturn [{ json: { status: 'filtered', reason: 'severity_below_threshold' } }];"
+      },
+      "id": "filtered-severity",
+      "name": "Filtered (Severity)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 460]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No-op for DND-suppressed alerts\nreturn [{ json: { status: 'filtered', reason: 'dnd_suppressed' } }];"
+      },
+      "id": "filtered-dnd",
+      "name": "Filtered (DND)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 360]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [{ "node": "Severity Mapper", "type": "main", "index": 0 }]
+      ]
+    },
+    "Severity Mapper": {
+      "main": [
+        [{ "node": "Severity Filter", "type": "main", "index": 0 }]
+      ]
+    },
+    "Severity Filter": {
+      "main": [
+        [{ "node": "DND Check", "type": "main", "index": 0 }],
+        [{ "node": "Filtered (Severity)", "type": "main", "index": 0 }]
+      ]
+    },
+    "DND Check": {
+      "main": [
+        [{ "node": "DND Filter", "type": "main", "index": 0 }]
+      ]
+    },
+    "DND Filter": {
+      "main": [
+        [{ "node": "Format Message", "type": "main", "index": 0 }],
+        [{ "node": "Filtered (DND)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [{ "node": "Send Telegram", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "observability" },
+    { "name": "datadog" },
+    { "name": "telegram" }
+  ],
+  "triggerCount": 1
+}
