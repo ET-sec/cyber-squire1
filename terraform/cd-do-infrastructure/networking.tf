@@ -1,0 +1,8 @@
+# --- NETWORKING (DIGITALOCEAN VPC) ---
+# Import: terraform import digitalocean_vpc.default b55e780e-c1cd-4bd4-be65-763a69c0b1a9
+
+resource "digitalocean_vpc" "default" {
+  name     = "default-nyc1"
+  region   = var.do_region
+  ip_range = var.do_vpc_cidr
+}
