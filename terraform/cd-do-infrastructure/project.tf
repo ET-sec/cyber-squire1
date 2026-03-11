@@ -4,10 +4,13 @@
 resource "digitalocean_project" "coredirective" {
   name        = var.do_project_name
   description = "Update your project information under Settings"
+  is_default  = true
   resources   = [digitalocean_droplet.cd_alpha.urn]
 
-  # NOTE: environment and purpose intentionally omitted.
-  # Live project has both as empty strings (never configured).
-  # Setting any value would cause drift after import.
-  # After import, update via DO console first, then add here.
+  # NOTE: environment, purpose intentionally omitted (live state has empty strings).
+  # is_default matches live state. purpose has provider default "Web Application"
+  # that conflicts with live empty — ignored to prevent drift.
+  lifecycle {
+    ignore_changes = [purpose]
+  }
 }
