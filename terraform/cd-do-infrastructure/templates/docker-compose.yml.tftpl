@@ -1,0 +1,229 @@
+# CoreDirective Engine -- Docker Compose Configuration
+# Rendered by Terraform templatefile() for disaster recovery
+# Secrets injected at runtime via: doppler run -- docker compose up -d
+# DO NOT embed actual secret values -- use env var references only
+
+services:
+  cd-service-db:
+    image: postgres:16-alpine
+    container_name: cd-service-db
+    restart: always
+    environment:
+      POSTGRES_USER: $${CD_DB_USER}
+      POSTGRES_PASSWORD: $${CD_DB_PASS}
+      POSTGRES_DB: $${CD_DB_NAME}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - ./CD_VOL_POSTGRES:/var/lib/postgresql/data:z
+      - ./CD_BACKUPS:/backups:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${CD_DB_USER} -d $${CD_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cd-net
+
+  cd-service-n8n:
+    image: n8nio/n8n:latest
+    container_name: cd-service-n8n
+    restart: always
+    ports:
+      - "${n8n_port}:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=cd-service-db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=$${CD_DB_NAME}
+      - DB_POSTGRESDB_USER=$${CD_DB_USER}
+      - DB_POSTGRESDB_PASSWORD=$${CD_DB_PASS}
+      - N8N_ENCRYPTION_KEY=$${CD_N8N_KEY}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=$${CD_N8N_JWT}
+      - N8N_DEFAULT_USER_EMAIL=$${CD_N8N_USER}
+      - N8N_DEFAULT_USER_PASSWORD=$${CD_N8N_PASS}
+      - N8N_HOST=https://${n8n_hostname}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${n8n_hostname}/
+      - N8N_EDITOR_BASE_URL=https://${n8n_hostname}
+      - OLLAMA_HOST=http://cd-service-ollama:11434
+      - TAVILY_API_KEY=$${TAVILY_API_KEY}
+      - N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=false
+    volumes:
+      - ./CD_VOL_N8N:/home/node/.n8n:z
+      - $${CD_STORAGE_PATH}:/data/media:z
+      - /usr/local/bin/ffmpeg:/usr/local/bin/ffmpeg:ro
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    networks:
+      - cd-net
+
+  cd-service-ollama:
+    image: ollama/ollama:latest
+    container_name: cd-service-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./CD_VOL_OLLAMA:/root/.ollama:z
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_KEEP_ALIVE=24h
+    networks:
+      - cd-net
+
+  # ==========================================
+  # faster-whisper Service (Voice Transcription)
+  # ==========================================
+  # Purpose: Local voice-to-text transcription for Telegram voice notes
+  # - Processes voice notes sent to Cyber-Squire bot
+  # - Returns transcription for AI routing pipeline
+  # - Keeps voice data private (no external API)
+  #
+  cd-service-whisper:
+    image: fedirz/faster-whisper-server:latest-cpu
+    container_name: cd-service-whisper
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./CD_VOL_WHISPER:/root/.cache/huggingface:z
+    environment:
+      - WHISPER_MODEL=base
+      - WHISPER_LANGUAGE=en
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - cd-net
+
+  # ==========================================
+  # OpenClaw Gateway (AI Agent - @CDirective_bot)
+  # ==========================================
+  # Status: RUNNING STANDALONE (not managed by compose)
+  # Container: openclaw-gateway (ports 18789, 18790)
+  #
+
+  # ==========================================
+  # HashiCorp Vault (Secrets Management)
+  # ==========================================
+  # Purpose: Centralized secrets management -- eliminates hardcoded .env values
+  # - AppRole auth for n8n, Keycloak, and services to fetch creds at runtime
+  # - Short-lived leases (1hr TTL) for Postgres dynamic credentials
+  # - Full audit log of every secret access
+  # - Init/unseal MUST be done OFF-STREAM (root token exposed)
+  #
+  cd-service-vault:
+    image: hashicorp/vault:1.15
+    container_name: cd-service-vault
+    restart: unless-stopped
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://0.0.0.0:8200
+    volumes:
+      - ./CD_VOL_VAULT/config:/vault/config:z
+      - ./CD_VOL_VAULT/data:/vault/data:z
+      - ./CD_VOL_VAULT/logs:/vault/logs:z
+    command: server -config=/vault/config/vault.hcl
+    healthcheck:
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - cd-net
+
+  # ==========================================
+  # Keycloak (Identity & SSO)
+  # ==========================================
+  # Purpose: Centralized identity -- SSO for n8n, Vault UI, and future services
+  # - Realm: coredirective | Clients: n8n, vault-ui
+  # - Admin password stored in 1Password -> Core Infra -> "Keycloak Admin"
+  # - In production: switch command to `start` (remove start-dev)
+  #
+  cd-service-keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: cd-service-keycloak
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_ADMIN=$${KC_ADMIN_USER}
+      - KEYCLOAK_ADMIN_PASSWORD=$${KC_ADMIN_PASS}
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://cd-service-db:5432/$${CD_DB_NAME}
+      - KC_DB_USERNAME=$${CD_DB_USER}
+      - KC_DB_PASSWORD=$${CD_DB_PASS}
+      - KC_HOSTNAME=$${KC_HOSTNAME:-localhost}
+      - KC_PROXY=edge
+      - KC_HTTP_ENABLED=true
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    command: start-dev
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - cd-net
+
+  # ==========================================
+  # Datadog Agent (Observability & Security Signals)
+  # ==========================================
+  # Purpose: Unified visibility across infrastructure -- security signals feed
+  # - Collects container logs, process metrics, Docker stats
+  # - API key in 1Password -> Core Infra -> "Datadog Core_Automation API Key"
+  #
+  cd-service-datadog:
+    image: datadog/agent:latest
+    container_name: cd-service-datadog
+    restart: unless-stopped
+    pid: host
+    environment:
+      - DD_API_KEY=$${DATADOG_API_KEY}
+      - DD_SITE=$${DD_SITE:-${dd_site}}
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE_LOGS=name:cd-service-datadog
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_APM_ENABLED=false
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_HOSTNAME=${dd_hostname}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    networks:
+      - cd-net
+
+  tunnel-cyber-squire:
+    image: cloudflare/cloudflared:latest
+    container_name: tunnel-cyber-squire
+    network_mode: host
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=$${CD_TUNNEL_TOKEN}
+
+networks:
+  cd-net:
+    driver: bridge
+
+volumes:
+  cd-vol-postgres:
+  cd-vol-n8n:
+  cd-vol-ollama:
+  cd-vol-vault:
+  cd-vol-keycloak:
