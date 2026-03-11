@@ -269,6 +269,50 @@ services:
       - cd-net
 
   # ==========================================
+  # Teleport v18 (SSH Access + Session Recording)
+  # ==========================================
+  # Purpose: Zero-trust SSH gateway with session recording
+  # - All-in-one: auth + proxy + SSH node
+  # - Session recording: node-sync (records at the node, syncs to auth)
+  # - MFA: TOTP second factor for all users
+  # - Foundation for JIT access (08-02) and audit log shipping (08-03)
+  # - Admin UI: https://teleport.tigouetheory.com:3080
+  #
+  cd-service-teleport:
+    image: public.ecr.aws/gravitational/teleport-distroless:18.7.2
+    container_name: cd-service-teleport
+    hostname: teleport.tigouetheory.com
+    restart: unless-stopped
+    ports:
+      - "3080:3080"
+      - "3023:3023"
+      - "3025:3025"
+    volumes:
+      - ./CD_VOL_TELEPORT/config:/etc/teleport:ro
+      - ./CD_VOL_TELEPORT/data:/var/lib/teleport
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/tctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 512M
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - cd-net
+
+  # ==========================================
   # Datadog Agent (Observability & Security Signals)
   # ==========================================
   # Purpose: Unified visibility across EC2 + DO K8s — security signals feed from GuardDuty
