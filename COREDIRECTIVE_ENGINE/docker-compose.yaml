@@ -2,7 +2,7 @@ services:
   cd-service-db:
     image: postgres:16-alpine
     container_name: cd-service-db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${CD_DB_USER}
       POSTGRES_PASSWORD: ${CD_DB_PASS}
@@ -20,13 +20,26 @@ services:
       com.datadoghq.ad.check_names: '["postgres"]'
       com.datadoghq.ad.init_configs: '[{}]'
       com.datadoghq.ad.instances: '[{"host": "%%host%%", "port": 5432, "username": "%%env_CD_DB_USER%%", "password": "%%env_CD_DB_PASS%%", "dbm": false}]'
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
   cd-service-n8n:
     image: n8nio/n8n:latest
     container_name: cd-service-n8n
-    restart: always
+    restart: unless-stopped
     ports:
       - "5678:5678"
     environment:
@@ -54,13 +67,32 @@ services:
     depends_on:
       cd-service-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 2G
+          pids: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
   cd-service-ollama:
     image: ollama/ollama:latest
     container_name: cd-service-ollama
-    restart: always
+    restart: unless-stopped
     ports:
       - "11434:11434"
     volumes:
@@ -68,6 +100,19 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_KEEP_ALIVE=24h
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 3G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
@@ -82,7 +127,7 @@ services:
   cd-service-whisper:
     image: fedirz/faster-whisper-server:latest-cpu
     container_name: cd-service-whisper
-    restart: always
+    restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
@@ -96,6 +141,19 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
@@ -137,6 +195,19 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
@@ -174,6 +245,19 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
@@ -184,6 +268,7 @@ services:
   # - Collects container logs, process metrics, Docker stats
   # - Security Signals: GuardDuty findings → Datadog (Episode 3 stream demo)
   # - API key in 1Password → Core Infra → "Datadog Core_Automation API Key"
+  # Note: pid:host is required for process monitoring (CIS 5.15 accepted risk)
   #
   cd-service-datadog:
     image: datadog/agent:latest
@@ -210,6 +295,25 @@ services:
       - /etc/os-release:/host/etc/os-release:ro
       - /var/log:/host/var/log:ro
       - ./CD_VOL_DATADOG/conf.d:/etc/datadog-agent/conf.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "agent health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
@@ -220,6 +324,8 @@ services:
   # - Detects docker exec, privilege escalation, sensitive file reads
   # - Custom per-container rules in CD_VOL_FALCO/rules/
   # - Routes events to Falcosidekick → Datadog
+  # Note: Falco needs SYS_ADMIN + apparmor:unconfined, so no-new-privileges
+  # is NOT applied (CIS 5.25 accepted risk for this container only)
   #
   cd-service-falco:
     image: falcosecurity/falco:0.43.0
@@ -242,6 +348,12 @@ services:
     environment:
       - HOST_ROOT=/host
       - FALCO_BPF_PROBE=""
+    healthcheck:
+      test: ["CMD", "falco", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     security_opt:
       - apparmor:unconfined
     deploy:
@@ -249,9 +361,15 @@ services:
         limits:
           cpus: '0.50'
           memory: 512M
+          pids: 128
         reservations:
           cpus: '0.10'
           memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       - cd-service-falcosidekick
     networks:
@@ -276,14 +394,31 @@ services:
       - DATADOGLOGS_APIKEY=${DATADOG_API_KEY}
       - DATADOGLOGS_HOST=https://http-intake.logs.us5.datadoghq.com/
       - DATADOGLOGS_MINIMUMPRIORITY=notice
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:2801/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
     deploy:
       resources:
         limits:
           cpus: '0.25'
           memory: 256M
+          pids: 64
         reservations:
           cpus: '0.05'
           memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - cd-net
 
@@ -295,6 +430,29 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CD_TUNNEL_TOKEN}
+    healthcheck:
+      test: ["CMD", "cloudflared", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /root/.cloudflared
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+          pids: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   cd-net:
