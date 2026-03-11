@@ -13,5 +13,15 @@ resource "digitalocean_droplet" "cd_alpha" {
   lifecycle {
     prevent_destroy = true
     ignore_changes  = [image, ssh_keys, droplet_agent]
+
+    postcondition {
+      condition     = self.status == "active"
+      error_message = "Droplet ${self.name} is not in 'active' status (current: ${self.status})."
+    }
+
+    postcondition {
+      condition     = self.ipv4_address != ""
+      error_message = "Droplet ${self.name} has no public IPv4 address assigned."
+    }
   }
 }
