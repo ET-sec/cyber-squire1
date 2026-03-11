@@ -1,9 +1,0 @@
-logs:
-  - type: file
-    path: /host/var/log/auth.log
-    source: auth
-    service: sshd
-    log_processing_rules:
-      - type: include_at_match
-        name: include_ssh
-        pattern: sshd
