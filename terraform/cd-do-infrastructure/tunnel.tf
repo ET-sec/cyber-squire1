@@ -1,26 +1,40 @@
 # --- CLOUDFLARE TUNNEL CONFIG (CD-DO-INFRASTRUCTURE) ---
-# Resource commented out -- will be imported in Phase 3
+# Imported in Phase 3 (2026-03-11)
 # Tunnel resource itself stays UNMANAGED (API cannot return secret). Only config is managed.
 # Uses cloudflare_tunnel_config (v4 name, NOT cloudflare_zero_trust_tunnel_cloudflared_config which is v5)
-# Import: terraform import cloudflare_tunnel_config.cd_alpha e4871d2a375f9719092b286866ce26f2/4bcf8238-8a8d-423d-b333-e8fe033d4de9
+# WARNING: After import, ALL tunnel config changes must go through Terraform. Dashboard edits cause drift.
 
-# resource "cloudflare_tunnel_config" "cd_alpha" {
-#   account_id = var.cf_account_id
-#   tunnel_id  = var.cf_tunnel_id
-#
-#   config {
-#     ingress_rule {
-#       hostname = "n8n.tigouetheory.com"
-#       service  = "http://localhost:5678"
-#     }
-#
-#     ingress_rule {
-#       hostname = "ssh.tigouetheory.com"
-#       service  = "ssh://localhost:22"
-#     }
-#
-#     ingress_rule {
-#       service = "http_status:404"
-#     }
-#   }
-# }
+resource "cloudflare_tunnel_config" "cd_alpha" {
+  account_id = var.cf_account_id
+  tunnel_id  = var.cf_tunnel_id
+
+  config {
+    ingress_rule {
+      hostname = "n8n.tigouetheory.com"
+      service  = "http://localhost:5678"
+      origin_request {
+        connect_timeout        = "30s"
+        tls_timeout            = "10s"
+        tcp_keep_alive         = "30s"
+        keep_alive_timeout     = "1m30s"
+        keep_alive_connections = 100
+        proxy_address          = "127.0.0.1"
+        no_tls_verify          = false
+        access {
+          required  = false
+          team_name = ""
+        }
+      }
+    }
+
+    ingress_rule {
+      hostname = "ssh.tigouetheory.com"
+      service  = "ssh://localhost:22"
+    }
+
+    # REQUIRED: catch-all rule must be last
+    ingress_rule {
+      service = "http_status:404"
+    }
+  }
+}

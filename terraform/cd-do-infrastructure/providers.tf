@@ -4,10 +4,8 @@
 # DigitalOcean -- reads DIGITALOCEAN_TOKEN env var
 provider "digitalocean" {}
 
-# Cloudflare v4 -- reads CLOUDFLARE_API_TOKEN env var
+# Cloudflare v4 -- reads CLOUDFLARE_API_KEY + CLOUDFLARE_EMAIL env vars (Global API Key auth)
 provider "cloudflare" {}
 
-# 1Password -- desktop app auth via Touch ID
-provider "onepassword" {
-  account = "my.1password.com"
-}
+# 1Password provider removed -- secrets now come from Doppler env vars
+# Run: doppler run -- terraform plan

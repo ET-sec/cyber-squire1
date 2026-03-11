@@ -1,0 +1,33 @@
+# Pre-commit hooks for Terraform quality gates
+# Install: pre-commit install
+# Manual run: pre-commit run --all-files
+#
+# Scoped to terraform/cd-do-infrastructure/ only.
+# Legacy directories (simple-ec2, cd-aws-automation) are suspended
+# and excluded to avoid blocking active development.
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.105.0
+    hooks:
+      - id: terraform_fmt
+        files: terraform/cd-do-infrastructure/
+        args:
+          - --args=-diff
+          - --args=-write=true
+      - id: terraform_validate
+        files: terraform/cd-do-infrastructure/
+      - id: terraform_tflint
+        files: terraform/cd-do-infrastructure/
+        args:
+          - --args=--config=__GIT_WORKING_DIR__/terraform/cd-do-infrastructure/.tflint.hcl
+      - id: terraform_checkov
+        files: terraform/cd-do-infrastructure/
+        args:
+          - --args=--quiet
+          - --args=--compact
+          # CKV_TF_1: module commit hash -- not using modules
+          # CKV_TF_2: module version tag -- not using modules
+          # CKV_DIO_4: firewall ingress wide open -- SSH 22 open to 0.0.0.0/0
+          #   is intentional; Cloudflare Tunnel handles secure access, DO
+          #   firewall is a secondary layer with SSH key-only auth
+          - --args=--skip-check CKV_TF_1,CKV_TF_2,CKV_DIO_4

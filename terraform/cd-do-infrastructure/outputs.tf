@@ -7,14 +7,14 @@ locals {
   # DigitalOcean shared CPU droplet pricing (monthly USD)
   # Source: https://www.digitalocean.com/pricing/droplets
   droplet_costs = {
-    "s-1vcpu-512mb"  = 4
-    "s-1vcpu-1gb"    = 6
-    "s-1vcpu-2gb"    = 12
-    "s-2vcpu-2gb"    = 18
-    "s-2vcpu-4gb"    = 24
-    "s-4vcpu-8gb"    = 48
-    "s-8vcpu-16gb"   = 96
-    "s-16vcpu-32gb"  = 192
+    "s-1vcpu-512mb" = 4
+    "s-1vcpu-1gb"   = 6
+    "s-1vcpu-2gb"   = 12
+    "s-2vcpu-2gb"   = 18
+    "s-2vcpu-4gb"   = 24
+    "s-4vcpu-8gb"   = 48
+    "s-8vcpu-16gb"  = 96
+    "s-16vcpu-32gb" = 192
   }
   droplet_monthly = lookup(local.droplet_costs, var.do_droplet_size, -1)
   spaces_monthly  = 5 # DO Spaces minimum ($5/mo for 250GB)
