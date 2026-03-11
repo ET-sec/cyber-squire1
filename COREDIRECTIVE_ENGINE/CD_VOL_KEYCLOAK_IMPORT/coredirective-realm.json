@@ -1,0 +1,97 @@
+{
+  "realm": "coredirective",
+  "enabled": true,
+  "displayName": "CoreDirective",
+  "displayNameHtml": "<strong>CoreDirective</strong>",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername(undefined)",
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "cd-admin",
+        "description": "Full administrative access to all CoreDirective services",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "cd-operator",
+        "description": "Day-to-day operational access, can manage workflows and containers",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "cd-auditor",
+        "description": "Read-only access to audit logs, session recordings, and compliance data",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "etigoue",
+      "enabled": true,
+      "email": "etigoue@tigouetheory.com",
+      "firstName": "Emmanuel",
+      "lastName": "Tigoue",
+      "emailVerified": true,
+      "realmRoles": [
+        "cd-admin",
+        "default-roles-coredirective"
+      ],
+      "credentials": [],
+      "requiredActions": [
+        "UPDATE_PASSWORD"
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "teleport",
+      "name": "Teleport SSH Gateway",
+      "description": "OIDC client for Teleport integration (requires Teleport Enterprise). Configured as architecture reference for Enterprise upgrade path.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://teleport.tigouetheory.com/v1/webapi/oidc/callback"
+      ],
+      "webOrigins": [
+        "https://teleport.tigouetheory.com"
+      ],
+      "defaultClientScopes": [
+        "openid",
+        "profile",
+        "email",
+        "roles"
+      ]
+    }
+  ],
+  "scopeMappings": [],
+  "eventsEnabled": true,
+  "eventsListeners": [
+    "jboss-logging"
+  ],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true
+}

@@ -212,15 +212,18 @@ services:
       - cd-net
 
   # ==========================================
-  # Keycloak (Identity & SSO)
+  # Keycloak v26 (Identity & SSO)
   # ==========================================
   # Purpose: Centralized identity — SSO for n8n, Vault UI, and future services
-  # - Realm: coredirective | Clients: n8n, vault-ui
+  # - Realm: coredirective (imported from CD_VOL_KEYCLOAK_IMPORT)
+  # - Roles: cd-admin, cd-operator, cd-auditor
+  # - OIDC client for Teleport (Enterprise upgrade path)
   # - Admin password stored in 1Password → Core Infra → "Keycloak Admin"
+  # - Upgraded v23 → v26.5.2 (2026-03-11, Phase 08-04)
   # - In production: switch command to `start` (remove start-dev)
   #
   cd-service-keycloak:
-    image: quay.io/keycloak/keycloak:23.0
+    image: quay.io/keycloak/keycloak:26.5.2
     container_name: cd-service-keycloak
     restart: unless-stopped
     ports:
@@ -233,18 +236,22 @@ services:
       - KC_DB_USERNAME=${CD_DB_USER}
       - KC_DB_PASSWORD=${CD_DB_PASS}
       - KC_HOSTNAME=${KC_HOSTNAME:-localhost}
-      - KC_PROXY=edge
+      - KC_PROXY_HEADERS=xforwarded
       - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - JAVA_OPTS_APPEND=-Xms256m -Xmx512m
+    volumes:
+      - ./CD_VOL_KEYCLOAK_IMPORT:/opt/keycloak/data/import:ro
     depends_on:
       cd-service-db:
         condition: service_healthy
-    command: start-dev
+    command: start-dev --import-realm
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"UP\"' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 90s
     security_opt:
       - no-new-privileges:true
     deploy:
