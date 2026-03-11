@@ -87,3 +87,11 @@ builds/
 .claude/
 get-shit-done/
 .planning/
+1password-vault-reference.md
+notes-golden-file-*.txt
+
+# Terraform - cd-do-infrastructure
+terraform/cd-do-infrastructure/.terraform/
+terraform/cd-do-infrastructure/terraform.tfstate*
+terraform/cd-do-infrastructure/*.tfplan
+terraform/cd-do-infrastructure/env.sh
