@@ -1,6 +1,42 @@
 # --- TERRAFORM OUTPUTS (CD-DO-INFRASTRUCTURE) ---
 # Display important information after infrastructure deployment
 
+# --- COST CALCULATION LOCALS ---
+
+locals {
+  # DigitalOcean shared CPU droplet pricing (monthly USD)
+  # Source: https://www.digitalocean.com/pricing/droplets
+  droplet_costs = {
+    "s-1vcpu-512mb"  = 4
+    "s-1vcpu-1gb"    = 6
+    "s-1vcpu-2gb"    = 12
+    "s-2vcpu-2gb"    = 18
+    "s-2vcpu-4gb"    = 24
+    "s-4vcpu-8gb"    = 48
+    "s-8vcpu-16gb"   = 96
+    "s-16vcpu-32gb"  = 192
+  }
+  droplet_monthly = lookup(local.droplet_costs, var.do_droplet_size, -1)
+  spaces_monthly  = 5 # DO Spaces minimum ($5/mo for 250GB)
+
+  droplet_cost_str = format("%.2f", local.droplet_monthly >= 0 ? local.droplet_monthly : 0)
+  spaces_cost_str  = format("%.2f", local.spaces_monthly)
+  total_cost_str   = format("%.2f", local.droplet_monthly >= 0 ? local.droplet_monthly + local.spaces_monthly : 0)
+  credit_months    = local.droplet_monthly >= 0 ? floor(200 / (local.droplet_monthly + local.spaces_monthly)) : 0
+
+  cost_breakdown = local.droplet_monthly >= 0 ? join("\n", [
+    "Cost Breakdown (Monthly):",
+    "  - Droplet (${var.do_droplet_size}):  $${local.droplet_cost_str}",
+    "  - Cloudflare Tunnel:                  $0.00",
+    "  - DNS Records:                        $0.00",
+    "  - DO Spaces (state backend):         ~$${local.spaces_cost_str}",
+    "  ----------------------------------------",
+    "  Total:                               ~$${local.total_cost_str}/mo",
+    "",
+    "Coverage: $200 GitHub Education credit (~${local.credit_months} months free)",
+  ]) : "WARNING: Unknown droplet slug '${var.do_droplet_size}' -- cannot calculate cost. Update the droplet_costs lookup table in outputs.tf."
+}
+
 # --- DROPLET INFORMATION ---
 
 output "droplet_ip" {
@@ -32,35 +68,41 @@ output "n8n_url" {
   value       = "https://n8n.tigouetheory.com"
 }
 
+# --- SERVICE URLS ---
+
+output "service_urls" {
+  description = "All service access URLs"
+  value = {
+    n8n_dashboard = "https://n8n.tigouetheory.com"
+    ssh_tunnel    = "ssh.tigouetheory.com (via cloudflared)"
+    openclaw_api  = "http://${digitalocean_droplet.cd_alpha.ipv4_address}:18789/v1/chat/completions"
+    datadog       = "https://us5.datadoghq.com"
+    website       = "https://tigouetheory.com"
+  }
+}
+
 # --- RESOURCE INVENTORY ---
-# TODO: Uncomment after Phase 3 Cloudflare import
 
 output "resource_inventory" {
   description = "All resource IDs created by this configuration"
   value = {
-    droplet = digitalocean_droplet.cd_alpha.id
-    vpc     = digitalocean_vpc.default.id
-    # tunnel_config    = cloudflare_tunnel_config.cd_alpha.id
-    # dns_record_root  = cloudflare_record.root.id
-    # dns_record_n8n   = cloudflare_record.n8n.id
-    # dns_record_ssh   = cloudflare_record.ssh_tunnel.id
+    droplet         = digitalocean_droplet.cd_alpha.id
+    vpc             = digitalocean_vpc.default.id
+    firewall        = digitalocean_firewall.cd_alpha.id
+    ssh_key         = digitalocean_ssh_key.coredirective.id
+    tunnel_config   = cloudflare_tunnel_config.cd_alpha.id
+    dns_record_root = cloudflare_record.root.id
+    dns_record_www  = cloudflare_record.www.id
+    dns_record_n8n  = cloudflare_record.n8n.id
+    dns_record_ssh  = cloudflare_record.ssh_tunnel.id
   }
 }
 
 # --- COST ESTIMATE ---
 
 output "estimated_monthly_cost" {
-  description = "Estimated monthly cost breakdown"
-  value       = <<-EOT
-    Cost Breakdown (Monthly):
-      - Droplet (s-4vcpu-8gb):  $48.00
-      - Cloudflare Tunnel:       $0.00
-      - DNS Records:             $0.00
-      ------------------------------
-      Total:                    ~$48.00/mo
-
-    Coverage: $200 GitHub Education credit (~4 months free, expires ~Mar 2027)
-  EOT
+  description = "Estimated monthly cost breakdown (dynamic based on droplet size)"
+  value       = local.cost_breakdown
 }
 
 # --- VERIFICATION COMMANDS ---
