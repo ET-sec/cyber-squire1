@@ -1,4 +1,4 @@
-name: Security Pipeline
+name: Security & Deploy Pipeline
 
 on:
   push:
@@ -13,6 +13,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      actions: read
 
     steps:
       - name: Checkout code
@@ -57,8 +58,144 @@ jobs:
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    permissions:
+      contents: read
+    env:
+      TF_DIR: terraform/cd-do-infrastructure
+      TF_IN_AUTOMATION: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        env:
+          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+        run: |
+          terraform -chdir=$TF_DIR init \
+            -backend-config="access_key=${{ secrets.SPACES_ACCESS_KEY }}" \
+            -backend-config="secret_key=${{ secrets.SPACES_SECRET_KEY }}"
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+        run: |
+          set +e
+          terraform -chdir=$TF_DIR plan -no-color -input=false \
+            -detailed-exitcode -out=tfplan \
+            -var="cf_zone_id=${{ vars.CF_ZONE_ID }}" \
+            -var="cf_account_id=${{ vars.CF_ACCOUNT_ID }}" \
+            -var="cf_tunnel_id=${{ vars.CF_TUNNEL_ID }}"
+          EXIT_CODE=$?
+          echo "exitcode=$EXIT_CODE" >> $GITHUB_OUTPUT
+          if [ $EXIT_CODE -eq 1 ]; then
+            echo "::error::Terraform plan failed"
+            exit 1
+          fi
+          exit 0
+
+      - name: Terraform Apply
+        if: steps.plan.outputs.exitcode == '2'
+        env:
+          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+        run: terraform -chdir=$TF_DIR apply -auto-approve tfplan
+
+  container-verification:
+    name: Container Image Verification
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4
+
+      - name: Verify upstream image signatures
+        continue-on-error: true
+        run: |
+          IMAGES=(
+            "postgres:16-alpine"
+            "n8nio/n8n:latest"
+            "ollama/ollama:latest"
+            "fedirz/faster-whisper-server:latest-cpu"
+            "hashicorp/vault:1.15"
+            "quay.io/keycloak/keycloak:23.0"
+            "datadog/agent:latest"
+            "cloudflare/cloudflared:latest"
+          )
+
+          echo "## Container Signature Verification Report"
+          echo ""
+
+          VERIFIED=0
+          UNVERIFIED=0
+
+          for IMAGE in "${IMAGES[@]}"; do
+            echo "---"
+            echo "Checking: $IMAGE"
+            if cosign verify \
+              --certificate-oidc-issuer-regexp '.*' \
+              --certificate-identity-regexp '.*' \
+              "$IMAGE" > /dev/null 2>&1; then
+              echo "VERIFIED: $IMAGE"
+              VERIFIED=$((VERIFIED + 1))
+            else
+              echo "UNVERIFIED: $IMAGE (no cosign signature found)"
+              UNVERIFIED=$((UNVERIFIED + 1))
+            fi
+          done
+
+          echo ""
+          echo "## Summary"
+          echo "Verified: $VERIFIED / $((VERIFIED + UNVERIFIED))"
+          echo "Unverified: $UNVERIFIED / $((VERIFIED + UNVERIFIED))"
+
+      - name: Generate image digest manifest
+        run: |
+          IMAGES=(
+            "postgres:16-alpine"
+            "n8nio/n8n:latest"
+            "ollama/ollama:latest"
+            "fedirz/faster-whisper-server:latest-cpu"
+            "hashicorp/vault:1.15"
+            "quay.io/keycloak/keycloak:23.0"
+            "datadog/agent:latest"
+            "cloudflare/cloudflared:latest"
+          )
+
+          echo "## Image Digest Manifest"
+          echo ""
+
+          for IMAGE in "${IMAGES[@]}"; do
+            DIGEST=$(docker manifest inspect "$IMAGE" 2>/dev/null \
+              | jq -r '.manifests[0].digest // .config.digest' 2>/dev/null \
+              || echo "UNAVAILABLE")
+            echo "$IMAGE@$DIGEST"
+          done
+
   sbom:
-    name: Generate SBOM
+    name: Generate SBOMs
     runs-on: ubuntu-latest
     needs: security-scan
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -67,17 +204,94 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate SBOM with Syft
+      # --- Repository filesystem SBOM ---
+      - name: SBOM — Repository filesystem
         uses: anchore/sbom-action@v0
         with:
           path: "."
           format: "spdx-json"
-          output-file: "sbom.spdx.json"
-          artifact-name: "sbom-${{ github.sha }}.spdx.json"
+          output-file: "sbom-repo.spdx.json"
+          artifact-name: "sbom-repo-${{ github.sha }}"
 
-      - name: Upload SBOM as artifact
+      - name: Upload repo SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: "sbom-${{ github.sha }}"
-          path: "sbom.spdx.json"
+          name: "sbom-repo-${{ github.sha }}"
+          path: "sbom-repo.spdx.json"
+          retention-days: 90
+
+      # --- Per-image SBOMs ---
+      - name: SBOM — postgres:16-alpine
+        uses: anchore/sbom-action@v0
+        with:
+          image: postgres:16-alpine
+          format: spdx-json
+          output-file: sbom-postgres.spdx.json
+          artifact-name: sbom-postgres-${{ github.sha }}
+
+      - name: Upload postgres SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-postgres-${{ github.sha }}
+          path: sbom-postgres.spdx.json
+          retention-days: 90
+
+      - name: SBOM — n8nio/n8n:latest
+        uses: anchore/sbom-action@v0
+        with:
+          image: n8nio/n8n:latest
+          format: spdx-json
+          output-file: sbom-n8n.spdx.json
+          artifact-name: sbom-n8n-${{ github.sha }}
+
+      - name: Upload n8n SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-n8n-${{ github.sha }}
+          path: sbom-n8n.spdx.json
+          retention-days: 90
+
+      - name: SBOM — hashicorp/vault:1.15
+        uses: anchore/sbom-action@v0
+        with:
+          image: hashicorp/vault:1.15
+          format: spdx-json
+          output-file: sbom-vault.spdx.json
+          artifact-name: sbom-vault-${{ github.sha }}
+
+      - name: Upload vault SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-vault-${{ github.sha }}
+          path: sbom-vault.spdx.json
+          retention-days: 90
+
+      - name: SBOM — datadog/agent:latest
+        uses: anchore/sbom-action@v0
+        with:
+          image: datadog/agent:latest
+          format: spdx-json
+          output-file: sbom-datadog.spdx.json
+          artifact-name: sbom-datadog-${{ github.sha }}
+
+      - name: Upload datadog SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-datadog-${{ github.sha }}
+          path: sbom-datadog.spdx.json
+          retention-days: 90
+
+      - name: SBOM — cloudflare/cloudflared:latest
+        uses: anchore/sbom-action@v0
+        with:
+          image: cloudflare/cloudflared:latest
+          format: spdx-json
+          output-file: sbom-cloudflared.spdx.json
+          artifact-name: sbom-cloudflared-${{ github.sha }}
+
+      - name: Upload cloudflared SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cloudflared-${{ github.sha }}
+          path: sbom-cloudflared.spdx.json
           retention-days: 90
