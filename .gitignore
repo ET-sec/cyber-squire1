@@ -95,3 +95,10 @@ terraform/cd-do-infrastructure/.terraform/
 terraform/cd-do-infrastructure/terraform.tfstate*
 terraform/cd-do-infrastructure/*.tfplan
 terraform/cd-do-infrastructure/env.sh
+terraform/cd-do-infrastructure/rendered/
+
+# ============================================
+# Doppler
+# ============================================
+.doppler/
+doppler.yaml
