@@ -1,6 +1,5 @@
 # --- TERRAFORM CONFIGURATION (CD-DO-INFRASTRUCTURE) ---
-# Foundation for managing CoreDirective's DigitalOcean + Cloudflare infrastructure.
-# Local state until Phase 4 (Spaces backend migration after zero-diff confirmed).
+# No backend block -- local state until Phase 4
 
 terraform {
   required_version = ">= 1.6.3"
@@ -19,7 +18,4 @@ terraform {
       version = "~> 3.2"
     }
   }
-
-  # No backend block -- local state for Phase 1-3.
-  # Phase 4 will add DO Spaces S3 backend after imports confirmed zero-diff.
 }

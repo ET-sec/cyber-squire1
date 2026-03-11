@@ -1,4 +1,4 @@
-# --- SSH KEY (DIGITALOCEAN) ---
+# --- SSH KEY (CD-DO-INFRASTRUCTURE) ---
 # Import: terraform import digitalocean_ssh_key.coredirective 54804544
 
 resource "digitalocean_ssh_key" "coredirective" {

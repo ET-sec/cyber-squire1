@@ -1,4 +1,4 @@
-# --- COMPUTE (DIGITALOCEAN DROPLET) ---
+# --- COMPUTE (CD-DO-INFRASTRUCTURE) ---
 # Import: terraform import digitalocean_droplet.cd_alpha 557327264
 
 resource "digitalocean_droplet" "cd_alpha" {
@@ -10,7 +10,6 @@ resource "digitalocean_droplet" "cd_alpha" {
   ssh_keys = [digitalocean_ssh_key.coredirective.id]
   tags     = var.do_tags
 
-  # Safety guard: prevent accidental destruction of production droplet
   lifecycle {
     prevent_destroy = true
   }
