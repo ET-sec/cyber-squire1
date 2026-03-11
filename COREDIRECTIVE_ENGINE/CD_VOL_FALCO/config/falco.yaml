@@ -1,8 +1,9 @@
 # =============================================================================
-# Falco Configuration — CoreDirective Engine
+# Falco Configuration Overlay — CoreDirective Engine
 # =============================================================================
-# Runtime threat detection for Docker host (DigitalOcean droplet)
-# Routes events to Falcosidekick for Datadog integration
+# Mounted into /etc/falco/config.d/ to override specific default settings
+# Default falco.yaml remains intact (preserves plugin definitions)
+# Custom rules loaded automatically from /etc/falco/rules.d/
 # =============================================================================
 
 json_output: true
@@ -21,19 +22,19 @@ file_output:
   keep_alive: true
   filename: /var/log/falco/events.json
 
-# Disable other outputs (Falcosidekick handles routing)
+# Stdout for container logs (captured by Datadog agent)
 stdout_output:
   enabled: true
 syslog_output:
   enabled: false
 
-# Performance tuning for 4 vCPU droplet
-syscall_buf_size_preset: 4
-
-# Load custom rules after default rules
-rules_files:
-  - /etc/falco/falco_rules.yaml
-  - /etc/falco/rules.d/coredirective_rules.yaml
+# Engine configuration — modern eBPF (no kernel module needed)
+engine:
+  kind: modern_ebpf
+  modern_ebpf:
+    cpus_for_each_buffer: 2
+    buf_size_preset: 4
+    drop_failed_exit: false
 
 # Metrics for self-monitoring
 metrics:

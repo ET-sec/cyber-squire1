@@ -213,6 +213,80 @@ services:
     networks:
       - cd-net
 
+  # ==========================================
+  # Falco (Runtime Threat Detection)
+  # ==========================================
+  # Purpose: Syscall-level monitoring across all containers via modern eBPF
+  # - Detects docker exec, privilege escalation, sensitive file reads
+  # - Custom per-container rules in CD_VOL_FALCO/rules/
+  # - Routes events to Falcosidekick → Datadog
+  #
+  cd-service-falco:
+    image: falcosecurity/falco:0.43.0
+    container_name: cd-service-falco
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - SYS_PTRACE
+    volumes:
+      - /sys/kernel/tracing:/sys/kernel/tracing:ro
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /etc:/host/etc:ro
+      - ./CD_VOL_FALCO/config/falco.yaml:/etc/falco/config.d/falco_override.yaml:ro
+      - ./CD_VOL_FALCO/rules:/etc/falco/rules.d:ro
+      - ./CD_VOL_FALCO/logs:/var/log/falco
+    environment:
+      - HOST_ROOT=/host
+      - FALCO_BPF_PROBE=""
+    security_opt:
+      - apparmor:unconfined
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.10'
+          memory: 128M
+    depends_on:
+      - cd-service-falcosidekick
+    networks:
+      - cd-net
+
+  # ==========================================
+  # Falcosidekick (Event Router)
+  # ==========================================
+  # Purpose: Routes Falco events to Datadog Events + Logs API
+  # - Receives events from Falco via HTTP on port 2801
+  # - Forwards to Datadog us5 site
+  # - Minimum priority: notice
+  #
+  cd-service-falcosidekick:
+    image: falcosecurity/falcosidekick:2.32.0
+    container_name: cd-service-falcosidekick
+    restart: unless-stopped
+    environment:
+      - DATADOG_APIKEY=${DATADOG_API_KEY}
+      - DATADOG_HOST=https://api.us5.datadoghq.com
+      - DATADOG_MINIMUMPRIORITY=notice
+      - DATADOGLOGS_APIKEY=${DATADOG_API_KEY}
+      - DATADOGLOGS_HOST=https://http-intake.logs.us5.datadoghq.com/
+      - DATADOGLOGS_MINIMUMPRIORITY=notice
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+    networks:
+      - cd-net
+
   tunnel-cyber-squire:
     image: cloudflare/cloudflared:latest
     container_name: tunnel-cyber-squire
