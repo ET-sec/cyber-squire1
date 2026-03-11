@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'terraform/cd-do-infrastructure/**'
+      - 'terraform/cd-do-infrastructure/policy/**'
       - '.github/workflows/terraform-pr.yml'
 
 permissions:
@@ -80,6 +81,42 @@ jobs:
             -var="cf_account_id=${{ vars.CF_ACCOUNT_ID }}" \
             -var="cf_tunnel_id=${{ vars.CF_TUNNEL_ID }}"
 
+      - name: Install Conftest
+        run: |
+          CONFTEST_VERSION="0.57.0"
+          wget -q "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz"
+          tar xzf "conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz"
+          sudo mv conftest /usr/local/bin/
+          conftest --version
+
+      - name: Generate Plan JSON
+        id: planjson
+        if: steps.plan.outcome == 'success'
+        env:
+          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+        run: |
+          terraform -chdir=$TF_DIR plan -out=tfplan.binary -input=false \
+            -var="cf_zone_id=${{ vars.CF_ZONE_ID }}" \
+            -var="cf_account_id=${{ vars.CF_ACCOUNT_ID }}" \
+            -var="cf_tunnel_id=${{ vars.CF_TUNNEL_ID }}"
+          terraform -chdir=$TF_DIR show -json tfplan.binary > $TF_DIR/plan.json
+
+      - name: OPA Policy Check (conftest)
+        id: conftest
+        if: steps.planjson.outcome == 'success'
+        run: |
+          echo "## OPA Policy Results" >> $GITHUB_STEP_SUMMARY
+          conftest test $TF_DIR/plan.json \
+            --policy $TF_DIR/policy/ \
+            --no-color 2>&1 | tee conftest-output.txt
+          CONFTEST_EXIT=$?
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat conftest-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit $CONFTEST_EXIT
+
       - name: Post PR Comment
         if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -97,6 +134,7 @@ jobs:
             const tflint = '${{ steps.tflint.outcome }}';
             const checkov = '${{ steps.checkov.outcome }}';
             const plan = '${{ steps.plan.outcome }}';
+            const conftest = '${{ steps.conftest.outcome }}';
 
             const icon = (s) => s === 'success' ? '\\`pass\\`' : '\\`FAIL\\`';
 
@@ -124,6 +162,7 @@ jobs:
               '| TFLint | ' + icon(tflint) + ' |',
               '| Checkov | ' + icon(checkov) + ' |',
               '| Plan | ' + icon(plan) + ' |',
+              '| OPA Policies | ' + icon(conftest) + ' |',
               '',
               '<details><summary>Show Plan Output</summary>',
               '',

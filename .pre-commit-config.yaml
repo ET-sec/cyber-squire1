@@ -24,3 +24,11 @@ repos:
         files: terraform/cd-do-infrastructure/
         args:
           - --args=--config-file __GIT_WORKING_DIR__/terraform/cd-do-infrastructure/.checkov.yaml
+  - repo: local
+    hooks:
+      - id: conftest-terraform
+        name: OPA Policy Check (conftest)
+        entry: scripts/conftest-check.sh
+        language: script
+        files: terraform/cd-do-infrastructure/policy/.*\.rego$
+        pass_filenames: false
