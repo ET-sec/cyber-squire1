@@ -19,21 +19,18 @@ locals {
   droplet_monthly = lookup(local.droplet_costs, var.do_droplet_size, -1)
   spaces_monthly  = 5 # DO Spaces minimum ($5/mo for 250GB)
 
-  droplet_cost_str = format("%.2f", local.droplet_monthly >= 0 ? local.droplet_monthly : 0)
-  spaces_cost_str  = format("%.2f", local.spaces_monthly)
-  total_cost_str   = format("%.2f", local.droplet_monthly >= 0 ? local.droplet_monthly + local.spaces_monthly : 0)
-  credit_months    = local.droplet_monthly >= 0 ? floor(200 / (local.droplet_monthly + local.spaces_monthly)) : 0
+  credit_months = local.droplet_monthly >= 0 ? floor(200 / (local.droplet_monthly + local.spaces_monthly)) : 0
 
   cost_breakdown = local.droplet_monthly >= 0 ? join("\n", [
     "Cost Breakdown (Monthly):",
-    "  - Droplet (${var.do_droplet_size}):  $${local.droplet_cost_str}",
+    format("  - Droplet (%s):  $%.2f", var.do_droplet_size, local.droplet_monthly),
     "  - Cloudflare Tunnel:                  $0.00",
     "  - DNS Records:                        $0.00",
-    "  - DO Spaces (state backend):         ~$${local.spaces_cost_str}",
+    format("  - DO Spaces (state backend):         ~$%.2f", local.spaces_monthly),
     "  ----------------------------------------",
-    "  Total:                               ~$${local.total_cost_str}/mo",
+    format("  Total:                               ~$%.2f/mo", local.droplet_monthly + local.spaces_monthly),
     "",
-    "Coverage: $200 GitHub Education credit (~${local.credit_months} months free)",
+    format("Coverage: $200 GitHub Education credit (~%d months free)", local.credit_months),
   ]) : "WARNING: Unknown droplet slug '${var.do_droplet_size}' -- cannot calculate cost. Update the droplet_costs lookup table in outputs.tf."
 }
 
