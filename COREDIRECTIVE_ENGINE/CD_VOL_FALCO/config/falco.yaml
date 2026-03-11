@@ -1,0 +1,48 @@
+# =============================================================================
+# Falco Configuration — CoreDirective Engine
+# =============================================================================
+# Runtime threat detection for Docker host (DigitalOcean droplet)
+# Routes events to Falcosidekick for Datadog integration
+# =============================================================================
+
+json_output: true
+json_include_output_property: true
+json_include_tags_property: true
+
+# Route events to Falcosidekick
+http_output:
+  enabled: true
+  url: http://cd-service-falcosidekick:2801/
+  user_agent: "falco/0.43.0"
+
+# File output for local backup/debugging
+file_output:
+  enabled: true
+  keep_alive: true
+  filename: /var/log/falco/events.json
+
+# Disable other outputs (Falcosidekick handles routing)
+stdout_output:
+  enabled: true
+syslog_output:
+  enabled: false
+
+# Performance tuning for 4 vCPU droplet
+syscall_buf_size_preset: 4
+
+# Load custom rules after default rules
+rules_files:
+  - /etc/falco/falco_rules.yaml
+  - /etc/falco/rules.d/coredirective_rules.yaml
+
+# Metrics for self-monitoring
+metrics:
+  enabled: true
+  interval: 30s
+  output_rule: true
+
+# Watch config files for changes (reload without restart)
+watch_config_files: true
+
+# Log level
+log_level: info
