@@ -1,0 +1,12 @@
+# Checkov configuration -- single source of truth
+# Used by: .pre-commit-config.yaml (terraform_checkov hook)
+#          .github/workflows/terraform-pr.yml (checkov-action)
+#          .github/workflows/security-merge.yml (checkov-action)
+skip-check:
+  - CKV_TF_1    # Module commit hash -- not using modules
+  - CKV_TF_2    # Module version tag -- not using modules
+  - CKV_DIO_4   # Firewall SSH 0.0.0.0/0 -- intentional with CF Tunnel
+quiet: true
+compact: true
+framework:
+  - terraform
