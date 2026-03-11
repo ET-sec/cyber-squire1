@@ -1,4 +1,4 @@
-# --- NETWORKING (DIGITALOCEAN VPC) ---
+# --- NETWORKING (CD-DO-INFRASTRUCTURE) ---
 # Import: terraform import digitalocean_vpc.default b55e780e-c1cd-4bd4-be65-763a69c0b1a9
 
 resource "digitalocean_vpc" "default" {
