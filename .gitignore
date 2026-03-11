@@ -44,6 +44,54 @@ docs/PRIVATE_OPERATIONS_MANUAL.md
 *CREDENTIAL*.md
 
 # ============================================
+# SECURITY: Operational Infrastructure (NEVER commit)
+# ============================================
+COREDIRECTIVE_ENGINE/
+openclaw-workspace-staging/
+scripts/session-secrets.sh
+
+# ============================================
+# SECURITY: Personal & Job Hunt Documents
+# ============================================
+docs/ATLANTA_*
+docs/COMPANY_DEEP_INTEL.md
+docs/DEFENSE_CONTRACTOR_ROLES.md
+docs/EMERGENCY_ACTION_PLAN.md
+docs/GHOST_JOB_AUDIT.md
+docs/INPERSON_HYBRID_ROLES.md
+docs/MAC_CLEANUP_REPORT.md
+docs/MASTER_JOB_INTELLIGENCE_*
+docs/RESUME_ATS_MASTERGUIDE.md
+docs/STAFFING_FIRM_RESEARCH.md
+docs/STREAM_SETUP.md
+
+# ============================================
+# SECURITY: GRC Unsanitized Copies (local only)
+# ============================================
+docs/IAM_RBAC_ROLE_MAP.md
+docs/IAM_ACCESS_REVIEW.md
+docs/CIS_RISK_REGISTER.md
+SANITIZATION_KEY.md
+
+# ============================================
+# CLEANUP: Temp files, screenshots, tools
+# ============================================
+.playwright-mcp/
+*.png
+!docs/grc/diagrams/*.png
+brand-philosophy.md
+skool-setup.js
+package.json
+package-lock.json
+
+# ============================================
+# GRC: Datadog screenshots (contain real hostnames)
+# ============================================
+docs/grc/diagrams/datadog_infrastructure.png
+docs/grc/diagrams/datadog_monitors.png
+docs/grc/diagrams/datadog_soc_dashboard_full.png
+
+# ============================================
 # IDE & Editor
 # ============================================
 .vscode/
