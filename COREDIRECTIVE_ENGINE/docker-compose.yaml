@@ -473,6 +473,83 @@ services:
     networks:
       - cd-net
 
+  # ==========================================
+  # Fluentd (Log Router for Teleport Events)
+  # ==========================================
+  # Purpose: Receives Teleport audit events from Event Handler via mTLS
+  # - Forwards to Datadog Logs API (us5 site)
+  # - fluent-plugin-datadog installed via custom Dockerfile
+  # - mTLS: client_cert_auth for Event Handler connections
+  #
+  cd-service-fluentd:
+    build: ./CD_VOL_FLUENTD
+    container_name: cd-service-fluentd
+    restart: unless-stopped
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+    volumes:
+      - ./CD_VOL_FLUENTD/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - ./CD_VOL_FLUENTD/certs:/etc/fluentd/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "ruby -e \"require 'socket'; TCPSocket.new('127.0.0.1', 8888).close\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - cd-net
+
+  # ==========================================
+  # Teleport Event Handler (Audit Log Shipper)
+  # ==========================================
+  # Purpose: Streams Teleport audit events via gRPC to Fluentd
+  # - Connects to Teleport auth on port 3025
+  # - mTLS client certs for Fluentd connection
+  # - Identity file with 1-year TTL (event-handler user)
+  # - Events: session.start, session.end, user.login, access_request
+  #
+  cd-service-teleport-event-handler:
+    image: public.ecr.aws/gravitational/teleport-plugin-event-handler:18.7.2
+    container_name: cd-service-teleport-event-handler
+    restart: unless-stopped
+    volumes:
+      - ./CD_VOL_TELEPORT_EVENTS/teleport-event-handler.toml:/etc/teleport-event-handler/teleport-event-handler.toml:ro
+      - ./CD_VOL_TELEPORT_EVENTS/identity:/etc/teleport-event-handler/identity:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs:/etc/teleport-event-handler/certs:ro
+      - ./CD_VOL_TELEPORT_EVENTS/storage:/var/lib/teleport-event-handler/storage
+    command: start --config /etc/teleport-event-handler/teleport-event-handler.toml
+    depends_on:
+      - cd-service-teleport
+      - cd-service-fluentd
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - cd-net
+
   tunnel-cyber-squire:
     image: cloudflare/cloudflared:latest
     container_name: tunnel-cyber-squire
