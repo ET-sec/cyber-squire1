@@ -3,6 +3,11 @@
 
 resource "digitalocean_project" "coredirective" {
   name        = var.do_project_name
-  environment = var.environment
+  description = "Update your project information under Settings"
   resources   = [digitalocean_droplet.cd_alpha.urn]
+
+  # NOTE: environment and purpose intentionally omitted.
+  # Live project has both as empty strings (never configured).
+  # Setting any value would cause drift after import.
+  # After import, update via DO console first, then add here.
 }
