@@ -33,16 +33,17 @@ output "n8n_url" {
 }
 
 # --- RESOURCE INVENTORY ---
+# TODO: Uncomment after Phase 3 Cloudflare import
 
 output "resource_inventory" {
   description = "All resource IDs created by this configuration"
   value = {
-    droplet          = digitalocean_droplet.cd_alpha.id
-    vpc              = digitalocean_vpc.default.id
-    tunnel_config    = cloudflare_tunnel_config.cd_alpha.id
-    dns_record_root  = cloudflare_record.root.id
-    dns_record_n8n   = cloudflare_record.n8n.id
-    dns_record_ssh   = cloudflare_record.ssh_tunnel.id
+    droplet = digitalocean_droplet.cd_alpha.id
+    vpc     = digitalocean_vpc.default.id
+    # tunnel_config    = cloudflare_tunnel_config.cd_alpha.id
+    # dns_record_root  = cloudflare_record.root.id
+    # dns_record_n8n   = cloudflare_record.n8n.id
+    # dns_record_ssh   = cloudflare_record.ssh_tunnel.id
   }
 }
 
@@ -50,7 +51,7 @@ output "resource_inventory" {
 
 output "estimated_monthly_cost" {
   description = "Estimated monthly cost breakdown"
-  value = <<-EOT
+  value       = <<-EOT
     Cost Breakdown (Monthly):
       - Droplet (s-4vcpu-8gb):  $48.00
       - Cloudflare Tunnel:       $0.00
@@ -66,7 +67,7 @@ output "estimated_monthly_cost" {
 
 output "verification_commands" {
   description = "Commands to verify deployment"
-  value = <<-EOT
+  value       = <<-EOT
     # Check droplet status
     doctl compute droplet get ${digitalocean_droplet.cd_alpha.id} --format ID,Name,Status,PublicIPv4
 

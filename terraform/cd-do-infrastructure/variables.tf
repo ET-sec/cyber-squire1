@@ -68,34 +68,25 @@ variable "do_tags" {
 }
 
 # --- CLOUDFLARE CONFIGURATION ---
+# Variables commented out -- CF resources disabled for Phase 2 (DO-only import).
+# Uncomment after Phase 3 Cloudflare import.
 
-variable "cf_zone_id" {
-  description = "Cloudflare Zone ID for tigouetheory.com DNS management"
-  type        = string
-}
+# variable "cf_zone_id" {
+#   description = "Cloudflare Zone ID for tigouetheory.com DNS management"
+#   type        = string
+# }
 
-variable "cf_account_id" {
-  description = "Cloudflare Account ID for tunnel and resource ownership"
-  type        = string
-}
+# variable "cf_account_id" {
+#   description = "Cloudflare Account ID for tunnel and resource ownership"
+#   type        = string
+# }
 
-variable "cf_tunnel_id" {
-  description = "Cloudflare Tunnel ID for zero-trust ingress (n8n + SSH)"
-  type        = string
-}
+# variable "cf_tunnel_id" {
+#   description = "Cloudflare Tunnel ID for zero-trust ingress (n8n + SSH)"
+#   type        = string
+# }
 
-# --- ENVIRONMENT & PROJECT METADATA ---
-
-variable "environment" {
-  description = "Deployment environment (controls tagging and naming conventions)"
-  type        = string
-  default     = "prod"
-
-  validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "Environment must be one of: dev, staging, prod"
-  }
-}
+# --- PROJECT METADATA ---
 
 variable "project_name" {
   description = "Project name for resource tagging and identification"
