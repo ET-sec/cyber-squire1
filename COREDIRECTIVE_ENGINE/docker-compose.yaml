@@ -16,6 +16,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      com.datadoghq.ad.check_names: '["postgres"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"host": "%%host%%", "port": 5432, "username": "%%env_CD_DB_USER%%", "password": "%%env_CD_DB_PASS%%", "dbm": false}]'
     networks:
       - cd-net
 
@@ -102,6 +106,113 @@ services:
   # Container: openclaw-gateway (ports 18789, 18790)
   #
 
+  # ==========================================
+  # HashiCorp Vault (Secrets Management)
+  # ==========================================
+  # Purpose: Centralized secrets management — eliminates hardcoded .env values
+  # - AppRole auth for n8n, Keycloak, and services to fetch creds at runtime
+  # - Short-lived leases (1hr TTL) for Postgres dynamic credentials
+  # - Full audit log of every secret access
+  # - Init/unseal MUST be done OFF-STREAM (root token exposed)
+  #
+  cd-service-vault:
+    image: hashicorp/vault:1.15
+    container_name: cd-service-vault
+    restart: unless-stopped
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_API_ADDR=http://0.0.0.0:8200
+    volumes:
+      - ./CD_VOL_VAULT/config:/vault/config:z
+      - ./CD_VOL_VAULT/data:/vault/data:z
+      - ./CD_VOL_VAULT/logs:/vault/logs:z
+    command: server -config=/vault/config/vault.hcl
+    healthcheck:
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - cd-net
+
+  # ==========================================
+  # Keycloak (Identity & SSO)
+  # ==========================================
+  # Purpose: Centralized identity — SSO for n8n, Vault UI, and future services
+  # - Realm: coredirective | Clients: n8n, vault-ui
+  # - Admin password stored in 1Password → Core Infra → "Keycloak Admin"
+  # - In production: switch command to `start` (remove start-dev)
+  #
+  cd-service-keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: cd-service-keycloak
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_ADMIN=${KC_ADMIN_USER}
+      - KEYCLOAK_ADMIN_PASSWORD=${KC_ADMIN_PASS}
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://cd-service-db:5432/${CD_DB_NAME}
+      - KC_DB_USERNAME=${CD_DB_USER}
+      - KC_DB_PASSWORD=${CD_DB_PASS}
+      - KC_HOSTNAME=${KC_HOSTNAME:-localhost}
+      - KC_PROXY=edge
+      - KC_HTTP_ENABLED=true
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    command: start-dev
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - cd-net
+
+  # ==========================================
+  # Datadog Agent (Observability & Security Signals)
+  # ==========================================
+  # Purpose: Unified visibility across EC2 + DO K8s — security signals feed from GuardDuty
+  # - Collects container logs, process metrics, Docker stats
+  # - Security Signals: GuardDuty findings → Datadog (Episode 3 stream demo)
+  # - API key in 1Password → Core Infra → "Datadog Core_Automation API Key"
+  #
+  cd-service-datadog:
+    image: datadog/agent:latest
+    container_name: cd-service-datadog
+    restart: unless-stopped
+    pid: host
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=${DD_SITE:-us5.datadoghq.com}
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE_LOGS=name:cd-service-datadog
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_APM_ENABLED=false
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_HOSTNAME=cd-alpha-engine
+      - DD_CONTAINER_LABELS_AS_TAGS=true
+      - CD_DB_USER=${CD_DB_USER}
+      - CD_DB_PASS=${CD_DB_PASS}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - ./CD_VOL_DATADOG/conf.d:/etc/datadog-agent/conf.d:ro
+    networks:
+      - cd-net
+
   tunnel-cyber-squire:
     image: cloudflare/cloudflared:latest
     container_name: tunnel-cyber-squire
@@ -119,3 +230,5 @@ volumes:
   cd-vol-postgres:
   cd-vol-n8n:
   cd-vol-ollama:
+  cd-vol-vault:
+  cd-vol-keycloak:
