@@ -1,0 +1,105 @@
+{
+  "resource_changes": [
+    {
+      "address": "digitalocean_firewall.cd_alpha",
+      "type": "digitalocean_firewall",
+      "change": {
+        "actions": ["update"],
+        "after": {
+          "name": "cd-alpha-firewall",
+          "inbound_rule": [
+            {
+              "protocol": "icmp",
+              "port_range": "",
+              "source_addresses": ["0.0.0.0/0", "::/0"]
+            },
+            {
+              "protocol": "tcp",
+              "port_range": "22",
+              "source_addresses": ["0.0.0.0/0", "::/0"]
+            },
+            {
+              "protocol": "tcp",
+              "port_range": "443",
+              "source_addresses": ["0.0.0.0/0", "::/0"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "digitalocean_spaces_bucket.backups",
+      "type": "digitalocean_spaces_bucket",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "cd-backups",
+          "region": "nyc3",
+          "versioning": []
+        }
+      }
+    },
+    {
+      "address": "digitalocean_volume.data",
+      "type": "digitalocean_volume",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "cd-data-vol",
+          "region": "nyc1",
+          "size": 100,
+          "filesystem_type": null
+        }
+      }
+    },
+    {
+      "address": "digitalocean_droplet.cd_alpha",
+      "type": "digitalocean_droplet",
+      "change": {
+        "actions": ["delete"],
+        "after": null
+      }
+    },
+    {
+      "address": "digitalocean_ssh_key.root_key",
+      "type": "digitalocean_ssh_key",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "root-admin",
+          "public_key": "ssh-ed25519 AAAA..."
+        }
+      }
+    },
+    {
+      "address": "digitalocean_droplet.test_no_prefix",
+      "type": "digitalocean_droplet",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "my-server",
+          "size": "s-8vcpu-16gb",
+          "tags": [],
+          "backups": false
+        }
+      }
+    },
+    {
+      "address": "digitalocean_firewall.bad_name",
+      "type": "digitalocean_firewall",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "open-firewall",
+          "inbound_rule": [
+            {
+              "protocol": "tcp",
+              "port_range": "8080",
+              "source_addresses": ["0.0.0.0/0"]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
