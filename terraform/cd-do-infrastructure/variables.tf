@@ -134,19 +134,6 @@ variable "cf_tunnel_id" {
   }
 }
 
-# --- PROJECT METADATA ---
-
-variable "project_name" {
-  description = "Project name for resource tagging and identification"
-  type        = string
-  default     = "CoreDirective"
-
-  validation {
-    condition     = length(var.project_name) >= 1 && length(var.project_name) <= 64
-    error_message = "project_name must be between 1 and 64 characters."
-  }
-}
-
 # --- SSH KEY PATH ---
 
 variable "ssh_public_key_path" {
