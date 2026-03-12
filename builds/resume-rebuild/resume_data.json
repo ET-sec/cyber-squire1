@@ -43,8 +43,76 @@
         "iac_compliance",
         "grc_documentation"
       ]
+    },
+    {
+      "key": "texaco",
+      "job_title": "IT Security & Operations Manager",
+      "company": "Texaco",
+      "location": "Fairburn, GA",
+      "dates": "Mar 2022 - Feb 2026",
+      "bullets": {
+        "endpoint_security": "Managed endpoint security across 45+ devices with CrowdStrike Falcon, handling detection tuning, policy enforcement, and quarterly threat assessments for a multi-site retail operation.",
+        "network_segmentation": "Inherited a flat network with zero segmentation. Split it into 4 VLANs isolating POS payment traffic, back-office systems, guest WiFi, and management. Lateral movement dropped to near zero.",
+        "siem_monitoring": "Cut mean time to detect from 48 hours to under 4 by deploying Splunk log aggregation across all endpoints and network devices. Set up correlation rules that caught 3 credential stuffing attempts in the first month.",
+        "ad_hardening": "AD was a mess when I took over. Enforced Group Policy baselines, killed stale accounts, locked down admin rights, and set up automated credential rotation. Audit findings went from 14 to 2.",
+        "incident_response": "Ran incident response for everything from ransomware scares to POS skimmer investigations. Built a 6-step IR runbook that cut average containment time from 8 hours to 90 minutes.",
+        "automation_scripting": "Wrote PowerShell scripts automating patch deployment, user provisioning, and compliance reporting. Saved roughly 12 hours/week on what used to be manual checkbox work.",
+        "vendor_management": "Sole IT person for 3 locations. Managed vendor relationships, negotiated service contracts, handled the security budget, and kept everything running on a shoestring."
+      },
+      "bullet_order": [
+        "endpoint_security",
+        "network_segmentation",
+        "siem_monitoring",
+        "ad_hardening",
+        "incident_response",
+        "automation_scripting",
+        "vendor_management"
+      ]
+    },
+    {
+      "key": "cds",
+      "job_title": "IT Operations Manager",
+      "company": "Consumer Distribution Services",
+      "location": "Atlanta, GA",
+      "dates": "Jan 2020 - Feb 2022",
+      "bullets": {
+        "it_operations": "Managed IT operations for a regional distribution company, overseeing network infrastructure, endpoint deployments, and help desk escalations across 2 warehouse locations.",
+        "incident_management": "Resolved 150+ IT incidents over 2 years, maintaining a 97% first-contact resolution rate by building a knowledge base that the whole team actually used.",
+        "process_improvement": "Nobody had documentation when I started. Created SOPs for onboarding, equipment provisioning, and incident escalation that survived after I left.",
+        "security_basics": "First person to enforce basic security hygiene: MFA on admin accounts, automated patching schedule, and password policy enforcement across all endpoints."
+      },
+      "bullet_order": [
+        "it_operations",
+        "incident_management",
+        "process_improvement",
+        "security_basics"
+      ]
     }
   ],
-  "skills": [],
-  "education": []
+  "skills": [
+    {
+      "label": "Security & AI Operations",
+      "items": "OWASP Top 10 LLM (production gateway hardening), MITRE ATLAS (AI threat modeling), Falco eBPF (runtime detection), CrowdStrike Falcon (endpoint), Splunk/Datadog (SIEM/observability), n8n (SOAR automation, 16 workflows), prompt injection defense, AI red teaming"
+    },
+    {
+      "label": "Cloud & Infrastructure",
+      "items": "Terraform (16-file IaC, 30+ resources), Docker/Compose (14 production containers), Cloudflare Zero Trust (tunnel routing, mTLS), DigitalOcean, Linux (Ubuntu 24.04 production), Vault (secrets management), Keycloak (RBAC/SSO)"
+    },
+    {
+      "label": "DevSecOps & Identity",
+      "items": "GitHub Actions CI/CD, Trivy (container scanning), Semgrep (SAST), Gitleaks (secrets detection), OPA/Rego (policy as code, 8 policies), Cosign (image signing), SBOM generation, Teleport (PAM/JIT access), Active Directory (GPO hardening)"
+    },
+    {
+      "label": "Compliance & Languages",
+      "items": "NIST 800-53 (SSP with control mapping), NIST AI RMF, ISO 42001 (AI governance), SOC 2 readiness, GRC documentation (31 artifacts), Python, PowerShell, Bash, HCL"
+    }
+  ],
+  "education": [
+    {
+      "school": "Georgia State University, J. Mack Robinson College of Business",
+      "degrees": "BBA in Computer Information Systems (Cybersecurity)  |  BBA in Business Economics",
+      "graduation": "Expected May 2026",
+      "honors": "Expected May 2026  |  GPA: 3.7  |  Dean's List"
+    }
+  ]
 }
