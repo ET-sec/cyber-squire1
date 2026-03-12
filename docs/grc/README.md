@@ -9,6 +9,9 @@ All documents are sanitized for public repository safety. No real IPs, domains, 
 - **NIST SP 800-53 Rev. 5** — Moderate baseline, 16 control families
 - **NIST SP 800-30 Rev. 1** — Risk assessment methodology
 - **NIST SP 800-39** — Risk management framework
+- **NIST AI RMF (AI 100-1)** — AI risk management framework
+- **ISO/IEC 42001:2023** — AI management system
+- **ISO/IEC 27701:2019** — Privacy information management
 - **FIPS 199** — Security categorization (Moderate)
 - **CIS Docker Benchmark** — Container hardening benchmark
 
@@ -43,6 +46,7 @@ All documents are sanitized for public repository safety. No real IPs, domains, 
 | [POLICY_VULNERABILITY_MANAGEMENT.md](POLICY_VULNERABILITY_MANAGEMENT.md) | RA-5, SI-2, SI-5 |
 | [POLICY_SECURITY_AWARENESS.md](POLICY_SECURITY_AWARENESS.md) | AT-1 through AT-4 |
 | [POLICY_RISK_MANAGEMENT.md](POLICY_RISK_MANAGEMENT.md) | RA-1/2/3, PM-9 |
+| [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | ISO 42001, ISO 27701, NIST AI RMF |
 
 ### IAM
 
@@ -85,9 +89,10 @@ All documents are sanitized for public repository safety. No real IPs, domains, 
 
 ## Statistics
 
-- **23 documents** in this library
-- **~8,500 lines** of compliance documentation
+- **24 documents** in this library
+- **~9,300 lines** of compliance documentation
 - **170+ NIST 800-53 controls** mapped across 16 families
+- **3 AI governance frameworks** mapped (ISO 42001, ISO 27701, NIST AI RMF)
 - **22 POA&M entries** tracked (15 accepted, 6 open, 1 closed)
 - **17 risk scenarios** assessed with MITRE ATT&CK mapping
 - **4 IR playbooks** with step-by-step containment procedures
