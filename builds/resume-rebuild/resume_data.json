@@ -1,0 +1,50 @@
+{
+  "name": "EMMANUEL TIGOUE",
+  "contact": {
+    "parts": [
+      "Atlanta, GA",
+      "(404) 839-2214",
+      "emmanueltigoue@gmail.com",
+      "LinkedIn",
+      "GitHub",
+      "Portfolio"
+    ],
+    "links": {
+      "LinkedIn": "https://linkedin.com/in/emmanuel-tigoue-672378307",
+      "GitHub": "https://github.com/ET-sec",
+      "Portfolio": "https://et-sec.github.io/portfolio"
+    }
+  },
+  "certifications": "CompTIA SecurityX (CASP+), DoD 8140 IAT/IAM III  |  ISC2 SSCP  |  Cisco CCNA  |  ISC2 CISSP (In Progress, Q2 2026)",
+  "experience": [
+    {
+      "key": "coredirective",
+      "job_title": "AI Security Engineer",
+      "company": "CoreDirective",
+      "location": "Atlanta, GA",
+      "dates": "Sep 2025 - Present",
+      "bullets": {
+        "ai_gateway_security": "Hardened a production AI agent gateway (OpenClaw) serving Claude Opus 4 inference, implementing input validation against OWASP Top 10 for LLM Applications and MITRE ATLAS threat models. Blocked prompt injection and system prompt leakage across 6 deployed skills.",
+        "zero_trust": "Zero publicly exposed ports. Built the entire network on Cloudflare Zero Trust tunnels with mTLS certificate authentication, routing all traffic through encrypted tunnels instead of opening firewall rules.",
+        "soar_automation": "16 automated security workflows running on n8n SOAR, handling everything from threat intel enrichment to credential rotation alerts. Cut manual triage time from 23 hours/week down to 4.",
+        "detection_engineering": "Alert fatigue was killing the detection pipeline. Tuned Falco eBPF runtime rules from 200+ daily alerts down to 12 actionable ones, then wired Falcosidekick to push critical findings straight into Datadog dashboards.",
+        "iam_pam": "Deployed Teleport for privileged access management with JIT access provisioning, session recording, and automatic expiration. Stood up Keycloak for RBAC across the stack. No more shared admin accounts.",
+        "cicd_security": "Full shift-left pipeline. GitHub Actions runs Trivy container scans, Semgrep SAST, Gitleaks secrets detection, and OPA policy checks on every PR. Cosign signs container images, Syft generates SBOMs.",
+        "iac_compliance": "Entire infrastructure defined in 16 Terraform files managing 30+ resources across DigitalOcean and Cloudflare. Wrote 8 OPA/Rego policies that block non-compliant changes before they hit production.",
+        "grc_documentation": "Authored 31 GRC documents from scratch: SSP with NIST 800-53 control mapping, POA&M tracking 47 findings, 10 security policies, 4 IR playbooks, risk assessment, and a tabletop exercise. Not templated. Every document references actual infrastructure evidence."
+      },
+      "bullet_order": [
+        "ai_gateway_security",
+        "zero_trust",
+        "soar_automation",
+        "detection_engineering",
+        "iam_pam",
+        "cicd_security",
+        "iac_compliance",
+        "grc_documentation"
+      ]
+    }
+  ],
+  "skills": [],
+  "education": []
+}
