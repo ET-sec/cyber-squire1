@@ -24,17 +24,19 @@
 
 ## GRC Documentation Library
 
-The compliance program is supported by **20 GRC documents** totaling approximately **8,500 lines** of structured governance, risk, and compliance content.
+The compliance program is supported by **31 GRC documents** totaling approximately **15,000 lines** of structured governance, risk, and compliance content.
 
 ### Document Inventory
 
 | Category | Count | Documents |
 |----------|-------|-----------|
 | **Core Plans** | 3 | System Security Plan (SSP), Plan of Action & Milestones (POA&M), Risk Assessment |
-| **Policies** | 9 | Incident Response, Access Control, Acceptable Use, Business Continuity, Disaster Recovery, Change Management, Vulnerability Management, Security Awareness, Risk Management |
+| **Policies** | 10 | Incident Response, Access Control, Acceptable Use, Business Continuity, Disaster Recovery, Change Management, Vulnerability Management, Security Awareness, Risk Management, AI Governance |
 | **IAM** | 2 | RBAC Role Map (3-tier model), Access Review Process (JIT workflow) |
 | **Risk Register** | 1 | CIS Docker Benchmark findings with compensating controls |
-| **IR Playbooks** | 4 | Compromised Container, Leaked Credential, DDoS/Service Degradation, Unauthorized Access |
+| **IR Playbooks** | 5 | Compromised Container, Leaked Credential, DDoS/Service Degradation, Unauthorized Access, AI Incident Response |
+| **Threat Modeling** | 6 | Data Flow Diagram, STRIDE Threat Model, Attack Tree, AI Threat Catalog, AI Supply Chain Risk, AI Red Team Plan |
+| **Executive Summaries** | 3 | Architecture, Compliance, Security Posture |
 | **Exercises** | 1 | Operation Phantom Container (5-phase tabletop exercise) |
 
 All documents are sanitized for public repository hosting. Personal identifiers, real IPs, internal domains, and service names are replaced with generic equivalents. Product names (Vault, Keycloak, Teleport, Falco, Datadog, Cloudflare, Trivy, etc.) are preserved to demonstrate the actual technology stack.
@@ -129,7 +131,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 | Area | Readiness |
 |------|-----------|
-| **Documentation completeness** | Strong — 20 documents covering all major GRC domains |
+| **Documentation completeness** | Strong — 31 documents covering all major GRC domains |
 | **Control implementation** | Strong — 86% implemented or partially implemented |
 | **Automated evidence** | Strong — continuous collection from 8+ sources |
 | **Risk management** | Strong — 17 scenarios assessed, all tracked to disposition |

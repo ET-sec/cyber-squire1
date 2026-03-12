@@ -119,7 +119,7 @@ The platform runs **14 containers** protected by layered security controls:
 4. **Automated evidence collection** via Falco, Datadog, and CI/CD scanners reduces manual audit burden
 5. **Immutable audit chain** from Teleport session recording through Fluentd log shipping to Datadog
 6. **Zero exposed ports** to the public internet — all ingress through Cloudflare zero-trust tunnel
-7. **Comprehensive GRC library** (20 documents, ~8,500 lines) with defined review cadences
+7. **Comprehensive GRC library** (31 documents, ~15,000 lines) with defined review cadences
 
 ## Areas for Improvement
 

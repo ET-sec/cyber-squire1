@@ -52,7 +52,7 @@ This policy satisfies requirements from three complementary frameworks:
 
 This policy governs all AI and machine learning (ML) systems deployed within or integrated with the Organization security operations platform, including:
 
-- The AI gateway service (`svc-ai-gateway`) providing Claude Opus 4 model access via the Anthropic API for production agent interactions
+- The AI gateway service (`svc-ai-gateway`) providing Claude Opus 4.6 model access via the Anthropic API for production agent interactions
 - The local LLM inference service (`svc-llm`) running Ollama with Qwen 3 8B for on-premises language model processing
 - The voice transcription service (`svc-transcription`) running Whisper for speech-to-text conversion
 - AI-augmented automation workflows within `svc-automation` that consume, route, or act upon AI-generated outputs
@@ -141,7 +141,7 @@ All AI systems within the authorization boundary are registered in the following
 
 | ID | System | Service | Model/Engine | Deployment | Data Flow | Risk Tier |
 |----|--------|---------|-------------|------------|-----------|-----------|
-| AI-001 | AI Agent Gateway | `svc-ai-gateway` (OpenClaw) | Claude Opus 4 (Anthropic API) | External API | Prompts sent to Anthropic; responses returned to messaging integration and `svc-automation` workflows | **High** |
+| AI-001 | AI Agent Gateway | `svc-ai-gateway` (OpenClaw) | Claude Opus 4.6 (Anthropic API) | External API | Prompts sent to Anthropic; responses returned to messaging integration and `svc-automation` workflows | **High** |
 | AI-002 | Local LLM Inference | `svc-llm` (Ollama) | Qwen 3 8B | Local (on `alpha-node`) | All processing on-premises; no data leaves the node | **Medium** |
 | AI-003 | Voice Transcription | `svc-transcription` (Whisper) | Whisper base (open-weight) | Local (on `alpha-node`) | Audio processed locally; transcripts stored in workflow state | **Low** |
 
@@ -160,7 +160,7 @@ All AI systems within the authorization boundary are registered in the following
 | Attribute | Detail |
 |-----------|--------|
 | **Purpose** | Production AI agent serving external users via Telegram messaging integration; autonomous task execution via `svc-automation` workflows |
-| **Model provider** | Anthropic (Claude Opus 4) |
+| **Model provider** | Anthropic (Claude Opus 4.6) |
 | **Data classification** | May process user queries containing PII, operational context, and system state |
 | **Output consumers** | External users (Telegram), `svc-automation` workflows, `svc-db` (state persistence) |
 | **Known limitations** | Hallucination risk on factual claims; prompt injection vulnerability surface; latency dependent on external API availability; no real-time knowledge beyond model training cutoff |
@@ -495,7 +495,7 @@ External AI providers (currently: Anthropic for AI-001) SHALL be assessed using 
 
 | Provider | Service | Assessment Date | Risk Rating | Key Findings | Next Review |
 |----------|---------|-----------------|-------------|--------------|-------------|
-| Anthropic | Claude Opus 4 API | 2026-03-11 | **Medium** | No training on API data (confirmed); 30-day retention for abuse monitoring; SOC 2 Type II available; US-based processing; model safety testing documented | 2026-06-11 |
+| Anthropic | Claude Opus 4.6 API | 2026-03-11 | **Medium** | No training on API data (confirmed); 30-day retention for abuse monitoring; SOC 2 Type II available; US-based processing; model safety testing documented | 2026-06-11 |
 
 ### 11.3 AI Model Supply Chain Controls
 
