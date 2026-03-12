@@ -1,160 +1,112 @@
-# CoreDirective Automation Engine (CD-AE) - AI Coding Agent Instructions
+# CoreDirective Automation Engine -- AI Coding Agent Instructions
 
 **Project:** CoreDirective Automation Engine
-**Version:** 2.0.0
 **Engineer:** Emmanuel Tigoue
 **AI Agent Target:** GitHub Copilot, Claude, Cursor, Windsurf
 
 ---
 
-## PROJECT OVERVIEW
+## Platform
 
-The CoreDirective Automation Engine (CD-AE) is a **production-grade, enterprise-hardened automation stack** deployed on AWS EC2 (t3.xlarge). It provides AI-augmented security operations through a SOAR orchestration layer with 17 integrated services.
+DigitalOcean droplet (s-4vcpu-8gb, 4 vCPU, 8GB RAM, 160GB disk, Ubuntu 24.04).
+Cost: $48/mo. SSH: `ssh cd-alpha`. IP: 161.35.0.184.
 
-### The Core Stack
+## Stack: 14 Containers (13 Compose + 1 Standalone)
 
-1. **AI Inference (Ollama + Qwen 3 8B):** Local inference engine for security analysis and automation ($0/month)
-2. **Orchestrator (n8n):** SOAR platform coordinating 16 services via webhook-driven workflows
-3. **Memory (PostgreSQL 16):** Persistent state for workflow execution and automation logs
-4. **AI Gateway (OpenClaw):** Claude AI proxy for advanced reasoning and task execution
-5. **Voice (Faster-Whisper):** Speech-to-text for voice command input
+| Container | Service | Port |
+|-----------|---------|------|
+| cd-service-db | PostgreSQL 16 | 5432 |
+| cd-service-n8n | n8n SOAR orchestrator | 5678 |
+| cd-service-datadog | Datadog Agent (logs, metrics, monitors) | -- |
+| cd-service-falco | Falco eBPF runtime detection | -- |
+| cd-service-falcosidekick | Alert router (Falco to Datadog) | -- |
+| cd-service-vault | HashiCorp Vault (secrets management) | 8200 |
+| cd-service-keycloak | Keycloak v26 (RBAC, SSO) | 8080 |
+| cd-service-ollama | Ollama (local LLM inference) | 11434 |
+| cd-service-whisper | Faster-Whisper (speech-to-text) | 8000 |
+| cd-service-teleport | Teleport v18 (PAM, JIT access, session recording) | 3080 |
+| cd-service-event-handler | Teleport audit log shipper | -- |
+| cd-service-fluentd | Fluentd (audit logs to Datadog) | -- |
+| tunnel-cyber-squire | Cloudflare Tunnel (zero exposed ports) | host net |
+| openclaw-gateway | OpenClaw (Claude Opus 4.6 proxy) | 18789-18790 |
 
-### Key Metrics
+Compose file: `/root/COREDIRECTIVE_ENGINE/docker-compose.yaml`
 
-- **Cost:** $0 AI inference (local models vs. $400/month GPU)
-- **Privacy:** 100% on-premise inference (sensitive data never leaves network)
-- **Security:** 89% NIST/CIS coverage (16/18 controls), zero exposed ports
-- **Scale:** 500+ daily workflow executions
+## Access
 
----
+Zero-trust via Cloudflare Tunnel. No ports exposed to public internet.
 
-## CRITICAL NAMING CONVENTIONS
+- `n8n.tigouetheory.com` -- n8n SOAR dashboard
+- `ssh.tigouetheory.com` -- SSH via Cloudflare tunnel
 
-All project components follow the **CoreDirective Standard**:
+**NEVER** run `docker compose down` via the tunnel -- it kills the tunnel container.
 
-```
-Root Directory:     /home/ec2-user/COREDIRECTIVE_ENGINE
-Container Prefixes: cd-service-*           (e.g., cd-service-db, cd-service-n8n)
-Network Name:       cd-automation-net
-Volume Prefixes:    cd-vol-*               (e.g., cd-vol-postgres, cd-vol-ollama)
-Environment Vars:   CD_*                   (e.g., CD_DB_PASS, CD_N8N_KEY)
-```
+## IaC: Terraform
 
----
+- **Active:** `terraform/cd-do-infrastructure/` (16 .tf files, DigitalOcean + Cloudflare providers)
+- **Policies:** 8 OPA/Rego policies in `terraform/cd-do-infrastructure/policy/`
+- **Remote state:** DigitalOcean Spaces (S3-compatible, nyc3 region)
+- **Legacy (suspended):** `terraform/simple-ec2/`, `terraform/cd-aws-automation/`
 
-## ESSENTIAL WORKFLOWS
+## CI/CD: GitHub Actions
 
-### Infrastructure Commands
+**PR pipeline** (`terraform-pr.yml`): fmt, validate, TFLint, Checkov, plan, OPA/conftest, PR comment
+**Merge pipeline** (`security.yml`): Trivy, Semgrep, Gitleaks, apply, Cosign, SBOM generation
 
-```bash
-# Verify all containers are healthy
-docker-compose ps
+## GRC: Compliance Library
 
-# View real-time logs (last 50 lines, follow mode)
-docker-compose logs -f --tail=50
+20 documents in `docs/grc/` covering NIST 800-53 Moderate baseline:
+SSP, POA&M, Risk Assessment, 9 policies, IAM maps, CIS register, 4 IR playbooks, tabletop exercise.
+Diagram generators in `docs/grc/diagrams/`.
 
-# Restart entire stack (NEVER via SSH tunnel - kills tunnel container)
-docker-compose down && sleep 10 && docker-compose up -d
+## Monitoring & Security
 
-# Check resource usage (memory, CPU)
-docker stats --no-stream
+- **Datadog:** Logs, metrics, 11 monitors (us5.datadoghq.com)
+- **Falco:** eBPF runtime threat detection with custom rules
+- **Falcosidekick:** Routes Falco alerts to Datadog
+- **Teleport:** SSH certificate auth, session recording, JIT access roles
+- **Keycloak:** RBAC with password policies and brute-force protection
 
-# Access PostgreSQL directly
-docker exec -it cd-service-db psql -U cd_admin -d cd_automation_db
-```
-
-### Database Maintenance
-
-```bash
-# Create manual backup
-docker exec cd-service-db pg_dump -U cd_admin -d cd_automation_db -Fc \
-  > /home/ec2-user/COREDIRECTIVE_ENGINE/CD_BACKUPS/backup_$(date +%Y%m%d).dump
-```
-
----
-
-## CODEBASE PATTERNS & CONVENTIONS
-
-### Environment Variable Management
-
-**Pattern:** All secrets stored in `.env` (git-ignored)
-
-```env
-# Database credentials
-CD_DB_USER=cd_admin
-CD_DB_PASS=<32-char random string>
-CD_DB_NAME=cd_automation_db
-
-# n8n encryption
-CD_N8N_KEY=<32-char random string>
-CD_N8N_JWT=<32-char random string>
-```
-
-**Do NOT:**
-- Hardcode passwords in docker-compose.yaml
-- Commit .env to git
-- Share .env via any channel
-
-### Docker Compose Structure
-
-```yaml
-services:
-  cd-service-db:          # PostgreSQL 16
-  cd-service-n8n:         # n8n SOAR orchestrator
-  cd-service-ollama:      # Ollama + Qwen 3 8B
-  cd-service-whisper:     # Faster-Whisper STT
-  openclaw-gateway:       # Claude AI agent proxy
-
-networks:
-  cd-automation-net:      # Bridge network (172.28.0.0/16)
-```
-
-**Key Pattern:** All containers communicate via internal Docker network. No direct port exposure to public internet — all access through Cloudflare Tunnel.
-
-### Security & Compliance
-
-- **Network:** Zero-trust architecture via Cloudflare Tunnel (no exposed ports)
-- **Host:** SELinux enforcing, read-only filesystems, dropped capabilities
-- **Secrets:** Rotated every 90 days, generated via `openssl rand -base64 32`
-- **Docs:** Three-tier (Employment_Proof → Technical_Vault → ADHD_Runbook)
-
----
-
-## FILE STRUCTURE
+## Naming Conventions
 
 ```
-COREDIRECTIVE_ENGINE/
-├── docker-compose.yaml              ← All service definitions
-├── .env.template                    ← Secrets template
-├── cdae-init.sh                     ← RHEL hardening + bootstrap
-├── cdae-healthcheck.sh              ← Post-deployment verification
-├── deploy_workflows.sh              ← Workflow deployment automation
-├── sql/                             ← Database initialization scripts
-└── workflow_*.json                  ← n8n workflow definitions
+Container prefixes:  cd-service-*
+Network:             cd-automation-net
+Volumes:             CD_VOL_* (on droplet)
+Environment vars:    CD_* (e.g., CD_DB_PASS, CD_N8N_KEY)
+```
 
-terraform/
-├── simple-ec2/                      ← Quick-start deployment
-└── cd-aws-automation/               ← Production-grade (VPC, NAT, S3)
+## Secrets
 
+All secrets managed via Doppler (`coredirective-engine/prd` config).
+On the droplet: `/root/COREDIRECTIVE_ENGINE/.env` (chmod 600).
+Never commit `.env` or secrets to git.
+
+## File Structure
+
+```
 docs/
-├── Employment_Proof.md              ← Business case overview
-├── Technical_Vault.md               ← Architecture deep-dive
-└── ADHD_Runbook.md                  ← Operational playbook
+  ADHD_Runbook.md          -- Operational playbook
+  Employment_Proof.md      -- Business case overview
+  Technical_Vault.md       -- Architecture deep-dive
+  grc/                     -- 20-doc NIST compliance library + diagram generators
+
+COREDIRECTIVE_ENGINE/      -- Local Docker Compose copy (13 services)
+terraform/                 -- IaC (DigitalOcean active, legacy suspended)
+.github/workflows/         -- CI/CD pipelines
+DEPRECATED/                -- Archived legacy docs and tools
 ```
 
----
+## Guidelines for AI Agents
 
-## GUIDELINES FOR AI AGENTS
-
-1. **Always check naming conventions** — Use `cd-*` prefixes for any new components
-2. **Read documentation first** — Employment_Proof explains "why", Technical_Vault explains "how", ADHD_Runbook explains "what buttons to press"
-3. **Test locally before deploying** — Use `docker-compose up -d` to test changes
-4. **Maintain audit trail** — Update docs after any infrastructure change
-5. **Never commit .env** — Verify .gitignore before staging
-6. **Monitor resource usage** — Ollama can consume all available RAM if not managed
+1. Use `cd-*` prefixes for any new components
+2. Read docs: Employment_Proof (why), Technical_Vault (how), ADHD_Runbook (ops)
+3. Never commit `.env`, `*.pem`, `*.key`, or `terraform.tfstate`
+4. Terraform changes go through PR pipeline (fmt, validate, Checkov, OPA)
+5. All containers communicate via internal Docker network, not exposed ports
+6. Monitor resource usage -- 8GB RAM shared across 14 containers
 
 ---
 
-**Version:** 2.0.0
-**Last Updated:** February 2026
+**Last Updated:** March 2026
 **Maintained By:** Emmanuel Tigoue
