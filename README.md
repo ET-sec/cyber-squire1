@@ -5,7 +5,7 @@
 
 **Production security platform on DigitalOcean -- 14 containers, NIST 800-53 compliance, full IaC with Terraform**
 
-Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | Security Engineer | CASP+ (SecurityX), SSCP, CCNA
+Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | Security Engineer | SecurityX (CASP+), SSCP, CCNA
 
 ---
 
@@ -48,7 +48,7 @@ DigitalOcean Droplet (4 vCPU / 8GB RAM) -- Ubuntu 24.04            $48/mo
 | Control Coverage | 86% (114/133 implemented or partial) |
 | Monthly Infrastructure | $48 |
 | CI/CD Security Scans | 6 (Trivy, Semgrep, Gitleaks, Checkov, Cosign, SBOM) |
-| GRC Documents | 23 policies, plans, and playbooks |
+| GRC Documents | 31 policies, plans, and playbooks |
 | OPA Policy Rules | 8 Rego policies enforced on every PR |
 | Terraform Files | 16 .tf files managing DigitalOcean + Cloudflare |
 
@@ -63,8 +63,9 @@ Full governance, risk, and compliance documentation aligned to NIST SP 800-53 Re
 | Category | Count | Contents |
 |----------|-------|----------|
 | Core Plans | 3 | System Security Plan (SSP), Plan of Action & Milestones (POA&M), Risk Assessment |
-| Policies | 9 | Incident Response, Access Control, Acceptable Use, Business Continuity, Disaster Recovery, Change Management, Vulnerability Management, Security Awareness, Risk Management |
-| IR Playbooks | 4 | Compromised Container, Leaked Credential, DDoS/Service Degradation, Unauthorized Access |
+| Policies | 10 | Incident Response, Access Control, Acceptable Use, Business Continuity, Disaster Recovery, Change Management, Vulnerability Management, Security Awareness, Risk Management, AI Governance |
+| IR Playbooks | 5 | Compromised Container, Leaked Credential, DDoS/Service Degradation, Unauthorized Access, AI Incident Response |
+| Threat Modeling | 6 | Data Flow Diagram (DFD), STRIDE Threat Model, Attack Tree, AI Threat Catalog, AI Supply Chain Risk, AI Red Team Plan |
 | IAM Documentation | 2 | RBAC Role Map (3-tier model), Access Review Process (JIT workflow) |
 | Risk Register | 1 | CIS Docker Benchmark findings with compensating controls |
 | Tabletop Exercise | 1 | Operation Phantom Container (5-phase exercise) |
@@ -114,13 +115,13 @@ Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security
 .
 ├── README.md
 ├── docs/
-│   ├── grc/                          23 GRC documents + 9 diagrams + 7 generators
+│   ├── grc/                          31 GRC documents + 9 diagrams + 7 generators
 │   │   ├── README.md                 Library index
 │   │   ├── SSP_SYSTEM_SECURITY_PLAN.md
 │   │   ├── POAM_PLAN_OF_ACTION.md
 │   │   ├── RISK_ASSESSMENT.md
-│   │   ├── POLICY_*.md              9 security policies
-│   │   ├── PLAYBOOK_*.md            4 incident response playbooks
+│   │   ├── POLICY_*.md              10 security policies (including AI governance)
+│   │   ├── PLAYBOOK_*.md            5 incident response playbooks (including AI incident)
 │   │   ├── EXECUTIVE_SUMMARY_*.md   3 executive summaries
 │   │   └── diagrams/                9 PNGs + 7 Python generators
 │   ├── Employment_Proof.md           Professional background

@@ -55,8 +55,8 @@ Zero-trust via Cloudflare Tunnel. No ports exposed to public internet.
 
 ## GRC: Compliance Library
 
-20 documents in `docs/grc/` covering NIST 800-53 Moderate baseline:
-SSP, POA&M, Risk Assessment, 9 policies, IAM maps, CIS register, 4 IR playbooks, tabletop exercise.
+31 documents in `docs/grc/` covering NIST 800-53 Moderate baseline:
+SSP, POA&M, Risk Assessment, 10 policies (including AI governance), IAM maps, CIS register, 5 IR playbooks (including AI incident response), 6 threat modeling documents, 3 executive summaries, tabletop exercise.
 Diagram generators in `docs/grc/diagrams/`.
 
 ## Monitoring & Security
@@ -89,7 +89,7 @@ docs/
   ADHD_Runbook.md          -- Operational playbook
   Employment_Proof.md      -- Business case overview
   Technical_Vault.md       -- Architecture deep-dive
-  grc/                     -- 20-doc NIST compliance library + diagram generators
+  grc/                     -- 31-doc NIST compliance library + diagram generators
 
 COREDIRECTIVE_ENGINE/      -- Local Docker Compose copy (13 services)
 terraform/                 -- IaC (DigitalOcean active, legacy suspended)

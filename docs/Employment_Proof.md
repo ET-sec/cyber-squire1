@@ -11,13 +11,13 @@
 
 The CoreDirective Automation Engine is a production security operations platform deployed on a DigitalOcean droplet (4 vCPU, 8GB RAM, Ubuntu 24.04). It runs 14 containers providing SOAR orchestration, runtime threat detection, privileged access management, identity and access control, secrets management, and full observability -- all on a single node at $48/month.
 
-The platform is documented to NIST SP 800-53 Rev. 5 Moderate baseline with 86% control coverage (114 of 133 controls implemented or partially implemented), supported by a 23-document GRC compliance library.
+The platform is documented to NIST SP 800-53 Rev. 5 Moderate baseline with 86% control coverage (114 of 133 controls implemented or partially implemented), supported by a 31-document GRC compliance library.
 
 ### Key Differentiators
 
 - **Cost:** $48/month total infrastructure (vs. $400+ for equivalent managed services)
 - **Security depth:** Runtime threat detection (Falco eBPF), privileged access management (Teleport JIT), identity federation (Keycloak RBAC), secrets management (Vault)
-- **Compliance:** 23 GRC documents covering SSP, POA&M, Risk Assessment, 9 policies, 4 IR playbooks, tabletop exercise, and 3 executive summaries
+- **Compliance:** 31 GRC documents covering SSP, POA&M, risk assessment, 10 policies (including AI governance), 5 IR playbooks (including AI incident response), 6 threat modeling documents (DFD, STRIDE, attack tree, AI threat catalog, AI supply chain risk, AI red team plan), CIS risk register, 2 IAM documents, tabletop exercise, and 3 executive summaries
 - **IaC maturity:** 16 Terraform files, 8 OPA/Rego policies, CI/CD with 6 security scans, pre-commit hooks
 
 ---
@@ -92,13 +92,14 @@ The platform is documented to NIST SP 800-53 Rev. 5 Moderate baseline with 86% c
 | Implemented or partially implemented | 114 (86%) |
 | Security categorization | FIPS 199 -- Moderate |
 
-### GRC Documentation Library (23 Documents)
+### GRC Documentation Library (31 Documents)
 
 | Category | Count | Documents |
 |----------|-------|-----------|
 | Core Plans | 3 | System Security Plan (SSP), POA&M, Risk Assessment |
-| Policies | 9 | Incident Response, Access Control, Acceptable Use, Business Continuity, Disaster Recovery, Change Management, Vulnerability Management, Security Awareness, Risk Management |
-| IR Playbooks | 4 | Compromised Container, Leaked Credential, DDoS/Service Degradation, Unauthorized Access |
+| Policies | 10 | Incident Response, Access Control, Acceptable Use, Business Continuity, Disaster Recovery, Change Management, Vulnerability Management, Security Awareness, Risk Management, AI Governance |
+| IR Playbooks | 5 | Compromised Container, Leaked Credential, DDoS/Service Degradation, Unauthorized Access, AI Incident Response |
+| Threat Modeling | 6 | Data Flow Diagram (DFD), STRIDE Threat Model, Attack Tree, AI Threat Catalog, AI Supply Chain Risk, AI Red Team Plan |
 | IAM Documentation | 2 | RBAC Role Map (3-tier model), Access Review Process (JIT workflow) |
 | Risk Register | 1 | CIS Docker Benchmark findings with compensating controls |
 | Tabletop Exercise | 1 | Operation Phantom Container (5-phase exercise) |
@@ -167,7 +168,7 @@ Gitleaks blocks hardcoded secrets. Checkov fails on security violations. OPA den
 ## Author
 
 **Emmanuel Tigoue** -- Security Engineer
-- CASP+ (SecurityX), SSCP, CCNA
+- SecurityX (CASP+), SSCP, CCNA
 - Portfolio: [et-sec.github.io/portfolio](https://et-sec.github.io/portfolio/)
 - LinkedIn: [linkedin.com/in/emmanuel-tigoue-672378307](https://www.linkedin.com/in/emmanuel-tigoue-672378307)
 - GitHub: [github.com/ET-sec](https://github.com/ET-sec)

@@ -32,7 +32,7 @@ Applies to all three AI systems within the authorization boundary and their down
 
 | ID | System | Service | Model | Trust Zone |
 |----|--------|---------|-------|------------|
-| AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) → Claude Opus 4 | Anthropic API (external) | DMZ |
+| AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) → Claude Opus 4.6 | Anthropic API (external) | DMZ |
 | AI-002 | Local LLM | svc-llm (Ollama) → Qwen 3 8B | Ollama registry (pulled locally) | Internal |
 | AI-003 | Transcription | svc-transcription (Whisper) | Open-weight (local) | Internal |
 
