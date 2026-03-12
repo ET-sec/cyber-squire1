@@ -318,5 +318,29 @@ A: Yes! Just don't set up a remote. Keep in `~/cd-private-ops/` and back up to e
 
 ---
 
-**Last Updated:** 2026-01-29
+---
+
+### 5. **GRC Library** (docs/grc/ — Public, Sanitized)
+**Purpose:** Governance, Risk, and Compliance documentation for the security operations platform
+**Audience:** Auditors, compliance reviewers, security assessors, hiring managers evaluating security maturity
+**Security:** Fully sanitized — all real IPs, domains, service names, vendor names, and identifiers replaced with generic equivalents
+
+**Contains:**
+- System Security Plan (SSP) with NIST 800-53 Moderate baseline mapping (16 families, 170+ controls)
+- Plan of Action & Milestones (POA&M) with 22 findings from CIS Docker Bench, Checkov, and Falco
+- Risk Assessment (NIST 800-30) with 17 threats and MITRE ATT&CK mapping
+- 9 security policies (IR, AC, AUP, BCP, DRP, CM, VM, SA, Risk Management)
+- IAM role map and access review process
+- CIS Docker Bench risk register
+- 4 incident response playbooks
+- Tabletop exercise (Operation Phantom Container)
+
+**Index:** `docs/grc/README.md`
+**Sanitization key:** `SANITIZATION_KEY.md` (gitignored, local only)
+
+**Included in:** Public repo (fully sanitized, safe to share)
+
+---
+
+**Last Updated:** 2026-03-11
 **Maintained By:** Emmanuel Tigoue

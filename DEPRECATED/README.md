@@ -1,61 +1,58 @@
-# Deprecated Content Archive
+# Deprecated / Archived Files
 
-**Purpose:** This directory contains legacy configurations and outdated files that are no longer in use but kept for historical reference.
+This directory contains files from previous iterations of the CoreDirective platform that are no longer current but are preserved for reference.
 
-**Last Updated:** 2026-01-30
+## Why These Files Are Here
 
----
+The CoreDirective platform migrated from AWS EC2 (RHEL 9) to DigitalOcean (Ubuntu 24.04) in March 2026. Documentation, Terraform configs, and tools that reference the old AWS architecture have been moved here to keep the active repository clean and accurate.
 
 ## Contents
 
-### 1. CD_ENGINE_MASTER/
-**Status:** Deprecated as of 2026-01-29
+### AWS-Era Documentation
 
-**Description:** Legacy docker-compose configuration using old naming conventions.
+| File | Description |
+|------|-------------|
+| `CD_AE_COMPLETE_STACK_OVERVIEW.md` | Original AWS EC2 architecture overview |
+| `CD_AWS_AUTOMATION.md` | AWS automation workflows |
+| `DEPLOYMENT_READINESS_CHECKLIST.md` | EC2-specific deployment checklist |
+| `RHEL_System_Init.md` | RHEL 9 system initialization guide |
+| `Rclone_Google_Drive_Setup.md` | Google Drive mount (not in current stack) |
+| `TERRAFORM_DEPLOYMENT_GUIDE.md` | EC2-specific Terraform deployment guide |
+| `TERRAFORM_QUICKREF.md` | EC2 Terraform quick reference |
+| `SECURITY_STACK_BUILD_PLAN.md` | Original security stack build plan (AWS) |
+| `DOCUMENTATION_STRATEGY.md` | Documentation strategy (AWS-era metrics) |
+| `ARCHITECTURE_DIAGRAMS.md` | Architecture diagram descriptions (AWS references) |
+| `Systematic_Cartography.md` / `.png` | Early system mapping |
 
-**Key Differences from COREDIRECTIVE_ENGINE:**
-- Uses underscore naming (`cd_postgres` vs `cd-service-db`)
-- Uses underscore naming (`cd_n8n` vs `cd-service-n8n`)
-- Uses underscore naming (`cd_brain_ollama` vs `cd-service-ollama`)
-- Missing Moltbot service definition
-- Cloudflare Tunnel configuration commented out
-- Different volume naming conventions (`CD_*_DATA` vs `cd-vol-*`)
+### Legacy Compose Configuration
 
-**Replacement:** `COREDIRECTIVE_ENGINE/`
+| Directory | Description |
+|-----------|-------------|
+| `CD_ENGINE_MASTER/` | Original Docker Compose with old naming conventions |
+| `old_workflows/` | n8n workflows referencing deprecated Qwen 2.5 models |
 
-**Reason for Deprecation:** Naming convention mismatch with production deployment standards. All production deployments migrated to hyphen-based naming for consistency with Docker/Kubernetes conventions.
+### Legacy Code
 
----
+| Directory | Description |
+|-----------|-------------|
+| `standalone_tools/` | Early Node.js automation tools (finance_manager.js, security_scanner.js, etc.) |
 
-### 2. old_workflows/
-**Status:** Deprecated as of 2026-01-30
+### Meta
 
-**Description:** n8n workflow JSON files using deprecated Qwen 2.5 model references.
+| File | Description |
+|------|-------------|
+| `CHANGELOG_DEPRECATIONS.md` | Deprecation changelog |
 
-**Reason for Deprecation:** System now uses Qwen 3 8B quantized model exclusively. Old workflow files would fail if executed because Qwen 2.5 models are not installed on the production Ollama instance.
+## Current Architecture
 
-**Replacement:** All workflow files in `COREDIRECTIVE_ENGINE/` have been updated to use `qwen3:8b-instruct-q4_K_M`.
+The active stack runs on DigitalOcean with 14 containers (13 Compose + 1 standalone). See:
 
----
-
-## Warning
-
-⚠️ **DO NOT USE FILES IN THIS DIRECTORY FOR NEW DEPLOYMENTS**
-
-Files in this directory are kept solely for historical reference and comparison purposes. They are not maintained and may contain outdated configurations, security vulnerabilities, or incompatible dependencies.
-
-For current production deployment configurations, always refer to:
-- **Docker Compose:** `COREDIRECTIVE_ENGINE/docker-compose.yaml`
-- **Environment Template:** `COREDIRECTIVE_ENGINE/.env.template`
-- **Workflows:** `COREDIRECTIVE_ENGINE/workflow_*.json`
-
----
-
-## Deprecation History
-
-See [CHANGELOG_DEPRECATIONS.md](CHANGELOG_DEPRECATIONS.md) for full deprecation history and migration notes.
+- Root `CLAUDE.md` for full infrastructure reference
+- `docs/grc/` for the 20-document NIST 800-53 compliance library
+- `docs/Technical_Vault.md` for architecture deep-dive
+- `docs/Employment_Proof.md` for business case overview
 
 ---
 
+**Last Updated:** 2026-03-12
 **Maintained By:** Emmanuel Tigoue
-**Project:** CoreDirective Automation Engine (CoreDirective Operations)
