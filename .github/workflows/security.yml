@@ -39,6 +39,7 @@ jobs:
           output: "trivy-results.sarif"
           exit-code: "1"
           ignore-unfixed: true
+          skip-dirs: "DEPRECATED"
 
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
