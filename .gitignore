@@ -42,6 +42,7 @@ docs/PRIVATE_OPERATIONS_MANUAL.md
 *PRIVATE*.md
 *SECRET*.md
 *CREDENTIAL*.md
+!docs/grc/PLAYBOOK_LEAKED_CREDENTIAL.md
 
 # ============================================
 # SECURITY: Operational Infrastructure (NEVER commit)
