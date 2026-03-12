@@ -406,15 +406,15 @@ The following matrix documents which monitoring and detection systems can identi
 
 | Catalog ID | Primary IR Playbook | Escalation Threshold |
 |------------|--------------------|--------------------|
-| ATC-01, ATC-02 | PLAYBOOK_UNAUTHORIZED_ACCESS.md (adapted for AI injection) | Successful injection that triggers unauthorized workflow execution |
-| ATC-03 | PLAYBOOK_COMPROMISED_CONTAINER.md | AI output results in unintended infrastructure or data modification |
-| ATC-04 | PLAYBOOK_COMPROMISED_CONTAINER.md | CVE detected in AI container image; model integrity verification failure |
-| ATC-05 | PLAYBOOK_LEAKED_CREDENTIAL.md | PII or credentials confirmed transmitted to external API |
-| ATC-06 | PLAYBOOK_UNAUTHORIZED_ACCESS.md | Skill execution results in unauthorized access to external service |
-| ATC-07 | PLAYBOOK_UNAUTHORIZED_ACCESS.md | AI executes action chain exceeding authorized scope |
+| ATC-01, ATC-02 | **PLAYBOOK_AI_INCIDENT.md** Scenario A | Successful injection that triggers unauthorized workflow execution |
+| ATC-03 | **PLAYBOOK_AI_INCIDENT.md** Scenario A/B + PLAYBOOK_COMPROMISED_CONTAINER.md | AI output results in unintended infrastructure or data modification |
+| ATC-04 | **PLAYBOOK_AI_INCIDENT.md** Scenario D | CVE detected in AI container image; model integrity verification failure |
+| ATC-05 | **PLAYBOOK_AI_INCIDENT.md** Scenario C + PLAYBOOK_LEAKED_CREDENTIAL.md | PII or credentials confirmed transmitted to external API |
+| ATC-06 | **PLAYBOOK_AI_INCIDENT.md** Scenario A + PLAYBOOK_UNAUTHORIZED_ACCESS.md | Skill execution results in unauthorized access to external service |
+| ATC-07 | **PLAYBOOK_AI_INCIDENT.md** Scenario B | AI executes action chain exceeding authorized scope |
 | ATC-08 | N/A (procedural, not incident) | Identified during quarterly review |
 | ATC-09 | PLAYBOOK_DDOS_SERVICE_DEGRADATION.md | Resource exhaustion impacting service availability |
-| ATC-10 | PLAYBOOK_COMPROMISED_CONTAINER.md | Unexpected network connection from AI container to sensitive zone |
+| ATC-10 | **PLAYBOOK_AI_INCIDENT.md** Scenario B + PLAYBOOK_COMPROMISED_CONTAINER.md | Unexpected network connection from AI container to sensitive zone |
 
 ---
 
@@ -441,6 +441,7 @@ The following matrix documents which monitoring and detection systems can identi
 | [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI governance framework, risk tolerance, lifecycle management |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | NIST 800-53 control implementations |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Remediation tracking for identified gaps |
+| [PLAYBOOK_AI_INCIDENT.md](PLAYBOOK_AI_INCIDENT.md) | **AI-specific IR playbook** — prompt injection, excessive agency, data exfiltration, model supply chain |
 | [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md) | Container compromise response procedures |
 | [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md) | Credential exposure response procedures |
 | [PLAYBOOK_UNAUTHORIZED_ACCESS.md](PLAYBOOK_UNAUTHORIZED_ACCESS.md) | Unauthorized access investigation procedures |
