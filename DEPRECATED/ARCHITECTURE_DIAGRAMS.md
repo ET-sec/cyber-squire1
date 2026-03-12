@@ -1,5 +1,7 @@
 # CoreDirective Architecture & Security Diagrams
 
+> **ARCHIVED (2026-03-11):** This document references the original AWS EC2 architecture (suspended 2026-03-08). The current architecture runs on DigitalOcean with 13 Docker containers and is documented in `docs/grc/SSP_SYSTEM_SECURITY_PLAN.md`. Updated diagrams for the current architecture are planned for Phase 10.
+
 Visual reference for system architecture, security layers, deployment flow, and cost optimization.
 
 ---

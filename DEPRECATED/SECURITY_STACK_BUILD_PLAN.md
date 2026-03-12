@@ -1,24 +1,62 @@
 # Security Stack Build Plan — $200K Architecture
 
+> **ARCHIVED (2026-03-11):** This document predates the DigitalOcean migration (2026-03-10) and the 10-phase infrastructure roadmap. The current architecture is documented in `docs/grc/SSP_SYSTEM_SECURITY_PLAN.md` and the roadmap lives at `.planning/roadmap.md`. Retained for historical reference only.
+
 > **Goal:** Build and stream the CoreDirective security platform across 5 episodes.
 > Each episode = 1 component. Off-stream groundwork done first. Zero credential exposure.
 
 ---
 
-## PRE-STREAM GROUNDWORK (Do This Off-Stream, ~2-3 hrs total)
+## SESSION STATUS — Last updated: 2026-02-25
 
-### Step 1 — Claim Education Credits (~30 min)
-Do this first. Everything else depends on it.
+### ✅ COMPLETED THIS SESSION
+- **OpenClaw v2026.2.24** — EC2 gateway + Mac CLI both upgraded, bot live, Mac node ESTABLISHED
+- **Gmail full body fix** — all 4 workflows (main/brand/personal/business) return HTML body via `simple: false`
+- **GitHub Actions pipeline** — written at `.github/workflows/security.yml` (Trivy, Gitleaks, Semgrep, SBOM)
+- **Datadog account confirmed** — Pro tier via GitHub Student Pack, org renamed to `CoreDirective`
+- **Datadog API key** — `Core_Automation` key saved to 1Password + set as `DATADOG_API_KEY` GitHub secret
+- **Datadog App Keys (all 3)** — saved to 1Password Core Infra vault:
+  - `Github-Actions` → for deployment markers in pipeline
+  - `Terraform` → for IaC dashboard/monitor management
+  - `N8n_Soar` → for SOAR alert queries
+- **DD_SITE** secret set — `us5.datadoghq.com`
 
-- [ ] Go to https://education.github.com/pack → verify student pack active
-- [ ] Claim **Datadog** → Pro tier free (search "Datadog" in pack list)
-  - Save API key + App key → 1Password → Core Infra vault → tag `datadog`
-- [ ] Claim **DigitalOcean** → $200 credit
-  - Create DO account if needed → save login → 1Password → Core Infra vault
-  - Generate DO Personal Access Token → save to 1Password → tag `digitalocean`
-- [ ] Verify GitHub Education Pack also gives: Namecheap, Heroku (if needed later)
+### ⏳ NEXT SESSION — Start Here
+1. **Push the pipeline** (blocked on GitHub `workflow` scope):
+   ```bash
+   gh auth refresh -h github.com -s workflow
+   git push origin main
+   ```
+   Then verify at: `github.com/ET-sec/cyber-squire1/actions`
 
-> If Education Pack expired: Datadog 14-day free trial still works. DO gives $200 on signup anyway.
+2. **Install Datadog agent on EC2** (Episode 3):
+   - Datadog URL: `us5.datadoghq.com` | login: `emmanueltigoue@gmail.com`
+   - API key in 1Password: `Core Infra → Datadog Core_Automation API Key`
+   - Add agent to `~/COREDIRECTIVE_ENGINE/docker-compose.yaml`
+   - Enable: AWS integration, Docker integration, PostgreSQL check
+
+3. **Create `.env.demo`** for stream-safe walkthroughs (placeholder values only)
+
+4. **Set GitHub secret `DATADOG_APP_KEY`** — use `Github-Actions` key from 1Password
+
+### 🔑 CREDENTIALS REFERENCE (all in 1Password → Core Infra)
+| Item | Title in 1Password | Tag |
+|------|-------------------|-----|
+| Datadog API Key | Datadog Core_Automation API Key | datadog |
+| Datadog github-actions App Key | Datadog github-actions App Key | datadog, app-key |
+| Datadog terraform App Key | Datadog terraform App Key | datadog, terraform |
+| Datadog n8n-soar App Key | Datadog n8n-soar App Key | datadog, n8n |
+
+---
+
+## PRE-STREAM GROUNDWORK STATUS
+
+### Step 1 — Claim Education Credits
+- [x] Datadog Pro — confirmed active via Student Pack (`studentpack-sa@datadoghq.com`)
+- [ ] DigitalOcean $200 credit — not yet claimed (needed for Episode K8s work)
+  - Go to education.github.com/pack → claim DigitalOcean → save token to 1Password → tag `digitalocean`
+
+> If Education Pack expired: DO gives $200 on signup anyway.
 
 ---
 
