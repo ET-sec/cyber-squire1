@@ -12,6 +12,9 @@ All documents are sanitized for public repository safety. No real IPs, domains, 
 - **NIST AI RMF (AI 100-1)** — AI risk management framework
 - **ISO/IEC 42001:2023** — AI management system
 - **ISO/IEC 27701:2019** — Privacy information management
+- **OWASP LLM Top 10 (2025)** — LLM-specific threat taxonomy
+- **MITRE ATLAS v4** — Adversarial ML threat framework
+- **NIST SP 800-154** — Data-centric threat modeling
 - **FIPS 199** — Security categorization (Moderate)
 - **CIS Docker Benchmark** — Container hardening benchmark
 
@@ -55,6 +58,14 @@ All documents are sanitized for public repository safety. No real IPs, domains, 
 | [IAM_RBAC_ROLE_MAP.md](IAM_RBAC_ROLE_MAP.md) | 3-tier RBAC role map (admin/operator/auditor) |
 | [IAM_ACCESS_REVIEW.md](IAM_ACCESS_REVIEW.md) | Access review process with JIT workflow |
 
+### Threat Modeling
+
+| Document | Description |
+|----------|-------------|
+| [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md) | STRIDE analysis — 29 threats across 6 categories with AI extensions, mapped to NIST 800-53 |
+| [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack tree — 4 paths to compromise AI inference pipeline, MITRE ATLAS / OWASP LLM mapping |
+| [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | AI threat catalog — 10 threats mapped to OWASP LLM Top 10, MITRE ATLAS, NIST AI RMF, ISO 42001 |
+
 ### Risk Register
 
 | Document | Description |
@@ -85,14 +96,19 @@ All documents are sanitized for public repository safety. No real IPs, domains, 
 | Risk register review | Quarterly | 2026-06-11 |
 | CIS Docker Bench rescan | Monthly | 2026-04-11 |
 | Policy review | Annual | 2027-03-11 |
+| Threat model review | Semi-annual | 2026-09-12 |
+| AI threat catalog review | Semi-annual | 2026-09-12 |
 | Tabletop exercise | Semi-annual | TBD |
 
 ## Statistics
 
-- **24 documents** in this library
-- **~9,300 lines** of compliance documentation
+- **27 documents** in this library
+- **~12,200 lines** of compliance documentation
 - **170+ NIST 800-53 controls** mapped across 16 families
-- **3 AI governance frameworks** mapped (ISO 42001, ISO 27701, NIST AI RMF)
+- **5 AI/ML frameworks** mapped (ISO 42001, ISO 27701, NIST AI RMF, OWASP LLM Top 10, MITRE ATLAS)
+- **29 STRIDE threats** analyzed with AI-specific extensions
+- **10 AI threats** cataloged with cross-framework traceability
+- **4 attack paths** decomposed for AI inference pipeline compromise
 - **22 POA&M entries** tracked (15 accepted, 6 open, 1 closed)
 - **17 risk scenarios** assessed with MITRE ATT&CK mapping
 - **4 IR playbooks** with step-by-step containment procedures
