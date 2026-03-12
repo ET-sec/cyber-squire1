@@ -1,9 +1,14 @@
 # ADHD Runbook: CoreDirective Automation Engine (CD-AE) - Quick Reference
 
-**Purpose:** Simple, jargon-free operational steps for quick recovery and daily management  
-**Audience:** Anyone managing the system (no Linux/Docker expertise required)  
-**Format:** Copy-paste commands; numbered steps; zero assumptions  
-**OS Target:** Amazon Linux 2023 / RHEL 9.x (dnf-based)  
+> **NOTE:** This document describes the original AWS EC2 deployment (January 2026).
+> The platform has since migrated to DigitalOcean (March 2026) with 14 containers
+> on Ubuntu 24.04. Commands referencing `ec2-user` and AWS paths are outdated.
+> The current droplet uses `root` at `/root/COREDIRECTIVE_ENGINE/`.
+
+**Purpose:** Simple, jargon-free operational steps for quick recovery and daily management
+**Audience:** Anyone managing the system (no Linux/Docker expertise required)
+**Format:** Copy-paste commands; numbered steps; zero assumptions
+**OS Target:** Amazon Linux 2023 / RHEL 9.x (dnf-based) -- see note above  
 
 ---
 

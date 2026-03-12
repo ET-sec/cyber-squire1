@@ -1,8 +1,13 @@
 # Technical Vault: CoreDirective Automation Engine (CD-AE) - Deep Dive Documentation
 
-**Classification:** Technical Architecture & Implementation Details  
-**Audience:** DevOps engineers, AI/ML specialists, infrastructure architects  
-**Version:** 1.0.0  
+> **NOTE:** This document describes the original AWS EC2 deployment (January 2026).
+> The platform has since migrated to DigitalOcean (March 2026) with a significantly
+> expanded stack (14 containers vs. 5). See [Employment_Proof.md](Employment_Proof.md)
+> for the current architecture.
+
+**Classification:** Technical Architecture & Implementation Details
+**Audience:** DevOps engineers, AI/ML specialists, infrastructure architects
+**Version:** 1.0.0
 **Last Updated:** January 29, 2026  
 
 ---
