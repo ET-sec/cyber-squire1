@@ -1,0 +1,16 @@
+title = "Gitleaks config — cyber-squire-ops"
+
+[allowlist]
+description = "Known rotated/revoked secrets in git history. Telegram bot token was revoked on 2026-03-08."
+commits = [
+  "b1cd5c8ad6ef23129a132238df27b8c9deb60d98",
+  "266200151b40c9ef00085d01732d7620958b03b5",
+  "592dd2d5328ea8b69202bb4550481ce6810db605",
+  "d4057ff0290b758587c1a64d3a0867c13ce364de",
+  "1fb410cae26524a86294a10c0038719cc4b2eef5",
+  "34772ebf577180534e7055473a0d029b25c98bea",
+  "dff53aad0b25919531a29ca2c17d394e2b6f7077",
+  "25634795d1aff7294f14a7995434037daca1327d",
+  "de02153e4cd8058b192ef7cd7f167137cb8dba7c",
+  "0a160f7c9486001d20601e508437c18e062a3eff",
+]

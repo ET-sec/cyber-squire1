@@ -8,12 +8,12 @@ provider "aws" {
 data "aws_ami" "al2023" {
   most_recent = true
   owners      = ["amazon"]
-  
+
   filter {
     name   = "name"
     values = ["al2023-ami-*"]
   }
-  
+
   filter {
     name   = "state"
     values = ["available"]
@@ -30,7 +30,7 @@ resource "aws_security_group" "cd_engine_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.my_ip}/32"] 
+    cidr_blocks = ["${var.my_ip}/32"]
   }
 
   # 2. EMERGENCY "BACKDOOR": AWS Instance Connect (Console Access)
@@ -39,10 +39,27 @@ resource "aws_security_group" "cd_engine_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["18.206.107.24/29"] 
+    cidr_blocks = ["18.206.107.24/29"]
   }
 
-  # 3. N8N VIA CLOUDFLARE TUNNEL ONLY (No Direct Public Access)
+  # 3. RTMP INGEST: OBS → EC2 → YouTube relay
+  ingress {
+    from_port   = 1935
+    to_port     = 1935
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # 4. OPENCLAW GATEWAY: @CDirective_bot access
+  ingress {
+    description = "OpenClaw Gateway"
+    from_port   = 18789
+    to_port     = 18790
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # 4. N8N VIA CLOUDFLARE TUNNEL ONLY (No Direct Public Access)
   # Tunnel absorbs inbound traffic; this rule is DEPRECATED post-tunnel-deployment
   # Commented out for production hardening
   # ingress {
@@ -62,9 +79,9 @@ resource "aws_security_group" "cd_engine_sg" {
 
 # --- THE ENGINE: 16GB RAM + PERFORMANCE SSD ---
 resource "aws_instance" "cd_alpha_engine" {
-  ami           = data.aws_ami.al2023.id
-  instance_type = "t3.xlarge" # 16GB RAM / 4 vCPU
-  key_name      = var.key_name
+  ami                    = data.aws_ami.al2023.id
+  instance_type          = "t3.xlarge" # 16GB RAM / 4 vCPU
+  key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.cd_engine_sg.id]
 
   root_block_device {
@@ -93,7 +110,7 @@ resource "aws_instance" "cd_alpha_engine" {
               EOF
 
   tags = {
-    Name = "CD-Alpha-Engine"
+    Name    = "CD-Alpha-Engine"
     Project = "Operation-Nuclear"
   }
 }
