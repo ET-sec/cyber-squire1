@@ -24,12 +24,12 @@
       "location": "Atlanta, GA",
       "dates": "Sep 2025 - Present",
       "bullets": {
-        "ai_gateway_security": "Hardened a production AI agent gateway (OpenClaw) serving Claude Opus 4 inference, implementing input validation against OWASP Top 10 for LLM Applications and MITRE ATLAS threat models. Blocked prompt injection and system prompt leakage across 6 deployed skills.",
+        "ai_gateway_security": "Hardened a production AI agent gateway (OpenClaw) serving Claude Opus 4 inference, implementing LLM security controls against OWASP Top 10 for LLM Applications and MITRE ATLAS threat models. Blocked prompt injection, excessive agency, and system prompt leakage across 6 deployed skills.",
         "zero_trust": "Zero publicly exposed ports. Built the entire network on Cloudflare Zero Trust tunnels with mTLS certificate authentication, routing all traffic through encrypted tunnels instead of opening firewall rules.",
         "soar_automation": "16 automated security workflows running on n8n SOAR, handling everything from threat intel enrichment to credential rotation alerts. Cut manual triage time from 23 hours/week down to 4.",
         "detection_engineering": "Alert fatigue was killing the detection pipeline. Tuned Falco eBPF runtime rules from 200+ daily alerts down to 12 actionable ones, then wired Falcosidekick to push critical findings straight into Datadog dashboards.",
         "iam_pam": "Deployed Teleport for privileged access management with JIT access provisioning, session recording, and automatic expiration. Stood up Keycloak for RBAC across the stack. No more shared admin accounts.",
-        "cicd_security": "Full shift-left pipeline. GitHub Actions runs Trivy container scans, Semgrep SAST, Gitleaks secrets detection, and OPA policy checks on every PR. Cosign signs container images, Syft generates SBOMs.",
+        "cicd_security": "Full shift-left pipeline with container security baked in. GitHub Actions runs Trivy scans, Semgrep SAST, Gitleaks secrets detection, and OPA policy checks on every PR. Cosign signs images, Syft generates SBOMs for supply chain security traceability.",
         "iac_compliance": "Entire infrastructure defined in 16 Terraform files managing 30+ resources across DigitalOcean and Cloudflare. Wrote 8 OPA/Rego policies that block non-compliant changes before they hit production.",
         "grc_documentation": "Authored 31 GRC documents from scratch: SSP with NIST 800-53 control mapping, POA&M tracking 47 findings, 10 security policies, 4 IR playbooks, risk assessment, and a tabletop exercise. Not templated. Every document references actual infrastructure evidence."
       },
@@ -51,7 +51,7 @@
       "location": "Fairburn, GA",
       "dates": "Mar 2022 - Feb 2026",
       "bullets": {
-        "endpoint_security": "Managed endpoint security across 45+ devices with CrowdStrike Falcon, handling detection tuning, policy enforcement, and quarterly threat assessments for a multi-site retail operation.",
+        "endpoint_security": "Managed endpoint security and vulnerability management across 45+ devices with CrowdStrike Falcon, handling detection tuning, policy enforcement, and quarterly threat assessments for a multi-site retail operation.",
         "network_segmentation": "Inherited a flat network with zero segmentation. Split it into 4 VLANs isolating POS payment traffic, back-office systems, guest WiFi, and management. Lateral movement dropped to near zero.",
         "siem_monitoring": "Cut mean time to detect from 48 hours to under 4 by deploying Splunk log aggregation across all endpoints and network devices. Set up correlation rules that caught 3 credential stuffing attempts in the first month.",
         "ad_hardening": "AD was a mess when I took over. Enforced Group Policy baselines, killed stale accounts, locked down admin rights, and set up automated credential rotation. Audit findings went from 14 to 2.",
@@ -92,7 +92,7 @@
   "skills": [
     {
       "label": "Security & AI Operations",
-      "items": "OWASP Top 10 LLM (production gateway hardening), MITRE ATLAS (AI threat modeling), Falco eBPF (runtime detection), CrowdStrike Falcon (endpoint), Splunk/Datadog (SIEM/observability), n8n (SOAR automation, 16 workflows), prompt injection defense, AI red teaming"
+      "items": "OWASP Top 10 LLM (production gateway hardening), MITRE ATLAS (AI threat modeling), adversarial ML/data poisoning defense, RAG security, Falco eBPF (runtime detection), CrowdStrike Falcon (endpoint), Splunk/Datadog (SIEM/observability), n8n (SOAR automation, 16 workflows), prompt injection defense, AI red teaming"
     },
     {
       "label": "Cloud & Infrastructure",
@@ -100,11 +100,11 @@
     },
     {
       "label": "DevSecOps & Identity",
-      "items": "GitHub Actions CI/CD, Trivy (container scanning), Semgrep (SAST), Gitleaks (secrets detection), OPA/Rego (policy as code, 8 policies), Cosign (image signing), SBOM generation, Teleport (PAM/JIT access), Active Directory (GPO hardening)"
+      "items": "GitHub Actions CI/CD, Trivy (container scanning), Semgrep (SAST), Gitleaks (secrets detection), OPA/Rego (policy as code, 8 policies), Cosign (image signing), SBOM generation, API security testing, penetration testing, Teleport (PAM/JIT access), Active Directory (GPO hardening)"
     },
     {
       "label": "Compliance & Languages",
-      "items": "NIST 800-53 (SSP with control mapping), NIST AI RMF, ISO 42001 (AI governance), SOC 2 readiness, GRC documentation (31 artifacts), Python, PowerShell, Bash, HCL"
+      "items": "NIST 800-53 (SSP with control mapping), NIST AI RMF, ISO 42001 (AI governance), EU AI Act compliance mapping, SOC 2 readiness, GRC documentation (31 artifacts), Python, PowerShell, Bash, HCL"
     }
   ],
   "education": [

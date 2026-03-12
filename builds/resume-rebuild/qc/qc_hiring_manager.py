@@ -176,7 +176,8 @@ def dim_education_present(sections: dict) -> tuple[int, str]:
     if not edu:
         return 0, "No EDUCATION section"
     text = " ".join(edu).lower()
-    has_degree = any(d in text for d in ["b.s.", "b.a.", "m.s.", "m.a.",
+    has_degree = any(d in text for d in ["b.s.", "b.a.", "b.b.a.", "bba",
+                                          "m.s.", "m.a.", "mba",
                                           "bachelor", "master", "associate",
                                           "phd", "doctorate"])
     has_gpa = "gpa" in text or "cum laude" in text or "dean" in text
@@ -188,11 +189,15 @@ def dim_education_present(sections: dict) -> tuple[int, str]:
 
 
 def dim_single_page(text: str) -> tuple[int, str]:
-    """Is total character count under 4000 (rough single-page estimate)?"""
+    """Is total character count under 6000 (rough 1-2 page estimate)?
+
+    Threshold is 6000 to accommodate legitimate 2-page resumes for
+    candidates with 5+ years of experience and multiple roles.
+    """
     count = len(text)
-    passed = count < 4000
+    passed = count < 6000
     return (1 if passed else 0,
-            f"{count} chars ({'<4000' if passed else '>=4000'})")
+            f"{count} chars ({'<6000' if passed else '>=6000'})")
 
 
 def dim_consistent_formatting(sections: dict) -> tuple[int, str]:
