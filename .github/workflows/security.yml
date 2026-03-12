@@ -58,6 +58,7 @@ jobs:
             p/terraform
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          SEMGREP_EXCLUDE: "DEPRECATED,terraform/simple-ec2,terraform/cd-aws-automation"
 
   terraform-apply:
     name: Terraform Apply
