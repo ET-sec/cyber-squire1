@@ -3,7 +3,7 @@
 [![Live Portfolio](https://img.shields.io/badge/Portfolio-Live-00FF41?style=flat-square)](https://et-sec.github.io/portfolio/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-**Production security platform on AWS — AI-augmented orchestration, Zero Trust architecture, Terraform IaC**
+**Production security platform on DigitalOcean -- 14 containers, NIST 800-53 compliance, full IaC with Terraform**
 
 Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | Security Engineer | CASP+ (SecurityX), SSCP, CCNA
 
@@ -11,16 +11,30 @@ Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | S
 
 ## What This Is
 
-A 5-service containerized security platform running on a single EC2 instance. Integrates 16 services through a SOAR orchestration layer with zero external AI inference costs.
+A 14-container security operations platform running on a single DigitalOcean droplet. SOAR orchestration, runtime threat detection, privileged access management, and compliance documentation -- all on one node at $48/month.
+
+Everything is codified in Terraform, secured by a CI/CD pipeline with 6 security scans, and documented to NIST 800-53 Rev. 5 Moderate baseline with 86% control coverage.
+
+---
+
+## Architecture
 
 ```
-AWS EC2 t3.xlarge (16GB RAM) — RHEL 9 / Amazon Linux 2023
-├── PostgreSQL 16          Workflow state + automation logs
-├── n8n SOAR               16-service orchestration engine
-├── Ollama (Qwen 3 8B)    Local AI inference ($0/month)
-├── Faster-Whisper         Voice transcription (STT)
-├── OpenClaw Gateway       Claude AI agent proxy
-└── Cloudflare Tunnel      Zero-trust access (no exposed ports)
+DigitalOcean Droplet (4 vCPU / 8GB RAM) -- Ubuntu 24.04            $48/mo
+├── PostgreSQL 16              Workflow state + audit logs
+├── n8n SOAR                   16-service orchestration engine
+├── Datadog Agent              Metrics, logs, container monitoring
+├── Falco (eBPF)               Runtime threat detection
+├── Falcosidekick              Alert routing to Datadog
+├── HashiCorp Vault            Secrets management
+├── Keycloak v26               Identity + RBAC
+├── Teleport v18               SSH + session recording + JIT access
+├── Teleport Event Handler     Audit event shipping
+├── Fluentd                    Log routing to Datadog
+├── Ollama (Qwen 3 8B)         Local AI inference
+├── Faster-Whisper             Voice transcription
+├── Cloudflare Tunnel          Zero-trust access (no exposed ports)
+└── OpenClaw Gateway           Claude AI agent proxy
 ```
 
 ---
@@ -29,116 +43,123 @@ AWS EC2 t3.xlarge (16GB RAM) — RHEL 9 / Amazon Linux 2023
 
 | Metric | Value |
 |--------|-------|
-| Integrated Services | 16 |
-| NIST/CIS Coverage | 89% (16/18 controls) |
-| Attack Surface Reduction | 85% |
-| AI Inference Cost | $0/month |
-| Workflow Success Rate | 99.2% |
-| Monthly Infrastructure | ~$135 |
-| Annual Savings vs GPU | $3,732 (72%) |
+| Containers | 14 (13 Compose + 1 standalone) |
+| NIST 800-53 Controls Mapped | 133 |
+| Control Coverage | 86% (114/133 implemented or partial) |
+| Monthly Infrastructure | $48 |
+| CI/CD Security Scans | 6 (Trivy, Semgrep, Gitleaks, Checkov, Cosign, SBOM) |
+| GRC Documents | 23 policies, plans, and playbooks |
+| OPA Policy Rules | 8 Rego policies enforced on every PR |
+| Terraform Files | 16 .tf files managing DigitalOcean + Cloudflare |
+
+---
+
+## GRC Compliance Library
+
+Full governance, risk, and compliance documentation aligned to NIST SP 800-53 Rev. 5 Moderate baseline, FIPS 199, and CIS Docker Benchmark.
+
+**[Browse the full library](docs/grc/README.md)**
+
+| Category | Count | Contents |
+|----------|-------|----------|
+| Core Plans | 3 | System Security Plan (SSP), Plan of Action & Milestones (POA&M), Risk Assessment |
+| Policies | 9 | Incident Response, Access Control, Acceptable Use, Business Continuity, Disaster Recovery, Change Management, Vulnerability Management, Security Awareness, Risk Management |
+| IR Playbooks | 4 | Compromised Container, Leaked Credential, DDoS/Service Degradation, Unauthorized Access |
+| IAM Documentation | 2 | RBAC Role Map (3-tier model), Access Review Process (JIT workflow) |
+| Risk Register | 1 | CIS Docker Benchmark findings with compensating controls |
+| Tabletop Exercise | 1 | Operation Phantom Container (5-phase exercise) |
+| Executive Summaries | 3 | Architecture, Compliance, Security Posture |
+| Diagrams | 9 | Network topology, data flow, control coverage, risk heat map, and more |
+
+All documents are sanitized for public hosting. Personal identifiers and internal infrastructure details are replaced with generic equivalents. Product names (Vault, Keycloak, Teleport, Falco, Datadog, Cloudflare, Trivy) are preserved to demonstrate the actual technology stack.
+
+---
+
+## Infrastructure as Code
+
+16 Terraform files in [`terraform/cd-do-infrastructure/`](terraform/cd-do-infrastructure/) managing DigitalOcean and Cloudflare resources.
+
+- **Providers:** DigitalOcean (compute, networking, storage) + Cloudflare (DNS, tunnel)
+- **Remote state:** DigitalOcean Spaces with encryption at rest
+- **Policy-as-code:** 8 OPA/Rego policies (4 deny, 4 warn) enforced via conftest on every PR
+- **Pre-commit hooks:** terraform fmt, validate, tflint, checkov
+
+---
+
+## CI/CD Pipeline
+
+Two workflow files in [`.github/workflows/`](.github/workflows/):
+
+**PR pipeline** (`terraform-pr.yml`): fmt, validate, tflint, checkov, terraform plan (posted to PR comments), OPA/conftest policy checks
+
+**Merge pipeline** (`security.yml`): Trivy (container scan), Semgrep (SAST), Gitleaks (secret detection), terraform apply (from saved plan), Cosign (image signing), SBOM generation
+
+Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security violations. OPA deny policies are hard-fail.
+
+---
+
+## Observability and Detection
+
+- **Datadog:** Container monitoring, custom dashboard, 7 alert monitors (container down, CPU, memory, disk, n8n errors, health digest, certificate expiry)
+- **Falco:** eBPF runtime threat detection with custom rules per container (shell access, sensitive file reads, privilege escalation, network anomalies)
+- **Falcosidekick:** Routes Falco alerts to Datadog for centralized visibility
+- **Teleport:** SSH session recording with JIT access (4-hour TTL), full audit trail
+- **Audit logs:** Exported to DigitalOcean Spaces (versioned, hash-chained for integrity)
 
 ---
 
 ## Repository Structure
 
 ```
-├── COREDIRECTIVE_ENGINE/       Production Docker stack
-│   ├── docker-compose.yaml       Service definitions
-│   ├── .env.template             Configuration template (sanitized)
-│   ├── cdae-init.sh              RHEL hardening + bootstrap
-│   ├── cdae-healthcheck.sh       Post-deployment health checks
-│   ├── deploy_workflows.sh       Workflow deployment automation
-│   ├── sql/                      Database initialization scripts
-│   └── workflow_*.json           n8n workflow definitions
-│
-├── terraform/                  Infrastructure as Code
-│   ├── simple-ec2/               Quick-start (5 min, ~$135/mo)
-│   └── cd-aws-automation/        Production-grade (VPC, NAT, S3 backend)
-│
-├── standalone_tools/           Security & automation utilities
-│   ├── aws_security_tool.js      AWS security scanning
-│   ├── security_scanner.js       General security analysis
-│   ├── finance_manager.js        Financial management
-│   └── webhook_handler.js        Webhook routing
-│
-├── docs/                       Architecture & operations
-│   ├── Employment_Proof.md       Business case & capability overview
-│   ├── Technical_Vault.md        Deep-dive system specifications
-│   ├── ADHD_Runbook.md           Operational playbook
-│   ├── ARCHITECTURE_DIAGRAMS.md  Full architecture with threat model
-│   └── ...                       Deployment guides, setup docs
-│
-├── .planning/                  Phase-based project execution
-│   ├── PROJECT.md                Project definition
-│   ├── ROADMAP.md                10-phase development timeline
-│   └── phases/01-10/             Planning, research, verification
-│
-└── DEPRECATED/                 Archived previous implementations
+.
+├── README.md
+├── docs/
+│   ├── grc/                          23 GRC documents + 9 diagrams + 7 generators
+│   │   ├── README.md                 Library index
+│   │   ├── SSP_SYSTEM_SECURITY_PLAN.md
+│   │   ├── POAM_PLAN_OF_ACTION.md
+│   │   ├── RISK_ASSESSMENT.md
+│   │   ├── POLICY_*.md              9 security policies
+│   │   ├── PLAYBOOK_*.md            4 incident response playbooks
+│   │   ├── EXECUTIVE_SUMMARY_*.md   3 executive summaries
+│   │   └── diagrams/                9 PNGs + 7 Python generators
+│   ├── Employment_Proof.md           Professional background
+│   ├── Technical_Vault.md            Technical reference
+│   └── ADHD_Runbook.md              Operational playbook
+├── terraform/
+│   ├── cd-do-infrastructure/         16 .tf files + 8 OPA policies
+│   ├── cd-aws-automation/            Legacy AWS IaC (retained for reference)
+│   └── simple-ec2/                   Legacy quick-start (retained for reference)
+├── .github/workflows/                CI/CD pipelines (security.yml, terraform-pr.yml)
+├── scripts/                          8 operational scripts (health, audit, hardening)
+└── DEPRECATED/                       26 archived AWS-era documents and tools
 ```
-
----
-
-## Security Architecture
-
-Three-layer defense model with zero exposed ports:
-
-**Layer 1 — Perimeter:** AWS Security Groups (default-deny ingress) + Cloudflare Tunnel (TLS 1.3, no direct IP exposure)
-
-**Layer 2 — Zero Trust:** Identity-aware proxy (OTP), Docker bridge isolation (172.28.0.0/16), quarterly credential rotation
-
-**Layer 3 — Host:** SELinux enforcing (container_t domain), read-only filesystems, dropped capabilities, unprivileged execution
-
----
-
-## Deployment
-
-Two Terraform options:
-
-| Option | Path | Time | Cost | Use Case |
-|--------|------|------|------|----------|
-| Quick Start | `terraform/simple-ec2/` | 5 min | ~$135/mo | Demos, interviews |
-| Production | `terraform/cd-aws-automation/` | 15 min | ~$142/mo | Full security posture |
-
-```bash
-terraform init && terraform apply -var="my_ip=$(curl -s checkip.amazonaws.com)"
-ssh -i your-key.pem ec2-user@<instance-ip>
-cd COREDIRECTIVE_ENGINE && ./cdae-init.sh
-cp .env.template .env && nano .env
-docker compose up -d && ./cdae-healthcheck.sh
-```
-
----
-
-## Technical Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| CPU inference over GPU | 72% cost savings, zero quality loss for security analysis tasks |
-| PostgreSQL over SQLite | Concurrent workflow execution at scale (500+ daily) |
-| Cloudflare Tunnel over VPN | Zero-trust, no exposed ports, built-in DDoS protection |
-| Qwen 3 8B (4-bit) | Fits in 7.5GB RAM, <3s inference, $0/month |
-| Three-tier docs | Business (Employment_Proof), Technical (Vault), Operational (Runbook) |
-
----
-
-## Documentation
-
-| Document | Audience | Description |
-|----------|----------|-------------|
-| [Employment_Proof.md](docs/Employment_Proof.md) | Recruiters | Business case and architecture overview |
-| [Technical_Vault.md](docs/Technical_Vault.md) | Engineers | System specs, database tuning, network topology |
-| [ADHD_Runbook.md](docs/ADHD_Runbook.md) | Operations | Copy-paste commands, zero jargon |
-| [ARCHITECTURE_DIAGRAMS.md](docs/ARCHITECTURE_DIAGRAMS.md) | Security | Full threat model and control mapping |
 
 ---
 
 ## Security Notes
 
-This repo is sanitized for public release:
-- All `.env` files use placeholders (`REPLACE_WITH_*`)
-- No credentials, API keys, or tokens committed
-- Infrastructure state files (`.tfstate`) gitignored
-- Private operational docs gitignored
+### Found in Git History (Remediated)
+
+| Item | Scope | Status | Current Risk |
+|------|-------|--------|--------------|
+| Telegram bot token | 5 files in history | ROTATED | Zero -- old token is invalid |
+| EC2 IP `54.234.155.244` | 422 occurrences across workflow JSONs, docs, configs | Instance SUSPENDED (nonpayment 2026-03-08) | Zero -- instance is offline, no services exposed |
+
+### Confirmed Clean (Not Found in Git History)
+
+- No AWS access keys or secret keys
+- No GitHub personal access tokens
+- No API keys (Anthropic, Datadog, Cloudflare, Notion, Gumroad, etc.)
+- No database credentials
+- No SSH private keys
+- No encryption keys or JWT secrets
+
+### Prevention
+
+- Gitleaks runs on every push via CI/CD pipeline (hard-fail on detection)
+- `.gitignore` blocks `.env`, `.tfstate`, `.pem`, and all secret-containing files
+- Pre-commit hooks validate no secrets in staged files
 
 ---
 
