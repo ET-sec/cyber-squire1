@@ -5,7 +5,7 @@
 
 **Production security platform on DigitalOcean -- 14 containers, NIST 800-53 compliance, full IaC with Terraform**
 
-Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | Security Engineer | SecurityX (CASP+), SSCP, CCNA
+Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | Security Engineer | SecurityX (CASP+), SSCP, CCNA, Sec+
 
 ---
 
