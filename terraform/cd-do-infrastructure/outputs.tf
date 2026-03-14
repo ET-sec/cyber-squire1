@@ -69,6 +69,7 @@ output "n8n_url" {
 
 output "service_urls" {
   description = "All service access URLs"
+  sensitive   = true
   value = {
     n8n_dashboard = "https://n8n.tigouetheory.com"
     ssh_tunnel    = "ssh.tigouetheory.com (via cloudflared)"

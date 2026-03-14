@@ -9,11 +9,11 @@ set -euo pipefail
 # mismatch is found.
 ###############################################################################
 
-SPACES_BUCKET="s3://cd-audit-logs"
+SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-cd-audit-logs}"
 WORK_DIR=$(mktemp -d /tmp/audit-verify.XXXXXX)
 CHAIN_DIR="/root/COREDIRECTIVE_ENGINE/CD_BACKUPS/audit-chain"
-N8N_WEBHOOK="https://n8n.tigouetheory.com/webhook/master-cmd"
-CHAT_ID="6691629392"
+N8N_WEBHOOK="${N8N_WEBHOOK_URL}"
+CHAT_ID="${TELEGRAM_CHAT_ID}"
 
 cleanup() {
     rm -rf "${WORK_DIR}"

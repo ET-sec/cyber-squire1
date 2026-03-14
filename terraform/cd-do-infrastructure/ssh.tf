@@ -1,5 +1,5 @@
 # --- SSH KEY (CD-DO-INFRASTRUCTURE) ---
-# Import: terraform import digitalocean_ssh_key.coredirective 54804544
+# Import: terraform import digitalocean_ssh_key.coredirective SSH_KEY_ID
 
 resource "digitalocean_ssh_key" "coredirective" {
   name       = var.do_ssh_key_name

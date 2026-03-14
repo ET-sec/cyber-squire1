@@ -24,7 +24,7 @@ locals {
 
 resource "datadog_webhook" "telegram_relay" {
   name = "telegram-relay"
-  url  = "https://n8n.tigouetheory.com/webhook/dd-alert"
+  url  = var.n8n_webhook_dd_alert_url
 
   custom_headers = jsonencode({
     "Content-Type" = "application/json"

@@ -30,7 +30,7 @@
    Then verify at: `github.com/ET-sec/cyber-squire1/actions`
 
 2. **Install Datadog agent on EC2** (Episode 3):
-   - Datadog URL: `us5.datadoghq.com` | login: `emmanueltigoue@gmail.com`
+   - Datadog URL: `us5.datadoghq.com` | login: `REDACTED`
    - API key in 1Password: `Core Infra → Datadog Core_Automation API Key`
    - Add agent to `~/COREDIRECTIVE_ENGINE/docker-compose.yaml`
    - Enable: AWS integration, Docker integration, PostgreSQL check

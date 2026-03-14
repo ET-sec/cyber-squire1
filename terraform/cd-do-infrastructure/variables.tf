@@ -110,7 +110,7 @@ variable "cf_zone_id" {
 
   validation {
     condition     = can(regex("^[a-f0-9]{32}$", var.cf_zone_id))
-    error_message = "cf_zone_id must be a 32-character lowercase hex string (e.g., '44f6a683c92275d8fea6f6702589c608')."
+    error_message = "cf_zone_id must be a 32-character lowercase hex string (e.g., 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')."
   }
 }
 
@@ -120,7 +120,7 @@ variable "cf_account_id" {
 
   validation {
     condition     = can(regex("^[a-f0-9]{32}$", var.cf_account_id))
-    error_message = "cf_account_id must be a 32-character lowercase hex string (e.g., 'e4871d2a375f9719092b286866ce26f2')."
+    error_message = "cf_account_id must be a 32-character lowercase hex string (e.g., 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')."
   }
 }
 
@@ -130,8 +130,24 @@ variable "cf_tunnel_id" {
 
   validation {
     condition     = can(regex("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$", var.cf_tunnel_id))
-    error_message = "cf_tunnel_id must be a valid UUID format (e.g., '4bcf8238-8a8d-423d-b333-e8fe033d4de9')."
+    error_message = "cf_tunnel_id must be a valid UUID format (e.g., 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')."
   }
+}
+
+# --- WEBHOOK & MONITORING ---
+
+variable "n8n_webhook_dd_alert_url" {
+  description = "n8n webhook URL for Datadog alert relay"
+  type        = string
+  sensitive   = true
+}
+
+# --- FIREWALL CONFIGURATION ---
+
+variable "ssh_allowed_cidrs" {
+  description = "CIDR blocks allowed to SSH (restrict to Cloudflare tunnel IPs)"
+  type        = list(string)
+  default     = []
 }
 
 # --- SSH KEY PATH ---
@@ -162,7 +178,7 @@ variable "ssh_public_key_path" {
 #   terraform apply -var="do_droplet_size=s-8vcpu-16gb" -var="environment=staging"
 #
 # Or create terraform.tfvars:
-#   cf_zone_id    = "44f6a683c92275d8fea6f6702589c608"
-#   cf_account_id = "e4871d2a375f9719092b286866ce26f2"
-#   cf_tunnel_id  = "4bcf8238-8a8d-423d-b333-e8fe033d4de9"
+#   cf_zone_id    = "<your-cloudflare-zone-id>"
+#   cf_account_id = "<your-cloudflare-account-id>"
+#   cf_tunnel_id  = "<your-cloudflare-tunnel-uuid>"
 #   environment   = "prod"

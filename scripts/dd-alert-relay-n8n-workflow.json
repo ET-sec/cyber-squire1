@@ -106,7 +106,7 @@
     },
     {
       "parameters": {
-        "chatId": "6691629392",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
         "text": "={{ $json.telegram_text }}",
         "additionalFields": {
           "parse_mode": "HTML",
@@ -120,7 +120,7 @@
       "position": [1560, 100],
       "credentials": {
         "telegramApi": {
-          "id": "kVdzT3vKPCZJvOrF",
+          "id": "REDACTED",
           "name": "Telegram Bot"
         }
       }
