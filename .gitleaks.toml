@@ -31,6 +31,78 @@ description = "Droplet filesystem paths"
 regex = '''/root/COREDIRECTIVE_ENGINE'''
 tags = ["infrastructure"]
 
+[[rules]]
+id = "docker-subnet"
+description = "Internal Docker network subnet"
+regex = '''172\.28\.0\.\d+'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "db-credentials-username"
+description = "Database username"
+regex = '''cd_admin'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "db-name"
+description = "Internal database name"
+regex = '''cd_automation_db'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "datadog-region"
+description = "Datadog site region"
+regex = '''us5\.datadoghq\.com'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "do-spaces-buckets"
+description = "DigitalOcean Spaces bucket names"
+regex = '''cd-(terraform-state|audit-logs)'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "telegram-chat-id"
+description = "Personal Telegram chat ID"
+regex = '''6691629392'''
+tags = ["pii"]
+
+[[rules]]
+id = "phone-number"
+description = "Personal phone number"
+regex = '''\(404\)\s*839-2214'''
+tags = ["pii"]
+
+[[rules]]
+id = "cloudflare-zone-id"
+description = "Cloudflare Zone ID"
+regex = '''44f6a683c92275d8fea6f6702589c608'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "cloudflare-account-id"
+description = "Cloudflare Account ID"
+regex = '''e4871d2a375f9719092b286866ce26f2'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "cloudflare-tunnel-id"
+description = "Cloudflare Tunnel ID"
+regex = '''4bcf8238-8a8d-423d-b333-e8fe033d4de9'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "do-droplet-id"
+description = "DigitalOcean Droplet ID"
+regex = '''557327264'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "personal-email-login"
+description = "Personal email used as service login"
+regex = '''emmanueltigoue@gmail\.com'''
+tags = ["pii"]
+
 [allowlist]
 description = "Known rotated/revoked secrets in git history. Telegram bot token was revoked on 2026-03-08."
 commits = [
