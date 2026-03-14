@@ -1,5 +1,36 @@
 title = "Gitleaks config — cyber-squire-ops"
 
+# Custom rules: block infrastructure details from public commits
+[[rules]]
+id = "droplet-ip"
+description = "DigitalOcean droplet IP address"
+regex = '''161\.35\.0\.184'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "legacy-ec2-ip"
+description = "Legacy AWS EC2 IP address"
+regex = '''54\.234\.155\.244'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "internal-hostnames"
+description = "Internal service hostnames"
+regex = '''(n8n|ssh|vault)\.tigouetheory\.com'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "doppler-config-path"
+description = "Doppler project/config identifiers"
+regex = '''coredirective-engine/(prd|stg|dev)'''
+tags = ["infrastructure"]
+
+[[rules]]
+id = "droplet-paths"
+description = "Droplet filesystem paths"
+regex = '''/root/COREDIRECTIVE_ENGINE'''
+tags = ["infrastructure"]
+
 [allowlist]
 description = "Known rotated/revoked secrets in git history. Telegram bot token was revoked on 2026-03-08."
 commits = [

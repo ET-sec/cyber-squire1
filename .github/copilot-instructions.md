@@ -9,35 +9,34 @@
 ## Platform
 
 DigitalOcean droplet (s-4vcpu-8gb, 4 vCPU, 8GB RAM, 160GB disk, Ubuntu 24.04).
-Cost: $48/mo. SSH: `ssh cd-alpha`. IP: 161.35.0.184.
+Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 
 ## Stack: 14 Containers (13 Compose + 1 Standalone)
 
-| Container | Service | Port |
-|-----------|---------|------|
-| cd-service-db | PostgreSQL 16 | 5432 |
-| cd-service-n8n | n8n SOAR orchestrator | 5678 |
-| cd-service-datadog | Datadog Agent (logs, metrics, monitors) | -- |
-| cd-service-falco | Falco eBPF runtime detection | -- |
-| cd-service-falcosidekick | Alert router (Falco to Datadog) | -- |
-| cd-service-vault | HashiCorp Vault (secrets management) | 8200 |
-| cd-service-keycloak | Keycloak v26 (RBAC, SSO) | 8080 |
-| cd-service-ollama | Ollama (local LLM inference) | 11434 |
-| cd-service-whisper | Faster-Whisper (speech-to-text) | 8000 |
-| cd-service-teleport | Teleport v18 (PAM, JIT access, session recording) | 3080 |
-| cd-service-event-handler | Teleport audit log shipper | -- |
-| cd-service-fluentd | Fluentd (audit logs to Datadog) | -- |
-| tunnel-cyber-squire | Cloudflare Tunnel (zero exposed ports) | host net |
-| openclaw-gateway | OpenClaw (Claude Opus 4.6 proxy) | 18789-18790 |
+| Container | Service |
+|-----------|---------|
+| cd-service-db | PostgreSQL 16 |
+| cd-service-n8n | n8n SOAR orchestrator |
+| cd-service-datadog | Datadog Agent (logs, metrics, monitors) |
+| cd-service-falco | Falco eBPF runtime detection |
+| cd-service-falcosidekick | Alert router (Falco to Datadog) |
+| cd-service-vault | HashiCorp Vault (secrets management) |
+| cd-service-keycloak | Keycloak v26 (RBAC, SSO) |
+| cd-service-ollama | Ollama (local LLM inference) |
+| cd-service-whisper | Faster-Whisper (speech-to-text) |
+| cd-service-teleport | Teleport v18 (PAM, JIT access, session recording) |
+| cd-service-event-handler | Teleport audit log shipper |
+| cd-service-fluentd | Fluentd (audit logs to Datadog) |
+| tunnel-cyber-squire | Cloudflare Tunnel (zero exposed ports) |
+| openclaw-gateway | OpenClaw (Claude Opus 4.6 proxy) |
 
-Compose file: `/root/COREDIRECTIVE_ENGINE/docker-compose.yaml`
+All containers communicate on internal Docker network only.
 
 ## Access
 
 Zero-trust via Cloudflare Tunnel. No ports exposed to public internet.
 
-- `n8n.tigouetheory.com` -- n8n SOAR dashboard
-- `ssh.tigouetheory.com` -- SSH via Cloudflare tunnel
+All services accessed via Cloudflare Tunnel (no direct SSH or exposed endpoints).
 
 **NEVER** run `docker compose down` via the tunnel -- it kills the tunnel container.
 
@@ -78,9 +77,7 @@ Environment vars:    CD_* (e.g., CD_DB_PASS, CD_N8N_KEY)
 
 ## Secrets
 
-All secrets managed via Doppler (`coredirective-engine/prd` config).
-On the droplet: `/root/COREDIRECTIVE_ENGINE/.env` (chmod 600).
-Never commit `.env` or secrets to git.
+All secrets managed via Doppler. Never commit `.env` or secrets to git.
 
 ## File Structure
 

@@ -138,29 +138,12 @@ Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security
 
 ---
 
-## Security Notes
-
-### Found in Git History (Remediated)
-
-| Item | Scope | Status | Current Risk |
-|------|-------|--------|--------------|
-| Telegram bot token | 5 files in history | ROTATED | Zero -- old token is invalid |
-| EC2 IP `54.234.155.244` | 422 occurrences across workflow JSONs, docs, configs | Instance SUSPENDED (nonpayment 2026-03-08) | Zero -- instance is offline, no services exposed |
-
-### Confirmed Clean (Not Found in Git History)
-
-- No AWS access keys or secret keys
-- No GitHub personal access tokens
-- No API keys (Anthropic, Datadog, Cloudflare, Notion, Gumroad, etc.)
-- No database credentials
-- No SSH private keys
-- No encryption keys or JWT secrets
-
-### Prevention
+## Security
 
 - Gitleaks runs on every push via CI/CD pipeline (hard-fail on detection)
 - `.gitignore` blocks `.env`, `.tfstate`, `.pem`, and all secret-containing files
 - Pre-commit hooks validate no secrets in staged files
+- No API keys, credentials, or secrets in the current codebase
 
 ---
 
