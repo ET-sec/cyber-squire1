@@ -11,12 +11,12 @@ resource "digitalocean_firewall" "cd_alpha" {
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
-  # Emergency SSH -- open temporarily for direct access
-  # TODO: Restrict to specific IP after confirming tunnel stability
+  # SSH -- restricted to explicitly allowed CIDRs (default: deny all)
+  # Access should go through Cloudflare Tunnel; direct SSH only for emergencies
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
-    source_addresses = ["0.0.0.0/0", "::/0"]
+    source_addresses = var.ssh_allowed_cidrs
   }
 
   # All outbound

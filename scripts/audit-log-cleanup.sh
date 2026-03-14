@@ -11,7 +11,7 @@ set -euo pipefail
 # than 90 days are deleted with a log note that archival is pending.
 ###############################################################################
 
-SPACES_BUCKET="s3://cd-audit-logs"
+SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-cd-audit-logs}"
 WORK_DIR=$(mktemp -d /tmp/audit-cleanup.XXXXXX)
 RETENTION_DAYS=90
 

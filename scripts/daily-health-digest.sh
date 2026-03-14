@@ -28,8 +28,8 @@ if [ -z "${DD_API_KEY:-}" ] || [ -z "${DD_APP_KEY:-}" ]; then
 fi
 
 DD_SITE="${DD_SITE:-us5.datadoghq.com}"
-N8N_WEBHOOK="https://n8n.tigouetheory.com/webhook/master-cmd"
-CHAT_ID="6691629392"
+N8N_WEBHOOK="${N8N_WEBHOOK_URL}"
+CHAT_ID="${TELEGRAM_CHAT_ID}"
 
 NOW=$(date +%s)
 DAY_AGO=$((NOW - 86400))

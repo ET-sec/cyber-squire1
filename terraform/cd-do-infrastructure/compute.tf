@@ -1,5 +1,5 @@
 # --- COMPUTE (CD-DO-INFRASTRUCTURE) ---
-# Import: terraform import digitalocean_droplet.cd_alpha 557327264
+# Import: terraform import digitalocean_droplet.cd_alpha DROPLET_ID
 
 resource "digitalocean_droplet" "cd_alpha" {
   name     = var.do_droplet_name

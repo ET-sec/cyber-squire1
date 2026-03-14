@@ -1,5 +1,5 @@
 # --- NETWORKING (CD-DO-INFRASTRUCTURE) ---
-# Import: terraform import digitalocean_vpc.default b55e780e-c1cd-4bd4-be65-763a69c0b1a9
+# Import: terraform import digitalocean_vpc.default VPC_UUID
 
 resource "digitalocean_vpc" "default" {
   name     = "default-nyc1"
