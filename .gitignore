@@ -151,3 +151,4 @@ terraform/cd-do-infrastructure/rendered/
 # ============================================
 .doppler/
 doppler.yaml
+docs/grc/zap-report-*.html

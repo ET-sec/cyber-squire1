@@ -9,6 +9,140 @@
 
 ---
 
+### Incident Response Process Flow
+
+```
+ ┌──────────────────────┐
+ │   ALERT TRIGGERED    │
+ │  (Datadog/Cloudflare/ │
+ │   Manual Detection)  │
+ └──────────┬───────────┘
+            │
+            v
+ ┌──────────────────────┐
+ │  ASSESS SEVERITY     │
+ │  P1: All services    │
+ │      unreachable     │
+ │  P2: Multiple svc    │
+ │      degraded        │
+ │  P3: Single svc      │
+ │      affected        │
+ └──────────┬───────────┘
+            │
+            v
+ ┌──────────────────────────────────────────┐
+ │  DECISION: Volumetric or App-Layer?      │
+ └─────┬──────────────────────────┬─────────┘
+       │                          │
+       v                          v
+ ┌─────────────┐          ┌──────────────────┐
+ │ VOLUMETRIC  │          │ APPLICATION-LAYER│
+ │ (L3/L4)     │          │ (L7)             │
+ │             │          │                  │
+ │ Contact DO  │          │ Enable "Under    │
+ │ support for │          │ Attack" mode on  │
+ │ upstream    │          │ Cloudflare       │
+ │ mitigation  │          │                  │
+ └──────┬──────┘          └────────┬─────────┘
+        │                          │
+        └────────────┬─────────────┘
+                     │
+                     v
+          ┌──────────────────────┐
+          │ ENGAGE CLOUDFLARE WAF│
+          │ + Custom WAF rules   │
+          │ + Block bad UAs,     │
+          │   paths, patterns    │
+          └──────────┬───────────┘
+                     │
+                     v
+          ┌──────────────────────┐
+          │ APPLY RATE LIMITING  │
+          │ >100 req/min per IP  │
+          │ = block 10 min       │
+          │ + iptables on origin │
+          └──────────┬───────────┘
+                     │
+                     v
+          ┌──────────────────────┐
+          │ TRAFFIC ANALYSIS     │
+          │ Source IPs, geo,     │
+          │ attack vectors,      │
+          │ bandwidth profile    │
+          └──────────┬───────────┘
+                     │
+                     v
+  ┌──────────────────────────────────────────┐
+  │  DECISION: Is Cloudflare blocking it?    │
+  └─────┬──────────────────────────┬─────────┘
+        │                          │
+        v                          v
+  ┌───────────┐           ┌────────────────┐
+  │ YES       │           │ NO             │
+  │           │           │                │
+  │ Continue  │           │ ESCALATE:      │
+  │ monitoring│           │ - DO support   │
+  │ Datadog + │           │ - Additional   │
+  │ Cloudflare│           │   iptables     │
+  │ analytics │           │ - Restrict     │
+  │           │           │   tunnel       │
+  └─────┬─────┘           └───────┬────────┘
+        │                         │
+        └────────────┬────────────┘
+                     │
+                     v
+          ┌──────────────────────┐
+          │ MITIGATION APPLIED   │
+          │ Attack neutralized   │
+          │ or degradation       │
+          │ contained            │
+          └──────────┬───────────┘
+                     │
+                     v
+  ┌──────────────────────────────────────────┐
+  │  DECISION: Service recovered?            │
+  └─────┬──────────────────────────┬─────────┘
+        │                          │
+        v                          v
+  ┌───────────┐           ┌────────────────┐
+  │ YES       │           │ NO             │
+  │           │           │                │
+  │ DOCUMENT: │           │ FAILOVER:      │
+  │ - Timeline│           │ - Stop non-    │
+  │ - Impact  │           │   critical svcs│
+  │ - Lessons │           │ - Graceful     │
+  │           │           │   degradation  │
+  │           │           │   (see Sec. 9) │
+  │           │           │ - Re-assess    │
+  └─────┬─────┘           └───────┬────────┘
+        │                         │
+        └────────────┬────────────┘
+                     │
+                     v
+          ┌──────────────────────┐
+          │ RECOVERY             │
+          │ - Verify all svcs up │
+          │ - Disable "Under     │
+          │   Attack" mode       │
+          │ - Remove temp        │
+          │   iptables rules     │
+          │ - Monitor 30 min     │
+          └──────────┬───────────┘
+                     │
+                     v
+          ┌──────────────────────┐
+          │ POST-INCIDENT        │
+          │ - Report within 72h  │
+          │ - Root cause analysis│
+          │ - Update resource    │
+          │   limits / WAF rules │
+          │ - Update this        │
+          │   playbook           │
+          └──────────────────────┘
+```
+
+---
+
 ## 1. Purpose
 
 This playbook provides step-by-step procedures for responding to distributed denial-of-service (DDoS) attacks or severe service degradation affecting the Organization infrastructure. This includes both malicious external attacks and organic failures (resource exhaustion, misconfiguration, disk full, runaway processes).
@@ -17,7 +151,7 @@ This playbook provides step-by-step procedures for responding to distributed den
 
 ## 2. Scope
 
-Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel` zero-trust ingress, and the Cloudflare layer protecting `example-ops.com`. Covers:
+Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel` zero-trust ingress, and Cloudflare layer protecting `example-ops.com`. Covers:
 - Layer 3/4 DDoS attacks (volumetric, protocol-based)
 - Layer 7 DDoS attacks (application-layer floods)
 - Resource exhaustion (CPU, memory, disk, I/O)
@@ -153,7 +287,7 @@ Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel`
  ```
  This adds a JavaScript challenge to all visitors, which stops most L7 attacks.
 
-- [ ] **Step 2.3** -- Implement rate limiting on the Cloudflare:
+- [ ] **Step 2.3** -- Implement rate limiting on Cloudflare:
  ```
  Cloudflare dashboard > Security > WAF > Rate Limiting Rules
  - Add rule: If requests from single IP > 100/minute to automation.example-ops.com, block for 10 minutes
@@ -170,8 +304,8 @@ Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel`
  # On alpha-node, add iptables rules to limit connections to the tunnel
  ssh root@10.100.1.10 << 'EOF'
  # Limit new connections per source IP
- iptables -A INPUT -p tcp --dport 5678 -m connlimit --connlimit-above 20 -j DROP
- iptables -A INPUT -p tcp --dport 5678 -m state --state NEW -m limit --limit 50/min --limit-burst 100 -j ACCEPT
+ iptables -A INPUT -p tcp --dport <automation-port> -m connlimit --connlimit-above 20 -j DROP
+ iptables -A INPUT -p tcp --dport <automation-port> -m state --state NEW -m limit --limit 50/min --limit-burst 100 -j ACCEPT
  EOF
  ```
 
@@ -181,7 +315,7 @@ Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel`
  ssh root@10.100.1.10 "ss -tulnp | grep -v '127.0.0.1\|::1' | grep LISTEN"
 
  # Ensure only the tunnel and SSH are listening on public interfaces
- # All services should be on internal-net only
+ # All services should be on net-core only
  # If services are exposed on 0.0.0.0, fix the compose binding immediately
  ```
 
@@ -340,7 +474,7 @@ Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel`
 - [ ] **Step 4.2** -- Check service endpoints are responding:
  ```bash
  # Automation platform
- curl -sf -o /dev/null -w "%{http_code}" http://localhost:5678/healthz
+ curl -sf -o /dev/null -w "%{http_code}" http://localhost:<automation-port>/healthz
 
  # Gateway
  docker exec svc-gateway tctl status
@@ -382,7 +516,7 @@ Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel`
  iptables -D INPUT <rule_number>
  ```
 
-- [ ] **Step 4.8** -- If "Under Attack" mode was enabled on the Cloudflare, disable it once the attack subsides:
+- [ ] **Step 4.8** -- If "Under Attack" mode was enabled on Cloudflare, disable it once the attack subsides:
  ```
  Cloudflare dashboard > Overview > Under Attack Mode > OFF
  ```

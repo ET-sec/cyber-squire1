@@ -65,7 +65,7 @@ edge_attr = {
 }
 
 with Diagram(
-    "Organization — Security Boundary Model",
+    "Organization - Security Boundary Model",
     filename=FILENAME,
     show=False,
     direction="TB",
@@ -77,7 +77,7 @@ with Diagram(
     # ===========================================
     # ZONE 1: PUBLIC (Red border)
     # ===========================================
-    with Cluster("ZONE 1 — PUBLIC (Untrusted)", graph_attr={
+    with Cluster("ZONE 1 - PUBLIC (Untrusted)", graph_attr={
         "fontsize": "14",
         "fontname": "Helvetica Bold",
         "fontcolor": ZONE1_COLOR,
@@ -100,14 +100,14 @@ with Diagram(
         "color": "#30363d",
         "penwidth": "1.5",
     }):
-        dd_saas = DatadogSaaS("Datadog SaaS\nus5.datadoghq.com")
+        dd_saas = DatadogSaaS("Datadog SaaS\nCloud")
         gh_actions = GithubActions("GitHub Actions\nCI/CD")
-        doppler = Docker("Doppler\nSecrets Mgr")
+        ext_secrets = Docker("External\nSecrets Mgr")
 
     # ===========================================
     # AUTHORIZATION BOUNDARY (Purple dashed)
     # ===========================================
-    with Cluster("AUTHORIZATION BOUNDARY — Droplet + Terraform-Managed Resources", graph_attr={
+    with Cluster("AUTHORIZATION BOUNDARY - Droplet + Terraform-Managed Resources", graph_attr={
         "fontsize": "14",
         "fontname": "Helvetica Bold",
         "fontcolor": AUTHZ_COLOR,
@@ -123,7 +123,7 @@ with Diagram(
         # ===========================================
         # ZONE 2: DMZ (Orange border)
         # ===========================================
-        with Cluster("ZONE 2 — DMZ (Host Network)", graph_attr={
+        with Cluster("ZONE 2 - DMZ (Host Network)", graph_attr={
             "fontsize": "13",
             "fontname": "Helvetica Bold",
             "fontcolor": ZONE2_COLOR,
@@ -137,7 +137,7 @@ with Diagram(
         # ===========================================
         # ZONE 3: INTERNAL (Blue border)
         # ===========================================
-        with Cluster("ZONE 3 — INTERNAL (Docker Bridge: internal-net)", graph_attr={
+        with Cluster("ZONE 3 - INTERNAL (Docker Networks: net-core / net-ai / net-monitoring)", graph_attr={
             "fontsize": "13",
             "fontname": "Helvetica Bold",
             "fontcolor": ZONE3_COLOR,
@@ -147,8 +147,8 @@ with Diagram(
             "penwidth": "2.5",
         }):
             # Application services
-            n8n = N8N("n8n SOAR\n:5678")
-            keycloak = Docker("Keycloak v26\nRBAC :8080")
+            n8n = N8N("n8n SOAR\n")
+            keycloak = Docker("Keycloak v26\nRBAC ")
             teleport = Docker("Teleport v18\nPAM :3080")
 
             # Monitoring
@@ -159,14 +159,14 @@ with Diagram(
             fluentd = Fluentd("Fluentd\nLog Shipper")
 
             # AI
-            ollama = Docker("Ollama LLM\n:11434")
-            whisper = Docker("Whisper STT\n:8000")
-            openclaw = Docker("OpenClaw\nGateway :18789")
+            ollama = Docker("Ollama LLM\n")
+            whisper = Docker("Whisper STT\n")
+            openclaw = Docker("OpenClaw\nGateway ")
 
             # ===========================================
             # ZONE 4: SENSITIVE (Green border)
             # ===========================================
-            with Cluster("ZONE 4 — SENSITIVE (Restricted Access)", graph_attr={
+            with Cluster("ZONE 4 - SENSITIVE (Restricted Access)", graph_attr={
                 "fontsize": "12",
                 "fontname": "Helvetica Bold",
                 "fontcolor": ZONE4_COLOR,
@@ -176,7 +176,7 @@ with Diagram(
                 "penwidth": "3",
             }):
                 db = PostgreSQL("PostgreSQL 16\nWorkflow + Auth\nData :5432")
-                vault_svc = Vault("HashiCorp Vault\nSecrets Engine\n:8200")
+                vault_svc = Vault("HashiCorp Vault\nSecrets Engine\n")
 
     # =========================================
     # EDGES - Zone Transitions
@@ -212,6 +212,6 @@ with Diagram(
 
     # External → AuthZ Boundary
     gh_actions >> Edge(color=AUTHZ_COLOR, style="dotted", label="Deploy") >> fw
-    doppler >> Edge(color=AUTHZ_COLOR, style="dotted", label="Secrets\nInjection") >> tunnel
+    ext_secrets >> Edge(color=AUTHZ_COLOR, style="dotted", label="Secrets\nInjection") >> tunnel
 
 print(f"Generated: {FILENAME}.png")

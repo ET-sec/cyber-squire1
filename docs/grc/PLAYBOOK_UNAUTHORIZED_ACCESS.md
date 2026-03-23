@@ -9,6 +9,122 @@
 
 ---
 
+### Investigation Flowchart
+
+```
+┌─────────────────────┐
+│   ALERT TRIGGERED    │
+└──────────┬──────────┘
+           │
+           v
+┌─────────────────────┐
+│    VERIFY ALERT      │
+│  (Confirm, not false │
+│   positive or noise) │
+└──────────┬──────────┘
+           │
+           v
+┌─────────────────────────┐
+│  IDENTIFY ACCESS VECTOR  │
+├─────────┬───────┬────────┤
+│         │       │        │
+v         v       v        v
+┌────────┐ ┌──────┐ ┌─────────┐ ┌───────────┐
+│TUNNEL  │ │ SSH  │ │CONTAINER│ │CREDENTIAL │
+│BREACH  │ │COMPRO│ │ ESCAPE  │ │  THEFT    │
+│        │ │MISE  │ │         │ │           │
+└───┬────┘ └──┬───┘ └────┬────┘ └─────┬─────┘
+    │         │          │             │
+    v         v          v             v
+┌────────┐ ┌──────┐ ┌─────────┐ ┌───────────┐
+│Check   │ │Check │ │Check    │ │Check      │
+│Cloud-  │ │auth  │ │Falco    │ │login      │
+│flare   │ │logs  │ │alerts   │ │history    │
+│logs    │ │      │ │         │ │           │
+└───┬────┘ └──┬───┘ └────┬────┘ └─────┬─────┘
+    │         │          │             │
+    v         v          v             v
+┌────────┐ ┌──────┐ ┌─────────┐ ┌───────────┐
+│Block   │ │Revoke│ │Isolate  │ │Rotate     │
+│source  │ │keys  │ │host     │ │creds      │
+│IP      │ │      │ │         │ │           │
+└───┬────┘ └──┬───┘ └────┬────┘ └─────┬─────┘
+    │         │          │             │
+    v         v          v             v
+┌────────┐ ┌──────┐ ┌─────────┐ ┌───────────┐
+│Audit   │ │Session│ │Full     │ │Access     │
+│session │ │review│ │forensics│ │review     │
+└───┬────┘ └──┬───┘ └────┬────┘ └─────┬─────┘
+    │         │          │             │
+    └─────────┴──────┬───┴─────────────┘
+                     │
+                     v
+        ┌────────────────────────┐
+        │  IS ATTACKER STILL     │
+        │  ACTIVE?               │
+        ├────────────┬───────────┤
+        │ YES        │ NO        │
+        v            v           │
+ ┌──────────────┐ ┌─────────────┐
+ │ IMMEDIATE    │ │ FORENSIC    │
+ │ CONTAINMENT  │ │ INVESTIGA-  │
+ │ - Kill sessions│ │ TION       │
+ │ - Lock accounts│ │ - Preserve │
+ │ - Block IPs  │ │   evidence  │
+ │              │ │ - Timeline  │
+ └──────┬───────┘ └──────┬──────┘
+        │                │
+        └───────┬────────┘
+                │
+                v
+   ┌────────────────────────────┐
+   │  IS DATA EXFILTRATION      │
+   │  CONFIRMED?                │
+   ├──────────────┬─────────────┤
+   │ YES          │ NO          │
+   v              v             │
+┌──────────────┐ ┌─────────────┐
+│ ACTIVATE     │ │ CONTINUE    │
+│ DATA BREACH  │ │ INVESTIGA-  │
+│ PROCEDURE    │ │ TION        │
+│ - Notify     │ │ - Scope     │
+│   legal      │ │   impact    │
+│ - Assess     │ │ - Trace     │
+│   impact     │ │   access    │
+└──────┬───────┘ └──────┬──────┘
+       │                │
+       └───────┬────────┘
+               │
+               v
+  ┌────────────────────────────┐
+  │  EVIDENCE OF PERSISTENCE?   │
+  │  (backdoors, cron jobs,     │
+  │   new accounts, rogue keys) │
+  ├──────────────┬─────────────┤
+  │ YES          │ NO          │
+  v              v             │
+┌──────────────┐ ┌─────────────┐
+│ FULL REBUILD │ │ PATCH AND   │
+│ - Rotate all │ │ MONITOR     │
+│   keys/certs │ │ - Apply     │
+│ - Rebuild    │ │   fixes     │
+│   containers │ │ - Increase  │
+│ - Reimage    │ │   logging   │
+│   if needed  │ │ - Schedule  │
+│              │ │   review    │
+└──────┬───────┘ └──────┬──────┘
+       │                │
+       └───────┬────────┘
+               │
+               v
+     ┌──────────────────────┐
+     │  POST-INCIDENT       │
+     │  REPORT (72 hours)   │
+     └──────────────────────┘
+```
+
+---
+
 ## 1. Purpose
 
 This playbook provides step-by-step procedures for responding to unauthorized access to the Organization infrastructure. This includes unauthorized SSH sessions, unauthorized users in the identity provider, suspicious gateway sessions, compromised user accounts, or any access that violates the principle of least privilege.
@@ -108,7 +224,7 @@ Applies to all access paths into the Organization infrastructure:
  **Check identity provider admin events:**
  ```bash
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh get events/admin \
-  --server http://localhost:8080 \
+  --server http://localhost:<identity-port> \
   --realm master \
   --user admin 2>/dev/null | head -50
  ```
@@ -174,7 +290,7 @@ Applies to all access paths into the Organization infrastructure:
  ```bash
  # Disable the user account
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh update users/<user_id> \
-  --server http://localhost:8080 \
+  --server http://localhost:<identity-port> \
   --realm master \
   --user admin \
   -s enabled=false
@@ -187,7 +303,7 @@ Applies to all access paths into the Organization infrastructure:
  ssh root@10.100.1.10 "iptables -I INPUT -s <attacker_ip> -j DROP"
  ```
 
- **On the Cloudflare (if attack comes through tunnel):**
+ **On Cloudflare (if attack comes through tunnel):**
  ```
  Cloudflare dashboard > Security > WAF > Tools > IP Access Rules
  - Add rule: Block <attacker_ip>
@@ -203,7 +319,7 @@ Applies to all access paths into the Organization infrastructure:
  **In svc-identity:**
  ```bash
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh delete users/<user_id> \
-  --server http://localhost:8080 \
+  --server http://localhost:<identity-port> \
   --realm master \
   --user admin
  ```
@@ -271,7 +387,7 @@ Applies to all access paths into the Organization infrastructure:
  ```bash
  # Check for account creation, role changes, password resets
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh get events/admin \
-  --server http://localhost:8080 \
+  --server http://localhost:<identity-port> \
   --realm master \
   --user admin \
   --format json 2>/dev/null | \
@@ -366,13 +482,13 @@ Applies to all access paths into the Organization infrastructure:
  ```bash
  # List all users
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh get users \
-  --server http://localhost:8080 \
+  --server http://localhost:<identity-port> \
   --realm master \
   --user admin
 
  # Delete unauthorized users
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh delete users/<user_id> \
-  --server http://localhost:8080 \
+  --server http://localhost:<identity-port> \
   --realm master \
   --user admin
  ```
@@ -459,7 +575,7 @@ Applies to all access paths into the Organization infrastructure:
 - [ ] **Step 5.2** -- **Verify only authorized users exist in svc-identity:**
  ```bash
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh get users \
-  --server http://localhost:8080 \
+  --server http://localhost:<identity-port> \
   --realm master \
   --user admin \
   --format json | jq '.[].username'
@@ -651,7 +767,7 @@ EXTERNAL
   v
 [svc-tunnel] -- Zero-trust tunnel, only public ingress
   |
-  +--> [automation.example-ops.com] --> [svc-automation:5678]
+  +--> [automation.example-ops.com] --> [svc-automation]
   +--> [ssh.example-ops.com] --> [svc-gateway:3080/3023/3025]
                     |
                     v

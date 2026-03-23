@@ -47,7 +47,7 @@ This plan covers:
 
 Each service has been evaluated for its impact on confidentiality, integrity, availability, and operational dependency.
 
-#### Tier 1 — Critical (Maximum Tolerable Downtime: 1 hour)
+#### Tier 1 - Critical (Maximum Tolerable Downtime: 1 hour)
 
 | Service | Function | Impact of Loss |
 |---------|----------|----------------|
@@ -56,7 +56,7 @@ Each service has been evaluated for its impact on confidentiality, integrity, av
 | `svc-gateway` | SSH session gateway, session recording, JIT access provisioning | Loss of auditable access control; inability to grant or revoke privileged access |
 | `svc-secrets` (secrets engine) | Runtime secret distribution, encryption-as-a-service | Services cannot retrieve secrets at startup; rotation and seal/unseal operations blocked |
 
-#### Tier 2 — Important (Maximum Tolerable Downtime: 4 hours)
+#### Tier 2 - Important (Maximum Tolerable Downtime: 4 hours)
 
 | Service | Function | Impact of Loss |
 |---------|----------|----------------|
@@ -66,7 +66,7 @@ Each service has been evaluated for its impact on confidentiality, integrity, av
 | `svc-detection` (eBPF runtime) | Kernel-level syscall monitoring, anomaly detection | Runtime threat detection disabled; container escape or privilege escalation may go undetected |
 | `svc-detection-router` | Alert routing from detection engine to downstream consumers | Detection findings not forwarded; alerts silently dropped |
 
-#### Tier 3 — Deferrable (Maximum Tolerable Downtime: 24 hours)
+#### Tier 3 - Deferrable (Maximum Tolerable Downtime: 24 hours)
 
 | Service | Function | Impact of Loss |
 |---------|----------|----------------|
@@ -97,28 +97,28 @@ svc-tunnel (ingress)
 
 Recovery SHALL proceed in strict tier order. Within each tier, services are restored in the sequence listed below to satisfy dependencies.
 
-### Phase 1 — Critical Services (Target: 0–60 minutes)
+### Phase 1 - Critical Services (Target: 0–60 minutes)
 
-1. **`svc-db`** — Restore PostgreSQL from backup or redeploy with empty schema
-2. **`svc-secrets`** — Unseal Vault; verify seal keys are available offline
-3. **`svc-tunnel`** — Re-establish zero-trust tunnel for remote access
-4. **`svc-gateway`** — Restore SSH gateway and session recording
+1. **`svc-db`** - Restore PostgreSQL from backup or redeploy with empty schema
+2. **`svc-secrets`** - Unseal Vault; verify seal keys are available offline
+3. **`svc-tunnel`** - Re-establish zero-trust tunnel for remote access
+4. **`svc-gateway`** - Restore SSH gateway and session recording
 
-### Phase 2 — Important Services (Target: 1–4 hours)
+### Phase 2 - Important Services (Target: 1–4 hours)
 
-5. **`svc-identity`** — Restore identity provider with realm configuration
-6. **`svc-automation`** — Redeploy SOAR engine; verify workflow state in `svc-db`
-7. **`svc-detection`** — Restart runtime detection with eBPF driver loaded
-8. **`svc-detection-router`** — Reconnect detection alert routing
-9. **`svc-monitor`** — Restore observability agent and verify telemetry flow
+5. **`svc-identity`** - Restore identity provider with realm configuration
+6. **`svc-automation`** - Redeploy SOAR engine; verify workflow state in `svc-db`
+7. **`svc-detection`** - Restart runtime detection with eBPF driver loaded
+8. **`svc-detection-router`** - Reconnect detection alert routing
+9. **`svc-monitor`** - Restore observability agent and verify telemetry flow
 
-### Phase 3 — Deferrable Services (Target: 4–24 hours)
+### Phase 3 - Deferrable Services (Target: 4–24 hours)
 
-10. **`Fluentd`** — Restore log aggregation pipeline
-11. **`svc-event-shipper`** — Resume audit event export
-12. **`svc-llm`** — Redeploy LLM inference container
-13. **`svc-transcription`** — Redeploy transcription service
-14. **`svc-ai-gateway`** — Redeploy AI gateway
+10. **`Fluentd`** - Restore log aggregation pipeline
+11. **`svc-event-shipper`** - Resume audit event export
+12. **`svc-llm`** - Redeploy LLM inference container
+13. **`svc-transcription`** - Redeploy transcription service
+14. **`svc-ai-gateway`** - Redeploy AI gateway
 
 ---
 
@@ -246,11 +246,11 @@ This plan SHALL be updated when:
 
 The BCP SHALL be activated when any of the following conditions are met:
 
-1. **Complete VPS loss** — `alpha-node` is unreachable and DigitalOcean confirms host failure
-2. **Data corruption** — `svc-db` data is confirmed corrupted or unrecoverable
-3. **Ransomware/compromise** — Evidence of unauthorized encryption or persistent unauthorized access
-4. **Cloud provider outage** — Provider region is unavailable for more than 30 minutes
-5. **Zero-trust tunnel failure** — `svc-tunnel` is down and cannot be re-established within 15 minutes, AND direct SSH is also unavailable
+1. **Complete VPS loss** - `alpha-node` is unreachable and DigitalOcean confirms host failure
+2. **Data corruption** - `svc-db` data is confirmed corrupted or unrecoverable
+3. **Ransomware/compromise** - Evidence of unauthorized encryption or persistent unauthorized access
+4. **Cloud provider outage** - Provider region is unavailable for more than 30 minutes
+5. **Zero-trust tunnel failure** - `svc-tunnel` is down and cannot be re-established within 15 minutes, AND direct SSH is also unavailable
 
 **Activation authority:** Information Security Officer (primary), System Owner (alternate)
 
@@ -267,7 +267,7 @@ Before declaring recovery complete, the following validations SHALL be performed
 - [ ] `svc-automation` workflows are active and processing
 - [ ] `svc-identity` authentication flow succeeds for all three roles
 - [ ] `svc-detection` is generating kernel-level events
-- [ ] `svc-monitor` is reporting metrics to the Datadog
+- [ ] `svc-monitor` is reporting metrics to Datadog
 - [ ] Audit log hash chain is intact or re-initialized with documented gap
 - [ ] Cloudflare DNS records point to correct endpoint
 - [ ] All 13 Compose-managed containers show healthy status in `docker compose ps`; standalone `svc-ai-gateway` verified separately

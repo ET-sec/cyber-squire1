@@ -34,7 +34,7 @@
 
 ## 1. Purpose
 
-This policy establishes the governance framework for the responsible design, deployment, operation, monitoring, and retirement of artificial intelligence (AI) systems within the Organization security operations platform. It defines risk management processes specific to AI workloads, assigns accountability for AI decisions, and mandates controls that address the unique threat categories introduced by AI systems — including hallucination, prompt injection, data poisoning, model drift, bias propagation, and AI supply chain compromise.
+This policy establishes the governance framework for the responsible design, deployment, operation, monitoring, and retirement of artificial intelligence (AI) systems within the Organization security operations platform. It defines risk management processes specific to AI workloads, assigns accountability for AI decisions, and mandates controls that address the unique threat categories introduced by AI systems - including hallucination, prompt injection, data poisoning, model drift, bias propagation, and AI supply chain compromise.
 
 The Organization operates production AI systems that process operational data, generate automated outputs consumed by downstream workflows, and interact with external users via messaging integrations. These capabilities introduce risks that extend beyond traditional information security and require dedicated governance aligned with international AI management standards.
 
@@ -66,23 +66,23 @@ This policy applies to all personnel who develop, deploy, configure, monitor, or
 
 ## 3. Framework Alignment
 
-### 3.1 ISO/IEC 42001:2023 — AI Management System
+### 3.1 ISO/IEC 42001:2023 - AI Management System
 
 ISO/IEC 42001 provides the primary governance structure for this policy. The following Annex A controls are mapped to Organization implementations:
 
 | ISO 42001 Control | Title | Organization Implementation |
 |-------------------|-------|----------------------------|
 | **A.2** | AI Policy | This document (POL-AI-001) |
-| **A.3** | Internal Organization | Section 5 — AI Governance Structure with defined roles |
+| **A.3** | Internal Organization | Section 5 - AI Governance Structure with defined roles |
 | **A.4** | Resources for AI Systems | Compute allocation on `alpha-node`; API budget controls for external model providers |
-| **A.5** | Assessing AI System Impact | Section 6 — AI Risk Assessment with risk scoring per NIST AI RMF |
-| **A.6** | AI System Lifecycle | Section 7 — Approval, deployment, monitoring, retirement procedures |
-| **A.7** | Data for AI Systems | Section 9 — Data governance including PII handling, retention, and third-party flows |
-| **A.8** | Information for Interested Parties | Section 10 — Transparency requirements and decision documentation |
-| **A.9** | Use of AI Systems | Sections 8 and 12 — Human oversight and security controls |
-| **A.10** | Third-Party and Customer Relationships | Section 11 — Vendor risk management for AI providers |
+| **A.5** | Assessing AI System Impact | Section 6 - AI Risk Assessment with risk scoring per NIST AI RMF |
+| **A.6** | AI System Lifecycle | Section 7 - Approval, deployment, monitoring, retirement procedures |
+| **A.7** | Data for AI Systems | Section 9 - Data governance including PII handling, retention, and third-party flows |
+| **A.8** | Information for Interested Parties | Section 10 - Transparency requirements and decision documentation |
+| **A.9** | Use of AI Systems | Sections 8 and 12 - Human oversight and security controls |
+| **A.10** | Third-Party and Customer Relationships | Section 11 - Vendor risk management for AI providers |
 
-### 3.2 ISO/IEC 27701:2019 — Privacy Information Management
+### 3.2 ISO/IEC 27701:2019 - Privacy Information Management
 
 ISO 27701 extends ISO 27001 to address PII processing obligations. The following controls apply to AI data flows:
 
@@ -155,7 +155,7 @@ All AI systems within the authorization boundary are registered in the following
 
 ### 4.3 Per-System Risk Profiles
 
-**AI-001 — AI Agent Gateway (`svc-ai-gateway`)**
+**AI-001 - AI Agent Gateway (`svc-ai-gateway`)**
 
 | Attribute | Detail |
 |-----------|--------|
@@ -166,7 +166,7 @@ All AI systems within the authorization boundary are registered in the following
 | **Known limitations** | Hallucination risk on factual claims; prompt injection vulnerability surface; latency dependent on external API availability; no real-time knowledge beyond model training cutoff |
 | **Key controls** | Output validation in `svc-automation` before action execution; rate limiting at gateway level; full prompt/response logging; Falco monitoring of container behavior |
 
-**AI-002 — Local LLM Inference (`svc-llm`)**
+**AI-002 - Local LLM Inference (`svc-llm`)**
 
 | Attribute | Detail |
 |-----------|--------|
@@ -177,7 +177,7 @@ All AI systems within the authorization boundary are registered in the following
 | **Known limitations** | Smaller model with reduced reasoning capability compared to AI-001; higher hallucination rate on complex tasks; resource-constrained on shared compute |
 | **Key controls** | No external network access from container; output consumed only through `svc-automation` with human checkpoints; Falco runtime monitoring |
 
-**AI-003 — Voice Transcription (`svc-transcription`)**
+**AI-003 - Voice Transcription (`svc-transcription`)**
 
 | Attribute | Detail |
 |-----------|--------|
@@ -236,7 +236,7 @@ AI systems introduce threat categories beyond traditional information security r
 |-----------|----------|-------------|-------------------|-----------------|
 | AI-T01 | **Hallucination** | AI generates factually incorrect, fabricated, or nonsensical outputs that are presented as authoritative | AI-001, AI-002 | MAP 2.3, MEASURE 2.6 |
 | AI-T02 | **Prompt Injection** | Adversary crafts inputs that override system instructions, extract sensitive context, or cause unintended actions | AI-001, AI-002 | MANAGE 3.2, MEASURE 2.1 |
-| AI-T03 | **Data Poisoning** | Training data or fine-tuning data is manipulated to alter model behavior in attacker-controlled ways | AI-002 (if fine-tuned) | MAP 3.5, GOVERN 2.2 | *Note: Not assessed — no fine-tuning capability in current deployment. Risk accepted as Not Applicable.* |
+| AI-T03 | **Data Poisoning** | Training data or fine-tuning data is manipulated to alter model behavior in attacker-controlled ways | AI-002 (if fine-tuned) | MAP 3.5, GOVERN 2.2 | *Note: Not assessed - no fine-tuning capability in current deployment. Risk accepted as Not Applicable.* |
 | AI-T04 | **Model Drift** | Model behavior degrades or shifts over time due to changes in input distribution or provider-side model updates | AI-001 | MEASURE 2.6, MANAGE 4.1 |
 | AI-T05 | **Bias and Discrimination** | AI outputs reflect or amplify biases present in training data, producing inequitable or harmful results | AI-001, AI-002, AI-003 | MAP 2.1, MEASURE 2.1 |
 | AI-T06 | **AI Supply Chain Compromise** | Model weights, container images, or dependencies are tampered with, introducing backdoors or altered behavior | AI-001, AI-002, AI-003 | GOVERN 2.2, MANAGE 1.1 |
@@ -276,8 +276,8 @@ AI risks are scored using the same 5x5 semi-quantitative matrix defined in the R
 
 | Treatment | Active Mitigations | Target Date | Owner |
 |-----------|-------------------|-------------|-------|
-| AI-R03 (Supply Chain — AI-001) | Implement automated model version pinning with change detection alerting; formalize Anthropic vendor security review cadence | 2026-06-11 | Information Security Officer |
-| AI-R06 (Hallucination — AI-002) | Deploy output confidence scoring and automated rejection of low-confidence `svc-llm` outputs; restrict `svc-llm` task scope to classification and summarization only | 2026-06-11 | Information Security Officer |
+| AI-R03 (Supply Chain - AI-001) | Implement automated model version pinning with change detection alerting; formalize Anthropic vendor security review cadence | 2026-06-11 | Information Security Officer |
+| AI-R06 (Hallucination - AI-002) | Deploy output confidence scoring and automated rejection of low-confidence `svc-llm` outputs; restrict `svc-llm` task scope to classification and summarization only | 2026-06-11 | Information Security Officer |
 
 ---
 
@@ -406,7 +406,7 @@ No AI system within the Organization platform operates in a fully autonomous mod
 |------|--------|-------------|-----------------|---------|
 | AI-001 prompt submission | `svc-ai-gateway` on `alpha-node` | Anthropic API (external) | User query text, system prompt, conversation context | HTTPS/TLS 1.3; API key authentication; no credential injection into prompts |
 | AI-001 response retrieval | Anthropic API (external) | `svc-ai-gateway` on `alpha-node` | Model response text, usage metadata | HTTPS/TLS 1.3; response validated before downstream routing |
-| None | `svc-llm` / `svc-transcription` | External | N/A — all processing local | No outbound network access from these containers |
+| None | `svc-llm` / `svc-transcription` | External | N/A - all processing local | No outbound network access from these containers |
 
 **Data processing agreement:** The Anthropic API usage is governed by Anthropic's API Terms of Service and data retention policies. Key provisions reviewed:
 
@@ -426,7 +426,7 @@ No AI system within the Organization platform operates in a fully autonomous mod
 | AI interaction audit records | 1 year | Manual review before disposal; secure deletion | System Owner |
 | Audio files (pre-transcription) | 0 days (not persisted) | Deleted immediately after transcription completes | Automated |
 | Transcripts | 90 days (workflow state) | Database record expiration | Information Security Officer |
-| AI system configuration (version control) | Indefinite (Git history) | N/A — part of infrastructure-as-code audit trail | N/A |
+| AI system configuration (version control) | Indefinite (Git history) | N/A - part of infrastructure-as-code audit trail | N/A |
 
 ### 9.4 PII Handling Controls
 
@@ -537,8 +537,8 @@ External AI providers (currently: Anthropic for AI-001) SHALL be assessed using 
 | Control | Implementation |
 |---------|----------------|
 | **AI-001 network scope** | `svc-ai-gateway` container has outbound access to Anthropic API endpoints only (enforced by container network policy and cloud firewall egress rules) |
-| **AI-002 network isolation** | `svc-llm` container has no outbound internet access; communicates only on the internal Docker bridge network (`internal-net`) |
-| **AI-003 network isolation** | `svc-transcription` container has no outbound internet access; communicates only on `internal-net` |
+| **AI-002 network isolation** | `svc-llm` container has no outbound internet access; communicates only on the internal Docker bridge network (`net-core`) |
+| **AI-003 network isolation** | `svc-transcription` container has no outbound internet access; communicates only on `net-core` |
 | **API key protection** | AI provider API keys are injected via secrets manager environment variables; never stored in container images, configuration files, or version control |
 | **Transport encryption** | All external AI API calls use HTTPS/TLS 1.3 |
 | **Zero-trust ingress** | No AI service endpoints are directly exposed to the internet; all external access transits through `svc-tunnel` |
@@ -639,7 +639,7 @@ When an AI system exhibits anomalous behavior that does not clearly map to an ex
 2. **Isolate:** If behavior is potentially harmful, disable the AI system's external access by pausing the relevant `svc-automation` workflows. Do NOT delete the container (preserve forensic state).
 3. **Preserve evidence:** Capture current prompt/response logs, container logs, Falco events, and monitoring metrics for the affected time window.
 4. **Analyze:** Review interaction logs to identify the root cause (prompt injection, model drift, configuration error, or provider-side change).
-5. **Remediate:** Apply targeted fix — system prompt update, input filter adjustment, workflow modification, or model version rollback as appropriate.
+5. **Remediate:** Apply targeted fix - system prompt update, input filter adjustment, workflow modification, or model version rollback as appropriate.
 6. **Validate:** Test the remediation in a controlled manner before restoring production traffic.
 7. **Restore:** Re-enable the AI system and confirm normal operation via monitoring metrics.
 8. **Document:** File an incident report per POL-IR-001 with AI-specific details: root cause, affected outputs, downstream impact, and corrective actions.
@@ -704,7 +704,7 @@ All audit evidence SHALL be collected from the following authoritative sources:
 
 ## 16. Enforcement
 
-Violation of this policy — including but not limited to deploying AI systems without governance review, disabling human oversight controls, injecting credentials into AI prompts, bypassing output validation, or operating AI systems outside approved data flow boundaries — will result in disciplinary action up to and including immediate revocation of all system access.
+Violation of this policy - including but not limited to deploying AI systems without governance review, disabling human oversight controls, injecting credentials into AI prompts, bypassing output validation, or operating AI systems outside approved data flow boundaries - will result in disciplinary action up to and including immediate revocation of all system access.
 
 AI systems found to be operating in violation of this policy SHALL be immediately suspended pending investigation and remediation. Restoration of service requires a fresh governance review per Section 7.3.
 
@@ -736,7 +736,7 @@ All AI-related actions are logged, correlated, and subject to audit. Personnel s
 
 | Standard | Title | Relevance |
 |----------|-------|-----------|
-| ISO/IEC 42001:2023 | Information Technology — Artificial Intelligence — Management System | Primary AI governance framework; Annex A controls mapped in Section 3.1 |
+| ISO/IEC 42001:2023 | Information Technology - Artificial Intelligence - Management System | Primary AI governance framework; Annex A controls mapped in Section 3.1 |
 | ISO/IEC 27701:2019 | Privacy Information Management | PII controller/processor obligations for AI data flows; mapped in Section 3.2 |
 | NIST AI RMF (AI 100-1) | Artificial Intelligence Risk Management Framework | AI risk functions (Govern, Map, Measure, Manage) cross-referenced in Sections 3.3-3.4 |
 | NIST SP 800-53 Rev. 5 | Security and Privacy Controls | Organizational control baseline; AI controls supplement existing families |
@@ -760,7 +760,7 @@ All AI-related actions are logged, correlated, and subject to audit. Personnel s
 | **Human-on-the-loop** | An oversight model where AI operates autonomously for routine tasks but a human monitors operations and can intervene |
 | **Human-in-command** | An oversight model where a human retains the ability to override, modify, or shut down the AI system at any time |
 | **Model Inversion** | An attack that reconstructs training data or extracts private information from a model by observing its outputs |
-| **SBOM** | Software Bill of Materials — a formal record of components and dependencies within a software artifact |
+| **SBOM** | Software Bill of Materials - a formal record of components and dependencies within a software artifact |
 | **Cosign** | A container image signing tool that provides cryptographic verification of image provenance and integrity |
 
 ---

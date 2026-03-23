@@ -1,7 +1,7 @@
 # Tabletop Exercise: Operation Phantom Container
 
 **Organization:** Organization Security Operations Platform
-**Exercise Date:** [YYYY-MM-DD — Schedule next exercise]
+**Exercise Date:** [YYYY-MM-DD - Schedule next exercise]
 **Exercise Type:** Discussion-Based Tabletop Exercise (TTX)
 **NIST 800-53 Controls:** CP-4 (Contingency Plan Testing), IR-3 (Incident Response Testing)
 **Classification:** Internal Use Only
@@ -45,11 +45,11 @@ This tabletop exercise tests the Organization's ability to detect, contain, inve
 | Segment | Duration |
 |---------|----------|
 | Pre-brief and rules | 10 minutes |
-| Phase 1 — Initial Detection | 15 minutes |
-| Phase 2 — Escalation | 15 minutes |
-| Phase 3 — Lateral Movement | 15 minutes |
-| Phase 4 — Containment & Recovery | 15 minutes |
-| Phase 5 — Post-Incident | 15 minutes |
+| Phase 1 - Initial Detection | 15 minutes |
+| Phase 2 - Escalation | 15 minutes |
+| Phase 3 - Lateral Movement | 15 minutes |
+| Phase 4 - Containment & Recovery | 15 minutes |
+| Phase 5 - Post-Incident | 15 minutes |
 | Hot wash / debrief | 15 minutes |
 | **Total** | **~100 minutes** |
 
@@ -72,21 +72,21 @@ This tabletop exercise tests the Organization's ability to detect, contain, inve
 
 ### Background
 
-It is a normal operating day. All 13 containers are running on the VPS (`alpha-node`). The Datadog shows green across the board. The most recent deployment was 48 hours ago — a routine workflow update to svc-automation. The cloud firewall is in its standard deny-all configuration with svc-tunnel as the sole ingress path.
+It is a normal operating day. All 13 containers are running on the VPS (`alpha-node`). Datadog shows green across the board. The most recent deployment was 48 hours ago - a routine workflow update to svc-automation. The cloud firewall is in its standard deny-all configuration with svc-tunnel as the sole ingress path.
 
 The current access posture:
 - System Owner has operator-level access via svc-gateway (no active admin session)
 - No JIT elevation requests are pending
 - Last SSH session ended 6 hours ago
-- All audit logs are shipping normally to the Datadog via svc-event-shipper and Fluentd
+- All audit logs are shipping normally to Datadog via svc-event-shipper and Fluentd
 
 ---
 
-### Phase 1 — Initial Detection (T+0)
+### Phase 1 - Initial Detection (T+0)
 
 **INJECT:**
 
-At 14:32 UTC, the Falco (svc-detection) fires an alert:
+At 14:32 UTC, Falco (svc-detection) fires an alert:
 
 ```
 Priority: Critical
@@ -95,10 +95,10 @@ Output: Shell spawned in svc-automation (user=node, parent=node,
     cmdline=sh -c /bin/sh, container_id=a1b2c3d4e5f6)
 ```
 
-Simultaneously, the Datadog flags an anomalous DNS query originating from svc-automation:
+Simultaneously, Datadog flags an anomalous DNS query originating from svc-automation:
 
 ```
-Source: svc-automation (internal-net)
+Source: svc-automation (net-core)
 Query: data.suspicious-c2-domain.xyz (TXT record)
 Frequency: 3 queries in 60 seconds
 Baseline: This domain has never been queried before
@@ -117,7 +117,7 @@ The svc-automation healthcheck continues to pass. No user-initiated workflows ar
 
 ---
 
-### Phase 2 — Escalation (T+15 minutes)
+### Phase 2 - Escalation (T+15 minutes)
 
 **INJECT:**
 
@@ -133,7 +133,7 @@ Output: Sensitive file opened for reading
     container=svc-automation)
 ```
 
-The Datadog now shows:
+Datadog now shows:
 
 ```
 svc-automation network activity:
@@ -169,7 +169,7 @@ The attacker appears to be conducting host reconnaissance: reading credentials, 
 
 ---
 
-### Phase 3 — Lateral Movement Attempt (T+30 minutes)
+### Phase 3 - Lateral Movement Attempt (T+30 minutes)
 
 **INJECT:**
 
@@ -182,7 +182,7 @@ Output: Unexpected connection from svc-automation to svc-db
     on port 5432 (user=node, command=psql, container=svc-automation)
 ```
 
-The Datadog shows a spike in database activity:
+Datadog shows a spike in database activity:
 
 ```
 svc-db metrics (last 5 minutes):
@@ -218,7 +218,7 @@ The attacker is scanning the internal bridge network to identify other reachable
   - Shut down svc-automation entirely
   - What is the order of operations and why?
 2. Can you quantify or scope what data has been exfiltrated? How?
-3. The `credentials_entity` table was queried. Are those credentials readable? (Consider: svc-automation encrypts stored credentials — what is the encryption key?)
+3. The `credentials_entity` table was queried. Are those credentials readable? (Consider: svc-automation encrypts stored credentials - what is the encryption key?)
 4. What is your communication plan at this point?
   - Internal: Who needs to know and what do they need to do?
   - External: Are there notification obligations? (Customers, partners, authorities)
@@ -227,20 +227,20 @@ The attacker is scanning the internal bridge network to identify other reachable
 
 ---
 
-### Phase 4 — Containment & Recovery (T+1 hour)
+### Phase 4 - Containment & Recovery (T+1 hour)
 
 **INJECT:**
 
 The following containment actions have been executed:
-- svc-automation container disconnected from `internal-net` bridge network
+- svc-automation container disconnected from `net-core` bridge network
 - Database credentials rotated on svc-db (old credentials revoked)
-- svc-automation container stopped (not removed — preserved for forensics)
+- svc-automation container stopped (not removed - preserved for forensics)
 - Cloud firewall rule added to block outbound DNS to `suspicious-c2-domain.xyz`
 - All other containers verified running with expected process trees
 - Teleport session recordings confirm the attack did not originate from an SSH session (no interactive sessions active during the incident window)
 - CI/CD pipeline integrity verified: no unauthorized commits or workflow changes in the code repository
 
-The Datadog confirms:
+Datadog confirms:
 - Anomalous DNS queries have stopped
 - Database query rate has returned to baseline
 - No other containers show unexpected network activity
@@ -268,12 +268,12 @@ The Datadog confirms:
   - Automation platform JWT secret
   - Any API keys that were stored in svc-automation workflows
   - Webhook authentication tokens (the initial attack vector)
-5. How do you verify svc-db data integrity? The attacker had read access — did they also modify records?
+5. How do you verify svc-db data integrity? The attacker had read access - did they also modify records?
 6. What detection rules need updating based on this incident?
 
 ---
 
-### Phase 5 — Post-Incident Review (T+24 hours)
+### Phase 5 - Post-Incident Review (T+24 hours)
 
 **INJECT:**
 
@@ -284,7 +284,7 @@ The incident timeline has been reconstructed from audit logs, svc-detection aler
 14:30 UTC Deserialization exploit triggers, reverse shell established
 14:32 UTC svc-detection fires: shell spawned in svc-automation
 14:32 UTC DNS anomaly detected: C2 domain queries
-14:33 UTC Attacker reads /etc/shadow (no useful credentials — container user)
+14:33 UTC Attacker reads /etc/shadow (no useful credentials - container user)
 14:35 UTC Attacker runs env, obtains database credentials and API keys
 14:37 UTC Attacker maps network: ip addr, /proc/net/tcp
 14:40 UTC Attacker connects to svc-db using stolen credentials
@@ -338,51 +338,51 @@ Total time: Detection at T+2min, containment initiated at T+15min, full containm
 
 This section documents the expected correct actions for each phase, referencing existing policies and procedures.
 
-### Phase 1 — Expected Response
+### Phase 1 - Expected Response
 
 | Action | Expected Behavior | Reference |
 |--------|------------------|-----------|
 | **Notification** | System Owner alerted via Datadog push notification and Telegram bot alert | IR-6 |
-| **Severity** | Classified as **Severity 1 (Critical)** — anomalous shell execution + suspicious DNS from same container indicates probable compromise | IR-4 |
-| **First 3 actions** | 1. Verify alert is not a false positive (check if a scheduled workflow spawned the shell). 2. Check Datadog for correlated indicators (the DNS anomaly confirms malicious activity). 3. Begin incident log — document timestamp, alert details, initial assessment. | IR-4, IR-5 |
+| **Severity** | Classified as **Severity 1 (Critical)** - anomalous shell execution + suspicious DNS from same container indicates probable compromise | IR-4 |
+| **First 3 actions** | 1. Verify alert is not a false positive (check if a scheduled workflow spawned the shell). 2. Check Datadog for correlated indicators (the DNS anomaly confirms malicious activity). 3. Begin incident log - document timestamp, alert details, initial assessment. | IR-4, IR-5 |
 | **Data sources** | svc-detection alerts, Datadog container logs, svc-automation workflow execution history, Teleport session recordings (verify no SSH-initiated activity) | AU-6 |
 | **Incident confirmation** | Two independent indicators (shell spawn + anomalous DNS) from different detection sources confirm this is a real incident, not a false positive | SI-4 |
-| **Access elevation** | JIT admin request should be submitted now — containment actions will require root-level access (network manipulation, container management) | AC-6 |
+| **Access elevation** | JIT admin request should be submitted now - containment actions will require root-level access (network manipulation, container management) | AC-6 |
 
-### Phase 2 — Expected Response
+### Phase 2 - Expected Response
 
 | Action | Expected Behavior | Reference |
 |--------|------------------|-----------|
-| **Severity** | Maintain **Severity 1** — confirmed RCE with active reconnaissance confirms hostile actor with foothold | IR-4 |
+| **Severity** | Maintain **Severity 1** - confirmed RCE with active reconnaissance confirms hostile actor with foothold | IR-4 |
 | **Isolate vs. observe** | **Isolate immediately.** The attacker has already run `env` (secrets compromised) and is actively reconning. Further observation yields diminishing intelligence returns while increasing blast radius. | IR-4 |
 | **Evidence preservation** | Before isolation: 1. Capture container filesystem snapshot (`docker export`). 2. Record running processes (`docker top`). 3. Dump network connections (`docker exec netstat`). 4. Ensure svc-detection logs are preserved in Datadog. | IR-4, AU-11 |
 | **Compromised secrets** | Database credentials (DB_USER/DB_PASS), encryption key, JWT secret, and any API keys stored in workflow credentials are all potentially compromised | SC-28 |
-| **Secret rotation timing** | **Rotate database credentials immediately** — the attacker has them and lateral movement is imminent. Other secrets can be rotated during recovery phase. Prioritize by blast radius. | IA-5 |
+| **Secret rotation timing** | **Rotate database credentials immediately** - the attacker has them and lateral movement is imminent. Other secrets can be rotated during recovery phase. Prioritize by blast radius. | IA-5 |
 | **Communication** | Internal: Log all actions in the incident channel. No external communication required yet (no customer data confirmed exfiltrated). | IR-6 |
 
-### Phase 3 — Expected Response
+### Phase 3 - Expected Response
 
 | Action | Expected Behavior | Reference |
 |--------|------------------|-----------|
-| **Stop exfiltration** | Order of operations: 1. **Disconnect svc-automation from network** (`docker network disconnect internal-net svc-automation`) — fastest, stops all traffic. 2. **Revoke database credentials on svc-db** (ALTER USER, pg_terminate_backend). 3. **Stop svc-automation container** (preserve for forensics). | IR-4, SC-7 |
+| **Stop exfiltration** | Order of operations: 1. **Disconnect svc-automation from network** (`docker network disconnect net-core svc-automation`) - fastest, stops all traffic. 2. **Revoke database credentials on svc-db** (ALTER USER, pg_terminate_backend). 3. **Stop svc-automation container** (preserve for forensics). | IR-4, SC-7 |
 | **Scope exfiltration** | Query svc-db `pg_stat_activity` for the attacker's session history. Cross-reference Datadog metrics (47 MB transferred). Analyze DNS TXT record sizes to estimate data exfiltrated via C2 channel. | AU-6 |
 | **Credential encryption** | svc-automation encrypts stored credentials at rest using its encryption key. However, the attacker ran `env` and may have the encryption key. Assume stored credentials are compromised. | SC-28 |
-| **Communication plan** | Internal: Incident commander briefs all stakeholders. External: No breach notification required yet — assess whether exfiltrated data includes PII or third-party credentials. Prepare notification templates as a precaution. | IR-6, IR-7 |
+| **Communication plan** | Internal: Incident commander briefs all stakeholders. External: No breach notification required yet - assess whether exfiltrated data includes PII or third-party credentials. Prepare notification templates as a precaution. | IR-6, IR-7 |
 | **DRP invocation** | **Not yet.** The incident is contained to one service and the database. Other services are operational. DRP invocation criteria: loss of 3+ critical services or total platform unavailability. | CP-2 |
-| **Blast radius** | All containers on `internal-net` bridge are reachable from svc-automation. However, network access does not equal authenticated access. Containers without exposed ports or credentials in svc-automation's env are at lower risk. Priority check: svc-secrets, svc-identity. | SC-7 |
+| **Blast radius** | All containers on `net-core` bridge are reachable from svc-automation. However, network access does not equal authenticated access. Containers without exposed ports or credentials in svc-automation's env are at lower risk. Priority check: svc-secrets, svc-identity. | SC-7 |
 
-### Phase 4 — Expected Response
+### Phase 4 - Expected Response
 
 | Action | Expected Behavior | Reference |
 |--------|------------------|-----------|
-| **Rebuild approach** | **Clean image deployment** — never restore a compromised container from backup. Pull the known-good image from the trusted registry. Verify image signature (Cosign). Rebuild workflow configurations from version-controlled source. | CP-10, SI-7 |
+| **Rebuild approach** | **Clean image deployment** - never restore a compromised container from backup. Pull the known-good image from the trusted registry. Verify image signature (Cosign). Rebuild workflow configurations from version-controlled source. | CP-10, SI-7 |
 | **Recovery order** | 1. svc-db (verify data integrity, no unauthorized modifications). 2. svc-secrets (confirm sealed, no unauthorized access). 3. svc-tunnel (verify ingress path integrity). 4. svc-detection (update rules). 5. svc-automation (clean image, new credentials, hardened config). | CP-10 |
 | **Persistence check** | 1. Diff the preserved container filesystem against the base image. 2. Inspect for added cron entries, modified /etc files, planted binaries. 3. Verify no new Docker volumes, networks, or images were created on the host. 4. Check host `/var/lib/docker` for escape artifacts. 5. Verify host SSH authorized_keys file is unchanged. | SI-7 |
 | **Secret rotation scope** | All secrets accessible to svc-automation: database credentials, encryption key, JWT secret, all stored workflow API keys, webhook tokens. Generate new values via secrets manager. Update all dependent configurations. | IA-5 |
 | **Database integrity** | Run checksums on critical tables. Compare row counts against last known-good backup. Check for new database users, modified permissions, or planted triggers/functions. Review PostgreSQL audit log for write operations during the incident window. | SI-7 |
 | **Detection rule updates** | Add rules for: `env` command execution in containers, bulk SELECT queries exceeding baseline, nmap/network scanning tools in non-security containers, outbound connections to non-baseline destinations. | SI-4 |
 
-### Phase 5 — Expected Response
+### Phase 5 - Expected Response
 
 | Action | Expected Behavior | Reference |
 |--------|------------------|-----------|
@@ -413,13 +413,13 @@ Each criterion is scored on a 1-5 scale:
 
 | # | Criterion | Weight | Phase(s) | Target |
 |---|-----------|--------|----------|--------|
-| 1 | **Detection & Triage** — Correctly identified indicators and classified severity | 20% | 1 | Severity 1 classification within 5 minutes of first alert |
-| 2 | **Decision Making** — Appropriate isolation/containment decisions with clear rationale | 20% | 2, 3 | Containment decision made within 15 minutes of confirmation |
-| 3 | **Evidence Preservation** — Forensic data captured before destructive containment actions | 15% | 2, 4 | Evidence captured before container shutdown |
-| 4 | **Secret Management** — Identified compromised secrets and initiated rotation in correct order | 15% | 2, 3, 4 | Critical credentials (database) rotated within 20 minutes |
-| 5 | **Communication** — Appropriate internal/external notifications at each phase | 10% | All | Stakeholders informed at each phase transition |
-| 6 | **Recovery** — Correct rebuild procedure, verification, and service restoration order | 10% | 4 | Clean image deployment (not restore from backup); integrity verified |
-| 7 | **Post-Incident** — Root cause identified, corrective actions documented, metrics calculated | 10% | 5 | Lessons learned completed within 24 hours; POA&M entries created |
+| 1 | **Detection & Triage** - Correctly identified indicators and classified severity | 20% | 1 | Severity 1 classification within 5 minutes of first alert |
+| 2 | **Decision Making** - Appropriate isolation/containment decisions with clear rationale | 20% | 2, 3 | Containment decision made within 15 minutes of confirmation |
+| 3 | **Evidence Preservation** - Forensic data captured before destructive containment actions | 15% | 2, 4 | Evidence captured before container shutdown |
+| 4 | **Secret Management** - Identified compromised secrets and initiated rotation in correct order | 15% | 2, 3, 4 | Critical credentials (database) rotated within 20 minutes |
+| 5 | **Communication** - Appropriate internal/external notifications at each phase | 10% | All | Stakeholders informed at each phase transition |
+| 6 | **Recovery** - Correct rebuild procedure, verification, and service restoration order | 10% | 4 | Clean image deployment (not restore from backup); integrity verified |
+| 7 | **Post-Incident** - Root cause identified, corrective actions documented, metrics calculated | 10% | 5 | Lessons learned completed within 24 hours; POA&M entries created |
 
 ### 5.3 Scorecard Template
 
@@ -435,10 +435,10 @@ Each criterion is scored on a 1-5 scale:
 | **Weighted Total** | **/5.00** | |
 
 **Rating thresholds:**
-- 4.5 - 5.0: Excellent — minor refinements only
-- 3.5 - 4.4: Good — targeted improvements needed
-- 2.5 - 3.4: Satisfactory — significant process gaps to address
-- Below 2.5: Unsatisfactory — major remediation required before next exercise
+- 4.5 - 5.0: Excellent - minor refinements only
+- 3.5 - 4.4: Good - targeted improvements needed
+- 2.5 - 3.4: Satisfactory - significant process gaps to address
+- Below 2.5: Unsatisfactory - major remediation required before next exercise
 
 ---
 
@@ -522,9 +522,9 @@ Complete this template within 5 business days of the exercise.
 | Exercise | Frequency | Last Conducted | Next Scheduled |
 |----------|-----------|---------------|----------------|
 | Operation Phantom Container (Container Compromise) | Semi-annual | [Date of first run] | [+6 months] |
-| [Future: Supply Chain Compromise scenario] | Semi-annual | — | [TBD] |
-| [Future: Insider Threat scenario] | Annual | — | [TBD] |
-| [Future: DigitalOcean Outage / DRP scenario] | Annual | — | [TBD] |
+| [Future: Supply Chain Compromise scenario] | Semi-annual | - | [TBD] |
+| [Future: Insider Threat scenario] | Annual | - | [TBD] |
+| [Future: DigitalOcean Outage / DRP scenario] | Annual | - | [TBD] |
 
 ### Scheduling Notes
 
@@ -554,7 +554,7 @@ Complete this template within 5 business days of the exercise.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2026-03-11 | System Owner | Initial tabletop exercise — Operation Phantom Container |
+| 1.0 | 2026-03-11 | System Owner | Initial tabletop exercise - Operation Phantom Container |
 
 ### References
 
@@ -563,15 +563,15 @@ Complete this template within 5 business days of the exercise.
 | NIST SP 800-53 Rev. 5 | CP-4 (Contingency Plan Testing), IR-3 (Incident Response Testing) |
 | NIST SP 800-61 Rev. 2 | Computer Security Incident Handling Guide |
 | NIST SP 800-84 | Guide to Test, Training, and Exercise Programs for IT Plans and Capabilities |
-| Incident Response Policy | Internal — docs/grc/POLICY_INCIDENT_RESPONSE.md |
-| IR Playbook: Compromised Container | Internal — docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md |
-| IR Playbook: Leaked Credential | Internal — docs/grc/PLAYBOOK_LEAKED_CREDENTIAL.md |
-| IR Playbook: Unauthorized Access | Internal — docs/grc/PLAYBOOK_UNAUTHORIZED_ACCESS.md |
-| IR Playbook: DDoS/Service Degradation | Internal — docs/grc/PLAYBOOK_DDOS_SERVICE_DEGRADATION.md |
-| Risk Assessment | Internal — docs/grc/RISK_ASSESSMENT.md |
-| IAM RBAC Role Map | Internal — docs/grc/IAM_RBAC_ROLE_MAP.md |
-| IAM Access Review | Internal — docs/grc/IAM_ACCESS_REVIEW.md |
-| CIS Docker Benchmark Risk Register | Internal — docs/grc/CIS_RISK_REGISTER.md |
+| Incident Response Policy | Internal - docs/grc/POLICY_INCIDENT_RESPONSE.md |
+| IR Playbook: Compromised Container | Internal - docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md |
+| IR Playbook: Leaked Credential | Internal - docs/grc/PLAYBOOK_LEAKED_CREDENTIAL.md |
+| IR Playbook: Unauthorized Access | Internal - docs/grc/PLAYBOOK_UNAUTHORIZED_ACCESS.md |
+| IR Playbook: DDoS/Service Degradation | Internal - docs/grc/PLAYBOOK_DDOS_SERVICE_DEGRADATION.md |
+| Risk Assessment | Internal - docs/grc/RISK_ASSESSMENT.md |
+| IAM RBAC Role Map | Internal - docs/grc/IAM_RBAC_ROLE_MAP.md |
+| IAM Access Review | Internal - docs/grc/IAM_ACCESS_REVIEW.md |
+| CIS Docker Benchmark Risk Register | Internal - docs/grc/CIS_RISK_REGISTER.md |
 
 ### Related Risk Register Entries
 

@@ -14,7 +14,7 @@ TEXT = '#ffffff'
 GREEN = '#00FF41'
 FONT = 'JetBrains Mono'
 DPI = 300
-OUT = '/Users/et/cyber-squire-ops/docs/grc/diagrams/risk_summary_dashboard.png'
+OUT = './diagrams/risk_summary_dashboard.png'
 
 plt.rcParams.update({
     'font.family': FONT,
@@ -28,7 +28,7 @@ plt.rcParams.update({
 })
 
 fig = plt.figure(figsize=(20, 14))
-fig.suptitle('RISK SUMMARY DASHBOARD — Organization Security Posture',
+fig.suptitle('RISK SUMMARY DASHBOARD - Organization Security Posture',
              fontsize=16, fontweight='bold', color=TEXT, y=0.97)
 
 # ============================================================

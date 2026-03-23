@@ -46,7 +46,7 @@ This document defines the access review process for Organization infrastructure.
 |------|--------|---------------|---------------|-------------|
 | root | alpha-node (10.100.1.10) | Direct SSH via zero-trust tunnel | ed25519 key (~/.ssh/id_ed25519) | Break-glass only, emergency use |
 | sysadmin | Automation (automation.example-ops.com) | HTTPS via zero-trust tunnel | Password auth | Workflow management |
-| admin | Identity provider (svc-identity) | Container-internal port 8080 | Username/password | SSO administration |
+| admin | Identity provider (svc-identity) | Container-internal | Username/password | SSO administration |
 
 ### Service-to-Service Access
 

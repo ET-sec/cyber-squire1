@@ -118,17 +118,17 @@ The platform runs **14 containers** protected by layered security controls:
 3. **Full defense-in-depth stack** from network perimeter through runtime detection
 4. **Automated evidence collection** via Falco, Datadog, and CI/CD scanners reduces manual audit burden
 5. **Immutable audit chain** from Teleport session recording through Fluentd log shipping to Datadog
-6. **Zero exposed ports** to the public internet — all ingress through Cloudflare zero-trust tunnel
-7. **Comprehensive GRC library** (31 documents, ~15,000 lines) with defined review cadences
+6. **Zero exposed ports** to the public internet - all ingress through Cloudflare zero-trust tunnel
+7. **Comprehensive GRC library** (37 documents, ~18,000 lines) with defined review cadences
 
 ## Areas for Improvement
 
-1. **Multi-region redundancy** — single-VPS deployment creates availability concentration risk
-2. **User namespace remapping** — not yet enabled on Docker daemon (POAM-001, Medium)
-3. **Automated backup testing** — PostgreSQL backups exist but restore testing is manual
-4. **OAuth credential lifecycle** — several Google OAuth integrations pending reconnection
-5. **Remaining 14% of controls** — 19 controls planned but not yet implemented
-6. **Tabletop exercise cadence** — first exercise completed, semi-annual schedule needs second iteration
+1. **Multi-region redundancy** - single-VPS deployment creates availability concentration risk
+2. **User namespace remapping** - not yet enabled on Docker daemon (POAM-001, Medium)
+3. **Automated backup testing** - PostgreSQL backups exist but restore testing is manual
+4. **OAuth credential lifecycle** - several Google OAuth integrations pending reconnection
+5. **Remaining 14% of controls** - 19 controls planned but not yet implemented
+6. **Tabletop exercise cadence** - first exercise completed, semi-annual schedule needs second iteration
 
 ---
 

@@ -1,4 +1,4 @@
-# Data Flow Diagram — Organization Security Operations Platform
+# Data Flow Diagram - Organization Security Operations Platform
 
 **Organization:** Organization Security Operations Platform
 **Assessment Date:** 2026-03-12
@@ -38,10 +38,10 @@ This DFD is the foundational input to the STRIDE threat model (`THREAT_MODEL_STR
 
 The DFD serves as:
 
-1. **The threat modeling substrate** — STRIDE analysis is performed against these diagrams, not against code or architecture docs
-2. **A data classification tool** — each flow is annotated with data type, sensitivity, and encryption status
-3. **An audit artifact** — demonstrates systematic identification of data flows per NIST SP 800-154 and RA-3
-4. **A change control reference** — any new service, integration, or data flow must be reflected here before deployment
+1. **The threat modeling substrate** - STRIDE analysis is performed against these diagrams, not against code or architecture docs
+2. **A data classification tool** - each flow is annotated with data type, sensitivity, and encryption status
+3. **An audit artifact** - demonstrates systematic identification of data flows per NIST SP 800-154 and RA-3
+4. **A change control reference** - any new service, integration, or data flow must be reflected here before deployment
 
 ---
 
@@ -77,7 +77,7 @@ The DFD serves as:
 
 ---
 
-## 3. Level 0 — Context Diagram
+## 3. Level 0 - Context Diagram
 
 The platform is represented as a single process. All external entities and their data flows are shown.
 
@@ -112,13 +112,13 @@ The platform is represented as a single process. All external entities and their
     (Compute/DNS/FW)                               └─────────────┘
                                                          │
     [EE] Secrets Manager       [DF-07] Secret sync /     │
-    (Doppler)    ◄───────────────────── rotation ────────┘
+    (Secrets Manager)    ◄───────────────────── rotation ────────┘
 
     [EE] Credential Vault      [DF-08] Secret source
-    (1Password)  ◄──────────── of truth (rotation) ─── [EE] Secrets Manager
+      ◄──────────── of truth (rotation) ─── [EE] Secrets Manager
 ```
 
-### Context Diagram — External Entity Summary
+### Context Diagram - External Entity Summary
 
 | Entity | Direction | Data Exchanged | Trust Level |
 |--------|-----------|----------------|-------------|
@@ -128,12 +128,12 @@ The platform is represented as a single process. All external entities and their
 | Monitoring platform (Datadog SaaS) | Outbound | Metrics, logs, traces, Falco alerts | Trusted (monitoring partner) |
 | GitHub (CI/CD) | Bidirectional | Code push (inbound), scan results, deployment triggers | Trusted (version control) |
 | Cloud provider API | Outbound | Terraform state, resource provisioning, DNS updates | Trusted (infrastructure) |
-| Secrets manager (Doppler) | Inbound | Secret values injected as environment variables | Trusted (secrets authority) |
-| Credential vault (1Password) | Source of truth | Secret rotation reference; write-only from platform | Trusted (offline reference) |
+| Secrets manager | Inbound | Secret values injected as environment variables | Trusted (secrets authority) |
+| Credential vault | Source of truth | Secret rotation reference; write-only from platform | Trusted (offline reference) |
 
 ---
 
-## 4. Level 1 — System Decomposition
+## 4. Level 1 - System Decomposition
 
 The platform is decomposed into five trust zones with 14 services, 3 Docker networks, and 7 trust boundaries.
 
@@ -177,7 +177,7 @@ Legend: [TB-N] = Trust Boundary | [P-NN] = Process | [DS-NN] = Data Store | ─�
 │  net-core:              │         │          net-ai (internal: true):        │
 │  ┌──────────────────┐   │    ┌────┴────┐     ┌──────────────────────┐       │
 │  │[DS-01] svc-db    │◄──┘    │ [DF-15] │     │[P-06] svc-llm       │       │
-│  │(PostgreSQL 16)   │        │         ▼     │(Ollama — Qwen 3 8B) │       │
+│  │(PostgreSQL 16)   │        │         ▼     │(Ollama - Qwen 3 8B) │       │
 │  │                  │        │    [DF-16]     │  No internet egress  │       │
 │  │[DS-02] db-data-  │        │         │     └──────────────────────┘       │
 │  │  volume          │        │         │     ┌──────────────────────┐       │
@@ -222,7 +222,7 @@ Legend: [TB-N] = Trust Boundary | [P-NN] = Process | [DS-NN] = Data Store | ─�
 
 ---
 
-## 5. Level 2 — AI Pipeline Detail
+## 5. Level 2 - AI Pipeline Detail
 
 This diagram zooms into the AI subsystem, showing the three AI systems (AI-001, AI-002, AI-003), their data flows, and trust boundary crossings.
 
@@ -246,7 +246,7 @@ Legend: [TB-N] = Trust Boundary | [AI-0N] = AI System | ──► = Data Flow
       ▼
 ┌─ DMZ ─────────────────────────────────────────────────────────────────────┐
 │                                                                           │
-│  [P-04] svc-ai-gateway (OpenClaw — Claude Opus 4.6) [AI-001]               │
+│  [P-04] svc-ai-gateway (OpenClaw - Claude Opus 4.6) [AI-001]               │
 │  ├── System prompt + conversation context                                 │
 │  ├── Skills: Tavily search, browser, GitHub, Notion, python-interpreter   │
 │  │                                                                        │
@@ -265,7 +265,7 @@ Legend: [TB-N] = Trust Boundary | [AI-0N] = AI System | ──► = Data Flow
 │  │                 ─────┼──────────────────────────────── [TB-3]          │
 │  │                      │                                                 │
 │  │                      ├──[DF-16]──► [P-06] svc-llm [AI-002]            │
-│  │                      │             (Ollama — Qwen 3 8B)               │
+│  │                      │             (Ollama - Qwen 3 8B)               │
 │  │                      │             net-ai: no internet egress          │
 │  │                      │             Local classification,               │
 │  │                      │             summarization, triage               │
@@ -300,8 +300,8 @@ AI Pipeline Data Flow Summary:
 | DF-04 | svc-monitor / svc-log-router | Monitoring platform SaaS (Datadog) | Metrics, logs, traces, Falco alerts | HTTPS | TLS 1.2+ in transit | TB-6 | High |
 | DF-05 | GitHub Actions | CI/CD pipeline (Terraform) | Code changes, scan results, deployment triggers | HTTPS (GitHub API) | TLS 1.2+ in transit | TB-1 | Medium |
 | DF-06 | Terraform (CI/CD) | Cloud provider API | IaC state, resource provisioning, DNS updates | HTTPS (API) | TLS 1.2+ in transit; state encrypted at rest | TB-1 | High |
-| DF-07 | Secrets manager (Doppler) | Platform containers | Secret values (API keys, DB creds, tokens) | HTTPS (Doppler CLI) | TLS in transit; env var in memory | TB-1 | Critical |
-| DF-08 | Credential vault (1Password) | Secrets manager (Doppler) | Secret rotation source of truth | HTTPS | TLS in transit; vault encrypted at rest | External | Critical |
+| DF-07 | Secrets manager | Platform containers | Secret values (API keys, DB creds, tokens) | HTTPS (CLI) | TLS in transit; env var in memory | TB-1 | Critical |
+| DF-08 | Credential vault | Secrets manager | Secret rotation source of truth | HTTPS | TLS in transit; vault encrypted at rest | External | Critical |
 | DF-09 | Edge security provider (Cloudflare) | svc-tunnel | Filtered HTTPS traffic (post-WAF) | Cloudflare Tunnel (QUIC/HTTP2) | TLS in transit (tunnel-encrypted) | TB-2 | Medium |
 | DF-10 | svc-tunnel | svc-automation | Webhook payloads (GitHub, Telegram, Gumroad) | HTTP (localhost) | Unencrypted (localhost loopback) | None (same host) | Medium |
 | DF-11 | CI/CD pipeline | svc-automation | Deployment notifications, workflow triggers | HTTPS (webhook) | TLS via tunnel | TB-2 | Low |
@@ -309,9 +309,9 @@ AI Pipeline Data Flow Summary:
 | DF-13 | svc-ai-gateway | Tavily API | Web search queries | HTTPS | TLS 1.2+ in transit | TB-5 | Low |
 | DF-14 | svc-ai-gateway | GitHub API | Repository queries, issue data | HTTPS | TLS 1.2+ in transit | TB-5 | Low |
 | DF-15 | svc-automation | svc-db (PostgreSQL) | Workflow state, execution history, credential refs | TCP (PostgreSQL wire protocol) | Unencrypted (Docker internal network) | TB-3 | High |
-| DF-16 | svc-automation | svc-llm (Ollama) | Inference prompts (classification, summarization) | HTTP (Ollama API, port 11434) | Unencrypted (net-ai, no egress) | TB-3 | Medium |
-| DF-17 | svc-automation / svc-ai-gateway | svc-secrets (Vault) | Secret requests, token auth, dynamic credentials | HTTPS (Vault API, port 8200) | TLS in transit; sealed storage at rest | TB-4 | Critical |
-| DF-18 | svc-automation / svc-gateway | svc-identity (Keycloak) | OIDC auth requests, token validation, RBAC queries | HTTPS (Keycloak API, port 8080) | TLS in transit | TB-4 | High |
+| DF-16 | svc-automation | svc-llm (Ollama) | Inference prompts (classification, summarization) | HTTP (Ollama API, internal LLM port) | Unencrypted (net-ai, no egress) | TB-3 | Medium |
+| DF-17 | svc-automation / svc-ai-gateway | svc-secrets (Vault) | Secret requests, token auth, dynamic credentials | HTTPS (Vault API, internal secrets port) | TLS in transit; sealed storage at rest | TB-4 | Critical |
+| DF-18 | svc-automation / svc-gateway | svc-identity (Keycloak) | OIDC auth requests, token validation, RBAC queries | HTTPS (Keycloak API, internal identity port) | TLS in transit | TB-4 | High |
 | DF-19 | User (SSH) | svc-gateway (Teleport) | SSH sessions, terminal I/O, session recordings | SSH (port 3080) | SSH encrypted channel | TB-2, TB-4 | High |
 | DF-20 | svc-detection (Falco) | svc-detection-router (Falcosidekick) | Security alerts (syscall anomalies, container events) | HTTP (internal) | Unencrypted (net-monitoring) | None | High |
 | DF-21 | svc-detection-router (Falcosidekick) | svc-monitor (Datadog) | Formatted security alerts | HTTPS (Datadog API) | TLS in transit | TB-6 | High |
@@ -319,8 +319,8 @@ AI Pipeline Data Flow Summary:
 | DF-23 | svc-log-router (Fluentd) | Monitoring platform SaaS (Datadog) | Aggregated, tagged log streams | HTTPS (Datadog API) | TLS in transit | TB-6 | High |
 | DF-24 | svc-event-shipper | svc-log-router (Fluentd) | Teleport audit events (session recordings, access logs) | Fluentd forward protocol | Unencrypted (net-monitoring) | None | High |
 | DF-25 | svc-ai-gateway | svc-automation | Workflow trigger payloads (AI-initiated actions) | HTTP (webhook, internal) | Unencrypted (net-core) | None (same zone) | High |
-| DF-26 | svc-automation | svc-transcription (Whisper) | Audio data for voice-to-text processing | HTTP (Whisper API, port 8000) | Unencrypted (net-ai, no egress) | TB-3 | Medium |
-| DF-27 | svc-ai-gateway | svc-detection (Falco) | Behavioral telemetry (implicit — Falco reads syscalls via eBPF) | Kernel eBPF (passive) | N/A (kernel-level observation) | None | High |
+| DF-26 | svc-automation | svc-transcription (Whisper) | Audio data for voice-to-text processing | HTTP (Whisper API, internal transcription port) | Unencrypted (net-ai, no egress) | TB-3 | Medium |
+| DF-27 | svc-ai-gateway | svc-detection (Falco) | Behavioral telemetry (implicit - Falco reads syscalls via eBPF) | Kernel eBPF (passive) | N/A (kernel-level observation) | None | High |
 | DF-28 | svc-ai-gateway | Notion API | Workspace queries, page reads/writes | HTTPS | TLS 1.2+ in transit | TB-5 | Low |
 | DF-29 | svc-automation | User (Telegram) | Bot responses, notifications, status updates | HTTPS (Telegram Bot API) | TLS 1.2+ in transit | TB-7 | Medium |
 | DF-30 | svc-identity (Keycloak) | svc-db (PostgreSQL) | RBAC state, user records, session data | TCP (PostgreSQL wire protocol) | Unencrypted (Docker internal network) | None (same zone) | High |
@@ -331,15 +331,15 @@ AI Pipeline Data Flow Summary:
 
 | Store ID | Name | Type | Data Classification | Encryption at Rest | Backup |
 |----------|------|------|--------------------|--------------------|--------|
-| DS-01 | svc-db (PostgreSQL 16) | Relational database | High — workflow state, credential references, user data, RBAC state | Partial — volume-level encryption depends on host disk config; no TDE | Automated scripts to /opt/platform/CD_BACKUPS/ |
-| DS-02 | db-data-volume | Docker volume (persistent) | High — PostgreSQL data files | Inherits host disk encryption | Included in DS-01 backup scope |
-| DS-03 | svc-automation persistent data | Docker volume (/opt/platform/CD_VOL_N8N/) | Medium — workflow definitions, execution history, imported credentials | No additional encryption beyond host | Not independently backed up |
-| DS-04 | svc-llm model storage | Docker volume (/opt/platform/CD_VOL_OLLAMA/) | Low — public model weights (Qwen 3 8B) | None (public data) | Not backed up (re-pullable) |
-| DS-05 | svc-transcription model cache | Docker volume (/opt/platform/CD_VOL_WHISPER/) | Low — public Whisper model weights | None (public data) | Not backed up (re-pullable) |
-| DS-06 | svc-secrets storage | Docker volume (/opt/platform/CD_VOL_VAULT/) | Critical — sealed secret data, encryption keys, dynamic credentials | AES-256-GCM (Vault auto-unseal or Shamir) | Not independently backed up (stateless config; secrets sourced from Doppler) |
-| DS-07 | Terraform state | Remote encrypted storage | High — full infrastructure state, resource IDs, configuration | AES-256 at rest (remote backend) | Version history in remote backend |
-| DS-08 | Container image cache | Docker image store (host) | Low — pulled images with known digests | None | Not backed up (re-pullable from registry) |
-| DS-09 | Teleport audit data | svc-gateway internal storage + shipped to monitoring platform | High — session recordings, access logs, terminal replay data | Encrypted in transit to monitoring platform; local storage unencrypted | Shipped to monitoring platform (retained per Datadog plan) |
+| DS-01 | svc-db (PostgreSQL 16) | Relational database | High - workflow state, credential references, user data, RBAC state | Partial - volume-level encryption depends on host disk config; no TDE | Automated scripts to /opt/platform/CD_BACKUPS/ |
+| DS-02 | db-data-volume | Docker volume (persistent) | High - PostgreSQL data files | Inherits host disk encryption | Included in DS-01 backup scope |
+| DS-03 | svc-automation persistent data | Docker volume (/opt/platform/CD_VOL_N8N/) | Medium - workflow definitions, execution history, imported credentials | No additional encryption beyond host | Not independently backed up |
+| DS-04 | svc-llm model storage | Docker volume (/opt/platform/CD_VOL_OLLAMA/) | Low - public model weights (Qwen 3 8B) | None (public data) | Not backed up (re-pullable) |
+| DS-05 | svc-transcription model cache | Docker volume (/opt/platform/CD_VOL_WHISPER/) | Low - public Whisper model weights | None (public data) | Not backed up (re-pullable) |
+| DS-06 | svc-secrets storage | Docker volume (/opt/platform/CD_VOL_VAULT/) | Critical - sealed secret data, encryption keys, dynamic credentials | AES-256-GCM (Vault auto-unseal or Shamir) | Not independently backed up (stateless config; secrets sourced from the secrets manager) |
+| DS-07 | Terraform state | Remote encrypted storage | High - full infrastructure state, resource IDs, configuration | AES-256 at rest (remote backend) | Version history in remote backend |
+| DS-08 | Container image cache | Docker image store (host) | Low - pulled images with known digests | None | Not backed up (re-pullable from registry) |
+| DS-09 | Teleport audit data | svc-gateway internal storage + shipped to monitoring platform | High - session recordings, access logs, terminal replay data | Encrypted in transit to monitoring platform; local storage unencrypted | Shipped to monitoring platform (retained per Datadog plan) |
 
 ---
 
@@ -353,8 +353,8 @@ AI Pipeline Data Flow Summary:
 | EE-04 | Monitoring platform (Datadog SaaS) | Trusted (monitoring) | Datadog API key + App keys (per integration) | Metrics, logs, traces, alerts (outbound); dashboard queries (inbound) |
 | EE-05 | GitHub (CI/CD) | Trusted (version control) | Personal Access Token (PAT) | Code push/pull, CI/CD triggers, scan results, deployment artifacts |
 | EE-06 | Cloud provider API | Trusted (infrastructure) | API token (stored in secrets manager) | Resource provisioning, DNS updates, firewall rules, IaC state |
-| EE-07 | Secrets manager (Doppler) | Trusted (secrets authority) | Service token + CLI authentication | Secret values (inbound to platform as env vars) |
-| EE-08 | Credential vault (1Password) | Trusted (offline reference) | App-based authentication (local) | Source of truth for secret rotation (write-only from platform perspective) |
+| EE-07 | Secrets manager | Trusted (secrets authority) | Service token + CLI authentication | Secret values (inbound to platform as env vars) |
+| EE-08 | Credential vault | Trusted (offline reference) | App-based authentication (local) | Source of truth for secret rotation (write-only from platform perspective) |
 | EE-09 | Tavily API | Semi-trusted (search) | API key (Bearer token) | Web search queries (outbound); search results (inbound) |
 | EE-10 | Notion API | Semi-trusted (SaaS) | Integration token | Workspace queries, page data (bidirectional) |
 | EE-11 | Telegram API (outbound) | Trusted (messaging) | Bot token | Bot responses, notifications, status messages (outbound) |
@@ -363,7 +363,7 @@ AI Pipeline Data Flow Summary:
 
 ## 9. Sensitive Data Mapping
 
-### 9.1 Data Classification (per FIPS 199 — Moderate Baseline)
+### 9.1 Data Classification (per FIPS 199 - Moderate Baseline)
 
 | Classification | Definition | Examples in Platform |
 |----------------|-----------|---------------------|
@@ -376,7 +376,7 @@ AI Pipeline Data Flow Summary:
 
 | Data Type | Origin | Flows Through | Destination | Classification | Key Risk |
 |-----------|--------|--------------|-------------|----------------|----------|
-| API keys / tokens | Secrets manager (Doppler) | Container env vars | Service runtime memory | Critical | Env var exposure via logs (I-02), Code node access (I-04) |
+| API keys / tokens | Secrets manager | Container env vars | Service runtime memory | Critical | Env var exposure via logs (I-02), Code node access (I-04) |
 | Database credentials | Secrets manager | svc-automation env vars | svc-db authentication | Critical | Shared credential across services (T-04, Path 3) |
 | AI prompts (external) | svc-ai-gateway | HTTPS | Anthropic API | High | PII leakage (I-01, ATC-05), operational context disclosure |
 | AI prompts (internal) | svc-automation | HTTP (net-ai) | svc-llm | Medium | Air-gapped network mitigates exfiltration risk |
@@ -393,15 +393,15 @@ AI Pipeline Data Flow Summary:
 |---------|-----------|--------|-----|
 | Internet → Cloudflare | Yes | TLS 1.2+ | None |
 | Cloudflare → svc-tunnel | Yes | Tunnel encryption (QUIC/HTTP2) | None |
-| svc-tunnel → internal services | **No** | Localhost HTTP | Accepted risk — same-host loopback |
-| net-core inter-service | **No** | Docker internal network | Gap — no mTLS between services |
-| net-ai inter-service | **No** | Docker internal network (isolated) | Mitigated — network has no internet egress |
-| net-monitoring inter-service | **No** | Fluentd forward protocol | Gap — log data unencrypted in transit |
+| svc-tunnel → internal services | **No** | Localhost HTTP | Accepted risk - same-host loopback |
+| net-core inter-service | **No** | Docker internal network | Gap - no mTLS between services |
+| net-ai inter-service | **No** | Docker internal network (isolated) | Mitigated - network has no internet egress |
+| net-monitoring inter-service | **No** | Fluentd forward protocol | Gap - log data unencrypted in transit |
 | Services → svc-secrets (Vault) | Yes | TLS (Vault API) | None |
 | Services → svc-identity (Keycloak) | Yes | TLS (Keycloak API) | None |
 | Platform → Anthropic API | Yes | TLS 1.3 | None |
 | Platform → Datadog SaaS | Yes | TLS 1.2+ (Datadog API) | None |
-| svc-db data at rest | **Partial** | Host disk encryption (if enabled) | Gap — no PostgreSQL TDE |
+| svc-db data at rest | **Partial** | Host disk encryption (if enabled) | Gap - no PostgreSQL TDE |
 | svc-secrets data at rest | Yes | AES-256-GCM (Vault sealed storage) | None |
 
 ---

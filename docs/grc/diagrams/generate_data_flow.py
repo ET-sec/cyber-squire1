@@ -75,7 +75,7 @@ CYAN = "#79c0ff"       # AI / external API
 GRAY = "#8b949e"       # Monitoring metrics
 
 with Diagram(
-    "Organization — Data Flow Diagram",
+    "Organization - Data Flow Diagram",
     filename=FILENAME,
     show=False,
     direction="LR",
@@ -90,12 +90,12 @@ with Diagram(
     cf = Cloudflare("Cloudflare\nEdge")
 
     # === External Sinks ===
-    dd_saas = DatadogSaaS("Datadog SaaS\nus5.datadoghq.com")
+    dd_saas = DatadogSaaS("Datadog SaaS\nCloud")
     tg = Telegram("Telegram API")
     anthropic = Internet("Anthropic API\n(Claude)")
 
     # === Secrets Source ===
-    doppler = Docker("Doppler\nSecrets Manager")
+    ext_secrets = Docker("External\nSecrets Manager")
 
     with Cluster("DigitalOcean Droplet", graph_attr=cluster_dark):
 
@@ -104,15 +104,15 @@ with Diagram(
         with Cluster("Inbound Traffic Flow", graph_attr={
             **cluster_inner, "fontcolor": GREEN
         }):
-            n8n = N8N("n8n SOAR\n:5678")
-            keycloak = Docker("Keycloak\nRBAC :8080")
+            n8n = N8N("n8n SOAR\n")
+            keycloak = Docker("Keycloak\nRBAC ")
             teleport = Docker("Teleport\nPAM :3080")
 
         with Cluster("Data Store", graph_attr={
             **cluster_inner, "fontcolor": BLUE
         }):
             db = PostgreSQL("PostgreSQL 16\n:5432")
-            vault_svc = Vault("HashiCorp\nVault :8200")
+            vault_svc = Vault("HashiCorp\nVault ")
 
         with Cluster("Audit Log Pipeline", graph_attr={
             **cluster_inner, "fontcolor": ORANGE
@@ -134,9 +134,9 @@ with Diagram(
         with Cluster("AI Services", graph_attr={
             **cluster_inner, "fontcolor": CYAN
         }):
-            ollama = Docker("Ollama\nLLM :11434")
-            whisper = Docker("Whisper\nSTT :8000")
-            openclaw = Docker("OpenClaw\nGateway :18789")
+            ollama = Docker("Ollama\nLLM ")
+            whisper = Docker("Whisper\nSTT ")
+            openclaw = Docker("OpenClaw\nGateway ")
 
     # =========================================
     # FLOW 1: Inbound User Traffic (GREEN)
@@ -184,8 +184,8 @@ with Diagram(
     # =========================================
     # FLOW 7: Secrets (PURPLE)
     # =========================================
-    doppler >> Edge(color=PURPLE, style="dotted", label="Env Vars\nat Deploy") >> n8n
-    doppler >> Edge(color=PURPLE, style="dotted") >> dd_agent
-    doppler >> Edge(color=PURPLE, style="dotted") >> tunnel
+    ext_secrets >> Edge(color=PURPLE, style="dotted", label="Env Vars\nat Deploy") >> n8n
+    ext_secrets >> Edge(color=PURPLE, style="dotted") >> dd_agent
+    ext_secrets >> Edge(color=PURPLE, style="dotted") >> tunnel
 
 print(f"Generated: {FILENAME}.png")

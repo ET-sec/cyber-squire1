@@ -66,9 +66,9 @@ This plan covers the recovery of:
 
 ## 4. Disaster Scenarios
 
-### 4.1 Scenario A — DigitalOcean Outage (Region Unavailable)
+### 4.1 Scenario A - DigitalOcean Outage (Region Unavailable)
 
-**Description:** The DigitalOcean's hosting region becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
+**Description:** DigitalOcean's hosting region becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
 
 **Impact:** All 14 services offline (13 Compose-managed + 1 standalone). No remote access via tunnel or direct SSH. Datadog may still have historical data.
 
@@ -90,9 +90,9 @@ This plan covers the recovery of:
 4. **If provider ETA < 1 hour:** Monitor and wait; prepare alternate deployment in parallel
 5. When original region recovers, evaluate whether to fail back or remain on alternate
 
-### 4.2 Scenario B — VPS Corruption (OS or Disk Failure)
+### 4.2 Scenario B - VPS Corruption (OS or Disk Failure)
 
-**Description:** The VPS operating system becomes unbootable, the disk is corrupted, or a kernel panic renders the host non-functional. The DigitalOcean infrastructure is operational but the specific instance is damaged.
+**Description:** The VPS operating system becomes unbootable, the disk is corrupted, or a kernel panic renders the host non-functional. DigitalOcean infrastructure is operational but the specific instance is damaged.
 
 **Impact:** All 14 services offline (13 Compose-managed + 1 standalone). Data on local volumes may be lost or inaccessible.
 
@@ -119,7 +119,7 @@ This plan covers the recovery of:
   - l. Update DNS if IP changed
   - m. Validate all services per recovery checklist (Section 8)
 
-### 4.3 Scenario C — Data Loss (Database Corruption or Deletion)
+### 4.3 Scenario C - Data Loss (Database Corruption or Deletion)
 
 **Description:** PostgreSQL data is corrupted, accidentally deleted, or rendered inconsistent. The VPS and other services remain operational.
 
@@ -156,7 +156,7 @@ This plan covers the recovery of:
 5. Validate audit log hash chain; document any gap in chain continuity
 6. Re-export audit logs to object storage to re-establish export continuity
 
-### 4.4 Scenario D — Ransomware / Unauthorized Encryption
+### 4.4 Scenario D - Ransomware / Unauthorized Encryption
 
 **Description:** An attacker gains access to `alpha-node` and encrypts data volumes, container images, or the host filesystem.
 
@@ -230,7 +230,7 @@ This plan covers the recovery of:
 
 ---
 
-## 6. Recovery Procedures — Detailed Playbooks
+## 6. Recovery Procedures - Detailed Playbooks
 
 ### 6.1 Playbook: Full Stack Rebuild from IaC
 
@@ -446,7 +446,7 @@ The following checklist SHALL be completed after every disaster recovery operati
 
 - [ ] `svc-detection` is generating eBPF events
 - [ ] `svc-detection-router` is forwarding alerts
-- [ ] `svc-monitor` is reporting metrics to the Datadog
+- [ ] `svc-monitor` is reporting metrics to Datadog
 - [ ] `Fluentd` is exporting logs to object storage
 - [ ] `svc-event-shipper` is exporting audit events
 

@@ -46,7 +46,7 @@ This policy applies to all systems, services, and personnel that interact with o
 
 - The primary compute node (`alpha-node`) and all containerized services hosted thereon
 - Database services (`svc-db`), automation workflows (`svc-automation`), secrets management (`svc-secrets`), identity services (`svc-identity`), and the SSH gateway (`svc-gateway`)
-- Runtime detection systems (`svc-detection`, `svc-detection-router`), log routing (`Fluentd`, `svc-event-shipper`), and the Datadog (`svc-monitor`)
+- Runtime detection systems (`svc-detection`, `svc-detection-router`), log routing (`Fluentd`, `svc-event-shipper`), and Datadog (`svc-monitor`)
 - Zero-trust network ingress (`svc-tunnel`) and the AI gateway (`svc-ai-gateway`)
 - CI/CD pipelines, infrastructure-as-code configurations, and code repository platform integrations
 - Remote state storage and immutable audit log archives in encrypted object storage
@@ -129,7 +129,7 @@ Preparation ensures the organization can respond effectively before an incident 
 **Standing Requirements:**
 
 1. Maintain current access to all detection and monitoring systems (`svc-detection`, `svc-monitor`, `svc-event-shipper`)
-2. Ensure `svc-gateway` session recording is operational and audit logs are flowing to the Datadog
+2. Ensure `svc-gateway` session recording is operational and audit logs are flowing to Datadog
 3. Verify immutable audit log export to encrypted object storage is functioning (hash chain integrity validated)
 4. Maintain an up-to-date inventory of all containers, services, and their inter-dependencies
 5. Ensure break-glass access credentials are current and securely stored in the credential vault

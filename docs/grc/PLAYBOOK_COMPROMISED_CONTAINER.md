@@ -9,6 +9,167 @@
 
 ---
 
+### Incident Response Process Flow
+
+```
+ ┌─────────────────────────────────────────────────────────────────────────────┐
+ │                    COMPROMISED CONTAINER RESPONSE WORKFLOW                  │
+ └─────────────────────────────────────────────────────────────────────────────┘
+
+ ┌───────────────────────┐
+ │  DETECTION TRIGGER    │
+ │  - Falco eBPF alert   │
+ │  - Datadog anomaly    │
+ │  - Manual report      │
+ └──────────┬────────────┘
+            │
+            v
+ ┌───────────────────────┐     ┌──────────────────────────────┐
+ │  TRIAGE & CONFIRM     │     │  Assign severity:            │
+ │  Verify alert is real │────>│  SEV-1/2: Immediate contain  │
+ │  Check processes, net │     │  SEV-3/4: Gather more data   │
+ └──────────┬────────────┘     └──────────────────────────────┘
+            │
+            v
+ ┌───────────────────────┐
+ │  Is container still   │
+ │  running?             │
+ └──────┬───────┬────────┘
+    YES │       │ NO
+        v       v
+ ┌────────────┐ ┌────────────────────────┐
+ │ Capture    │ │ Check available logs:  │
+ │ live state:│ │ - docker logs          │
+ │ - ps auxww │ │ - Falco event logs     │
+ │ - ss -tulnp│ │ - Datadog metrics      │
+ │ - docker   │ │ - Fluentd archives     │
+ │   inspect  │ │ - Docker daemon journal│
+ └─────┬──────┘ └───────────┬────────────┘
+       │                    │
+       └────────┬───────────┘
+                │
+                v
+ ┌───────────────────────┐
+ │  ISOLATE CONTAINER    │
+ │  1. Disconnect from   │
+ │     net-core      │
+ │  2. Apply iptables    │
+ │     DROP rules        │
+ │  3. Pause container   │
+ │     (freeze state)    │
+ └──────────┬────────────┘
+            │
+            v
+ ┌───────────────────────┐
+ │  Is lateral movement  │
+ │  detected?            │
+ └──────┬───────┬────────┘
+    YES │       │ NO
+        v       v
+ ┌────────────────────┐  ┌───────────────────────┐
+ │ ISOLATE NETWORK:   │  │ Continue single-      │
+ │ - Scan ALL other   │  │ container investigation│
+ │   containers for   │  │ and proceed to        │
+ │   IOCs             │  │ evidence preservation │
+ │ - Disconnect any   │  └───────────┬───────────┘
+ │   additional       │              │
+ │   compromised      │              │
+ │   containers       │              │
+ │ - Rotate all       │              │
+ │   shared secrets   │              │
+ └────────┬───────────┘              │
+          │                          │
+          └────────┬─────────────────┘
+                   │
+                   v
+ ┌───────────────────────┐
+ │  PRESERVE EVIDENCE    │
+ │  1. Export filesystem  │
+ │     (docker export)   │
+ │  2. Save inspect JSON │
+ │  3. Export all logs    │
+ │  4. Capture Falco +   │
+ │     Fluentd logs      │
+ │  5. Host-level capture│
+ │  6. SHA-256 manifest  │
+ │  7. Transfer off-node │
+ └──────────┬────────────┘
+            │
+            v
+ ┌───────────────────────┐
+ │  Can container be     │
+ │  rebuilt from a clean │
+ │  image?               │
+ └──────┬───────┬────────┘
+    YES │       │ NO
+        v       v
+ ┌────────────────────┐  ┌───────────────────────┐
+ │ REPLACE:           │  │ DEEPER FORENSICS:     │
+ │ 1. Stop + remove   │  │ 1. Analyze exported   │
+ │    container       │  │    filesystem diff    │
+ │ 2. Pull fresh image│  │ 2. Reverse-engineer   │
+ │ 3. Trivy scan new  │  │    attack vector     │
+ │    image for CVEs  │  │ 3. Check supply chain │
+ │ 4. Harden config:  │  │    (dependencies,    │
+ │    - no-new-privs  │  │    base image)       │
+ │    - non-root user │  │ 4. Build custom clean │
+ │    - read-only fs  │  │    image if needed   │
+ └────────┬───────────┘  └───────────┬───────────┘
+          │                          │
+          └────────┬─────────────────┘
+                   │
+                   v
+ ┌───────────────────────┐
+ │  REMEDIATE            │
+ │  1. Rotate ALL        │
+ │     exposed secrets   │
+ │  2. Update .env on    │
+ │     alpha-node        │
+ │  3. Rotate SSH keys   │
+ │     if needed         │
+ │  4. Patch vuln image  │
+ │  5. Update detection  │
+ │     rules             │
+ └──────────┬────────────┘
+            │
+            v
+ ┌───────────────────────┐
+ │  RESTORE SERVICE      │
+ │  1. docker compose up │
+ │  2. Verify healthcheck│
+ │  3. Confirm network   │
+ │     connectivity      │
+ │  4. Test end-to-end   │
+ │     functionality     │
+ │  5. Verify Falco      │
+ │     monitoring active │
+ │  6. Verify Datadog    │
+ │     metrics flowing   │
+ │  7. Remove iptables   │
+ │     containment rules │
+ └──────────┬────────────┘
+            │
+            v
+ ┌───────────────────────┐
+ │  LESSONS LEARNED      │
+ │  (within 72 hours)    │
+ │  1. Complete incident │
+ │     timeline          │
+ │  2. Root cause        │
+ │     analysis          │
+ │  3. Post-incident     │
+ │     report            │
+ │  4. Update detection  │
+ │     rules + policies  │
+ │  5. Schedule review   │
+ │     meeting (5 days)  │
+ │  6. Update this       │
+ │     playbook          │
+ └───────────────────────┘
+```
+
+---
+
 ## 1. Purpose
 
 This playbook provides step-by-step procedures for responding to a compromised container within the Organization infrastructure. A compromised container may exhibit unauthorized processes, reverse shells, cryptominers, data exfiltration, or other indicators of compromise (IOCs).
@@ -17,7 +178,7 @@ This playbook provides step-by-step procedures for responding to a compromised c
 
 ## 2. Scope
 
-Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connected via the `internal-net` bridge network. Includes but is not limited to: `svc-db`, `svc-automation`, `svc-llm`, `svc-transcription`, `svc-secrets`, `svc-identity`, `svc-gateway`, `svc-monitor`, `svc-detection`, `svc-detection-router`, `Fluentd`, `svc-event-shipper`, `svc-tunnel`, and `svc-ai-gateway`.
+Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connected via the `net-core` bridge network. Includes but is not limited to: `svc-db`, `svc-automation`, `svc-llm`, `svc-transcription`, `svc-secrets`, `svc-identity`, `svc-gateway`, `svc-monitor`, `svc-detection`, `svc-detection-router`, `Fluentd`, `svc-event-shipper`, `svc-tunnel`, and `svc-ai-gateway`.
 
 ---
 
@@ -66,7 +227,7 @@ Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
 
 **Objective:** Confirm the compromise and determine severity.
 
-- [ ] **Step 1.1** -- Acknowledge the alert in the Datadog. Record the timestamp, alert name, affected container, and alert source.
+- [ ] **Step 1.1** -- Acknowledge the alert in Datadog. Record the timestamp, alert name, affected container, and alert source.
 
 - [ ] **Step 1.2** -- Verify the alert is not a false positive. Check the container's expected behavior against the alert:
  ```bash
@@ -105,7 +266,7 @@ Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
 
 - [ ] **Step 2.1** -- Disconnect the compromised container from all networks to stop lateral movement:
  ```bash
- docker network disconnect internal-net <container_name>
+ docker network disconnect net-core <container_name>
  ```
 
 - [ ] **Step 2.2** -- If the container is making active outbound connections, apply iptables rules on the host to block its traffic:
@@ -259,9 +420,9 @@ Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
  docker inspect --format='{{.State.Health.Status}}' <container_name>
  ```
 
-- [ ] **Step 5.3** -- Verify the container is connected to `internal-net` and can communicate with required peers:
+- [ ] **Step 5.3** -- Verify the container is connected to `net-core` and can communicate with required peers:
  ```bash
- docker network inspect internal-net --format '{{range .Containers}}{{.Name}} {{end}}'
+ docker network inspect net-core --format '{{range .Containers}}{{.Name}} {{end}}'
  ```
 
 - [ ] **Step 5.4** -- Test service functionality end-to-end:
@@ -387,7 +548,7 @@ Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
 
 ```
 1. CONFIRM: Check svc-detection logs + container processes
-2. ISOLATE: docker network disconnect internal-net <container>
+2. ISOLATE: docker network disconnect net-core <container>
 3. PAUSE:  docker pause <container>
 4. EXPORT: docker export <container> > /tmp/evidence_<container>.tar
 5. ROTATE: Rotate all secrets the container accessed

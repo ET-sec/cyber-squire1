@@ -1,4 +1,4 @@
-# Threat Model — STRIDE Analysis
+# Threat Model - STRIDE Analysis
 
 **Organization:** Organization Security Operations Platform
 **Assessment Date:** 2026-03-12
@@ -29,11 +29,195 @@
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-12 | Information Security Officer | Initial STRIDE analysis across full architecture including AI systems |
 
+### Trust Boundary Architecture
+
+The following diagram shows all seven trust boundaries (TB-1 through TB-7) overlaid on the platform architecture. Each boundary is annotated with the STRIDE threat categories that apply at that crossing point, based on the analysis in Sections 4-9 of this document.
+
+```
+Legend
+------
+[EE]  = External Entity (outside authorization boundary)
+[P]   = Process (containerized service)
+[DS]  = Data Store
+[TB-N]= Trust Boundary
+S=Spoofing  T=Tampering  R=Repudiation  I=Info Disclosure  D=DoS  E=Elevation of Privilege
+
+
+                        ┌─────────────────────────────────┐
+                        │         INTERNET (Untrusted)     │
+                        │                                  │
+                        │  [EE] User         [EE] Anthropic│
+                        │  (Telegram)        API           │
+                        │      │                 ▲         │
+                        │      │ [DF-01]         │ [DF-02] │
+                        │      │                 │         │
+                        └──────┼─────────────────┼─────────┘
+                               │                 │
+ ══════════════════════════════╪═════════════════╪══════════════════════════════════
+  [TB-7] Telegram API entry    │                 │  [TB-5] AI Gateway to external
+  Threats: S, T, I, D, E      │                 │  Threats: T, I, D
+ ══════════════════════════════╪═════════════════╪══════════════════════════════════
+                               │                 │
+                               ▼                 │
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  PUBLIC ZONE - Cloudflare Edge                                                  │
+│                                                                                 │
+│  [P-01] Edge Security Provider (Cloudflare WAF + DDoS + Tunnel Management)      │
+│      │                                                                          │
+│      │  HTTPS inspection, rate limiting, bot filtering, DDoS absorption         │
+│      │                                                                          │
+└──────┼──────────────────────────────────────────────────────────────────────────┘
+       │ [DF-09] Authenticated HTTPS
+       │
+ ══════╪══════════════════════════════════════════════════════════════════════════
+  [TB-1] Internet to Cloudflare Edge
+  Threats: S, T, D
+  - S: Spoofed webhook requests, forged origin headers
+  - T: Payload manipulation before edge inspection
+  - D: Volumetric DDoS, application-layer floods
+ ══════╪══════════════════════════════════════════════════════════════════════════
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  DMZ - net-core (ingress segment)                                               │
+│                                                                                 │
+│  [P-02] svc-tunnel (Cloudflare Tunnel connector)                                │
+│      │                                                                          │
+│      ├──[DF-10]──► [P-03] svc-automation (n8n SOAR)                             │
+│      │                  │         │                                              │
+│      └──[DF-12]──► [P-04] svc-ai-gateway (OpenClaw) ────── [DF-02] ──► (TB-5)  │
+│                         │         │                                              │
+└─────────────────────────┼─────────┼──────────────────────────────────────────────┘
+                          │         │
+ ═════════════════════════╪═════════╪═══════════════════════════════════════════════
+  [TB-2] Cloudflare Tunnel to net-core DMZ services
+  Threats: S, T, R, I, D, E
+  - S: Spoofed webhook payloads impersonating GitHub/Telegram/Gumroad
+  - T: Modified tunnel traffic, injected workflow parameters
+  - R: Unsigned webhook calls with no audit trail
+  - I: Credential leakage through error responses
+  - D: Webhook flooding, resource exhaustion on svc-automation
+  - E: Workflow injection escalating to internal service access
+ ═════════════════════════╪═════════╪═══════════════════════════════════════════════
+                          │         │
+        ┌─────────────────┘         │
+        │                           │
+        ▼                           ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  INTERNAL ZONE                                                                  │
+│                                                                                 │
+│  net-core:                          net-ai (internal: true, no internet):        │
+│  ┌────────────────────────┐         ┌────────────────────────────────┐           │
+│  │ [DS-01] svc-db         │         │ [P-06] svc-llm (Ollama)       │           │
+│  │ (PostgreSQL 16)        │         │    Local inference only        │           │
+│  │                        │         │                                │           │
+│  │ [DS-02] db-data-volume │         │ [P-07] svc-transcription      │           │
+│  │                        │         │ (Whisper)                      │           │
+│  └────────────────────────┘         │    Local inference only        │           │
+│           ▲                         └────────────────────────────────┘           │
+│           │ [DF-15]                          ▲                                   │
+│           │                                  │ [DF-16]                           │
+└───────────┼──────────────────────────────────┼───────────────────────────────────┘
+            │                                  │
+ ═══════════╪══════════════════════════════════╪════════════════════════════════════
+  [TB-3] net-core DMZ to net-ai / Internal zone
+  Threats: S, T, I, E
+  - S: Compromised DMZ container impersonating legitimate service via Docker DNS
+  - T: Prompt injection through svc-automation into svc-llm inference pipeline
+  - I: PII or secrets leaked through AI model responses or error messages
+  - E: Container escape from DMZ to internal network, pivoting to svc-db
+ ═══════════╪══════════════════════════════════╪════════════════════════════════════
+            │                                  │
+            │         ┌────────────────────────┘
+            │         │
+            ▼         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  SENSITIVE ZONE (net-core, restricted access)                                   │
+│                                                                                 │
+│  [P-08] svc-secrets (HashiCorp Vault) ◄─── [DF-17] secret lookups              │
+│      Token-based authentication, audit logging                                  │
+│                                                                                 │
+│  [P-09] svc-identity (Keycloak v26)   ◄─── [DF-18] authentication requests     │
+│      SSO, RBAC policy enforcement                                               │
+│                                                                                 │
+│  [P-10] svc-gateway (Teleport v18)    ◄─── [DF-19] session access requests     │
+│      PAM, JIT access, session recording                                         │
+│                                                                                 │
+└──────────────────────────────────────────────────────────────────────────────────┘
+            ▲                   ▲
+            │                   │
+ ═══════════╪═══════════════════╪═══════════════════════════════════════════════════
+  [TB-6] Services to secrets engine (svc-secrets)
+  Threats: S, T, I, E
+  - S: Stolen Vault token used from unauthorized container
+  - T: Secret values modified during transit (env var injection)
+  - I: Secrets exposed through container environment inspection or core dumps
+  - E: Vault policy bypass granting access to secrets outside service scope
+ ═══════════╪═══════════════════╪═══════════════════════════════════════════════════
+            │                   │
+ ═══════════╪═══════════════════╪═══════════════════════════════════════════════════
+  [TB-5] Services to database (svc-db)
+  Threats: S, T, R, I
+  - S: Credential theft allowing unauthorized database connections
+  - T: SQL injection modifying workflow state or n8n credential storage
+  - R: Database modifications without application-layer audit trail
+  - I: Bulk data exfiltration through compromised database credentials
+ ═══════════╪═══════════════════╪═══════════════════════════════════════════════════
+            │                   │
+            │                   │
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  MONITORING ZONE (net-monitoring)                                               │
+│                                                                                 │
+│  [P-11] svc-detection ──► [P-12] svc-detection-router ──► [EE] Monitoring      │
+│  (Falco eBPF)              (Falcosidekick)                  Platform (Datadog)  │
+│                                                                  ▲              │
+│  [P-13] svc-monitor (Datadog Agent) ────────────────────────────┘               │
+│                                            ▲                                    │
+│  [P-15] svc-log-router (Fluentd) ─────────┘ [DF-23]                            │
+│                                            ▲                                    │
+│  [P-16] svc-event-shipper ─────────────────┘ [DF-24]                            │
+│  (Teleport Event Handler)                                                       │
+│                                                                                 │
+└──────────────────────────────────────────────────────────────────────────────────┘
+                                                    │
+ ═══════════════════════════════════════════════════╪════════════════════════════════
+  [TB-4] net-core to net-monitoring / Monitoring zone to Datadog SaaS
+  Threats: S, T, R, I, D
+  - S: Forged log entries injected into Fluentd pipeline
+  - T: Alert suppression by modifying Falcosidekick routing rules
+  - R: Deleted or overwritten audit logs destroying forensic evidence
+  - I: Sensitive data leaked through verbose logging to external SaaS
+  - D: Log flooding overwhelming monitoring pipeline, causing alert blindness
+ ═══════════════════════════════════════════════════╪════════════════════════════════
+                                                    │
+                                                    ▼
+                                        [EE] Monitoring Platform
+                                        (Datadog SaaS - External)
+
+
+ ┌─────────────────────────────────────────────────────────────────────────────────┐
+ │  TRUST BOUNDARY SUMMARY                                                        │
+ │                                                                                │
+ │  Boundary │ Crossing                            │ STRIDE Threats               │
+ │  ─────────┼─────────────────────────────────────┼──────────────────────────────│
+ │  TB-1     │ Internet to Cloudflare edge          │ S, T, D                      │
+ │  TB-2     │ Cloudflare tunnel to DMZ services    │ S, T, R, I, D, E             │
+ │  TB-3     │ DMZ to Internal zone (net-ai)        │ S, T, I, E                   │
+ │  TB-4     │ net-core to net-monitoring / SaaS     │ S, T, R, I, D               │
+ │  TB-5     │ Services to database (svc-db)        │ S, T, R, I                   │
+ │  TB-6     │ Services to secrets engine (Vault)   │ S, T, I, E                   │
+ │  TB-7     │ Telegram API to AI gateway           │ S, T, I, D, E               │
+ │                                                                                │
+ │  Highest-risk boundaries: TB-2 (all 6 STRIDE categories), TB-7 (5 categories) │
+ │  These correspond to the two primary ingress paths into the platform.          │
+ └─────────────────────────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 1. Purpose
 
-This document applies the STRIDE threat modeling methodology to the Organization Security Operations Platform. STRIDE decomposes threats into six categories — Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege — and maps them to specific services, trust boundaries, and data flows within the authorization boundary.
+This document applies the STRIDE threat modeling methodology to the Organization Security Operations Platform. STRIDE decomposes threats into six categories - Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, and Elevation of Privilege - and maps them to specific services, trust boundaries, and data flows within the authorization boundary.
 
 The analysis extends traditional STRIDE with AI-specific threat extensions addressing prompt injection, model poisoning, PII leakage through inference pipelines, and excessive autonomous agency. These extensions align with the OWASP LLM Top 10 (2025), MITRE ATLAS, and the AI threat categories defined in the AI Governance Policy (POL-AI-001, Section 6.1).
 
@@ -90,12 +274,12 @@ Each STRIDE category is analyzed against the architecture by:
 
 | Category | Property Violated | Question |
 |----------|-------------------|----------|
-| **S** — Spoofing | Authentication | Can an attacker pretend to be a legitimate user, service, or system? |
-| **T** — Tampering | Integrity | Can an attacker modify data in transit, at rest, or processing logic? |
-| **R** — Repudiation | Non-repudiation | Can an attacker deny performing an action without a verifiable audit trail? |
-| **I** — Information Disclosure | Confidentiality | Can an attacker gain access to data they are not authorized to see? |
-| **D** — Denial of Service | Availability | Can an attacker degrade or eliminate access to a service? |
-| **E** — Elevation of Privilege | Authorization | Can an attacker gain capabilities beyond their authorized level? |
+| **S** - Spoofing | Authentication | Can an attacker pretend to be a legitimate user, service, or system? |
+| **T** - Tampering | Integrity | Can an attacker modify data in transit, at rest, or processing logic? |
+| **R** - Repudiation | Non-repudiation | Can an attacker deny performing an action without a verifiable audit trail? |
+| **I** - Information Disclosure | Confidentiality | Can an attacker gain access to data they are not authorized to see? |
+| **D** - Denial of Service | Availability | Can an attacker degrade or eliminate access to a service? |
+| **E** - Elevation of Privilege | Authorization | Can an attacker gain capabilities beyond their authorized level? |
 
 ---
 
@@ -113,7 +297,7 @@ Threats where an attacker impersonates a legitimate entity to bypass authenticat
 |-----------|------------|
 | **Current Controls** | Webhook authentication tokens on registered endpoints (Implemented); Cloudflare WAF rules on tunnel ingress (Implemented); IP allowlisting not feasible due to dynamic webhook source IPs (N/A) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Medium** — token-based auth is effective but relies on per-endpoint configuration; new webhooks created without tokens would be exposed |
+| **Residual Risk** | **Medium** - token-based auth is effective but relies on per-endpoint configuration; new webhooks created without tokens would be exposed |
 | **Recommended Mitigation** | Implement HMAC signature verification for all webhook endpoints; enforce a policy that no webhook endpoint may be activated without authentication |
 
 ### S-02: Telegram User Impersonation to AI Agent
@@ -126,7 +310,7 @@ Threats where an attacker impersonates a legitimate entity to bypass authenticat
 |-----------|------------|
 | **Current Controls** | Telegram bot token authentication (Implemented); chat ID allowlist restricting which Telegram users can interact with the bot (Implemented); rate limiting at svc-ai-gateway (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — chat ID allowlist effectively restricts interaction to authorized users; Telegram API guarantees sender identity within its trust model |
+| **Residual Risk** | **Low** - chat ID allowlist effectively restricts interaction to authorized users; Telegram API guarantees sender identity within its trust model |
 | **Recommended Mitigation** | Add command-level authorization for destructive actions (require explicit confirmation token for operations that modify infrastructure state) |
 
 ### S-03: Service Identity Spoofing on Internal Network
@@ -139,7 +323,7 @@ Threats where an attacker impersonates a legitimate entity to bypass authenticat
 |-----------|------------|
 | **Current Controls** | Docker network segmentation (net-core, net-ai, net-monitoring) restricts which containers can reach which services (Implemented); svc-db requires credential authentication (Implemented); svc-secrets uses token-based auth (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Medium** — network segmentation limits blast radius, but a compromised container on net-core with access to environment variables could authenticate as the legitimate service |
+| **Residual Risk** | **Medium** - network segmentation limits blast radius, but a compromised container on net-core with access to environment variables could authenticate as the legitimate service |
 | **Recommended Mitigation** | Implement mutual TLS (mTLS) between services; migrate from environment variable credentials to svc-secrets dynamic secrets with short-lived tokens |
 
 ### S-04: Forged Audit Log Entries
@@ -151,8 +335,8 @@ Threats where an attacker impersonates a legitimate entity to bypass authenticat
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Fluentd source tagging by container ID (Implemented); Datadog log pipeline with source metadata (Implemented); Teleport session recording provides independent audit trail (Implemented) |
-| **Control Status** | Partial — log integrity verification (cryptographic signing of log entries) is not implemented |
-| **Residual Risk** | **Medium** — independent audit trails via svc-gateway make complete evidence destruction difficult, but log injection remains possible |
+| **Control Status** | Partial - log integrity verification (cryptographic signing of log entries) is not implemented |
+| **Residual Risk** | **Medium** - independent audit trails via svc-gateway make complete evidence destruction difficult, but log injection remains possible |
 | **Recommended Mitigation** | Implement log entry signing at svc-log-router; deploy append-only log storage with tamper detection |
 
 ### S-05: Spoofed Cloudflare Tunnel Origin
@@ -165,7 +349,7 @@ Threats where an attacker impersonates a legitimate entity to bypass authenticat
 |-----------|------------|
 | **Current Controls** | Tunnel connector authenticates to Cloudflare using a unique token bound to the tunnel ID (Implemented); Cloudflare manages tunnel routing on their infrastructure (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — tunnel token compromise would require access to the container environment or secrets store; Cloudflare's infrastructure prevents unauthorized tunnel registration |
+| **Residual Risk** | **Low** - tunnel token compromise would require access to the container environment or secrets store; Cloudflare's infrastructure prevents unauthorized tunnel registration |
 | **Recommended Mitigation** | Rotate tunnel token on a semi-annual schedule; monitor for tunnel connector reconnection events in Cloudflare dashboard |
 
 ---
@@ -185,7 +369,7 @@ Threats where an attacker modifies data, code, or system state to alter intended
 |-----------|------------|
 | **Current Controls** | System prompt hardening with explicit instruction boundaries (Implemented); output sanitization before workflow action execution (Implemented); human approval gates for destructive actions in svc-automation (Implemented); Falco behavioral monitoring of svc-ai-gateway container (Implemented); rate limiting (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Medium** — prompt injection is an inherent limitation of current LLM architectures; controls reduce impact but cannot eliminate the attack vector entirely |
+| **Residual Risk** | **Medium** - prompt injection is an inherent limitation of current LLM architectures; controls reduce impact but cannot eliminate the attack vector entirely |
 | **Recommended Mitigation** | Implement a prompt firewall (input/output classifier) at svc-ai-gateway; deploy canary tokens in system prompts to detect extraction attempts; add output schema validation for workflow-triggering responses |
 
 ### T-02: Model Weight Poisoning via Supply Chain (AI-Specific)
@@ -194,13 +378,13 @@ Threats where an attacker modifies data, code, or system state to alter intended
 **Affected Services:** svc-llm
 **OWASP LLM:** LLM03 (Supply Chain Vulnerabilities)
 **MITRE ATLAS:** AML.T0018 (Backdoor ML Model)
-**Description:** An attacker compromises upstream model weights (e.g., through a poisoned Ollama model registry entry or a tampered Hugging Face checkpoint). The poisoned model produces subtly altered outputs — biased classifications, hidden trigger phrases, or backdoored behavior — that are consumed by downstream svc-automation workflows.
+**Description:** An attacker compromises upstream model weights (e.g., through a poisoned Ollama model registry entry or a tampered Hugging Face checkpoint). The poisoned model produces subtly altered outputs - biased classifications, hidden trigger phrases, or backdoored behavior - that are consumed by downstream svc-automation workflows.
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | Trivy CVE scanning of Ollama container image (Implemented); model weight checksum verification against published hashes (Partial — manual process); no automatic model updates (Implemented); SBOM generation for container dependencies (Implemented) |
-| **Control Status** | Partial — automated model integrity verification pipeline not yet deployed |
-| **Residual Risk** | **Medium** — manual checksum verification reduces risk but is operationally fragile; no behavioral testing of model outputs against known baselines |
+| **Current Controls** | Trivy CVE scanning of Ollama container image (Implemented); model weight checksum verification against published hashes (Partial - manual process); no automatic model updates (Implemented); SBOM generation for container dependencies (Implemented) |
+| **Control Status** | Partial - automated model integrity verification pipeline not yet deployed |
+| **Residual Risk** | **Medium** - manual checksum verification reduces risk but is operationally fragile; no behavioral testing of model outputs against known baselines |
 | **Recommended Mitigation** | Implement automated model integrity verification in CI/CD; deploy behavioral regression testing with curated prompt/response baselines; pin model versions to verified checksums in IaC |
 
 ### T-03: Infrastructure-as-Code State Tampering
@@ -213,20 +397,20 @@ Threats where an attacker modifies data, code, or system state to alter intended
 |-----------|------------|
 | **Current Controls** | Remote encrypted state storage (Implemented); mandatory PR reviews with Checkov + TFLint + OPA policy checks (Implemented); Gitleaks scanning for secrets in commits (Implemented); Cosign container signing (Implemented); branch protection rules (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — multi-layer CI/CD security pipeline provides defense-in-depth; state encryption prevents direct manipulation |
+| **Residual Risk** | **Low** - multi-layer CI/CD security pipeline provides defense-in-depth; state encryption prevents direct manipulation |
 | **Recommended Mitigation** | Implement Terraform state drift detection with automated alerting; add OPA policy for maximum blast radius per apply (limit resources created/destroyed per run) |
 
 ### T-04: Database Record Manipulation
 
 **Trust Boundary:** TB-3 (DMZ → Internal zone)
 **Affected Services:** svc-db (PostgreSQL), svc-automation
-**Description:** An attacker with access to svc-automation (via webhook exploitation or container compromise) uses the database credentials present in the container environment to directly modify svc-db records — altering workflow state, credential references, or audit entries stored in PostgreSQL.
+**Description:** An attacker with access to svc-automation (via webhook exploitation or container compromise) uses the database credentials present in the container environment to directly modify svc-db records - altering workflow state, credential references, or audit entries stored in PostgreSQL.
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | Database authentication required (Implemented); svc-automation database user has limited schema permissions (Partial — currently uses a shared credential); svc-detection monitors for unexpected database connections (Implemented); database backup scripts (Implemented) |
-| **Control Status** | Partial — least-privilege database roles not fully implemented |
-| **Residual Risk** | **Medium** — shared database credentials between services increase blast radius if any single service is compromised |
+| **Current Controls** | Database authentication required (Implemented); svc-automation database user has limited schema permissions (Partial - currently uses a shared credential); svc-detection monitors for unexpected database connections (Implemented); database backup scripts (Implemented) |
+| **Control Status** | Partial - least-privilege database roles not fully implemented |
+| **Residual Risk** | **Medium** - shared database credentials between services increase blast radius if any single service is compromised |
 | **Recommended Mitigation** | Implement per-service database credentials with minimum necessary permissions; deploy svc-secrets dynamic database credentials with automatic rotation; enable PostgreSQL audit logging |
 
 ### T-05: Container Image Tampering in CI/CD Pipeline
@@ -237,9 +421,9 @@ Threats where an attacker modifies data, code, or system state to alter intended
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | Trivy CVE scanning in CI (Implemented); Cosign container image signing (Implemented); SBOM generation and tracking (Implemented); Semgrep SAST scanning (Implemented); pinned image digests in Docker Compose (Partial — not all images pinned by digest) |
+| **Current Controls** | Trivy CVE scanning in CI (Implemented); Cosign container image signing (Implemented); SBOM generation and tracking (Implemented); Semgrep SAST scanning (Implemented); pinned image digests in Docker Compose (Partial - not all images pinned by digest) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — multi-scanner CI pipeline with image signing provides strong integrity guarantees |
+| **Residual Risk** | **Low** - multi-scanner CI pipeline with image signing provides strong integrity guarantees |
 | **Recommended Mitigation** | Pin all container images by SHA256 digest rather than tag; implement runtime image verification at container start |
 
 ---
@@ -257,8 +441,8 @@ Threats where an attacker performs actions that cannot be reliably attributed or
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Full prompt/response logging at svc-ai-gateway (Implemented); svc-automation execution logs with workflow IDs (Implemented); Falco audit trail for container-level actions (Implemented); svc-gateway session recording (Implemented) |
-| **Control Status** | Partial — logs capture the WHAT but not always the WHY (AI reasoning chain not always preserved) |
-| **Residual Risk** | **Medium** — reconstructing the decision chain from prompt to action requires correlating multiple log sources |
+| **Control Status** | Partial - logs capture the WHAT but not always the WHY (AI reasoning chain not always preserved) |
+| **Residual Risk** | **Medium** - reconstructing the decision chain from prompt to action requires correlating multiple log sources |
 | **Recommended Mitigation** | Implement structured decision logging at svc-ai-gateway that captures: input prompt hash, AI reasoning summary, selected action, confidence score, and approval status; correlate with svc-automation execution ID |
 
 ### R-02: SSH Session Activity Without Granular Attribution
@@ -271,7 +455,7 @@ Threats where an attacker performs actions that cannot be reliably attributed or
 |-----------|------------|
 | **Current Controls** | Teleport session recording with full terminal replay (Implemented); JIT admin access with 4-hour TTL (Implemented); MFA (TOTP) required for SSH (Implemented); immutable audit log shipping to Datadog (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — session recording provides forensic evidence; JIT TTL limits exposure window; behavioral analysis of session content can distinguish legitimate from anomalous activity |
+| **Residual Risk** | **Low** - session recording provides forensic evidence; JIT TTL limits exposure window; behavioral analysis of session content can distinguish legitimate from anomalous activity |
 | **Recommended Mitigation** | Implement session anomaly detection rules (unexpected commands, off-hours access, rapid privilege escalation patterns) in Datadog |
 
 ### R-03: Workflow Modification Without Change Trail
@@ -282,9 +466,9 @@ Threats where an attacker performs actions that cannot be reliably attributed or
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | svc-automation maintains workflow_history in svc-db (Implemented); exported workflow JSONs committed to version control (Partial — not automated); svc-gateway session recording captures UI interactions (Implemented) |
-| **Control Status** | Partial — no automated workflow change detection or alerting |
-| **Residual Risk** | **Medium** — manual workflow exports mean drift between deployed and version-controlled state can occur undetected |
+| **Current Controls** | svc-automation maintains workflow_history in svc-db (Implemented); exported workflow JSONs committed to version control (Partial - not automated); svc-gateway session recording captures UI interactions (Implemented) |
+| **Control Status** | Partial - no automated workflow change detection or alerting |
+| **Residual Risk** | **Medium** - manual workflow exports mean drift between deployed and version-controlled state can occur undetected |
 | **Recommended Mitigation** | Implement automated workflow export and diff detection on a daily schedule; alert on workflow modifications not preceded by a version control commit |
 
 ### R-04: Falco Rule Modification to Suppress Detection
@@ -296,9 +480,9 @@ Threats where an attacker performs actions that cannot be reliably attributed or
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Falco rules deployed via Docker Compose volume mount (Implemented); svc-detection-router forwards all alerts to Datadog (Implemented); svc-gateway session recording captures host-level file modifications (Implemented) |
-| **Control Status** | Partial — no file integrity monitoring on Falco rule files |
-| **Residual Risk** | **Medium** — session recording provides forensic evidence but does not prevent or detect real-time rule tampering |
-| **Recommended Mitigation** | Implement file integrity monitoring (FIM) on Falco rule directories; deploy a canary rule that generates a periodic heartbeat alert — absence of the heartbeat indicates rule tampering |
+| **Control Status** | Partial - no file integrity monitoring on Falco rule files |
+| **Residual Risk** | **Medium** - session recording provides forensic evidence but does not prevent or detect real-time rule tampering |
+| **Recommended Mitigation** | Implement file integrity monitoring (FIM) on Falco rule directories; deploy a canary rule that generates a periodic heartbeat alert - absence of the heartbeat indicates rule tampering |
 
 ---
 
@@ -316,8 +500,8 @@ Threats where an attacker gains unauthorized access to confidential data.
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Prompt sanitization rules preventing credential injection (Implemented); PII-aware logging that redacts sensitive fields before persistence (Partial); Anthropic data processing agreement reviewed (Implemented); no credential or secret values included in AI prompts by policy (Implemented) |
-| **Control Status** | Partial — automated PII detection and scrubbing of prompts before external transmission not yet deployed |
-| **Residual Risk** | **Medium** — policy controls are effective for known sensitive data patterns, but novel PII exposure paths (e.g., user-provided PII in Telegram messages) may not be caught by static rules |
+| **Control Status** | Partial - automated PII detection and scrubbing of prompts before external transmission not yet deployed |
+| **Residual Risk** | **Medium** - policy controls are effective for known sensitive data patterns, but novel PII exposure paths (e.g., user-provided PII in Telegram messages) may not be caught by static rules |
 | **Recommended Mitigation** | Deploy automated PII detection (regex + NER-based) at svc-ai-gateway before prompts are sent to external APIs; implement prompt content classification with configurable sensitivity thresholds |
 
 ### I-02: Environment Variable Exposure via Container Logs
@@ -329,8 +513,8 @@ Threats where an attacker gains unauthorized access to confidential data.
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Log rotation (10MB x 3 files) limits exposure window (Implemented); Gitleaks scanning in CI prevents hardcoded secrets (Implemented); .gitignore for sensitive files (Implemented); external secrets manager as authoritative source (Implemented); log level restricted to info/warn in production (Implemented) |
-| **Control Status** | Partial — no runtime log scrubbing for secret patterns at svc-log-router |
-| **Residual Risk** | **High** — this is the highest residual Information Disclosure risk; aligns with R-10 in the Risk Assessment |
+| **Control Status** | Partial - no runtime log scrubbing for secret patterns at svc-log-router |
+| **Residual Risk** | **High** - this is the highest residual Information Disclosure risk; aligns with R-10 in the Risk Assessment |
 | **Recommended Mitigation** | Implement regex-based secret scrubbing rules in Fluentd configuration; migrate from environment variable secrets to mounted tmpfs files; add automated secret pattern scanning on log streams |
 
 ### I-03: System Prompt Extraction via AI Agent (AI-Specific)
@@ -344,7 +528,7 @@ Threats where an attacker gains unauthorized access to confidential data.
 |-----------|------------|
 | **Current Controls** | System prompt stored server-side, not embedded in user-visible context (Implemented); system prompt instructs the model not to disclose its instructions (Implemented); rate limiting prevents mass extraction attempts (Implemented); chat ID allowlist restricts who can query the agent (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — the combination of access restriction and prompt hardening makes extraction difficult; even successful extraction reveals limited operational detail due to sanitized prompt content |
+| **Residual Risk** | **Low** - the combination of access restriction and prompt hardening makes extraction difficult; even successful extraction reveals limited operational detail due to sanitized prompt content |
 | **Recommended Mitigation** | Deploy canary tokens within system prompts to detect extraction; implement output filtering that detects and blocks responses containing system prompt fragments |
 
 ### I-04: Database Credential Exposure via svc-automation Code Nodes
@@ -356,21 +540,21 @@ Threats where an attacker gains unauthorized access to confidential data.
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Workflow access restricted to authenticated operators (Implemented); svc-detection monitors for unexpected network connections from svc-automation (Implemented); Code node outputs logged in workflow execution history (Implemented) |
-| **Control Status** | Partial — no sandbox isolation of Code node execution environment from container environment variables |
-| **Residual Risk** | **Medium** — any workflow with a Code node can access all secrets in the container's environment |
+| **Control Status** | Partial - no sandbox isolation of Code node execution environment from container environment variables |
+| **Residual Risk** | **Medium** - any workflow with a Code node can access all secrets in the container's environment |
 | **Recommended Mitigation** | Restrict environment variable visibility in svc-automation Code nodes; implement svc-secrets dynamic credential injection scoped to individual workflow needs; deploy egress network policy on svc-automation limiting outbound destinations |
 
 ### I-05: Monitoring Data Exfiltration via Compromised Datadog Agent
 
 **Trust Boundary:** TB-6 (Monitoring zone → Datadog SaaS)
 **Affected Services:** svc-monitor (Datadog Agent)
-**Description:** The Datadog Agent collects metrics, logs, traces, and Falco alerts from all containers. If the Datadog API key is compromised, an attacker could query the Datadog API to access the full operational telemetry of the platform — including log contents, performance metrics, and security alerts.
+**Description:** Datadog Agent collects metrics, logs, traces, and Falco alerts from all containers. If the Datadog API key is compromised, an attacker could query the Datadog API to access the full operational telemetry of the platform - including log contents, performance metrics, and security alerts.
 
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Datadog API key stored in external secrets manager (Implemented); separate API keys for different integrations (Implemented); Datadog RBAC restricts dashboard access (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — key compromise would require breaching the secrets manager or container environment; Datadog access controls provide defense-in-depth |
+| **Residual Risk** | **Low** - key compromise would require breaching the secrets manager or container environment; Datadog access controls provide defense-in-depth |
 | **Recommended Mitigation** | Implement Datadog API key rotation on a quarterly cadence; configure Datadog audit logging to detect anomalous API access patterns |
 
 ---
@@ -389,7 +573,7 @@ Threats where an attacker degrades or eliminates service availability.
 |-----------|------------|
 | **Current Controls** | Cloudflare DDoS protection (automatic L3/L4 mitigation) (Implemented); Cloudflare WAF with rate limiting rules (Implemented); cloud firewall deny-all default (only tunnel traffic allowed) (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — Cloudflare's edge network absorbs volumetric attacks; application-layer attacks are rate-limited at the WAF |
+| **Residual Risk** | **Low** - Cloudflare's edge network absorbs volumetric attacks; application-layer attacks are rate-limited at the WAF |
 | **Recommended Mitigation** | Configure Cloudflare Bot Management for webhook endpoints; implement circuit breaker patterns in svc-automation for high-volume webhook ingestion |
 
 ### D-02: AI Service Exhaustion via Adversarial Input Flooding
@@ -403,7 +587,7 @@ Threats where an attacker degrades or eliminates service availability.
 |-----------|------------|
 | **Current Controls** | Rate limiting at svc-ai-gateway (Implemented); Anthropic API budget caps (Implemented); chat ID allowlist restricts access to authorized users (Implemented); container resource limits (CPU/memory) on svc-ai-gateway (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — the combination of access restriction and rate limiting effectively bounds resource consumption |
+| **Residual Risk** | **Low** - the combination of access restriction and rate limiting effectively bounds resource consumption |
 | **Recommended Mitigation** | Implement per-user daily token budget tracking; add prompt length validation before API submission; configure alerting on API spend anomalies |
 
 ### D-03: Resource Exhaustion on Shared Compute
@@ -414,9 +598,9 @@ Threats where an attacker degrades or eliminates service availability.
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | Docker resource limits (CPU shares, memory limits) on most containers (Partial — not all containers have hard limits); container restart policies (Implemented); Datadog resource monitoring with alerting thresholds (Implemented) |
-| **Control Status** | Partial — resource limits not uniformly enforced across all 14 containers |
-| **Residual Risk** | **Medium** — svc-llm inference can spike to 4+ GB RAM; without hard limits, OOM conditions could affect co-resident services |
+| **Current Controls** | Docker resource limits (CPU shares, memory limits) on most containers (Partial - not all containers have hard limits); container restart policies (Implemented); Datadog resource monitoring with alerting thresholds (Implemented) |
+| **Control Status** | Partial - resource limits not uniformly enforced across all 14 containers |
+| **Residual Risk** | **Medium** - svc-llm inference can spike to 4+ GB RAM; without hard limits, OOM conditions could affect co-resident services |
 | **Recommended Mitigation** | Enforce hard memory limits and CPU quotas on all containers via Docker Compose; implement OOM priority scoring to protect critical services (svc-db, svc-detection, svc-tunnel) |
 
 ### D-04: PostgreSQL Connection Exhaustion
@@ -429,20 +613,20 @@ Threats where an attacker degrades or eliminates service availability.
 |-----------|------------|
 | **Current Controls** | PostgreSQL max_connections configured (Implemented); svc-automation connection pooling (Implemented); Datadog PostgreSQL monitoring with connection count alerting (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — connection monitoring provides early warning; connection limits prevent unbounded growth |
+| **Residual Risk** | **Low** - connection monitoring provides early warning; connection limits prevent unbounded growth |
 | **Recommended Mitigation** | Implement per-service connection limits at the PostgreSQL level using role-based connection quotas; deploy PgBouncer for connection pooling if connection pressure increases |
 
 ### D-05: Cloudflare Tunnel Disruption
 
 **Trust Boundary:** svc-tunnel → Cloudflare edge
 **Affected Services:** svc-tunnel, all externally-accessible services
-**Description:** If svc-tunnel loses its connection to Cloudflare (misconfiguration, token revocation, container crash), all external access to the platform is severed — including svc-automation webhooks, SSH access, and AI agent interactions. Since svc-tunnel is the sole public ingress, this is a single point of failure.
+**Description:** If svc-tunnel loses its connection to Cloudflare (misconfiguration, token revocation, container crash), all external access to the platform is severed - including svc-automation webhooks, SSH access, and AI agent interactions. Since svc-tunnel is the sole public ingress, this is a single point of failure.
 
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Container restart policy (always) for svc-tunnel (Implemented); Datadog monitoring of tunnel container health (Implemented); Cloudflare dashboard tunnel status visibility (Implemented); direct SSH as out-of-band access path (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — automatic restart handles transient failures; direct SSH provides recovery path; Cloudflare infrastructure has high availability |
+| **Residual Risk** | **Low** - automatic restart handles transient failures; direct SSH provides recovery path; Cloudflare infrastructure has high availability |
 | **Recommended Mitigation** | Implement tunnel health check endpoint with external uptime monitoring; document and test the out-of-band SSH recovery procedure quarterly |
 
 ---
@@ -461,7 +645,7 @@ Threats where an attacker gains capabilities beyond their authorized level.
 |-----------|------------|
 | **Current Controls** | no-new-privileges on 12/13 containers (Implemented); only svc-detection has SYS_ADMIN (required for eBPF, documented exception) (Implemented); PID limits (Implemented); read-only rootfs where feasible (Partial); Docker socket not mounted into non-privileged containers (Implemented); Falco eBPF detection of container escape attempts (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Medium** — svc-detection's SYS_ADMIN capability is the highest-risk container; a kernel zero-day combined with SYS_ADMIN could enable breakout |
+| **Residual Risk** | **Medium** - svc-detection's SYS_ADMIN capability is the highest-risk container; a kernel zero-day combined with SYS_ADMIN could enable breakout |
 | **Recommended Mitigation** | Evaluate gVisor or Kata Containers for high-risk workloads; implement host-level seccomp profiles; maintain aggressive kernel patching cadence |
 
 ### E-02: Excessive AI Agent Autonomy (AI-Specific)
@@ -469,26 +653,26 @@ Threats where an attacker gains capabilities beyond their authorized level.
 **Trust Boundary:** svc-ai-gateway → svc-automation → all integrated services
 **Affected Services:** svc-ai-gateway (AI-001), svc-automation
 **OWASP LLM:** LLM08 (Excessive Agency)
-**Description:** The AI agent, through its integration with svc-automation, has access to multiple downstream actions (database queries, Telegram messaging, GitHub operations, cloud infrastructure management). If the AI makes an incorrect decision or is manipulated via prompt injection, it could execute privileged actions beyond what the user intended — including infrastructure modifications, data deletion, or credential operations.
+**Description:** The AI agent, through its integration with svc-automation, has access to multiple downstream actions (database queries, Telegram messaging, GitHub operations, cloud infrastructure management). If the AI makes an incorrect decision or is manipulated via prompt injection, it could execute privileged actions beyond what the user intended - including infrastructure modifications, data deletion, or credential operations.
 
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Human approval gates for destructive actions in svc-automation (Implemented); action allowlist restricting which workflows the AI can trigger (Implemented); AI-initiated actions logged with full audit trail (Implemented); no AI access to credential rotation or container lifecycle operations (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Medium** — the allowlist reduces scope, but the breadth of available non-destructive actions (database reads, messaging, API calls) still represents a meaningful privilege surface |
+| **Residual Risk** | **Medium** - the allowlist reduces scope, but the breadth of available non-destructive actions (database reads, messaging, API calls) still represents a meaningful privilege surface |
 | **Recommended Mitigation** | Implement tiered action authorization: Level 1 (read-only, no approval needed), Level 2 (state-changing, requires user confirmation), Level 3 (infrastructure-affecting, requires MFA); add per-session action budgets to limit blast radius of a single compromised interaction |
 
 ### E-03: Privilege Escalation via svc-identity Misconfiguration
 
 **Trust Boundary:** TB-4 (DMZ → Sensitive zone)
 **Affected Services:** svc-identity (Keycloak), svc-gateway (Teleport)
-**Description:** A misconfiguration in Keycloak RBAC — such as an overly permissive client scope, a misconfigured mapper, or a default role assignment — could grant an attacker elevated privileges. In combination with svc-gateway, this could escalate from read-only auditor access to administrative SSH.
+**Description:** A misconfiguration in Keycloak RBAC - such as an overly permissive client scope, a misconfigured mapper, or a default role assignment - could grant an attacker elevated privileges. In combination with svc-gateway, this could escalate from read-only auditor access to administrative SSH.
 
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | 3-tier RBAC model (admin/operator/auditor) documented in IAM RBAC Role Map (Implemented); monthly access reviews (Implemented); JIT admin access with 4-hour TTL via svc-gateway (Implemented); Keycloak admin console access restricted (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — the single-operator environment limits the attack surface for role misconfiguration; JIT access prevents persistent privilege |
+| **Residual Risk** | **Low** - the single-operator environment limits the attack surface for role misconfiguration; JIT access prevents persistent privilege |
 | **Recommended Mitigation** | Implement automated Keycloak configuration drift detection; add alerting on role assignment changes; document and test the RBAC model quarterly |
 
 ### E-04: Lateral Movement from AI Container to Sensitive Zone
@@ -502,20 +686,20 @@ Threats where an attacker gains capabilities beyond their authorized level.
 |-----------|------------|
 | **Current Controls** | Docker network segmentation: net-ai isolated from net-monitoring (Implemented); svc-llm has no internet egress (Implemented); svc-secrets requires token-based authentication (Implemented); Falco detects unexpected network connections (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Medium** — net-core connects DMZ and Internal services; a compromised container on net-core has a broader lateral movement surface than desired |
+| **Residual Risk** | **Medium** - net-core connects DMZ and Internal services; a compromised container on net-core has a broader lateral movement surface than desired |
 | **Recommended Mitigation** | Implement micro-segmentation within net-core to restrict inter-service communication to documented data flows only; deploy network policies that enforce a zero-trust model between containers |
 
 ### E-05: Host Root Access via Docker Socket Exposure
 
 **Trust Boundary:** Container runtime → host OS
 **Affected Services:** Host OS, Docker daemon
-**Description:** If the Docker socket (`/var/run/docker.sock`) is mounted into any container, that container effectively has root access to the host — it can create new privileged containers, access any volume, and modify the Docker runtime configuration.
+**Description:** If the Docker socket (`/var/run/docker.sock`) is mounted into any container, that container effectively has root access to the host - it can create new privileged containers, access any volume, and modify the Docker runtime configuration.
 
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Docker socket is NOT mounted into any application container (Implemented); only the Docker daemon process on the host has socket access (Implemented); svc-detection uses eBPF (kernel-level) rather than Docker socket for monitoring (Implemented) |
 | **Control Status** | Implemented |
-| **Residual Risk** | **Low** — the Docker socket is not exposed to any container; this is a critical control that is verified in CIS Docker Bench scans |
+| **Residual Risk** | **Low** - the Docker socket is not exposed to any container; this is a critical control that is verified in CIS Docker Bench scans |
 | **Recommended Mitigation** | Add an OPA policy to the CI/CD pipeline that blocks any Docker Compose change introducing a Docker socket mount; include Docker socket verification in monthly CIS scans |
 
 ---
@@ -533,10 +717,10 @@ The following threats are AI-specific extensions of traditional STRIDE categorie
 | PII Leakage in Prompts | **Information Disclosure** (I-01) | Repudiation | AI-001 | OWASP LLM06, AI-T07 |
 | System Prompt Extraction | **Information Disclosure** (I-03) | Spoofing | AI-001 | OWASP LLM01, AI-T10 |
 | Excessive Autonomous Agency | **Elevation of Privilege** (E-02) | Tampering | AI-001 | OWASP LLM08, AI-T09 |
-| AI Denial of Service | **Denial of Service** (D-02) | — | AI-001, AI-002 | OWASP LLM10, AI-T08 |
+| AI Denial of Service | **Denial of Service** (D-02) | - | AI-001, AI-002 | OWASP LLM10, AI-T08 |
 | Hallucination-Driven Actions | **Tampering** | Repudiation | AI-001, AI-002 | OWASP LLM09, AI-T01 |
-| Training Data Extraction | **Information Disclosure** | — | AI-001 | OWASP LLM06, AI-T10 |
-| AI-Enabled Lateral Movement | **Elevation of Privilege** (E-04) | — | AI-001, AI-002 | AML.T0040 |
+| Training Data Extraction | **Information Disclosure** | - | AI-001 | OWASP LLM06, AI-T10 |
+| AI-Enabled Lateral Movement | **Elevation of Privilege** (E-04) | - | AI-001, AI-002 | AML.T0040 |
 | Insecure Output Handling | **Tampering** | Elevation of Privilege | AI-001 | OWASP LLM02 |
 
 ### 10.2 Control Coverage for AI STRIDE Threats
@@ -616,7 +800,7 @@ The following table maps every STRIDE threat identified in this analysis to the 
 | Document | Relationship |
 |----------|-------------|
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Quantitative risk analysis (17 scenarios); this STRIDE model provides structural decomposition |
-| [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack tree for AI inference pipeline compromise — detailed path analysis |
+| [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack tree for AI inference pipeline compromise - detailed path analysis |
 | [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | Comprehensive AI threat catalog with OWASP/MITRE/NIST mapping |
 | [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI governance policy including AI risk register (AI-R01 through AI-R10) |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Control implementations referenced in the Threat-Control Mapping (Section 11) |

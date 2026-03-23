@@ -1,4 +1,4 @@
-# Attack Tree — Compromise AI Inference Pipeline
+# Attack Tree - Compromise AI Inference Pipeline
 
 **Organization:** Organization Security Operations Platform
 **Assessment Date:** 2026-03-12
@@ -48,10 +48,10 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 **Root Goal:** Achieve one or more of the following outcomes by compromising the AI inference pipeline:
 
-1. **Unauthorized action execution** — cause the AI agent to trigger svc-automation workflows that perform unintended operations
-2. **Sensitive data exfiltration** — extract credentials, PII, system prompts, or operational context from AI systems
-3. **Model integrity degradation** — alter AI model behavior to produce manipulated, biased, or backdoored outputs
-4. **Denial of AI service** — render AI inference unavailable, degrading platform operational capability
+1. **Unauthorized action execution** - cause the AI agent to trigger svc-automation workflows that perform unintended operations
+2. **Sensitive data exfiltration** - extract credentials, PII, system prompts, or operational context from AI systems
+3. **Model integrity degradation** - alter AI model behavior to produce manipulated, biased, or backdoored outputs
+4. **Denial of AI service** - render AI inference unavailable, degrading platform operational capability
 
 ### 2.2 AI Systems in Scope
 
@@ -144,7 +144,7 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 │   │   │           Prob: LOW | Skill: HIGH | Detect: HIGH
 │   │   │
 │   │   └── [3.2.2] Access Docker inspect output from compromised container
-│   │               (requires Docker socket — NOT mounted)
+│   │               (requires Docker socket - NOT mounted)
 │   │               Prob: BLOCKED | Skill: N/A | Detect: N/A
 │   │
 │   └── [3.3] Harvest Credentials from Log Streams
@@ -189,7 +189,7 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 ## 4. Attack Path Analysis
 
-### 4.1 Path 1 — Prompt Injection via External Messaging
+### 4.1 Path 1 - Prompt Injection via External Messaging
 
 **Attack Chain:** Telegram API → svc-tunnel → svc-ai-gateway → svc-automation → downstream actions
 
@@ -197,21 +197,21 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 | Leaf Node | Probability | Skill Level | Existing Controls | Detection Capability |
 |-----------|-------------|-------------|-------------------|---------------------|
-| 1.1.1 Direct injection | High | Low (publicly available techniques) | System prompt hardening; output sanitization | Medium — behavioral anomaly in responses logged but not auto-flagged |
-| 1.1.2 Multi-turn context shift | Medium | Medium | Conversation context limits; rate limiting | Low — gradual drift is harder to detect than single-prompt injection |
-| 1.1.3 Trigger workflow execution | Low | Medium | Human approval gates for destructive actions; action allowlist | High — svc-automation execution logs; Falco alert on unexpected process spawns |
-| 1.2.1 Indirect injection via data | Low | High (requires knowledge of data sources) | Data source validation in search skills | Low — injected content may be indistinguishable from legitimate data |
-| 1.2.2 Metadata injection | Very Low | High | Telegram API validates message structure | Medium — unusual metadata patterns detectable in log analysis |
-| 1.3.1 System prompt extraction | Medium | Low | Prompt instructs model not to disclose; access restricted by chat ID | Medium — extraction attempts visible in prompt logs upon review |
-| 1.3.2 Targeted injection post-extraction | Low | Medium | Same as 1.1.1 plus knowledge of prompt structure | Low — targeted attacks blend with normal interactions |
+| 1.1.1 Direct injection | High | Low (publicly available techniques) | System prompt hardening; output sanitization | Medium - behavioral anomaly in responses logged but not auto-flagged |
+| 1.1.2 Multi-turn context shift | Medium | Medium | Conversation context limits; rate limiting | Low - gradual drift is harder to detect than single-prompt injection |
+| 1.1.3 Trigger workflow execution | Low | Medium | Human approval gates for destructive actions; action allowlist | High - svc-automation execution logs; Falco alert on unexpected process spawns |
+| 1.2.1 Indirect injection via data | Low | High (requires knowledge of data sources) | Data source validation in search skills | Low - injected content may be indistinguishable from legitimate data |
+| 1.2.2 Metadata injection | Very Low | High | Telegram API validates message structure | Medium - unusual metadata patterns detectable in log analysis |
+| 1.3.1 System prompt extraction | Medium | Low | Prompt instructs model not to disclose; access restricted by chat ID | Medium - extraction attempts visible in prompt logs upon review |
+| 1.3.2 Targeted injection post-extraction | Low | Medium | Same as 1.1.1 plus knowledge of prompt structure | Low - targeted attacks blend with normal interactions |
 
 **Path 1 Overall Assessment:**
-- **Most likely sub-path:** 1.1.1 (direct injection) — highest probability, lowest skill requirement
-- **Highest impact sub-path:** 1.1.3 (workflow execution) — potential for unauthorized infrastructure changes
+- **Most likely sub-path:** 1.1.1 (direct injection) - highest probability, lowest skill requirement
+- **Highest impact sub-path:** 1.1.3 (workflow execution) - potential for unauthorized infrastructure changes
 - **Key control gap:** No automated prompt firewall to classify and block injection attempts before they reach the model
 - **Compensating control:** Human approval gates prevent destructive actions even if injection succeeds
 
-### 4.2 Path 2 — Model Integrity Compromise
+### 4.2 Path 2 - Model Integrity Compromise
 
 **Attack Chain:** Upstream registry/repository → model download → svc-llm/svc-transcription → altered outputs → svc-automation
 
@@ -220,20 +220,20 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 | Leaf Node | Probability | Skill Level | Existing Controls | Detection Capability |
 |-----------|-------------|-------------|-------------------|---------------------|
-| 2.1.1 Registry compromise | Very Low | High (nation-state level) | No automatic model updates; manual pull required | Low — backdoor detection in ML models is an open research problem |
-| 2.1.2 Typosquatting model variant | Low | Medium | Operator verifies model name/source manually | Medium — detectable if naming conventions are checked before pull |
-| 2.1.3 MITM model download | Very Low | High | HTTPS transport for Ollama pulls | Medium — TLS certificate validation prevents most MITM |
-| 2.2.1 Container image injection | Very Low | High | Trivy scanning; Cosign signing; SBOM tracking | High — CI pipeline catches known vulnerabilities; signatures verify provenance |
-| 2.2.2 Dependency supply chain | Low | High | Semgrep SAST; Trivy dependency scanning | Medium — zero-day supply chain attacks may evade scanning |
-| 2.3.1 Whisper model replacement | Very Low | High | Model loaded from local volume; manual deployment | Low — no automated behavioral testing of Whisper outputs |
+| 2.1.1 Registry compromise | Very Low | High (nation-state level) | No automatic model updates; manual pull required | Low - backdoor detection in ML models is an open research problem |
+| 2.1.2 Typosquatting model variant | Low | Medium | Operator verifies model name/source manually | Medium - detectable if naming conventions are checked before pull |
+| 2.1.3 MITM model download | Very Low | High | HTTPS transport for Ollama pulls | Medium - TLS certificate validation prevents most MITM |
+| 2.2.1 Container image injection | Very Low | High | Trivy scanning; Cosign signing; SBOM tracking | High - CI pipeline catches known vulnerabilities; signatures verify provenance |
+| 2.2.2 Dependency supply chain | Low | High | Semgrep SAST; Trivy dependency scanning | Medium - zero-day supply chain attacks may evade scanning |
+| 2.3.1 Whisper model replacement | Very Low | High | Model loaded from local volume; manual deployment | Low - no automated behavioral testing of Whisper outputs |
 
 **Path 2 Overall Assessment:**
-- **Most likely sub-path:** 2.1.2 (typosquatting) and 2.2.2 (dependency supply chain) — both Low probability but achievable by motivated adversaries
-- **Highest impact sub-path:** 2.1.1 (registry compromise) — a backdoored model could subtly alter all AI-002 outputs, affecting downstream decisions
+- **Most likely sub-path:** 2.1.2 (typosquatting) and 2.2.2 (dependency supply chain) - both Low probability but achievable by motivated adversaries
+- **Highest impact sub-path:** 2.1.1 (registry compromise) - a backdoored model could subtly alter all AI-002 outputs, affecting downstream decisions
 - **Key control gap:** No automated model behavioral regression testing; model integrity verification is manual
 - **Compensating control:** svc-llm outputs are consumed by svc-automation with validation steps; no direct external user exposure
 
-### 4.3 Path 3 — Credential Theft via Environment Variable Exposure
+### 4.3 Path 3 - Credential Theft via Environment Variable Exposure
 
 **Attack Chain:** svc-automation Code node / container exploit → process.env / /proc/1/environ → credential exfiltration → privilege escalation
 
@@ -241,22 +241,22 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 | Leaf Node | Probability | Skill Level | Existing Controls | Detection Capability |
 |-----------|-------------|-------------|-------------------|---------------------|
-| 3.1.1 Code node reads process.env | Medium | Low (basic JavaScript) | Workflow access restricted to authenticated operators | Medium — Code node execution logged but env var access not specifically flagged |
-| 3.1.2 Exfiltrate via webhook response | Low | Low | Webhook responses logged; Falco monitors outbound connections | High — unusual outbound data from svc-automation triggers Falco alert |
-| 3.1.3 Write to database for retrieval | Low | Medium | Database writes logged in workflow execution history | Low — blends with normal workflow database operations |
-| 3.2.1 Read /proc/1/environ | Low | High (requires container exploit first) | no-new-privileges; PID namespace isolation | High — Falco detects access to /proc sensitive files |
-| 3.2.2 Docker inspect (socket) | **BLOCKED** | N/A | Docker socket NOT mounted in any container | N/A — attack path is architecturally eliminated |
-| 3.3.1 Trigger verbose logging | Low | Medium | Production log level set to info/warn; log rotation limits | Medium — log level changes detectable via Falco file write monitoring |
-| 3.3.2 Access Datadog log archives | Very Low | Medium | Datadog RBAC; API key stored in secrets manager | Low — API key compromise would provide broad log access |
+| 3.1.1 Code node reads process.env | Medium | Low (basic JavaScript) | Workflow access restricted to authenticated operators | Medium - Code node execution logged but env var access not specifically flagged |
+| 3.1.2 Exfiltrate via webhook response | Low | Low | Webhook responses logged; Falco monitors outbound connections | High - unusual outbound data from svc-automation triggers Falco alert |
+| 3.1.3 Write to database for retrieval | Low | Medium | Database writes logged in workflow execution history | Low - blends with normal workflow database operations |
+| 3.2.1 Read /proc/1/environ | Low | High (requires container exploit first) | no-new-privileges; PID namespace isolation | High - Falco detects access to /proc sensitive files |
+| 3.2.2 Docker inspect (socket) | **BLOCKED** | N/A | Docker socket NOT mounted in any container | N/A - attack path is architecturally eliminated |
+| 3.3.1 Trigger verbose logging | Low | Medium | Production log level set to info/warn; log rotation limits | Medium - log level changes detectable via Falco file write monitoring |
+| 3.3.2 Access Datadog log archives | Very Low | Medium | Datadog RBAC; API key stored in secrets manager | Low - API key compromise would provide broad log access |
 
 **Path 3 Overall Assessment:**
-- **Most likely sub-path:** 3.1.1 (Code node env var access) — Medium probability, Low skill requirement
-- **Highest impact sub-path:** 3.1.1 → 3.1.3 chain — credentials written to database could persist indefinitely and be retrieved later
+- **Most likely sub-path:** 3.1.1 (Code node env var access) - Medium probability, Low skill requirement
+- **Highest impact sub-path:** 3.1.1 → 3.1.3 chain - credentials written to database could persist indefinitely and be retrieved later
 - **Key control gap:** svc-automation Code nodes have unrestricted access to all container environment variables
 - **Compensating control:** Workflow access restricted to authenticated operators; however, a compromised operator account or injection into workflow logic bypasses this control
-- **Architecturally blocked path:** 3.2.2 — Docker socket is not exposed to any container, eliminating this entire branch
+- **Architecturally blocked path:** 3.2.2 - Docker socket is not exposed to any container, eliminating this entire branch
 
-### 4.4 Path 4 — Lateral Movement from Compromised AI Container
+### 4.4 Path 4 - Lateral Movement from Compromised AI Container
 
 **Attack Chain:** Compromised AI container → network scanning → cross-zone service access → sensitive data/privilege escalation
 
@@ -264,18 +264,18 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 | Leaf Node | Probability | Skill Level | Existing Controls | Detection Capability |
 |-----------|-------------|-------------|-------------------|---------------------|
-| 4.1.1 Reach svc-db from DMZ | Medium | Medium | Docker network segmentation (net-core) | High — Falco detects unexpected network connections |
-| 4.1.2 Authenticate to svc-db | Medium (conditional) | Low | Database requires credential authentication | Medium — connection from unexpected source logged by PostgreSQL |
-| 4.1.3 Query for secrets | Medium (conditional) | Low | Limited schema permissions (Partial) | Medium — unusual query patterns detectable in slow query logs |
-| 4.2.1 Shell access on svc-llm | Low | High | no-new-privileges; no internet access on net-ai | High — Falco detects shell spawns in application containers |
-| 4.2.2 Scan for sensitive services | Low (conditional) | Medium | Network segmentation; no network scanning tools in containers | High — network scanning activity triggers Falco alerts |
-| 4.2.3 Access svc-secrets | Very Low | High | Token-based auth; sealed by default; requires unseal keys | High — Vault audit log captures all access attempts |
-| 4.3.1 Kernel exploit for host escape | Very Low | High | no-new-privileges; kernel hardening; PID limits | High — Falco eBPF detects container escape indicators |
-| 4.3.2 Shared volume exploitation | Very Low | High | Volumes are service-specific; no cross-container volume sharing for AI services | Medium — file access outside expected paths triggers alert |
+| 4.1.1 Reach svc-db from DMZ | Medium | Medium | Docker network segmentation (net-core) | High - Falco detects unexpected network connections |
+| 4.1.2 Authenticate to svc-db | Medium (conditional) | Low | Database requires credential authentication | Medium - connection from unexpected source logged by PostgreSQL |
+| 4.1.3 Query for secrets | Medium (conditional) | Low | Limited schema permissions (Partial) | Medium - unusual query patterns detectable in slow query logs |
+| 4.2.1 Shell access on svc-llm | Low | High | no-new-privileges; no internet access on net-ai | High - Falco detects shell spawns in application containers |
+| 4.2.2 Scan for sensitive services | Low (conditional) | Medium | Network segmentation; no network scanning tools in containers | High - network scanning activity triggers Falco alerts |
+| 4.2.3 Access svc-secrets | Very Low | High | Token-based auth; sealed by default; requires unseal keys | High - Vault audit log captures all access attempts |
+| 4.3.1 Kernel exploit for host escape | Very Low | High | no-new-privileges; kernel hardening; PID limits | High - Falco eBPF detects container escape indicators |
+| 4.3.2 Shared volume exploitation | Very Low | High | Volumes are service-specific; no cross-container volume sharing for AI services | Medium - file access outside expected paths triggers alert |
 
 **Path 4 Overall Assessment:**
-- **Most likely sub-path:** 4.1.1 → 4.1.2 → 4.1.3 chain — if svc-ai-gateway is compromised, net-core connectivity provides a path to svc-db, and environment variables contain the credentials needed to authenticate
-- **Highest impact sub-path:** 4.2.3 (Vault access) — compromise of svc-secrets would grant access to all managed secrets
+- **Most likely sub-path:** 4.1.1 → 4.1.2 → 4.1.3 chain - if svc-ai-gateway is compromised, net-core connectivity provides a path to svc-db, and environment variables contain the credentials needed to authenticate
+- **Highest impact sub-path:** 4.2.3 (Vault access) - compromise of svc-secrets would grant access to all managed secrets
 - **Key control gap:** net-core provides overly broad connectivity; micro-segmentation would limit AI container reach
 - **Compensating control:** Falco eBPF monitoring provides high-confidence detection of lateral movement indicators; svc-secrets requires token authentication and is sealed by default
 
@@ -287,22 +287,22 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 | Control | Path 1 (Injection) | Path 2 (Supply Chain) | Path 3 (Credential Theft) | Path 4 (Lateral Movement) |
 |---------|:------------------:|:---------------------:|:------------------------:|:------------------------:|
-| System prompt hardening | Prevents | — | — | — |
-| Human approval gates | Mitigates | — | — | — |
-| Trivy CVE scanning | — | Detects | — | — |
-| Cosign image signing | — | Prevents | — | — |
-| SBOM tracking | — | Detects | — | — |
-| Docker network segmentation | — | — | — | Mitigates |
-| no-new-privileges | — | — | Mitigates | Prevents (partial) |
-| Falco eBPF detection | Detects | — | Detects | Detects |
-| svc-automation auth | — | — | Prevents | — |
-| Secrets manager (external) | — | — | Mitigates | — |
-| Rate limiting | Mitigates | — | — | — |
-| Chat ID allowlist | Prevents | — | — | — |
-| Log scrubbing (Fluentd) | — | — | **GAP** | — |
-| mTLS between services | — | — | — | **GAP** |
-| Prompt firewall | **GAP** | — | — | — |
-| Model integrity automation | — | **GAP** | — | — |
+| System prompt hardening | Prevents | - | - | - |
+| Human approval gates | Mitigates | - | - | - |
+| Trivy CVE scanning | - | Detects | - | - |
+| Cosign image signing | - | Prevents | - | - |
+| SBOM tracking | - | Detects | - | - |
+| Docker network segmentation | - | - | - | Mitigates |
+| no-new-privileges | - | - | Mitigates | Prevents (partial) |
+| Falco eBPF detection | Detects | - | Detects | Detects |
+| svc-automation auth | - | - | Prevents | - |
+| Secrets manager (external) | - | - | Mitigates | - |
+| Rate limiting | Mitigates | - | - | - |
+| Chat ID allowlist | Prevents | - | - | - |
+| Log scrubbing (Fluentd) | - | - | **GAP** | - |
+| mTLS between services | - | - | - | **GAP** |
+| Prompt firewall | **GAP** | - | - | - |
+| Model integrity automation | - | **GAP** | - | - |
 
 ### 5.2 Detection Confidence by Path
 
@@ -333,7 +333,7 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 |----------|-------------|
 | [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md) | STRIDE analysis referencing AI threats T-01, T-02, I-01, E-02, E-04 |
 | [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | Comprehensive AI threat-to-control mapping |
-| [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Quantitative risk register (R-01 through R-17, AI-R01 through AI-R10) |
+| [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk register (AI-R01 through AI-R10)) |
 | [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk tolerance statements, lifecycle management, governance structure |
 | [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md) | Response procedures for Path 4 scenarios |
 | [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md) | Response procedures for Path 3 scenarios |

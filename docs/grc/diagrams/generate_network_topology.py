@@ -73,7 +73,7 @@ edge_attr = {
 }
 
 with Diagram(
-    "Organization — Network Topology",
+    "Organization - Network Topology",
     filename=FILENAME,
     show=False,
     direction="TB",
@@ -86,11 +86,11 @@ with Diagram(
     users = Users("Users / Operators")
     inet = Internet("Internet")
     cf = Cloudflare("Cloudflare\nEdge + DNS")
-    dd_saas = DatadogSaaS("Datadog SaaS\nus5.datadoghq.com")
+    dd_saas = DatadogSaaS("Datadog SaaS\nCloud")
     gh_actions = GithubActions("GitHub Actions\nCI/CD")
     tg = Telegram("Telegram\nBots")
 
-    with Cluster("DigitalOcean VPC — nyc1", graph_attr=cluster_attr_outer):
+    with Cluster("DigitalOcean VPC", graph_attr=cluster_attr_outer):
         fw = Firewall("Cloud Firewall\nICMP + SSH only")
         spaces = Space("DO Spaces\nState + Audit Logs")
 
@@ -104,14 +104,14 @@ with Diagram(
             # Tunnel on host network
             tunnel = Docker("svc-tunnel\n(Cloudflare Tunnel)\nHost Network")
 
-            with Cluster("Docker Bridge: internal-net", graph_attr=cluster_attr_inner):
+            with Cluster("Docker Networks: net-core / net-ai / net-monitoring", graph_attr=cluster_attr_inner):
 
                 with Cluster("Core Services", graph_attr={
                     **cluster_attr_inner,
                     "fontcolor": "#00FF41",
                 }):
                     db = PostgreSQL("svc-db\nPostgreSQL 16\n:5432")
-                    n8n = N8N("svc-automation\nn8n SOAR\n:5678")
+                    n8n = N8N("svc-automation\nn8n SOAR\n")
 
                 with Cluster("Security & Monitoring", graph_attr={
                     **cluster_attr_inner,
@@ -127,19 +127,19 @@ with Diagram(
                     **cluster_attr_inner,
                     "fontcolor": "#a371f7",
                 }):
-                    vault_svc = Vault("svc-secrets\nHashiCorp Vault\n:8200")
-                    keycloak = Docker("svc-identity\nKeycloak v26\n:8080")
+                    vault_svc = Vault("svc-secrets\nHashiCorp Vault\n")
+                    keycloak = Docker("svc-identity\nKeycloak v26\n")
                     teleport = Docker("svc-gateway\nTeleport v18\n:3080")
 
                 with Cluster("AI & Inference", graph_attr={
                     **cluster_attr_inner,
                     "fontcolor": "#79c0ff",
                 }):
-                    ollama = Docker("svc-llm\nOllama LLM\n:11434")
-                    whisper = Docker("svc-transcription\nWhisper STT\n:8000")
+                    ollama = Docker("svc-llm\nOllama LLM\n")
+                    whisper = Docker("svc-transcription\nWhisper STT\n")
 
             # Standalone container on bridge
-            openclaw = Docker("svc-ai-gateway\nOpenClaw Gateway\n:18789-18790")
+            openclaw = Docker("svc-ai-gateway\nOpenClaw Gateway\n")
 
     # --- Edges ---
     # Inbound traffic

@@ -59,7 +59,7 @@ This policy applies to all information systems, services, and data within the au
 - Zero-trust tunnel ingress, Cloudflare configurations, and DigitalOcean firewall rules
 - All personnel with administrative, operational, or audit access to the platform
 
-**Out of scope:** End-user workstations, third-party SaaS platforms beyond their integration points with the platform, and the physical security of the DigitalOcean's data centers (governed by the DigitalOcean's shared responsibility model).
+**Out of scope:** End-user workstations, third-party SaaS platforms beyond their integration points with the platform, and the physical security of DigitalOcean's data centers (governed by DigitalOcean's shared responsibility model).
 
 ### 1.3 Policy Statements
 
@@ -103,7 +103,7 @@ The system is categorized as **Moderate** overall per FIPS 199, as documented in
 |-------------------|--------------|---------------|
 | **Confidentiality** | Moderate | Platform processes API keys, credentials, and operational telemetry |
 | **Integrity** | Moderate | Workflow logic and infrastructure state must remain trustworthy |
-| **Availability** | Low | Single-operator platform; short outages are tolerable |
+| **Availability** | Moderate | Single-operator platform; short outages are tolerable |
 
 This categorization determines the baseline set of security controls applied from NIST SP 800-53 Rev. 5 and informs risk tolerance thresholds throughout this policy.
 
@@ -120,7 +120,7 @@ This categorization determines the baseline set of security controls applied fro
 
 ## 3. Risk Management Framework
 
-### 3.1 Frame — Establish Risk Context
+### 3.1 Frame - Establish Risk Context
 
 The framing step establishes the context, assumptions, and constraints under which all risk management activities are conducted.
 
@@ -132,7 +132,7 @@ The framing step establishes the context, assumptions, and constraints under whi
 
 **Assumptions:**
 
-1. The DigitalOcean maintains physical security, hypervisor integrity, and network backbone availability per their published SLA (99.99% uptime).
+1. DigitalOcean maintains physical security, hypervisor integrity, and network backbone availability per their published SLA (99.99% uptime).
 2. The external secrets manager and external Datadog operate under their respective security certifications and shared responsibility agreements.
 3. The zero-trust tunnel and Cloudflare mitigate the majority of network-layer threats at the perimeter before traffic reaches the VPS.
 4. A single-operator environment reduces insider threat likelihood but does not eliminate it; all administrative sessions are recorded.
@@ -147,7 +147,7 @@ The framing step establishes the context, assumptions, and constraints under whi
 
 The Organization accepts Low-rated residual risks (scores 1-6) as part of normal operations. Moderate residual risks (scores 7-14) require documented compensating controls and active remediation plans. High residual risks (scores 15-19) require immediate mitigation action and documented justification if any remain open beyond 30 days. Critical residual risks (scores 20-25) are not acceptable without executive-level approval and may require halting affected operations.
 
-### 3.2 Assess — Identify and Evaluate Risks
+### 3.2 Assess - Identify and Evaluate Risks
 
 The assessment step identifies threats and vulnerabilities, evaluates existing controls, and calculates residual risk. The full assessment methodology is documented in the Risk Assessment (RA-2026-001, `docs/grc/RISK_ASSESSMENT.md`).
 
@@ -173,7 +173,7 @@ The assessment step identifies threats and vulnerabilities, evaluates existing c
 6. Classify residual risk by threshold: Low (1-6), Moderate (7-14), High (15-19), Critical (20-25)
 7. Document findings in the risk register with recommended treatment
 
-### 3.3 Respond — Select and Implement Risk Treatment
+### 3.3 Respond - Select and Implement Risk Treatment
 
 For each identified risk, one of four treatment strategies SHALL be selected:
 
@@ -192,11 +192,11 @@ For each identified risk, one of four treatment strategies SHALL be selected:
 4. For **Transfer** decisions, the transferring mechanism (contract, SLA, insurance policy) SHALL be documented and its coverage validated annually.
 5. For **Avoid** decisions, the decommission or removal plan SHALL follow the Change Management Policy (GRC-CM-001).
 
-### 3.4 Monitor — Ongoing Risk Surveillance
+### 3.4 Monitor - Ongoing Risk Surveillance
 
 Risk monitoring ensures that risk conditions, control effectiveness, and the threat landscape are continuously evaluated. Monitoring activities are organized into three tiers:
 
-**Tier 1 — Continuous (Automated):**
+**Tier 1 - Continuous (Automated):**
 
 | Activity | Mechanism | Response |
 |----------|-----------|----------|
@@ -207,7 +207,7 @@ Risk monitoring ensures that risk conditions, control effectiveness, and the thr
 | Runtime threat detection | `svc-detection` (eBPF) with 8 custom rules | Alert to Datadog; trigger incident response if threshold met |
 | Infrastructure monitoring | Datadog agent (`svc-monitor`) | Alert on metric thresholds (CPU >85%, memory >85%, disk >80%) |
 
-**Tier 2 — Periodic (Scheduled):**
+**Tier 2 - Periodic (Scheduled):**
 
 | Activity | Frequency | Owner | Reference |
 |----------|-----------|-------|-----------|
@@ -219,7 +219,7 @@ Risk monitoring ensures that risk conditions, control effectiveness, and the thr
 | Full risk assessment | Annual | Risk Manager | RISK_ASSESSMENT.md |
 | Threat catalog update | Semi-annual | Risk Manager | RISK_ASSESSMENT.md, Section 3 |
 
-**Tier 3 — Triggered (Event-Driven):**
+**Tier 3 - Triggered (Event-Driven):**
 
 | Trigger | Required Action |
 |---------|----------------|
@@ -397,7 +397,7 @@ Risks are tracked using two complementary instruments:
 |-----------|----------|---------|
 | **Risk Assessment Register** | `docs/grc/RISK_ASSESSMENT.md`, Section 4 | Tracks 17 organizational risks (R-01 through R-17) across external, internal, environmental, and compliance threat categories |
 | **CIS Risk Register** | `docs/grc/CIS_RISK_REGISTER.md` | Tracks 29 CIS Docker Bench findings with compensating controls and review dates |
-| **POA&M** | `docs/grc/POAM_PLAN_OF_ACTION.md` | Tracks 37 findings (POAM-001 through POAM-027) from CIS Docker Bench, IaC compliance scanning, runtime detection baseline, and Risk Assessment mitigate treatments, with remediation milestones |
+| **POA&M** | `docs/grc/POAM_PLAN_OF_ACTION.md` | Tracks 27 entries (POAM-001 through POAM-027) consolidating findings from 4 assessment sources from CIS Docker Bench, IaC compliance scanning, runtime detection baseline, and Risk Assessment mitigate treatments, with remediation milestones |
 
 ### 7.2 Required Fields for Risk Register Entries
 
@@ -489,7 +489,7 @@ A risk review SHALL be initiated outside the scheduled cycle when any of the fol
 3. **New compliance requirement:** Regulatory change, new contractual obligation, or framework update affecting the platform
 4. **Critical vulnerability:** Disclosure of a vulnerability with CVSS >= 9.0 in any deployed component
 5. **Control failure:** Discovery that a compensating control is not functioning as documented
-6. **Cloud provider advisory:** Security bulletin from the DigitalOcean affecting the VPS, network, or storage services
+6. **Cloud provider advisory:** Security bulletin from DigitalOcean affecting the VPS, network, or storage services
 
 ---
 

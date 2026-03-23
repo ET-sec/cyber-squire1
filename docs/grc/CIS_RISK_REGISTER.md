@@ -43,7 +43,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Description** | auditd rules should monitor the Docker daemon binary |
 | **Business Justification** | auditd rules are host-level configuration, outside Docker Compose scope. Installing auditd adds overhead on a memory-constrained 8GB VPS. |
-| **Compensating Control** | Falco (eBPF) provides syscall-level monitoring of all processes including dockerd. runtime detection events route to the Datadog via svc-detection-router. Covers the same detection surface as auditd with lower overhead. |
+| **Compensating Control** | Falco (eBPF) provides syscall-level monitoring of all processes including dockerd. Runtime detection events route to Datadog via svc-detection-router. Covers the same detection surface as auditd with lower overhead. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -95,7 +95,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Description** | auditd should monitor the docker.socket systemd unit |
 | **Business Justification** | Same as 1.5 -- auditd is host-level |
-| **Compensating Control** | Docker socket access monitored by the Falco. Only the Falco and the monitoring agent containers have socket access (read-only). |
+| **Compensating Control** | Docker socket access monitored by Falco. Only Falco and the monitoring agent containers have socket access (read-only). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -112,7 +112,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Description** | Inter-container communication should be disabled on the default bridge |
 | **Business Justification** | Services require inter-container communication: automation platform connects to PostgreSQL, svc-detection routes to svc-detection-router, monitoring agent autodiscovers containers. Disabling ICC breaks the entire stack. |
-| **Compensating Control** | All services use a dedicated internal-net bridge (not docker0). Runtime detection engine monitors all network connections between containers. No containers are exposed to the default bridge. |
+| **Compensating Control** | All services use a dedicated net-core bridge (not docker0). Runtime detection engine monitors all network connections between containers. No containers are exposed to the default bridge. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -124,8 +124,8 @@ justification and compensating controls.
 | **Section** | Docker Daemon Configuration |
 | **Result** | WARN |
 | **Description** | Docker should use user namespace remapping to isolate container root from host root |
-| **Business Justification** | User namespace remapping breaks volume permissions for PostgreSQL (uid 999), svc-automation (uid 1000), and the Falco (needs real root for eBPF). Enabling requires complex UID mapping for every volume. |
-| **Compensating Control** | no-new-privileges set on all containers except svc-detection. The Falco uses cap_drop ALL + explicit cap_add for minimum required capabilities. AppArmor profiles active. |
+| **Business Justification** | User namespace remapping breaks volume permissions for PostgreSQL (uid 999), svc-automation (uid 1000), and Falco (needs real root for eBPF). Enabling requires complex UID mapping for every volume. |
+| **Compensating Control** | no-new-privileges set on all containers except svc-detection. Falco uses cap_drop ALL + explicit cap_add for minimum required capabilities. AppArmor profiles active. |
 | **Risk Level** | Medium |
 | **Review Date** | 2026-06-09 |
 
@@ -151,7 +151,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Description** | Docker daemon should use a centralized logging driver (syslog, splunk, etc.) |
 | **Business Justification** | CIS Docker Bench checks for daemon-level log driver configuration. Containers use json-file driver with rotation limits. Logs are collected centrally by monitoring agent. |
-| **Compensating Control** | Monitoring agent collects all container logs (DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true). Logs shipped to datadoghq.com for centralized analysis. 15-day retention on the Datadog. |
+| **Compensating Control** | Monitoring agent collects all container logs (DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true). Logs shipped to datadoghq.com for centralized analysis. 15-day retention on Datadog. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -177,7 +177,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Description** | Docker should use iptables hairpin NAT instead of userland proxy for port forwarding |
 | **Business Justification** | Disabling userland proxy can break port forwarding in some network configurations. Current proxy overhead is minimal on 4-vCPU VPS. |
-| **Compensating Control** | Network traffic monitored by the Falco. Port bindings limited to required services only. Zero-trust tunnel provides primary ingress (not Docker port mapping). |
+| **Compensating Control** | Network traffic monitored by Falco. Port bindings limited to required services only. Zero-trust tunnel provides primary ingress (not Docker port mapping). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -189,7 +189,7 @@ justification and compensating controls.
 | **Section** | Docker Daemon Configuration |
 | **Result** | WARN |
 | **Description** | Docker daemon should set no-new-privileges by default for all containers |
-| **Business Justification** | Setting daemon-wide no-new-privileges would break the Falco (needs SYS_ADMIN for eBPF). Applied per-container instead of daemon-wide. |
+| **Business Justification** | Setting daemon-wide no-new-privileges would break Falco (needs SYS_ADMIN for eBPF). Applied per-container instead of daemon-wide. |
 | **Compensating Control** | no-new-privileges:true set explicitly on 12 of 13 compose-managed containers. Only svc-detection (Falco) exempted (requires capability escalation for eBPF kernel tracing). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -266,8 +266,8 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-detection (SYS_ADMIN, SYS_PTRACE, SYS_RESOURCE), Vault (IPC_LOCK) |
 | **Description** | Containers should drop all capabilities and add only required ones |
-| **Business Justification** | The Falco requires SYS_ADMIN for eBPF kernel tracing, SYS_PTRACE for process inspection, SYS_RESOURCE for buffer allocation. The secrets engine requires IPC_LOCK to prevent memory from being swapped (protects unsealed secrets). |
-| **Compensating Control** | The Falco uses cap_drop: ALL then adds only required capabilities. The secrets engine adds only IPC_LOCK. All other containers have no additional capabilities. |
+| **Business Justification** | Falco requires SYS_ADMIN for eBPF kernel tracing, SYS_PTRACE for process inspection, SYS_RESOURCE for buffer allocation. The secrets engine requires IPC_LOCK to prevent memory from being swapped (protects unsealed secrets). |
+| **Compensating Control** | Falco uses cap_drop: ALL then adds only required capabilities. The secrets engine adds only IPC_LOCK. All other containers have no additional capabilities. |
 | **Risk Level** | Medium |
 | **Review Date** | 2026-06-09 |
 
@@ -295,7 +295,7 @@ justification and compensating controls.
 | **Affected containers** | svc-monitor |
 | **Description** | sshd should not run inside containers |
 | **Business Justification** | Monitoring agent includes sshd as part of its standard image for remote diagnostics. It is not exposed outside the container. |
-| **Compensating Control** | No ports exposed for SSH. Container runs on isolated internal-net bridge. Runtime detection engine detects any unauthorized SSH connections. |
+| **Compensating Control** | No ports exposed for SSH. Container runs on isolated net-core bridge. Runtime detection engine detects any unauthorized SSH connections. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -308,7 +308,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-tunnel |
 | **Description** | Containers should not use host network namespace |
-| **Business Justification** | Zero-trust tunnel requires host networking to forward traffic to localhost services (automation platform on :5678, SSH on :22). Without host networking, the tunnel cannot reach host-bound services. |
+| **Business Justification** | Zero-trust tunnel requires host networking to forward traffic to localhost services (automation platform on , SSH on :22). Without host networking, the tunnel cannot reach host-bound services. |
 | **Compensating Control** | Tunnel container is read-only rootfs. no-new-privileges set. Resource limits applied. Runtime detection engine monitors all network connections. Tunnel only routes pre-configured hostnames (automation.example-ops.com, ssh.example-ops.com). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -355,7 +355,7 @@ justification and compensating controls.
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
-### 5.13 - Ensure incoming container traffic is binded to a specific host interface
+### 5.13 - Ensure incoming container traffic is bound to a specific host interface
 
 | Field | Value |
 |-------|-------|
@@ -364,7 +364,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-automation, svc-identity, svc-llm, svc-transcription, svc-ai-gateway |
 | **Description** | Ports should bind to specific interface (e.g., 127.0.0.1) not 0.0.0.0 |
-| **Business Justification** | Automation platform must be accessible from zero-trust tunnel (localhost) and internal network. Binding to 127.0.0.1 would prevent container-to-container communication on internal-net bridge. DigitalOcean Cloud Firewall restricts external access. |
+| **Business Justification** | Automation platform must be accessible from zero-trust tunnel (localhost) and internal network. Binding to 127.0.0.1 would prevent container-to-container communication on net-core bridge. DigitalOcean Cloud Firewall restricts external access. |
 | **Compensating Control** | DigitalOcean Cloud Firewall restricts inbound traffic. Zero-trust tunnel is the only public ingress path. UFW rules on the VPS provide defense-in-depth. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -406,8 +406,8 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-detection, svc-ai-gateway |
 | **Description** | All containers should have no-new-privileges security option |
-| **Business Justification** | The Falco requires privilege capabilities (SYS_ADMIN) for eBPF kernel tracing -- no-new-privileges would prevent this. AI gateway is standalone and not managed by compose. All other 12 compose containers have no-new-privileges set. |
-| **Compensating Control** | The Falco uses cap_drop:ALL then adds only minimum required capabilities. AppArmor set to unconfined only for svc-detection. Resource limits restrict blast radius. |
+| **Business Justification** | Falco requires privilege capabilities (SYS_ADMIN) for eBPF kernel tracing -- no-new-privileges would prevent this. AI gateway is standalone and not managed by compose. All other 12 compose containers have no-new-privileges set. |
+| **Compensating Control** | Falco uses cap_drop:ALL then adds only minimum required capabilities. AppArmor set to unconfined only for svc-detection. Resource limits restrict blast radius. |
 | **Risk Level** | Medium |
 | **Review Date** | 2026-06-09 |
 
@@ -420,7 +420,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-llm, svc-event-shipper |
 | **Description** | All containers should have healthcheck configured |
-| **Business Justification** | svc-llm (LLM engine) does not expose a health endpoint in its default configuration. Adding a healthcheck would require installing curl/wget in the LLM engine image or custom scripting. The API endpoint (http://localhost:11434) can be unreliable during model loading. svc-event-shipper is a log-forwarding sidecar with no built-in health endpoint. |
+| **Business Justification** | svc-llm (LLM engine) does not expose a health endpoint in its default configuration. Adding a healthcheck would require installing curl/wget in the LLM engine image or custom scripting. The API endpoint (http://localhost:<llm-port>) can be unreliable during model loading. svc-event-shipper is a log-forwarding sidecar with no built-in health endpoint. |
 | **Compensating Control** | Datadog monitors container status and restart counts for both services. Automation workflows that use svc-llm have built-in timeout and retry logic. svc-event-shipper health is inferred from log flow continuity. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -435,7 +435,7 @@ justification and compensating controls.
 | **Affected containers** | svc-ai-gateway (standalone) |
 | **Description** | All containers should have PIDs limit to prevent fork bombs |
 | **Business Justification** | AI gateway is managed outside Docker Compose. All compose-managed containers have PIDs limits set (verified at runtime). |
-| **Compensating Control** | Host-level process monitoring via the Datadog. Runtime detection engine detects unusual process spawning. AI gateway typically runs 2-3 processes. |
+| **Compensating Control** | Host-level process monitoring via Datadog. Runtime detection engine detects unusual process spawning. AI gateway typically runs 2-3 processes. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -448,7 +448,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-detection, svc-monitor |
 | **Description** | Docker socket should not be mounted in containers |
-| **Business Justification** | The Falco needs Docker socket to correlate syscall events with container metadata (names, labels, images). Monitoring agent needs Docker socket for container autodiscovery and metrics. Both are security/monitoring tools that require this access by design. |
+| **Business Justification** | Falco needs Docker socket to correlate syscall events with container metadata (names, labels, images). Monitoring agent needs Docker socket for container autodiscovery and metrics. Both are security/monitoring tools that require this access by design. |
 | **Compensating Control** | Socket mounted read-only (:ro) on both containers. no-new-privileges set on monitoring agent. Falco cap_drop:ALL with explicit minimum capabilities. These are trusted monitoring agents, not application containers. |
 | **Risk Level** | Medium |
 | **Review Date** | 2026-06-09 |

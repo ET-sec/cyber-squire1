@@ -81,7 +81,7 @@ The following activities are authorized within the bounds of the user's assigned
 |----------|:-----:|:--------:|:-------:|
 | Managing and operating automation workflows in `svc-automation` | Permitted | Permitted | View only |
 | Routine container management (restart, log review, health checks) | Permitted | Permitted | Denied |
-| Reviewing monitoring dashboards and alerts on the Datadog | Permitted | Permitted | Permitted |
+| Reviewing monitoring dashboards and alerts on Datadog | Permitted | Permitted | Permitted |
 | Reviewing session recordings and audit logs | Permitted | Own sessions | All sessions |
 | Configuring security controls (`svc-detection` rules, `svc-identity` policies, `svc-secrets` configurations) | Permitted | Denied | Denied |
 | Executing infrastructure-as-code plan and apply operations | Permitted | Denied | Denied |
@@ -242,7 +242,7 @@ Only the following containers are authorized to run on `alpha-node`:
 
 By accessing Organization infrastructure, all personnel acknowledge and consent to the following:
 
-1. **All SSH sessions are recorded.** `svc-gateway` captures full terminal input and output for every SSH session. Recordings are stored, exported to the Datadog, and archived to encrypted object storage.
+1. **All SSH sessions are recorded.** `svc-gateway` captures full terminal input and output for every SSH session. Recordings are stored, exported to Datadog, and archived to encrypted object storage.
 2. **All system calls are monitored.** `svc-detection` (eBPF) monitors process execution, file access, network connections, and privilege operations across all containers and the host.
 3. **All infrastructure events are logged.** `svc-monitor` collects container metrics, host metrics, log data, and application performance data. This data is transmitted to the centralized Datadog.
 4. **All authentication events are logged.** `svc-identity` logs all login attempts (successful and failed), password changes, MFA events, and administrative actions.

@@ -3,7 +3,7 @@
 **Organization:** Organization Security Operations Platform
 **Assessment Date:** 2026-03-12
 **Assessor:** System Owner
-**Framework References:** OWASP LLM Top 10 (2025), MITRE ATLAS v4, NIST AI RMF (AI 100-1), ISO/IEC 42001:2023
+**Framework References:** OWASP LLM Top 10 (2025), OWASP Agentic Applications Top 10 (2026), MITRE ATLAS v4, NIST AI RMF (AI 100-1), ISO/IEC 42001:2023
 **NIST 800-53 Controls:** RA-3 (Risk Assessment), RA-5 (Vulnerability Monitoring), PM-16 (Threat Awareness Program), SI-5 (Security Alerts and Advisories)
 **Classification:** Internal Use Only
 **Version:** 1.0
@@ -30,9 +30,91 @@
 
 ---
 
+### AI Threat Kill Chain
+
+The following diagram maps the 10 OWASP LLM Top 10 threats through a kill chain
+progression, showing how threats chain together from initial access through execution
+to final impact.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         AI THREAT KILL CHAIN                                    │
+│                  Initial Access ──> Execution ──> Impact                        │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+ INITIAL ACCESS                    EXECUTION                      IMPACT
+ ──────────────                    ─────────                      ──────
+
+ ┌──────────────────┐          ┌──────────────────┐         ┌──────────────────┐
+ │  LLM01           │          │  LLM08           │         │  UNAUTHORIZED    │
+ │  Prompt Injection ├────────>│  Excessive Agency ├────────>│  ACTIONS         │
+ │                  │          │                  │         │  (workflow exec, │
+ └───────┬──────────┘          └──────────────────┘         │   infra changes) │
+         │                                                  └──────────────────┘
+         │
+         │                     ┌──────────────────┐         ┌──────────────────┐
+         └────────────────────>│  LLM06           ├────────>│  DATA BREACH     │
+                               │  Sensitive Info   │         │  (creds, PII,    │
+                               │  Disclosure       │         │   operational    │
+ ┌──────────────────┐          └──────────────────┘         │   context)       │
+ │  LLM02           │                                       └──────────────────┘
+ │  Insecure Output ├────────> XSS + Downstream Injection
+ │  Handling        ├────────> Rendered in messaging/workflows
+ └──────────────────┘
+                                                            ┌──────────────────┐
+ ┌──────────────────┐          ┌──────────────────┐         │  IP LOSS         │
+ │  LLM05           ├────────>│  LLM03           ├────────>│  (degraded model │
+ │  Supply Chain    │          │  Training Data   │         │   integrity,     │
+ │  Vulnerabilities │          │  Poisoning       │         │   backdoored     │
+ └───────┬──────────┘          └──────────────────┘         │   inference)     │
+         │                                                  └──────────────────┘
+         │                     ┌──────────────────┐
+         ├────────────────────>│  LLM10           ├────────> MODEL THEFT / IP LOSS
+         │                     │  Model Theft     │
+         │                     └──────────────────┘
+         │
+         └────────────────────> [Any Component Compromise]
+
+
+ ┌──────────────────┐          ┌──────────────────┐         ┌──────────────────┐
+ │  LLM07           │          │  LLM08           │         │  LATERAL         │
+ │  Insecure Plugin ├────────>│  Excessive Agency ├────────>│  MOVEMENT        │
+ │  Design          │          │  (via plugins)   │         │  (cross-service  │
+ └──────────────────┘          └──────────────────┘         │   pivot)         │
+                                                            └──────────────────┘
+
+ ┌──────────────────┐
+ │  LLM04           ├─────────────────────────────────────> AVAILABILITY LOSS
+ │  Model Denial    │                                       (resource exhaust,
+ │  of Service      │                                        API budget burn)
+ └──────────────────┘
+
+ ┌──────────────────┐
+ │  LLM09           ├─────────────────────────────────────> TRUST EXPLOITATION
+ │  Overreliance    │                                       (unverified AI output
+ └──────────────────┘                                        accepted as truth)
+
+
+ THREAT INTERACTION SUMMARY
+ ──────────────────────────
+ ┌────────────┬──────────────────────────────────────────────────────────┐
+ │ Chain      │ Path                                                     │
+ ├────────────┼──────────────────────────────────────────────────────────┤
+ │ Injection  │ LLM01 ──> LLM08 ──> Unauthorized Actions                │
+ │ Exfil      │ LLM01 ──> LLM06 ──> Data Breach                         │
+ │ Output     │ LLM02 ──> XSS / Downstream Injection                    │
+ │ Supply     │ LLM05 ──> LLM03 (poisoning) or LLM10 (theft)            │
+ │ Plugin     │ LLM07 ──> LLM08 ──> Lateral Movement                    │
+ │ DoS        │ LLM04 ──> Availability Loss                              │
+ │ Trust      │ LLM09 ──> Trust Exploitation                             │
+ └────────────┴──────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 1. Purpose
 
-This document provides a comprehensive catalog of AI-specific threats applicable to the Organization Security Operations Platform. It maps each threat across four complementary frameworks — OWASP LLM Top 10, MITRE ATLAS, NIST AI RMF, and ISO 42001 — and documents the current control posture, detection capabilities, and cross-references to existing GRC documents.
+This document provides a comprehensive catalog of AI-specific threats applicable to the Organization Security Operations Platform. It maps each threat across four complementary frameworks - OWASP LLM Top 10, MITRE ATLAS, NIST AI RMF, and ISO 42001 - and documents the current control posture, detection capabilities, and cross-references to existing GRC documents.
 
 The catalog serves as:
 
@@ -51,16 +133,16 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 
 | OWASP ID | Category | Applicability to Organization Platform |
 |----------|----------|---------------------------------------|
-| LLM01 | Prompt Injection | **High** — svc-ai-gateway accepts external user input via Telegram; svc-llm processes internal workflow prompts |
-| LLM02 | Insecure Output Handling | **High** — AI outputs consumed by svc-automation workflows that execute actions on infrastructure |
-| LLM03 | Supply Chain Vulnerabilities | **Medium** — three AI models with different supply chain profiles (API, Ollama registry, Whisper open-weight) |
-| LLM04 | Data and Model Poisoning | **Low** — no fine-tuning capability deployed; risk limited to upstream model provider compromise |
-| LLM05 | Improper Output Handling | **Medium** — AI-generated content rendered in messaging platforms without full sanitization |
-| LLM06 | Sensitive Information Disclosure | **High** — prompts to Anthropic API may contain operational context; svc-llm processes sensitive internal data |
-| LLM07 | Insecure Plugin Design | **Medium** — svc-ai-gateway has skills (Tavily search, browser, GitHub, Notion) that interact with external services |
-| LLM08 | Excessive Agency | **High** — AI agent can trigger svc-automation workflows with broad action capabilities (16+ service integrations) |
-| LLM09 | Overreliance | **Medium** — operator may trust AI outputs without verification for routine tasks |
-| LLM10 | Unbounded Consumption | **Medium** — external API budget and compute resource consumption need bounded controls |
+| LLM01 | Prompt Injection | **High** - svc-ai-gateway accepts external user input via Telegram; svc-llm processes internal workflow prompts |
+| LLM02 | Insecure Output Handling | **High** - AI outputs consumed by svc-automation workflows that execute actions on infrastructure |
+| LLM03 | Supply Chain Vulnerabilities | **Medium** - three AI models with different supply chain profiles (API, Ollama registry, Whisper open-weight) |
+| LLM04 | Data and Model Poisoning | **Low** - no fine-tuning capability deployed; risk limited to upstream model provider compromise |
+| LLM05 | Improper Output Handling | **Medium** - AI-generated content rendered in messaging platforms without full sanitization |
+| LLM06 | Sensitive Information Disclosure | **High** - prompts to Anthropic API may contain operational context; svc-llm processes sensitive internal data |
+| LLM07 | Insecure Plugin Design | **Medium** - svc-ai-gateway has skills (Tavily search, browser, GitHub, Notion) that interact with external services |
+| LLM08 | Excessive Agency | **High** - AI agent can trigger svc-automation workflows with broad action capabilities (16+ service integrations) |
+| LLM09 | Overreliance | **Medium** - operator may trust AI outputs without verification for routine tasks |
+| LLM10 | Unbounded Consumption | **Medium** - external API budget and compute resource consumption need bounded controls |
 
 ### 2.2 MITRE ATLAS v4
 
@@ -105,12 +187,12 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | ATC-02 | Prompt Injection (Indirect) | LLM01 | AML.T0043, AML.T0051 | AI-001 | Partial | Medium |
 | ATC-03 | Insecure Output Handling | LLM02 | AML.T0015 | AI-001, AI-002 | Implemented | Medium |
 | ATC-04 | Model Supply Chain Compromise | LLM03 | AML.T0018 | AI-001, AI-002, AI-003 | Partial | Medium |
-| ATC-05 | Sensitive Information Disclosure | LLM06 | — | AI-001 | Partial | Medium |
+| ATC-05 | Sensitive Information Disclosure | LLM06 | - | AI-001 | Partial | Medium |
 | ATC-06 | Insecure Skill/Plugin Execution | LLM07 | AML.T0040 | AI-001 | Implemented | Low |
-| ATC-07 | Excessive Autonomous Agency | LLM08 | — | AI-001 | Implemented | Medium |
-| ATC-08 | Overreliance on AI Outputs | LLM09 | — | AI-001, AI-002 | Partial | Medium |
+| ATC-07 | Excessive Autonomous Agency | LLM08 | - | AI-001 | Implemented | Medium |
+| ATC-08 | Overreliance on AI Outputs | LLM09 | - | AI-001, AI-002 | Partial | Medium |
 | ATC-09 | Unbounded Resource Consumption | LLM10 | AML.T0048 | AI-001, AI-002, AI-003 | Implemented | Low |
-| ATC-10 | AI-Enabled Lateral Movement | — | AML.T0040 | AI-001, AI-002 | Implemented | Medium |
+| ATC-10 | AI-Enabled Lateral Movement | - | AML.T0040 | AI-001, AI-002 | Implemented | Medium |
 
 ### 3.2 Detailed Threat Profiles
 
@@ -128,8 +210,8 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | **ISO 42001** | A.9 (Use of AI Systems) |
 | **Control Description** | System prompt hardening with explicit instruction boundaries and refusal directives; output sanitization before workflow action execution; rate limiting at gateway level; chat ID allowlist restricting interaction to authorized users; full prompt/response logging shipped to monitoring platform |
 | **Control Status** | **Implemented** |
-| **Residual Risk** | **Medium** — prompt injection is an inherent limitation of current LLM architectures; controls reduce impact but cannot eliminate the vector |
-| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → AI-R02; POLICY_AI_GOVERNANCE.md → AI-T02, Section 6.3 |
+| **Residual Risk** | **Medium** - prompt injection is an inherent limitation of current LLM architectures; controls reduce impact but cannot eliminate the vector |
+| **Risk Assessment Cross-Ref** | POLICY_AI_GOVERNANCE.md → AI-R02; POLICY_AI_GOVERNANCE.md → AI-T02, Section 6.3 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → T-01 (Tampering) |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 1, Nodes 1.1.1-1.1.3 |
 
@@ -139,16 +221,16 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 
 | Attribute | Detail |
 |-----------|--------|
-| **Description** | Malicious instructions embedded in external data sources (web pages, documents, API responses) are retrieved by AI-001 skills (Tavily search, browser, GitHub, Notion) and processed as part of the AI's context. Unlike direct injection, the attacker does not interact with the AI directly — they poison data the AI will consume. |
-| **OWASP LLM** | LLM01 (Prompt Injection — indirect variant) |
+| **Description** | Malicious instructions embedded in external data sources (web pages, documents, API responses) are retrieved by AI-001 skills (Tavily search, browser, GitHub, Notion) and processed as part of the AI's context. Unlike direct injection, the attacker does not interact with the AI directly - they poison data the AI will consume. |
+| **OWASP LLM** | LLM01 (Prompt Injection - indirect variant) |
 | **MITRE ATLAS** | AML.T0043 (Adversarial Data Injection), AML.T0051 |
-| **Affected Systems** | AI-001 (svc-ai-gateway) — specifically when executing search, browser, or data retrieval skills |
+| **Affected Systems** | AI-001 (svc-ai-gateway) - specifically when executing search, browser, or data retrieval skills |
 | **NIST AI RMF** | MAP 3.5, MANAGE 3.2 |
 | **ISO 42001** | A.10 (Third-Party Relationships) |
 | **Control Description** | Data source validation within search skills (Partial); output sanitization before action execution (Implemented); skills execute in sandboxed context within svc-ai-gateway (Implemented); rate limiting bounds the volume of external data retrieval (Implemented) |
-| **Control Status** | **Partial** — no dedicated content inspection or injection detection on retrieved external data before it enters the AI context |
-| **Residual Risk** | **Medium** — indirect injection through retrieved content is harder to detect than direct injection; the AI treats fetched content as trusted context |
-| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → AI-R02; POLICY_AI_GOVERNANCE.md → AI-T02, Section 12 |
+| **Control Status** | **Partial** - no dedicated content inspection or injection detection on retrieved external data before it enters the AI context |
+| **Residual Risk** | **Medium** - indirect injection through retrieved content is harder to detect than direct injection; the AI treats fetched content as trusted context |
+| **Risk Assessment Cross-Ref** | POLICY_AI_GOVERNANCE.md → AI-R02; POLICY_AI_GOVERNANCE.md → AI-T02, Section 12 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → T-01 |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 1, Nodes 1.2.1-1.2.2 |
 
@@ -161,12 +243,12 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | **Description** | AI-generated outputs are passed directly to downstream systems (svc-automation workflows, Telegram message responses, database operations) without adequate validation. A hallucinated or injected output could contain malicious payloads (SQL injection, command injection, XSS) that are executed by the consuming system. |
 | **OWASP LLM** | LLM02 (Insecure Output Handling) |
 | **MITRE ATLAS** | AML.T0015 (Evade ML Model) |
-| **Affected Systems** | AI-001 (svc-ai-gateway), AI-002 (svc-llm) — outputs consumed by svc-automation |
+| **Affected Systems** | AI-001 (svc-ai-gateway), AI-002 (svc-llm) - outputs consumed by svc-automation |
 | **NIST AI RMF** | MEASURE 2.6, MANAGE 2.4 |
 | **ISO 42001** | A.9 (Use of AI Systems) |
-| **Control Description** | Output sanitization layer in svc-automation before action execution (Implemented); parameterized queries for database operations — AI output never used as raw SQL (Implemented); human approval gates for destructive workflow actions (Implemented); svc-automation input validation on workflow trigger payloads (Implemented) |
+| **Control Description** | Output sanitization layer in svc-automation before action execution (Implemented); parameterized queries for database operations - AI output never used as raw SQL (Implemented); human approval gates for destructive workflow actions (Implemented); svc-automation input validation on workflow trigger payloads (Implemented) |
 | **Control Status** | **Implemented** |
-| **Residual Risk** | **Medium** — sanitization handles known output patterns; novel output formats or encoding bypasses may evade validation |
+| **Residual Risk** | **Medium** - sanitization handles known output patterns; novel output formats or encoding bypasses may evade validation |
 | **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → R-04 (Webhook Exploitation); POLICY_AI_GOVERNANCE.md → Section 8 (Human Oversight) |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → T-01 (Tampering), E-02 (Elevation of Privilege) |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 1, Node 1.1.3 |
@@ -183,10 +265,10 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | **Affected Systems** | AI-001, AI-002, AI-003 |
 | **NIST AI RMF** | GOVERN 2.2, MANAGE 1.1 |
 | **ISO 42001** | A.10 (Third-Party Relationships), A.6 (AI System Lifecycle) |
-| **Control Description** | Trivy CVE scanning of all AI container images in CI/CD (Implemented); Cosign container image signing and verification (Implemented); SBOM generation for container dependencies (Implemented); Semgrep SAST scanning (Implemented); no automatic model updates — manual pull required (Implemented); model weight checksum verification against published hashes (Partial — manual process); Anthropic vendor risk assessment reviewed annually (Implemented) |
-| **Control Status** | **Partial** — automated model behavioral regression testing and automated integrity verification pipeline not deployed |
-| **Residual Risk** | **Medium** — CI/CD pipeline catches known vulnerabilities, but novel supply chain attacks or backdoored models that pass scanning are not detectable without behavioral testing |
-| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → R-03 (Supply Chain), AI-R03, AI-R08; POLICY_AI_GOVERNANCE.md → AI-T06, Section 11 |
+| **Control Description** | Trivy CVE scanning of all AI container images in CI/CD (Implemented); Cosign container image signing and verification (Implemented); SBOM generation for container dependencies (Implemented); Semgrep SAST scanning (Implemented); no automatic model updates - manual pull required (Implemented); model weight checksum verification against published hashes (Partial - manual process); Anthropic vendor risk assessment reviewed annually (Implemented) |
+| **Control Status** | **Partial** - automated model behavioral regression testing and automated integrity verification pipeline not deployed |
+| **Residual Risk** | **Medium** - CI/CD pipeline catches known vulnerabilities, but novel supply chain attacks or backdoored models that pass scanning are not detectable without behavioral testing |
+| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → R-03 (Supply Chain); POLICY_AI_GOVERNANCE.md → AI-R03, AI-R08; POLICY_AI_GOVERNANCE.md → AI-T06, Section 11 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → T-02 (Tampering), T-05 |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 2, all nodes |
 
@@ -198,14 +280,14 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 |-----------|--------|
 | **Description** | The AI system discloses sensitive information through multiple vectors: (1) PII transmitted in prompts to the external Anthropic API, (2) system prompt contents revealed to users via extraction techniques, (3) operational context (service names, architecture details, credential references) leaked in AI responses, (4) training data memorization reproduced in outputs. |
 | **OWASP LLM** | LLM06 (Sensitive Information Disclosure) |
-| **MITRE ATLAS** | — (mapped as data exfiltration rather than adversarial ML) |
-| **Affected Systems** | AI-001 (svc-ai-gateway) — primary risk due to external API data flow |
+| **MITRE ATLAS** | - (mapped as data exfiltration rather than adversarial ML) |
+| **Affected Systems** | AI-001 (svc-ai-gateway) - primary risk due to external API data flow |
 | **NIST AI RMF** | MAP 1.5, GOVERN 1.1 |
 | **ISO 42001** | A.8 (Information for Interested Parties) |
 | **Control Description** | Policy prohibiting credential and secret injection into AI prompts (Implemented); system prompt stored server-side with extraction resistance instructions (Implemented); PII-aware logging that redacts sensitive fields (Partial); Anthropic data processing agreement with retention terms reviewed (Implemented); chat ID allowlist restricts who can receive AI responses (Implemented); prompt sanitization rules for known sensitive patterns (Implemented) |
-| **Control Status** | **Partial** — automated PII detection and scrubbing of prompts before external API transmission not deployed; relies on policy and manual sanitization rules |
-| **Residual Risk** | **Medium** — known sensitive patterns are caught, but novel PII exposure paths through user-provided content may bypass static rules |
-| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → AI-R04; POLICY_AI_GOVERNANCE.md → AI-T07, AI-T10, Section 9 |
+| **Control Status** | **Partial** - automated PII detection and scrubbing of prompts before external API transmission not deployed; relies on policy and manual sanitization rules |
+| **Residual Risk** | **Medium** - known sensitive patterns are caught, but novel PII exposure paths through user-provided content may bypass static rules |
+| **Risk Assessment Cross-Ref** | POLICY_AI_GOVERNANCE.md → AI-R04; POLICY_AI_GOVERNANCE.md → AI-T07, AI-T10, Section 9 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → I-01, I-03 (Information Disclosure) |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 1, Nodes 1.3.1-1.3.2; Path 3 |
 
@@ -218,12 +300,12 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | **Description** | The AI agent (AI-001) has access to skills that interact with external services (Tavily search, browser, GitHub, Notion, Gemini). Insecure skill design could allow: (1) SSRF through the browser skill, (2) credential leakage through skill parameters, (3) excessive permission scope granting skills more access than needed, (4) skill output injection into the AI context. |
 | **OWASP LLM** | LLM07 (Insecure Plugin Design) |
 | **MITRE ATLAS** | AML.T0040 (ML-Enabled Lateral Movement) |
-| **Affected Systems** | AI-001 (svc-ai-gateway) — skill execution context |
+| **Affected Systems** | AI-001 (svc-ai-gateway) - skill execution context |
 | **NIST AI RMF** | MANAGE 2.1, GOVERN 2.2 |
 | **ISO 42001** | A.10 (Third-Party Relationships) |
 | **Control Description** | Skills execute within svc-ai-gateway container sandbox (Implemented); skill permissions scoped to specific API capabilities (Implemented); skill outputs treated as untrusted input to the AI context (Implemented); rate limiting on skill invocations (Implemented); Falco monitoring of unexpected network connections from svc-ai-gateway (Implemented) |
 | **Control Status** | **Implemented** |
-| **Residual Risk** | **Low** — skills are bounded within the container sandbox; network egress is monitored; permission scoping limits blast radius |
+| **Residual Risk** | **Low** - skills are bounded within the container sandbox; network egress is monitored; permission scoping limits blast radius |
 | **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → R-04; POLICY_AI_GOVERNANCE.md → Section 12 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → E-04 (Elevation of Privilege) |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 4 |
@@ -234,16 +316,16 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 
 | Attribute | Detail |
 |-----------|--------|
-| **Description** | The AI agent, through its integration with svc-automation, has access to 16+ service integrations (PostgreSQL, Telegram, GitHub, Google Drive, Google Sheets, Cloudflare, Notion, Gmail, and others). If the AI misinterprets a user request, hallucinates an action plan, or is manipulated via prompt injection, it could execute a chain of consequential actions without adequate human review — including data modifications, message sending, or infrastructure changes. |
+| **Description** | The AI agent, through its integration with svc-automation, has access to 16+ service integrations (PostgreSQL, Telegram, GitHub, Google Drive, Google Sheets, Cloudflare, Notion, Gmail, and others). If the AI misinterprets a user request, hallucinates an action plan, or is manipulated via prompt injection, it could execute a chain of consequential actions without adequate human review - including data modifications, message sending, or infrastructure changes. |
 | **OWASP LLM** | LLM08 (Excessive Agency) |
-| **MITRE ATLAS** | — (organizational risk rather than adversarial ML technique) |
+| **MITRE ATLAS** | - (organizational risk rather than adversarial ML technique) |
 | **Affected Systems** | AI-001 (svc-ai-gateway) → svc-automation → all integrated downstream services |
 | **NIST AI RMF** | GOVERN 1.2, MANAGE 2.4 |
 | **ISO 42001** | A.9 (Use of AI Systems) |
 | **Control Description** | Human approval gates in svc-automation for destructive/irreversible actions (Implemented); action allowlist restricting which workflow endpoints the AI can trigger (Implemented); no AI access to credential rotation, container lifecycle, or infrastructure-modifying operations (Implemented); audit logging of all AI-initiated actions with full prompt/response trail (Implemented); rate limiting bounds the volume of actions per time window (Implemented) |
 | **Control Status** | **Implemented** |
-| **Residual Risk** | **Medium** — destructive actions are gated, but the breadth of permitted non-destructive actions (database reads, messaging, API calls, document creation) represents a meaningful surface; accumulated non-destructive actions could still cause operational impact |
-| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → AI-R05; POLICY_AI_GOVERNANCE.md → AI-T09, Section 8 |
+| **Residual Risk** | **Medium** - destructive actions are gated, but the breadth of permitted non-destructive actions (database reads, messaging, API calls, document creation) represents a meaningful surface; accumulated non-destructive actions could still cause operational impact |
+| **Risk Assessment Cross-Ref** | POLICY_AI_GOVERNANCE.md → AI-R05; POLICY_AI_GOVERNANCE.md → AI-T09, Section 8 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → E-02 (Elevation of Privilege) |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 1, Node 1.1.3 |
 
@@ -255,15 +337,15 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 |-----------|--------|
 | **Description** | The operator develops excessive trust in AI-generated outputs, reducing manual verification and critical review. This is particularly dangerous for: (1) AI-002 outputs, which have a higher hallucination rate due to the smaller model, (2) AI-001 outputs for security-related decisions (vulnerability assessment, compliance checks, configuration recommendations), and (3) routine tasks where fatigue may reduce review diligence. |
 | **OWASP LLM** | LLM09 (Overreliance) |
-| **MITRE ATLAS** | — (human factor, not adversarial ML) |
+| **MITRE ATLAS** | - (human factor, not adversarial ML) |
 | **Affected Systems** | AI-001 (svc-ai-gateway), AI-002 (svc-llm) |
 | **NIST AI RMF** | MAP 2.1, MAP 2.3, MEASURE 2.1 |
 | **ISO 42001** | A.8 (Information for Interested Parties), A.9 (Use of AI Systems) |
 | **Control Description** | AI outputs flagged with uncertainty disclaimers where model confidence is low (Partial); AI Governance Policy (POL-AI-001) documents known limitations for each AI system (Implemented); svc-automation workflows include validation checkpoints before consequential actions (Implemented); AI-002 restricted to non-critical tasks (classification, summarization) where hallucination impact is bounded (Implemented) |
-| **Control Status** | **Partial** — no automated output confidence scoring or mandatory verification workflow for high-stakes AI outputs |
-| **Residual Risk** | **Medium** — single-operator environment means no second pair of eyes; procedural controls depend on operator discipline |
-| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → AI-R01, AI-R06; POLICY_AI_GOVERNANCE.md → AI-T01, Section 8.2 |
-| **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → R-01 (Repudiation — unattributed AI actions) |
+| **Control Status** | **Partial** - no automated output confidence scoring or mandatory verification workflow for high-stakes AI outputs |
+| **Residual Risk** | **Medium** - single-operator environment means no second pair of eyes; procedural controls depend on operator discipline |
+| **Risk Assessment Cross-Ref** | POLICY_AI_GOVERNANCE.md → AI-R01, AI-R06; POLICY_AI_GOVERNANCE.md → AI-T01, Section 8.2 |
+| **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → R-01 (Repudiation - unattributed AI actions) |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → N/A (human factor, not attack path) |
 
 ---
@@ -278,10 +360,10 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | **Affected Systems** | AI-001, AI-002, AI-003 |
 | **NIST AI RMF** | MANAGE 3.2 |
 | **ISO 42001** | A.4 (Resources for AI Systems) |
-| **Control Description** | Rate limiting at svc-ai-gateway (Implemented); Anthropic API budget caps (Implemented); chat ID allowlist restricts external access (Implemented); Docker container resource limits — CPU shares and memory caps (Partial — not uniformly enforced); Datadog resource monitoring with alerting on CPU/memory thresholds (Implemented); container restart policies prevent permanent resource lockup (Implemented) |
+| **Control Description** | Rate limiting at svc-ai-gateway (Implemented); Anthropic API budget caps (Implemented); chat ID allowlist restricts external access (Implemented); Docker container resource limits - CPU shares and memory caps (Partial - not uniformly enforced); Datadog resource monitoring with alerting on CPU/memory thresholds (Implemented); container restart policies prevent permanent resource lockup (Implemented) |
 | **Control Status** | **Implemented** |
-| **Residual Risk** | **Low** — access restrictions and rate limiting effectively bound consumption; resource monitoring provides early warning |
-| **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → AI-R09; POLICY_AI_GOVERNANCE.md → AI-T08, Section 12 |
+| **Residual Risk** | **Low** - access restrictions and rate limiting effectively bound consumption; resource monitoring provides early warning |
+| **Risk Assessment Cross-Ref** | POLICY_AI_GOVERNANCE.md → AI-R09; POLICY_AI_GOVERNANCE.md → AI-T08, Section 12 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → D-02 (Denial of Service), D-03 |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → N/A (covered as DoS branch in all paths) |
 
@@ -292,14 +374,14 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | Attribute | Detail |
 |-----------|--------|
 | **Description** | An attacker who has compromised an AI container uses its network position and credentials to pivot to other services within the architecture. AI containers are uniquely positioned for lateral movement because: (1) svc-ai-gateway (DMZ) has connectivity to svc-automation and may reach svc-db via net-core, (2) svc-llm (Internal) is on net-ai but may also have net-core access for workflow integration, (3) AI containers may contain environment variables with database credentials or API tokens. |
-| **OWASP LLM** | — (infrastructure-level threat, not LLM-specific) |
+| **OWASP LLM** | - (infrastructure-level threat, not LLM-specific) |
 | **MITRE ATLAS** | AML.T0040 (ML-Enabled Lateral Movement) |
 | **Affected Systems** | AI-001 (svc-ai-gateway), AI-002 (svc-llm) |
 | **NIST AI RMF** | MANAGE 3.2, MEASURE 2.6 |
 | **ISO 42001** | A.6 (AI System Lifecycle) |
 | **Control Description** | Docker network segmentation: net-core, net-ai, net-monitoring (Implemented); svc-llm has no internet egress via net-ai configuration (Implemented); svc-secrets requires token-based authentication (Implemented); no-new-privileges on AI containers (Implemented); Falco eBPF detection of unexpected network connections and shell spawns (Implemented); Docker socket NOT mounted in any container (Implemented) |
 | **Control Status** | **Implemented** |
-| **Residual Risk** | **Medium** — network segmentation provides meaningful isolation, but net-core connectivity is broader than ideal; a compromised container on net-core with harvested credentials could authenticate to co-resident services |
+| **Residual Risk** | **Medium** - network segmentation provides meaningful isolation, but net-core connectivity is broader than ideal; a compromised container on net-core with harvested credentials could authenticate to co-resident services |
 | **Risk Assessment Cross-Ref** | RISK_ASSESSMENT.md → R-08 (Privilege Escalation); POLICY_AI_GOVERNANCE.md → Section 12 |
 | **STRIDE Cross-Ref** | THREAT_MODEL_STRIDE.md → E-04 (Elevation of Privilege) |
 | **Attack Tree Cross-Ref** | ATTACK_TREE_AI_PIPELINE.md → Path 4, all nodes |
@@ -314,16 +396,16 @@ The following matrix documents which monitoring and detection systems can identi
 
 | Threat ID | Falco (eBPF) | Datadog Monitoring | svc-automation Logs | AI Gateway Logs | CI/CD Pipeline | Manual Review |
 |-----------|:------------:|:-----------------:|:------------------:|:---------------:|:--------------:|:-------------:|
-| ATC-01 (Direct Injection) | Low | Low | Medium | **High** | — | High |
-| ATC-02 (Indirect Injection) | Low | Low | Medium | Medium | — | Low |
-| ATC-03 (Insecure Output) | Medium | Low | **High** | Medium | — | Medium |
-| ATC-04 (Supply Chain) | — | — | — | — | **High** | Medium |
-| ATC-05 (Info Disclosure) | Low | Medium | Medium | **High** | — | Medium |
-| ATC-06 (Insecure Skills) | **High** | Medium | Medium | Medium | — | Low |
-| ATC-07 (Excessive Agency) | Medium | Medium | **High** | High | — | High |
-| ATC-08 (Overreliance) | — | — | Low | Low | — | **High** |
-| ATC-09 (Resource Exhaustion) | Medium | **High** | Medium | Medium | — | Low |
-| ATC-10 (Lateral Movement) | **High** | Medium | — | Low | — | Low |
+| ATC-01 (Direct Injection) | Low | Low | Medium | **High** | - | High |
+| ATC-02 (Indirect Injection) | Low | Low | Medium | Medium | - | Low |
+| ATC-03 (Insecure Output) | Medium | Low | **High** | Medium | - | Medium |
+| ATC-04 (Supply Chain) | - | - | - | - | **High** | Medium |
+| ATC-05 (Info Disclosure) | Low | Medium | Medium | **High** | - | Medium |
+| ATC-06 (Insecure Skills) | **High** | Medium | Medium | Medium | - | Low |
+| ATC-07 (Excessive Agency) | Medium | Medium | **High** | High | - | High |
+| ATC-08 (Overreliance) | - | - | Low | Low | - | **High** |
+| ATC-09 (Resource Exhaustion) | Medium | **High** | Medium | Medium | - | Low |
+| ATC-10 (Lateral Movement) | **High** | Medium | - | Low | - | Low |
 
 ### 4.2 Detection Descriptions
 
@@ -360,8 +442,8 @@ The following matrix documents which monitoring and detection systems can identi
 |--------|-------|---------|------------|
 | **Implemented** | 5 | ATC-01, ATC-03, ATC-06, ATC-09, ATC-10 | 50% |
 | **Partial** | 4 | ATC-02, ATC-04, ATC-05, ATC-08 | 40% |
-| **Planned** | 1 | — (no threat has zero controls) | — |
-| **Not Applicable** | 0 | — | — |
+| **Planned** | 1 | - (no threat has zero controls) | - |
+| **Not Applicable** | 0 | - | - |
 
 *Note: 50% Implemented means primary controls are in place and functional. The 40% Partial status indicates that foundational controls exist but one or more planned enhancements (typically automated detection or validation) are not yet deployed.*
 
@@ -369,7 +451,7 @@ The following matrix documents which monitoring and detection systems can identi
 
 | Residual Risk | Count | Threats |
 |---------------|-------|---------|
-| **High** | 0 | — |
+| **High** | 0 | - |
 | **Medium** | 8 | ATC-01, ATC-02, ATC-03, ATC-04, ATC-05, ATC-07, ATC-08, ATC-10 |
 | **Low** | 2 | ATC-06, ATC-09 |
 
@@ -380,7 +462,7 @@ The following matrix documents which monitoring and detection systems can identi
 | 1 | ATC-05 | DG-03, DG-05 | Deploy PII scanner and log scrubbing rules | MANAGE 1.1 | 2026-06-12 | Information Security Officer |
 | 2 | ATC-01, ATC-02 | DG-01 | Implement prompt firewall at svc-ai-gateway | MANAGE 3.2 | 2026-06-12 | Information Security Officer |
 | 3 | ATC-04 | DG-02 | Automate model integrity verification with behavioral baselines | MEASURE 2.1 | 2026-09-12 | Information Security Officer |
-| 4 | ATC-07 | — | Implement tiered action authorization with per-session budgets | GOVERN 1.2 | 2026-09-12 | Information Security Officer |
+| 4 | ATC-07 | - | Implement tiered action authorization with per-session budgets | GOVERN 1.2 | 2026-09-12 | Information Security Officer |
 | 5 | ATC-08 | DG-04 | Deploy automated output confidence scoring and verification triggers | MEASURE 2.6 | 2026-09-12 | Information Security Officer |
 
 ---
@@ -398,7 +480,7 @@ The following matrix documents which monitoring and detection systems can identi
 | ATC-05 | AI-R04 | AI-T07, AI-T10, Sec. 9 | SC-28, SI-12, PM-25 | I-01, I-03 | Path 1 (1.3.x), Path 3 |
 | ATC-06 | R-04 | Sec. 12 | SC-7, AC-4 | E-04 | Path 4 |
 | ATC-07 | AI-R05 | AI-T09, Sec. 8 | AC-6, CM-7, SI-10 | E-02 | Path 1, 1.1.3 |
-| ATC-08 | AI-R01, AI-R06 | AI-T01, Sec. 8.2 | — | R-01 | N/A |
+| ATC-08 | AI-R01, AI-R06 | AI-T01, Sec. 8.2 | - | R-01 | N/A |
 | ATC-09 | AI-R09 | AI-T08, Sec. 12 | SC-5, SC-6 | D-02, D-03 | N/A |
 | ATC-10 | R-08 | Sec. 12 | SC-7, AC-4, SI-4 | E-04 | Path 4, all |
 
@@ -437,11 +519,11 @@ The following matrix documents which monitoring and detection systems can identi
 |----------|-------------|
 | [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md) | STRIDE decomposition mapping to this catalog's threats |
 | [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack path decomposition for AI pipeline compromise |
-| [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Quantitative risk register (R-01 through R-17, AI-R01 through AI-R10) |
+| [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk register (AI-R01 through AI-R10)) |
 | [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI governance framework, risk tolerance, lifecycle management |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | NIST 800-53 control implementations |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Remediation tracking for identified gaps |
-| [PLAYBOOK_AI_INCIDENT.md](PLAYBOOK_AI_INCIDENT.md) | **AI-specific IR playbook** — prompt injection, excessive agency, data exfiltration, model supply chain |
+| [PLAYBOOK_AI_INCIDENT.md](PLAYBOOK_AI_INCIDENT.md) | **AI-specific IR playbook** - prompt injection, excessive agency, data exfiltration, model supply chain |
 | [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md) | Container compromise response procedures |
 | [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md) | Credential exposure response procedures |
 | [PLAYBOOK_UNAUTHORIZED_ACCESS.md](PLAYBOOK_UNAUTHORIZED_ACCESS.md) | Unauthorized access investigation procedures |
