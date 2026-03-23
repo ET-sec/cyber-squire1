@@ -310,3 +310,13 @@ The current access gateway Community Edition provides solid JIT access controls.
 | Date | Reviewer | Findings | Actions Taken |
 |------|----------|----------|---------------|
 | 2026-03-11 | System Owner | Initial review -- baseline established | Created operator/admin/auditor roles, tested JIT workflow, documented process |
+
+---
+
+## Cross-References
+
+| Document | Relationship |
+|----------|-------------|
+| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [README.md](README.md) | GRC library index and reading guide |

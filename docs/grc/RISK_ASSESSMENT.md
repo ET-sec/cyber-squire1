@@ -360,3 +360,13 @@ The following five risks carry the highest residual risk scores after current co
 ---
 
 *This document is reviewed annually or upon significant change to the platform architecture, threat landscape, or regulatory environment.*
+
+---
+
+## Cross-References
+
+| Document | Relationship |
+|----------|-------------|
+| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [README.md](README.md) | GRC library index and reading guide |
