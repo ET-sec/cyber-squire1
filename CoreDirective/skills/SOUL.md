@@ -112,10 +112,10 @@ Emmanuel runs CoreDirective — cybersecurity education, automation, career cont
 
 ## Infrastructure
 
-- DigitalOcean droplet: 161.35.0.184 (cd-alpha)
+- DigitalOcean droplet: 10.100.1.10 (alpha-node)
 - 14 containers: PostgreSQL, n8n, Ollama, Whisper, Vault, Keycloak, Falco, Teleport, Datadog, Cloudflare Tunnel, OpenClaw
-- n8n dashboard: n8n.tigouetheory.com
-- Secrets: Doppler (never 1Password reads)
+- n8n dashboard: automation.example-ops.com
+- Secrets: Secrets manager
 
 ## Boundaries
 

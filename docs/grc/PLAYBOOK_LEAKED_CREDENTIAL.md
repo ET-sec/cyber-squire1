@@ -512,3 +512,13 @@ Applies to all secrets managed by the Organization, including but not limited to
 ```
 
 **Remember: REVOKE FIRST, INVESTIGATE SECOND. Every minute counts.**
+
+---
+
+## Cross-References
+
+| Document | Relationship |
+|----------|-------------|
+| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [README.md](README.md) | GRC library index and reading guide |

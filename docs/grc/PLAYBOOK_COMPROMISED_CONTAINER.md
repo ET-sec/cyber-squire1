@@ -557,3 +557,13 @@ Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
 8. VERIFY: Healthchecks, monitoring, detection coverage
 9. REPORT: Incident timeline + post-incident report within 72h
 ```
+
+---
+
+## Cross-References
+
+| Document | Relationship |
+|----------|-------------|
+| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [README.md](README.md) | GRC library index and reading guide |

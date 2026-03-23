@@ -15,18 +15,18 @@ Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 
 | Container | Service |
 |-----------|---------|
-| cd-service-db | PostgreSQL 16 |
-| cd-service-n8n | n8n SOAR orchestrator |
-| cd-service-datadog | Datadog Agent (logs, metrics, monitors) |
-| cd-service-falco | Falco eBPF runtime detection |
-| cd-service-falcosidekick | Alert router (Falco to Datadog) |
-| cd-service-vault | HashiCorp Vault (secrets management) |
-| cd-service-keycloak | Keycloak v26 (RBAC, SSO) |
-| cd-service-ollama | Ollama (local LLM inference) |
-| cd-service-whisper | Faster-Whisper (speech-to-text) |
-| cd-service-teleport | Teleport v18 (PAM, JIT access, session recording) |
-| cd-service-event-handler | Teleport audit log shipper |
-| cd-service-fluentd | Fluentd (audit logs to Datadog) |
+| svc-db | PostgreSQL 16 |
+| svc-n8n | n8n SOAR orchestrator |
+| svc-datadog | Datadog Agent (logs, metrics, monitors) |
+| svc-falco | Falco eBPF runtime detection |
+| svc-falcosidekick | Alert router (Falco to Datadog) |
+| svc-vault | HashiCorp Vault (secrets management) |
+| svc-keycloak | Keycloak v26 (RBAC, SSO) |
+| svc-ollama | Ollama (local LLM inference) |
+| svc-whisper | Faster-Whisper (speech-to-text) |
+| svc-teleport | Teleport v18 (PAM, JIT access, session recording) |
+| svc-event-handler | Teleport audit log shipper |
+| svc-fluentd | Fluentd (audit logs to Datadog) |
 | tunnel-cyber-squire | Cloudflare Tunnel (zero exposed ports) |
 | openclaw-gateway | OpenClaw (Claude Opus 4.6 proxy) |
 
@@ -60,7 +60,7 @@ Diagram generators in `docs/grc/diagrams/`.
 
 ## Monitoring & Security
 
-- **Datadog:** Logs, metrics, 11 monitors (us5.datadoghq.com)
+- **Datadog:** Logs, metrics, 11 monitors (datadoghq.com)
 - **Falco:** eBPF runtime threat detection with custom rules
 - **Falcosidekick:** Routes Falco alerts to Datadog
 - **Teleport:** SSH certificate auth, session recording, JIT access roles
@@ -69,7 +69,7 @@ Diagram generators in `docs/grc/diagrams/`.
 ## Naming Conventions
 
 ```
-Container prefixes:  cd-service-*
+Container prefixes:  svc-*
 Network:             cd-automation-net
 Volumes:             CD_VOL_* (on droplet)
 Environment vars:    CD_* (e.g., CD_DB_PASS, CD_N8N_KEY)
