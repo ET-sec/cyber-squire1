@@ -139,7 +139,7 @@ The Organization implements a three-tier RBAC model enforced across two identity
 
 1. Role changes require documented approval from the Information Security Officer
 2. Temporary role elevation follows the JIT procedure defined in Section 7
-3. All role changes are logged in `svc-identity` admin events and forwarded to the Datadog
+3. All role changes are logged in `svc-identity` admin events and forwarded to Datadog
 4. Changes to authentication mechanisms (password reset, MFA re-enrollment) require identity verification
 
 ### 5.3 Account Suspension
@@ -235,7 +235,7 @@ Administrative access is never permanently assigned. The operator role includes 
 | Time-bound | Admin role auto-expires after 4 hours |
 | Reason required | `--reason` parameter is mandatory for all requests |
 | Full recording | All SSH sessions during escalation are recorded with terminal I/O capture |
-| Audit trail | Request, approval, session, and expiry events are forwarded to the Datadog |
+| Audit trail | Request, approval, session, and expiry events are forwarded to Datadog |
 | No self-approval | In multi-operator deployments, the requestor cannot approve their own request |
 | No agent forwarding | `forward_agent: false` on all custom roles prevents SSH agent forwarding |
 
@@ -288,12 +288,12 @@ Active sessions are subject to the following monitoring controls:
 
 ### 9.1 Zero-Trust Network Access
 
-All remote access to Organization infrastructure transits through a zero-trust tunnel (`svc-tunnel`) provided by the Cloudflare. The following principles govern remote access:
+All remote access to Organization infrastructure transits through a zero-trust tunnel (`svc-tunnel`) provided by Cloudflare. The following principles govern remote access:
 
-1. **No direct public access:** The compute node (`alpha-node`) has no publicly exposed ports. All ingress flows through the Cloudflare's tunnel.
+1. **No direct public access:** The compute node (`alpha-node`) has no publicly exposed ports. All ingress flows through Cloudflare's tunnel.
 2. **Application-layer routing:** The tunnel routes specific hostnames to specific internal services. Only pre-configured routes are permitted.
-3. **Transport encryption:** All traffic through the tunnel is encrypted end-to-end between the Cloudflare's network and the local tunnel agent.
-4. **Authentication at the edge:** The Cloudflare enforces access policies before traffic reaches the tunnel.
+3. **Transport encryption:** All traffic through the tunnel is encrypted end-to-end between Cloudflare's network and the local tunnel agent.
+4. **Authentication at the edge:** Cloudflare enforces access policies before traffic reaches the tunnel.
 
 ### 9.2 SSH Access Architecture
 
@@ -323,7 +323,7 @@ alpha-node (SSH session with role-appropriate login)
 | Service | Access URL | Authentication | Transport |
 |---------|-----------|----------------|-----------|
 | `svc-automation` | `https://automation.example-ops.com` | Username/password | Cloudflare tunnel (HTTPS) |
-| `svc-identity` | Container-internal (port 8080) | Admin credentials | No external exposure; accessed via SSH tunnel only |
+| `svc-identity` | Container-internal (internal identity port) | Admin credentials | No external exposure; accessed via SSH tunnel only |
 | Datadog | `https://monitoring.example-ops.com` (external SaaS) | Platform-native SSO + MFA | Direct HTTPS |
 
 ---

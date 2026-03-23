@@ -12,7 +12,7 @@ TEXT = '#ffffff'
 GREEN = '#00FF41'
 FONT = 'JetBrains Mono'
 DPI = 300
-OUT = '/Users/et/cyber-squire-ops/docs/grc/diagrams/control_coverage.png'
+OUT = './diagrams/control_coverage.png'
 
 plt.rcParams.update({
     'font.family': FONT,
@@ -93,7 +93,7 @@ ax.set_yticks(y)
 ax.set_yticklabels(families, fontsize=10, fontweight='bold')
 ax.invert_yaxis()
 ax.set_xlabel('Number of Controls', fontsize=11, fontweight='bold', labelpad=10)
-ax.set_title('NIST 800-53 Control Implementation by Family\n16 Control Families — Organization Security Stack',
+ax.set_title('NIST 800-53 Control Implementation by Family\n16 Control Families - Organization Security Stack',
              fontsize=13, fontweight='bold', pad=20, color=TEXT)
 
 # Spines

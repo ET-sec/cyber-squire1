@@ -9,6 +9,27 @@
 
 ---
 
+### POA&M Dashboard
+
+```
+POA&M Status Distribution (27 entries)
+┌─────────────────────────────────────────────────────────────┐
+│ ████████████████████████████████████████████████  Accepted   │  15  (55%)
+│ ██████████████████████████████████████           Open        │  11  (41%)
+│ ███                                              Closed      │   1  ( 4%)
+└─────────────────────────────────────────────────────────────┘
+
+Source Distribution (27 entries)
+┌──────────────────────────┬──────────────────────────────────┐
+│ CIS Docker Bench         │ ████████████████████████████████ │  19 entries
+│ Risk Assessment          │ ████████                         │   5 entries
+│ Checkov IaC              │ ███                              │   2 entries
+│ Falco Runtime            │ ██                               │   1 entry
+└──────────────────────────┴──────────────────────────────────┘
+```
+
+---
+
 ## 1. Executive Summary
 
 This Plan of Action and Milestones (POA&M) consolidates security findings from three assessment sources across the Organization security operations platform hosted on a DigitalOcean VPS (`alpha-node`, `10.100.1.10`). Findings are tracked through remediation or formal risk acceptance with documented compensating controls.
@@ -149,7 +170,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Risk Level** | Low |
 | **NIST 800-53 Control** | AU-2 (Event Logging), AU-12 (Audit Record Generation), SC-4 (Information in Shared System Resources) |
 | **Affected Components** | `alpha-node` host OS |
-| **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring of all processes including the Docker daemon -- covering the same detection surface as `auditd` with lower overhead on the 8GB memory-constrained host. svc-detection events route to the Datadog via svc-detection-router. Disk usage monitored with alerts at 80% threshold. Log rotation configured on all containers (10MB x 3 files). |
+| **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring of all processes including the Docker daemon -- covering the same detection surface as `auditd` with lower overhead on the 8GB memory-constrained host. svc-detection events route to Datadog via svc-detection-router. Disk usage monitored with alerts at 80% threshold. Log rotation configured on all containers (10MB x 3 files). |
 | **Remediation Plan** | Evaluate adding targeted `auditd` rules for Docker paths if memory headroom increases (upgrade to 16GB VPS). Separate partition requires data migration and downtime -- not justified at current utilization (<30%). |
 | **Milestone** | 2026-06-09 -- Re-evaluate if host is upgraded to 16GB |
 | **Status** | Accepted Risk |
@@ -252,7 +273,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **NIST 800-53 Control** | SC-7 (Boundary Protection), SC-39 (Process Isolation) |
 | **Affected Components** | svc-tunnel |
 | **Compensating Controls** | Read-only root filesystem. `no-new-privileges` set. Resource limits applied. Falco monitors all network connections. Tunnel only routes pre-configured hostnames to specific localhost ports. |
-| **Remediation Plan** | No action. Zero-trust tunnel requires host networking to forward traffic to localhost-bound services (svc-automation on :5678, SSH on :22). |
+| **Remediation Plan** | No action. Zero-trust tunnel requires host networking to forward traffic to localhost-bound services (svc-automation on , SSH on :22). |
 | **Milestone** | Accepted Risk -- permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
@@ -404,13 +425,13 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Risk Level** | Informational |
 | **NIST 800-53 Control** | SI-4 (System Monitoring), IR-4 (Incident Handling) |
 | **Affected Components** | All containers on `alpha-node` |
-| **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring. 8 custom rules monitor sensitive file access, process execution, network connections, and capability usage per container. Events route to the Datadog via svc-detection-router for alerting and correlation. |
+| **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring. 8 custom rules monitor sensitive file access, process execution, network connections, and capability usage per container. Events route to Datadog via svc-detection-router for alerting and correlation. |
 | **Remediation Plan** | Continue monitoring. Tune rules quarterly based on false positive analysis. Expand rule coverage as new services are added. |
 | **Milestone** | 2026-06-09 -- First quarterly rule review |
 | **Status** | Closed (baseline established, monitoring active) |
 | **Responsible Party** | Platform Administrator |
 
-### Source 4: Risk Assessment — Mitigate Treatment Items (5 Findings)
+### Source 4: Risk Assessment - Mitigate Treatment Items (5 Findings)
 
 Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment require POA&M entries with specific remediation actions.
 
@@ -419,13 +440,13 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **POA&M ID** | POAM-023 |
 | **Finding Source** | Risk Assessment (RA-2026-001) |
 | **Finding ID** | R-10 |
-| **Description** | Accidental Secret Exposure — secrets injected as environment variables are accessible to any process inside a container. A debug command, misconfigured log level, or core dump could expose credentials to logs or monitoring streams. Highest residual risk in the assessment (score: 10, Moderate). |
+| **Description** | Accidental Secret Exposure - secrets injected as environment variables are accessible to any process inside a container. A debug command, misconfigured log level, or core dump could expose credentials to logs or monitoring streams. Highest residual risk in the assessment (score: 10, Moderate). |
 | **Risk Level** | High (inherent: 15) / Medium (residual: 10) |
 | **NIST 800-53 Control** | SC-28 (Protection of Information at Rest), IA-5 (Authenticator Management) |
 | **Affected Components** | All containers with secrets in environment variables (svc-automation, svc-db, svc-identity, svc-secrets) |
 | **Current Controls** | External secrets manager (never hardcoded); Gitleaks in CI; log rotation (10MB x 3); .gitignore for sensitive files; env var validation (existence checks only) |
 | **Remediation Plan** | 1. Transition from env-var secrets to mounted tmpfs files. 2. Deploy log scrubbing rules in Fluentd to redact patterns matching API keys and tokens. 3. Add automated secret scanning to container runtime logs. 4. Establish credential rotation runbook with 24-hour rotation SLA after suspected exposure. |
-| **Milestone** | 2026-05-11 — Implement tmpfs-mounted secrets for svc-automation and svc-db |
+| **Milestone** | 2026-05-11 - Implement tmpfs-mounted secrets for svc-automation and svc-db |
 | **Status** | Open |
 | **Responsible Party** | System Owner |
 
@@ -436,13 +457,13 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **POA&M ID** | POAM-024 |
 | **Finding Source** | Risk Assessment (RA-2026-001) |
 | **Finding ID** | R-04 |
-| **Description** | Webhook Exploitation — the automation platform accepts webhook payloads through the zero-trust tunnel. A crafted payload could exploit a deserialization or injection flaw to achieve remote code execution inside the automation container. |
+| **Description** | Webhook Exploitation - the automation platform accepts webhook payloads through the zero-trust tunnel. A crafted payload could exploit a deserialization or injection flaw to achieve remote code execution inside the automation container. |
 | **Risk Level** | Medium (inherent: 12) / Medium (residual: 8) |
 | **NIST 800-53 Control** | SI-10 (Information Input Validation), SC-7 (Boundary Protection) |
 | **Affected Components** | svc-automation, svc-tunnel |
 | **Current Controls** | Webhook authentication tokens; input validation in workflow logic; svc-detection monitors for shell spawns; no-new-privileges on container |
 | **Remediation Plan** | 1. Deploy webhook payload schema validation at the tunnel layer. 2. Add WAF rules at Cloudflare for webhook endpoints. 3. Restrict svc-automation network egress to required destinations only. 4. Implement webhook request signing with HMAC verification. |
-| **Milestone** | 2026-06-11 — Deploy webhook schema validation and egress allowlisting |
+| **Milestone** | 2026-06-11 - Deploy webhook schema validation and egress allowlisting |
 | **Status** | Open |
 | **Responsible Party** | System Owner |
 
@@ -453,13 +474,13 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **POA&M ID** | POAM-025 |
 | **Finding Source** | Risk Assessment (RA-2026-001) |
 | **Finding ID** | R-14 |
-| **Description** | Data Loss — database volumes and secrets engine data exist on a single VPS with no automated off-site replication. A simultaneous disk failure and backup corruption would result in permanent data loss. |
+| **Description** | Data Loss - database volumes and secrets engine data exist on a single VPS with no automated off-site replication. A simultaneous disk failure and backup corruption would result in permanent data loss. |
 | **Risk Level** | Medium (inherent: 10) / Medium (residual: 8) |
 | **NIST 800-53 Control** | CP-9 (System Backup), CP-6 (Alternate Storage Site) |
 | **Affected Components** | svc-db (db-data-volume), svc-secrets (secrets engine data), configuration files |
 | **Current Controls** | PostgreSQL backup scripts (local backup volume); secrets stored in external manager; IaC for config rebuild; no automated off-site replication |
 | **Remediation Plan** | 1. Implement automated daily database backups to encrypted object storage (off-VPS). 2. Add backup integrity verification (restore testing) on monthly schedule. 3. Document RPO/RTO targets. 4. Implement volume snapshot scheduling at DigitalOcean level. |
-| **Milestone** | 2026-05-11 — Automated off-site backup with integrity verification |
+| **Milestone** | 2026-05-11 - Automated off-site backup with integrity verification |
 | **Status** | Open |
 | **Responsible Party** | System Owner |
 
@@ -470,13 +491,13 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **POA&M ID** | POAM-026 |
 | **Finding Source** | Risk Assessment (RA-2026-001) |
 | **Finding ID** | R-12 |
-| **Description** | DigitalOcean Outage — all 13 services run on a single VPS in a single region. A prolonged regional outage would render the entire platform unavailable with no automatic failover. |
+| **Description** | DigitalOcean Outage - all 13 services run on a single VPS in a single region. A prolonged regional outage would render the entire platform unavailable with no automatic failover. |
 | **Risk Level** | Medium (inherent: 8) / Low (residual: 6) |
 | **NIST 800-53 Control** | CP-7 (Alternate Processing Site), CP-2 (Contingency Plan) |
 | **Affected Components** | All services on alpha-node |
 | **Current Controls** | Datadog alerts on host downtime; documented recovery procedures; IaC enables rapid redeployment |
 | **Remediation Plan** | 1. Document warm-standby deployment procedure for alternate region using IaC. 2. Pre-stage encrypted database backups in a second region. 3. Define and test RTO targets (current estimated RTO: 2-4 hours). |
-| **Milestone** | 2026-06-11 — Documented warm-standby procedure with tested RTO |
+| **Milestone** | 2026-06-11 - Documented warm-standby procedure with tested RTO |
 | **Status** | Open |
 | **Responsible Party** | System Owner |
 
@@ -487,13 +508,13 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **POA&M ID** | POAM-027 |
 | **Finding Source** | Risk Assessment (RA-2026-001) |
 | **Finding ID** | R-16 |
-| **Description** | POA&M Remediation Failure — CIS Docker Bench scan identified 96 WARN findings with 29 documented compensating controls. Drift from the remediation schedule erodes compliance posture. |
+| **Description** | POA&M Remediation Failure - CIS Docker Bench scan identified 96 WARN findings with 29 documented compensating controls. Drift from the remediation schedule erodes compliance posture. |
 | **Risk Level** | Medium (inherent: 9) / Low (residual: 6) |
 | **NIST 800-53 Control** | CA-5 (Plan of Action and Milestones), CA-7 (Continuous Monitoring) |
 | **Affected Components** | All POA&M items, compliance posture |
 | **Current Controls** | CIS Risk Register with documented compensating controls; 90-day review cycle; POA&M tracking |
 | **Remediation Plan** | 1. Automate CIS Docker Bench scans on weekly schedule with delta reporting. 2. Prioritize top 10 WARN findings by risk score. 3. Integrate POA&M tracking into automation platform with due-date alerts. 4. Conduct focused compensating control review every 90 days. |
-| **Milestone** | 2026-06-11 — Automated weekly CIS scans with delta reporting |
+| **Milestone** | 2026-06-11 - Automated weekly CIS scans with delta reporting |
 | **Status** | Open |
 | **Responsible Party** | System Owner |
 

@@ -11,13 +11,13 @@
 
 The CoreDirective Automation Engine is a production security operations platform deployed on a DigitalOcean droplet (4 vCPU, 8GB RAM, Ubuntu 24.04). It runs 14 containers providing SOAR orchestration, runtime threat detection, privileged access management, identity and access control, secrets management, and full observability -- all on a single node at $48/month.
 
-The platform is documented to NIST SP 800-53 Rev. 5 Moderate baseline with 86% control coverage (114 of 133 controls implemented or partially implemented), supported by a 31-document GRC compliance library.
+The platform is documented to NIST SP 800-53 Rev. 5 Moderate baseline with 86% control coverage (114 of 133 controls implemented or partially implemented), supported by a 37-document GRC compliance library.
 
 ### Key Differentiators
 
 - **Cost:** $48/month total infrastructure (vs. $400+ for equivalent managed services)
 - **Security depth:** Runtime threat detection (Falco eBPF), privileged access management (Teleport JIT), identity federation (Keycloak RBAC), secrets management (Vault)
-- **Compliance:** 31 GRC documents covering SSP, POA&M, risk assessment, 10 policies (including AI governance), 5 IR playbooks (including AI incident response), 6 threat modeling documents (DFD, STRIDE, attack tree, AI threat catalog, AI supply chain risk, AI red team plan), CIS risk register, 2 IAM documents, tabletop exercise, and 3 executive summaries
+- **Compliance:** 37 GRC documents covering SSP, POA&M, risk assessment, 10 policies (including AI governance), 5 IR playbooks (including AI incident response), 6 threat modeling documents (DFD, STRIDE, attack tree, AI threat catalog, AI supply chain risk, AI red team plan), CIS risk register, 2 IAM documents, tabletop exercise, and 3 executive summaries
 - **IaC maturity:** 16 Terraform files, 8 OPA/Rego policies, CI/CD with 6 security scans, pre-commit hooks
 
 ---
@@ -92,7 +92,7 @@ The platform is documented to NIST SP 800-53 Rev. 5 Moderate baseline with 86% c
 | Implemented or partially implemented | 114 (86%) |
 | Security categorization | FIPS 199 -- Moderate |
 
-### GRC Documentation Library (31 Documents)
+### GRC Documentation Library (37 Documents)
 
 | Category | Count | Documents |
 |----------|-------|-----------|

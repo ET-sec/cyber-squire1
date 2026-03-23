@@ -93,13 +93,13 @@ This policy applies to all changes affecting:
 
 All Normal Changes SHALL follow this process:
 
-### 5.1 Step 1 — Branch and Develop
+### 5.1 Step 1 - Branch and Develop
 
 1. Create a feature branch from `main` in the code repository
 2. Implement the change in the appropriate configuration files
 3. Commit with a descriptive message that references the change rationale
 
-### 5.2 Step 2 — Open Pull Request
+### 5.2 Step 2 - Open Pull Request
 
 1. Push the branch to the code repository platform
 2. Open a Pull Request (PR) with:
@@ -109,7 +109,7 @@ All Normal Changes SHALL follow this process:
   - **Rollback plan:** How to revert if the change causes issues
   - **Testing performed:** What local or pre-merge testing was done
 
-### 5.3 Step 3 — Automated Security Scanning (CI Gate)
+### 5.3 Step 3 - Automated Security Scanning (CI Gate)
 
 The PR pipeline SHALL automatically execute the following security gates. ALL gates must pass before merge is permitted.
 
@@ -135,7 +135,7 @@ The PR pipeline SHALL automatically execute the following security gates. ALL ga
 | SBOM Generation | `syft` or equivalent | Produce software bill of materials |
 | Policy Engine Evaluation | Policy engine | Enforce organizational policies against merged state |
 
-### 5.4 Step 4 — Code Review
+### 5.4 Step 4 - Code Review
 
 1. At minimum, the author SHALL self-review the diff for unintended changes
 2. For High-risk changes, the Information Security Officer SHALL review before merge
@@ -146,7 +146,7 @@ The PR pipeline SHALL automatically execute the following security gates. ALL ga
   - Security scanning results are acceptable
   - Infrastructure policies pass
 
-### 5.5 Step 5 — Merge and Deploy
+### 5.5 Step 5 - Merge and Deploy
 
 1. Merge the PR to `main`
 2. Merge pipeline executes automatically
@@ -156,7 +156,7 @@ The PR pipeline SHALL automatically execute the following security gates. ALL ga
   - For configuration changes: Restart affected service(s)
 4. Verify deployment success (service health checks, monitoring dashboard)
 
-### 5.6 Step 6 — Post-Change Verification
+### 5.6 Step 6 - Post-Change Verification
 
 1. Confirm the change achieves its intended effect
 2. Monitor for unexpected side effects (15-minute observation window minimum)
@@ -291,8 +291,8 @@ Changes to the Docker Compose stack follow the standard change process with addi
 
 ### 8.4 Critical Safety Rules
 
-- **NEVER** run `docker compose down` via the zero-trust tunnel — this kills `svc-tunnel` and severs remote access
-- **NEVER** use the `-v` flag with `docker compose down` — this destroys persistent data volumes
+- **NEVER** run `docker compose down` via the zero-trust tunnel - this kills `svc-tunnel` and severs remote access
+- **NEVER** use the `-v` flag with `docker compose down` - this destroys persistent data volumes
 - **ALWAYS** stop individual services with `docker compose stop <service>` when possible
 - **ALWAYS** have direct SSH access available as a fallback before modifying tunnel-related services
 

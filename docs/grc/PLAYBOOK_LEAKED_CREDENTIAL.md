@@ -9,6 +9,102 @@
 
 ---
 
+### Credential Rotation Decision Tree
+
+```
+┌─────────────────────────────────────┐
+│         LEAK DETECTED               │
+│  (Gitleaks, manual report, alert)   │
+└──────────────────┬──────────────────┘
+                   │
+                   v
+┌─────────────────────────────────────┐
+│    IDENTIFY CREDENTIAL TYPE         │
+│  API key? DB cred? SSH key? Token?  │
+└──────────────────┬──────────────────┘
+                   │
+        ┌──────────┼──────────────┬────────────────────┐
+        │          │              │                     │
+        v          v              v                     v
+┌─────────────┐┌──────────────┐┌──────────────┐┌──────────────────┐
+│  API KEY    ││  DB CRED     ││  SSH KEY     ││  TUNNEL TOKEN    │
+└──────┬──────┘└──────┬───────┘└──────┬───────┘└────────┬─────────┘
+       │              │               │                  │
+       v              v               v                  v
+┌─────────────┐┌──────────────┐┌──────────────┐┌──────────────────┐
+│ Revoke in   ││ Reset pass-  ││ Revoke key   ││ Rotate in        │
+│ provider    ││ word in DB   ││ (remove from ││ provider         │
+│ dashboard   ││              ││ authorized_  ││ dashboard        │
+│ or CLI      ││              ││ keys)        ││                  │
+└──────┬──────┘└──────┬───────┘└──────┬───────┘└────────┬─────────┘
+       │              │               │                  │
+       v              v               v                  v
+┌─────────────┐┌──────────────┐┌──────────────┐┌──────────────────┐
+│ Generate    ││ Update all   ││ Generate new ││ Update container │
+│ new key     ││ connection   ││ ed25519      ││ env with new     │
+│             ││ strings      ││ keypair      ││ token value      │
+└──────┬──────┘└──────┬───────┘└──────┬───────┘└────────┬─────────┘
+       │              │               │                  │
+       v              v               v                  v
+┌─────────────┐┌──────────────┐┌──────────────┐┌──────────────────┐
+│ Update      ││ Restart      ││ Deploy pub   ││ Restart tunnel   │
+│ secrets     ││ services +   ││ key to all   ││ container        │
+│ manager     ││ test DB      ││ authorized_  ││                  │
+│             ││ connectivity ││ keys hosts   ││                  │
+└──────┬──────┘└──────┬───────┘└──────┬───────┘└────────┬─────────┘
+       │              │               │                  │
+       v              v               v                  v
+┌─────────────┐┌──────────────┐┌──────────────┐┌──────────────────┐
+│ Verify API  ││ Verify app   ││ Verify SSH   ││ Verify tunnel    │
+│ calls work  ││ queries work ││ login works  ││ routes are live  │
+└──────┬──────┘└──────┬───────┘└──────┬───────┘└────────┬─────────┘
+       │              │               │                  │
+       └──────────────┴───────┬───────┴──────────────────┘
+                              │
+                              v
+               ┌──────────────────────────────┐
+               │  WAS CREDENTIAL USED         │
+               │  MALICIOUSLY?                │
+               └──────────────┬───────────────┘
+                     ┌────────┴────────┐
+                     │                 │
+                     v                 v
+              ┌────────────┐   ┌─────────────┐
+              │  YES       │   │  NO          │
+              └─────┬──────┘   └──────┬──────┘
+                    │                 │
+                    v                 v
+              ┌────────────┐   ┌─────────────┐
+              │ Escalate   │   │ Rotation    │
+              │ to FULL IR │   │ complete.   │
+              │ (Phase 3+) │   │ Log and     │
+              │            │   │ close.      │
+              └─────┬──────┘   └─────────────┘
+                    │
+                    v
+               ┌──────────────────────────────┐
+               │  IS CREDENTIAL IN            │
+               │  GIT HISTORY?                │
+               └──────────────┬───────────────┘
+                     ┌────────┴────────┐
+                     │                 │
+                     v                 v
+              ┌────────────┐   ┌─────────────┐
+              │  YES       │   │  NO          │
+              └─────┬──────┘   └──────┬──────┘
+                    │                 │
+                    v                 v
+              ┌────────────┐   ┌─────────────┐
+              │ Rotate +   │   │ Rotation    │
+              │ scrub git  │   │ is          │
+              │ history    │   │ sufficient. │
+              │ (BFG +     │   │             │
+              │ force push)│   │             │
+              └────────────┘   └─────────────┘
+```
+
+---
+
 ## 1. Purpose
 
 This playbook provides step-by-step procedures for responding to a leaked credential -- any API key, database password, SSH key, token, or other secret that has been exposed through code commits, log files, error messages, screenshots, or any other unauthorized disclosure channel.

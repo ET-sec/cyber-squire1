@@ -14,7 +14,7 @@ TEXT = '#ffffff'
 GREEN = '#00FF41'
 FONT = 'JetBrains Mono'
 DPI = 300
-OUT = '/Users/et/cyber-squire-ops/docs/grc/diagrams/risk_heat_map.png'
+OUT = './diagrams/risk_heat_map.png'
 
 plt.rcParams.update({
     'font.family': FONT,
@@ -151,7 +151,7 @@ for i in range(6):
     ax.axvline(x=i, color='#333333', linewidth=0.5)
 
 # Title
-ax.set_title('RISK HEAT MAP — Inherent vs Residual Positions\n17 Identified Risks',
+ax.set_title('RISK HEAT MAP - Inherent vs Residual Positions\n17 Identified Risks',
              fontsize=14, fontweight='bold', pad=20, color=TEXT)
 
 # Legend

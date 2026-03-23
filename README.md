@@ -48,7 +48,7 @@ DigitalOcean Droplet (4 vCPU / 8GB RAM) -- Ubuntu 24.04            $48/mo
 | Control Coverage | 86% (114/133 implemented or partial) |
 | Monthly Infrastructure | $48 |
 | CI/CD Security Scans | 6 (Trivy, Semgrep, Gitleaks, Checkov, Cosign, SBOM) |
-| GRC Documents | 31 policies, plans, and playbooks |
+| GRC Documents | 37 policies, plans, and playbooks |
 | OPA Policy Rules | 8 Rego policies enforced on every PR |
 | Terraform Files | 16 .tf files managing DigitalOcean + Cloudflare |
 
@@ -115,7 +115,7 @@ Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security
 .
 ├── README.md
 ├── docs/
-│   ├── grc/                          31 GRC documents + 9 diagrams + 7 generators
+│   ├── grc/                          37 GRC documents + 11 diagrams + 7 generators
 │   │   ├── README.md                 Library index
 │   │   ├── SSP_SYSTEM_SECURITY_PLAN.md
 │   │   ├── POAM_PLAN_OF_ACTION.md

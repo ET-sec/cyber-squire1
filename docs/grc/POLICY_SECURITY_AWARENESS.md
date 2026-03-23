@@ -109,9 +109,9 @@ Personnel with the Auditor role have read-only access to audit logs, monitoring 
 
 All new personnel SHALL complete the following onboarding training within 14 calendar days of receiving platform access:
 
-1. **Security Fundamentals** — organizational security posture, threat landscape, defense-in-depth architecture
-2. **Role-specific training modules** — all modules listed for the assigned role in Section 4
-3. **Policy acknowledgment** — signed acknowledgment of all applicable GRC policies
+1. **Security Fundamentals** - organizational security posture, threat landscape, defense-in-depth architecture
+2. **Role-specific training modules** - all modules listed for the assigned role in Section 4
+3. **Policy acknowledgment** - signed acknowledgment of all applicable GRC policies
 
 ### 5.2 Access Restriction
 
@@ -123,13 +123,13 @@ All new personnel SHALL complete the following onboarding training within 14 cal
 
 | Step | Action | Completed By | Verified By |
 |------|--------|-------------|-------------|
-| 1 | Account created in `svc-identity` with appropriate role | Information Security Officer | — |
+| 1 | Account created in `svc-identity` with appropriate role | Information Security Officer | - |
 | 2 | Security Fundamentals training completed | New personnel | Information Security Officer |
 | 3 | Role-specific training modules completed | New personnel | Information Security Officer |
 | 4 | Secret handling procedures reviewed and acknowledged | New personnel | Information Security Officer |
 | 5 | Session recording notification provided and acknowledged | New personnel | Information Security Officer |
 | 6 | GRC policies reviewed and acknowledged | New personnel | Information Security Officer |
-| 7 | Platform access activated in `svc-gateway` | Information Security Officer | — |
+| 7 | Platform access activated in `svc-gateway` | Information Security Officer | - |
 | 8 | First session conducted under supervision | New personnel | Information Security Officer |
 
 ---

@@ -48,40 +48,40 @@ All inter-service communication occurs over Docker bridge networks. No container
 
 | Container | Function | Port (Internal) |
 |-----------|----------|-----------------|
-| svc-db | PostgreSQL 16 — workflow state and operational data | 5432 |
-| svc-automation | n8n SOAR — orchestration, webhooks, Telegram bot | 5678 |
+| svc-db | PostgreSQL 16 - workflow state and operational data | 5432 |
+| svc-automation | n8n SOAR - orchestration, webhooks, Telegram bot | internal |
 
 ### Access & Identity
 
 | Container | Function | Port (Internal) |
 |-----------|----------|-----------------|
-| svc-gateway | Teleport v18 — PAM, session recording, JIT access | 3080 |
-| svc-identity | Keycloak v26 — RBAC, SSO, 3-tier role model | 8080 |
-| svc-event-handler | Teleport audit event shipper | — |
+| svc-gateway | Teleport v18 - PAM, session recording, JIT access | 3080 |
+| svc-identity | Keycloak v26 - RBAC, SSO, 3-tier role model | internal |
+| svc-event-handler | Teleport audit event shipper | - |
 
 ### Security & Monitoring
 
 | Container | Function | Port (Internal) |
 |-----------|----------|-----------------|
-| svc-detection | Falco — eBPF kernel-level runtime detection | — |
-| svc-detection-router | Falcosidekick — alert routing to Datadog | — |
-| svc-observability | Datadog Agent — metrics, logs, APM | — |
-| svc-log-shipper | Fluentd — structured log pipeline to Datadog | — |
+| svc-detection | Falco - eBPF kernel-level runtime detection | - |
+| svc-detection-router | Falcosidekick - alert routing to Datadog | - |
+| svc-observability | Datadog Agent - metrics, logs, APM | - |
+| svc-log-shipper | Fluentd - structured log pipeline to Datadog | - |
 
 ### AI & Analysis
 
 | Container | Function | Port (Internal) |
 |-----------|----------|-----------------|
-| svc-llm | Ollama — local LLM inference | 11434 |
-| svc-transcription | Whisper — voice transcription | 8000 |
-| openclaw-gateway | OpenClaw — Claude Opus 4.6 AI gateway | 18789-18790 |
+| svc-llm | Ollama - local LLM inference | internal |
+| svc-transcription | Whisper - voice transcription | internal |
+| openclaw-gateway | OpenClaw - Claude Opus 4.6 AI gateway | internal |
 
 ### Infrastructure
 
 | Container | Function | Port (Internal) |
 |-----------|----------|-----------------|
-| tunnel | Cloudflare Tunnel — zero-trust ingress | Host network |
-| svc-secrets | HashiCorp Vault — secrets management | 8200 |
+| tunnel | Cloudflare Tunnel - zero-trust ingress | Host network |
+| svc-secrets | HashiCorp Vault - secrets management | internal |
 
 ---
 
@@ -111,20 +111,20 @@ All inter-service communication occurs over Docker bridge networks. No container
 
 | Principle | Implementation |
 |-----------|---------------|
-| No hardcoded secrets | External secrets manager (Doppler) injects env vars at runtime |
+| No hardcoded secrets | External secrets manager injects env vars at runtime |
 | Encrypted at rest | `.env` file `chmod 600`, Vault for future secret rotation |
 | Least privilege | Per-service env var scoping, no shared secret namespace |
-| Rotation tracking | 1Password as source of truth for rotation schedules |
+| Rotation tracking | Credential vault as source of truth for rotation schedules |
 
 ---
 
 ## Key Design Decisions
 
-1. **Single-VPS consolidation** — reduces attack surface to one hardened host with centralized monitoring
-2. **Zero-trust over VPN** — Cloudflare Tunnel eliminates the need for open inbound ports or VPN infrastructure
-3. **eBPF over agent-based detection** — Falco operates at the kernel level without modifying containers
-4. **Compose over Kubernetes** — right-sized orchestration for a single-node deployment, lower operational complexity
-5. **Immutable audit chain** — Teleport session recordings and Falco alerts ship to external SaaS (Datadog), preventing local tampering
+1. **Single-VPS consolidation** - reduces attack surface to one hardened host with centralized monitoring
+2. **Zero-trust over VPN** - Cloudflare Tunnel eliminates the need for open inbound ports or VPN infrastructure
+3. **eBPF over agent-based detection** - Falco operates at the kernel level without modifying containers
+4. **Compose over Kubernetes** - right-sized orchestration for a single-node deployment, lower operational complexity
+5. **Immutable audit chain** - Teleport session recordings and Falco alerts ship to external SaaS (Datadog), preventing local tampering
 
 ---
 

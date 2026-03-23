@@ -24,6 +24,118 @@ Specifically, this playbook addresses:
 
 This playbook cross-references the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`), Attack Tree (`ATTACK_TREE_AI_PIPELINE.md`), and AI Threat Catalog (`AI_THREAT_CATALOG.md`) for threat decomposition and control mapping.
 
+### Incident Response Decision Tree
+
+Use this flowchart to quickly route an AI incident from initial detection through triage to the correct scenario-specific response path (A, B, C, or D).
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                     AI INCIDENT DETECTED                            │
+│                                                                     │
+│  Sources: monitoring alert, user report, log anomaly, CI/CD scan    │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │
+                                v
+┌─────────────────────────────────────────────────────────────────────┐
+│                      INITIAL TRIAGE (0-5 min)                       │
+│                                                                     │
+│  1. Which AI system? AI-001 (Gateway), AI-002 (LLM), AI-003 (STT)  │
+│  2. Is the incident still active?                                   │
+│  3. Have downstream actions been triggered?                         │
+│  4. Preserve logs BEFORE taking any containment action              │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │
+                                v
+                 ┌──────────────────────────────┐
+                 │  What is the primary signal?  │
+                 └──────┬───────┬───────┬───────┘
+                        │       │       │
+          ┌─────────────┤       │       ├─────────────────┐
+          │             │       │       │                  │
+          v             v       v       v                  v
+┌──────────────┐ ┌────────────────┐ ┌──────────────┐ ┌──────────────────┐
+│ Suspicious   │ │ AI executed    │ │ Sensitive     │ │ Model hash       │
+│ input or     │ │ actions beyond │ │ data found    │ │ mismatch, image  │
+│ abnormal     │ │ its authorized │ │ in outbound   │ │ digest changed,  │
+│ AI output    │ │ scope          │ │ API calls or  │ │ or vendor        │
+│              │ │                │ │ AI responses  │ │ advisory issued  │
+└──────┬───────┘ └───────┬────────┘ └──────┬───────┘ └────────┬─────────┘
+       │                 │                  │                   │
+       v                 v                  v                   v
+┌──────────────┐ ┌────────────────┐ ┌──────────────┐ ┌──────────────────┐
+│  SCENARIO A  │ │  SCENARIO B    │ │  SCENARIO C  │ │  SCENARIO D      │
+│  Prompt      │ │  Excessive     │ │  Data Exfil  │ │  Supply Chain    │
+│  Injection   │ │  Agency        │ │  via AI      │ │  Compromise      │
+└──────┬───────┘ └───────┬────────┘ └──────┬───────┘ └────────┬─────────┘
+       │                 │                  │                   │
+       v                 v                  v                   v
+┌──────────────┐ ┌────────────────┐ ┌──────────────┐ ┌──────────────────┐
+│ Detect:      │ │ Detect:        │ │ Detect:      │ │ Detect:          │
+│ Input patt-  │ │ Unexpected     │ │ PII/creds in │ │ Hash mismatch,   │
+│ ern match,   │ │ workflow exec, │ │ API traffic, │ │ behavior change, │
+│ output anom- │ │ permission     │ │ system prompt│ │ Trivy/Cosign     │
+│ aly, user    │ │ escalation,    │ │ extraction,  │ │ alert, vendor    │
+│ report       │ │ action volume  │ │ network      │ │ advisory         │
+│              │ │ spike          │ │ anomaly      │ │                  │
+├──────────────┤ ├────────────────┤ ├──────────────┤ ├──────────────────┤
+│ Contain:     │ │ Contain:       │ │ Contain:     │ │ Contain:         │
+│ Block input  │ │ Disable AI to  │ │ iptables     │ │ Stop affected    │
+│ channel,     │ │ svc-automation │ │ DROP outbound│ │ AI service,      │
+│ deactivate   │ │ integration,   │ │ 443 from     │ │ block model      │
+│ AI-triggered │ │ rotate webhook │ │ gateway,     │ │ registry access, │
+│ workflows,   │ │ secrets, stop  │ │ switch to    │ │ export container │
+│ network iso- │ │ gateway if     │ │ local LLM,   │ │ for forensics    │
+│ late if SEV1 │ │ still active   │ │ rotate creds │ │                  │
+├──────────────┤ ├────────────────┤ ├──────────────┤ ├──────────────────┤
+│ Eradicate:   │ │ Eradicate:     │ │ Eradicate:   │ │ Eradicate:       │
+│ Analyze pay- │ │ Audit all AI   │ │ Add output   │ │ Verify model     │
+│ load, update │ │ actions taken, │ │ filtering +  │ │ provenance, pull │
+│ input filter │ │ reverse unauth │ │ prompt sani- │ │ clean model from │
+│ rules, hard- │ │ actions, tight-│ │ tization, im-│ │ trusted source,  │
+│ en system    │ │ en allowlist + │ │ plement DLP  │ │ Trivy scan new   │
+│ prompt       │ │ approval gates │ │ rules        │ │ image, baseline  │
+│              │ │                │ │              │ │ behavior test    │
+├──────────────┤ ├────────────────┤ ├──────────────┤ ├──────────────────┤
+│ Recover:     │ │ Recover:       │ │ Recover:     │ │ Recover:         │
+│ Restart gate-│ │ Re-enable      │ │ Assess breach│ │ Deploy verified  │
+│ way, re-en-  │ │ workflows one  │ │ scope, remove│ │ clean model,     │
+│ able work-   │ │ at a time, add │ │ iptables     │ │ remove network   │
+│ flows, test  │ │ human-in-loop, │ │ block, vali- │ │ restrictions,    │
+│ with known   │ │ monitor 48h    │ │ date filters,│ │ run full test    │
+│ prompts,     │ │                │ │ monitor 72h  │ │ suite, record    │
+│ monitor 24h  │ │                │ │              │ │ new hash base-   │
+│              │ │                │ │              │ │ line, monitor    │
+└──────┬───────┘ └───────┬────────┘ └──────┬───────┘ └────────┬─────────┘
+       │                 │                  │                   │
+       └─────────┬───────┘                  └─────────┬────────┘
+                 │                                    │
+                 └──────────────┬──────────────────────┘
+                                │
+                                v
+┌─────────────────────────────────────────────────────────────────────┐
+│                    POST-INCIDENT (all scenarios)                     │
+│                                                                     │
+│  1. Collect evidence + generate SHA-256 manifest (Section 6)        │
+│  2. Complete incident timeline, assign root cause (Section 7.1)     │
+│  3. Update threat model, attack tree, AI threat catalog (Sec 7.2)   │
+│  4. Create POA&M entries for control gaps (Section 7.3)             │
+│  5. Update this playbook + SSP + risk assessment (Section 7.4)      │
+│  6. Post-incident review meeting within 5 business days             │
+└─────────────────────────────────────────────────────────────────────┘
+
+Severity Quick Reference:
+  SEV-1 (Critical): Unauthorized infra actions executed, confirmed data exfiltration
+  SEV-2 (High):     Successful injection, supply chain compromise, manipulated outputs
+  SEV-3 (Medium):   Attempted injection blocked, anomalous output not yet consumed
+  SEV-4 (Low):      Resource anomaly, minor output drift, performance degradation
+
+Escalation to other playbooks:
+  Container shell/crypto miner  --> IR-PLAY-001 (Compromised Container)
+  Credentials in AI logs        --> IR-PLAY-002 (Leaked Credential) + this playbook
+  AI resource exhaustion/DDoS   --> IR-PLAY-003 (DDoS/Service Degradation)
+  Unauthorized accounts created --> IR-PLAY-004 (Unauthorized Access)
+```
+
 ---
 
 ## 2. Scope
@@ -98,7 +210,7 @@ Applies to all three AI systems within the authorization boundary and their down
   ```bash
   # Check svc-automation execution history via API
   curl -s -H "Content-Type: application/json" \
-    http://localhost:5678/api/v1/executions?limit=20 | jq '.'
+    http://localhost:<automation-port>/api/v1/executions?limit=20 | jq '.'
 
   # Check svc-db for recent workflow execution records
   docker exec svc-db psql -U <admin_user> -d <db_name> -c \
@@ -140,13 +252,13 @@ Applies to all three AI systems within the authorization boundary and their down
   # Deactivate AI-triggered workflows in svc-automation
   # Via svc-automation API: deactivate the workflow that accepts AI inputs
   curl -X PATCH -H "Content-Type: application/json" \
-    http://localhost:5678/api/v1/workflows/<workflow_id> \
+    http://localhost:<automation-port>/api/v1/workflows/<workflow_id> \
     -d '{"active": false}'
   ```
 
 - [ ] **Step A.3.4** -- If SEV-1 (confirmed unauthorized actions executed), isolate svc-ai-gateway from the network:
   ```bash
-  docker network disconnect internal-net svc-ai-gateway
+  docker network disconnect net-core svc-ai-gateway
   ```
 
 - [ ] **Step A.3.5** -- Verify containment by checking that no new AI-initiated actions are executing:
@@ -189,7 +301,7 @@ Applies to all three AI systems within the authorization boundary and their down
 - [ ] **Step A.5.1** -- Restore svc-ai-gateway with updated configuration:
   ```bash
   # If network was disconnected, reconnect
-  docker network connect internal-net svc-ai-gateway
+  docker network connect net-core svc-ai-gateway
 
   # Restart with updated system prompt and input validation
   docker compose restart svc-ai-gateway
@@ -199,7 +311,7 @@ Applies to all three AI systems within the authorization boundary and their down
   ```bash
   # Reactivate the workflow with updated validation
   curl -X PATCH -H "Content-Type: application/json" \
-    http://localhost:5678/api/v1/workflows/<workflow_id> \
+    http://localhost:<automation-port>/api/v1/workflows/<workflow_id> \
     -d '{"active": true}'
   ```
 
@@ -248,7 +360,7 @@ Applies to all three AI systems within the authorization boundary and their down
 - [ ] **Step B.2.1** -- Identify which workflows were triggered:
   ```bash
   # List recent svc-automation executions
-  curl -s http://localhost:5678/api/v1/executions?limit=50 | \
+  curl -s http://localhost:<automation-port>/api/v1/executions?limit=50 | \
     jq '.data[] | {id, workflowId: .workflowData.name, status: .finished, startedAt}'
   ```
 
@@ -278,12 +390,12 @@ Applies to all three AI systems within the authorization boundary and their down
   ```bash
   # Deactivate all AI-triggered workflows
   # Identify webhook-triggered workflows and deactivate
-  curl -s http://localhost:5678/api/v1/workflows | \
+  curl -s http://localhost:<automation-port>/api/v1/workflows | \
     jq '.data[] | select(.active == true) | {id, name}'
 
   # Deactivate each AI-connected workflow
   curl -X PATCH -H "Content-Type: application/json" \
-    http://localhost:5678/api/v1/workflows/<workflow_id> \
+    http://localhost:<automation-port>/api/v1/workflows/<workflow_id> \
     -d '{"active": false}'
   ```
 
@@ -675,10 +787,10 @@ Applies to all three AI systems within the authorization boundary and their down
 |----------|-------|-------|-------|-------|--------|
 | Incident Commander | Immediately | Within 15 min | Within 1 hour | Next business day | Direct message / phone |
 | System Owner | Within 10 min | Within 30 min | Within 4 hours | Next business day | Direct message / phone |
-| AI Model Provider (Anthropic) | If upstream compromise | If upstream advisory | — | — | Support ticket / email |
-| Affected users (data breach) | Within 24 hours | Within 48 hours | — | — | Email from `admin@example-ops.com` |
-| Legal / compliance | If PII breach confirmed | If data exposure suspected | — | — | Email to `admin@example-ops.com` |
-| Cloud provider | If infrastructure action needed | — | — | — | Support ticket |
+| AI Model Provider (Anthropic) | If upstream compromise | If upstream advisory | - | - | Support ticket / email |
+| Affected users (data breach) | Within 24 hours | Within 48 hours | - | - | Email from `admin@example-ops.com` |
+| Legal / compliance | If PII breach confirmed | If data exposure suspected | - | - | Email to `admin@example-ops.com` |
+| Cloud provider | If infrastructure action needed | - | - | - | Support ticket |
 
 ---
 
@@ -783,7 +895,7 @@ All AI incidents require the following post-incident activities within 72 hours:
 
 | Playbook | When to Escalate |
 |----------|-----------------|
-| [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md) (IR-PLAY-001) | AI container itself is compromised (shell access, crypto miner, reverse shell) — not just adversarial AI behavior |
+| [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md) (IR-PLAY-001) | AI container itself is compromised (shell access, crypto miner, reverse shell) - not just adversarial AI behavior |
 | [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md) (IR-PLAY-002) | Credentials discovered in AI logs, prompts, or responses; follow IR-PLAY-002 for rotation procedures alongside this playbook |
 | [PLAYBOOK_DDOS_SERVICE_DEGRADATION.md](PLAYBOOK_DDOS_SERVICE_DEGRADATION.md) (IR-PLAY-003) | AI resource exhaustion causes platform-wide degradation (Scenario D of IR-PLAY-003 Section 3 applies) |
 | [PLAYBOOK_UNAUTHORIZED_ACCESS.md](PLAYBOOK_UNAUTHORIZED_ACCESS.md) (IR-PLAY-004) | AI-triggered action results in creation of unauthorized accounts or access paths |
@@ -794,7 +906,7 @@ All AI incidents require the following post-incident activities within 72 hours:
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | NIST 800-53 controls SI-4, SI-3, IR-4, IR-5, IR-6 implementations |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Remediation tracking for AI-related control gaps |
-| [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Risk scenarios AI-R01 through AI-R10 |
+| [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk register (AI-R01 through AI-R10) |
 | [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk tolerance, lifecycle management, human oversight requirements |
 | [POLICY_INCIDENT_RESPONSE.md](POLICY_INCIDENT_RESPONSE.md) | Overarching IR policy governing all playbook activation |
 
@@ -808,7 +920,7 @@ All AI incidents require the following post-incident activities within 72 hours:
 | IR-4(1) | Automated Incident Handling Processes | Detection triggers (monitoring platform alerts, log analysis) |
 | IR-5 | Incident Monitoring | Detection triggers across all scenarios |
 | IR-6 | Incident Reporting | Post-incident report (Section 7) |
-| SI-3 | Malicious Code Protection | Scenario D (supply chain — model integrity verification) |
+| SI-3 | Malicious Code Protection | Scenario D (supply chain - model integrity verification) |
 | SI-4 | Information System Monitoring | All detection triggers, monitoring platform integration |
 | SI-4(2) | Automated Tools for Real-Time Analysis | svc-detection eBPF monitoring, monitoring platform log analysis |
 | SI-4(5) | System-Generated Alerts | Detection triggers across all scenarios |
@@ -826,7 +938,7 @@ All AI incidents require the following post-incident activities within 72 hours:
 **For use during an active AI incident -- tear-off summary:**
 
 ```
-SCENARIO A — PROMPT INJECTION:
+SCENARIO A - PROMPT INJECTION:
 1. PRESERVE: docker logs svc-ai-gateway > /tmp/evidence_ai_*.txt
 2. BLOCK:   Block attacker input (Telegram chat ID / API source)
 3. DISABLE: Deactivate AI→svc-automation workflows
@@ -834,7 +946,7 @@ SCENARIO A — PROMPT INJECTION:
 5. HARDEN:  Update input filters + system prompt
 6. RESTORE: Restart svc-ai-gateway, re-enable workflows, validate behavior
 
-SCENARIO B — EXCESSIVE AGENCY:
+SCENARIO B - EXCESSIVE AGENCY:
 1. DISABLE: Deactivate all AI-triggered workflows immediately
 2. PRESERVE: Export execution logs and svc-db records
 3. AUDIT:  List all AI-triggered actions during incident window
@@ -842,7 +954,7 @@ SCENARIO B — EXCESSIVE AGENCY:
 5. TIGHTEN: Update action allowlist + add human approval gates
 6. RESTORE: Re-enable workflows one at a time, monitor 48h
 
-SCENARIO C — DATA EXFILTRATION:
+SCENARIO C - DATA EXFILTRATION:
 1. BLOCK:   iptables DROP outbound 443 from svc-ai-gateway
 2. SWITCH:  Redirect to svc-llm (local) if AI needed
 3. ROTATE:  Rotate any exposed credentials (→ IR-PLAY-002)
@@ -850,7 +962,7 @@ SCENARIO C — DATA EXFILTRATION:
 5. ASSESS:  Scope breach, check notification requirements
 6. RESTORE: Re-enable external API with filtering, monitor 72h
 
-SCENARIO D — SUPPLY CHAIN:
+SCENARIO D - SUPPLY CHAIN:
 1. STOP:    docker compose stop <affected_service>
 2. EXPORT:  docker export <container> > /tmp/evidence_model_*.tar
 3. VERIFY:  Compare model hash against trusted source

@@ -13,10 +13,10 @@
 
 | Element | Detail |
 |---------|--------|
-| **Primary Framework** | NIST SP 800-53 Rev. 5 — Moderate Baseline |
+| **Primary Framework** | NIST SP 800-53 Rev. 5 - Moderate Baseline |
 | **Risk Methodology** | NIST SP 800-30 Rev. 1 |
 | **Risk Management** | NIST SP 800-39 |
-| **Security Categorization** | FIPS 199 — Moderate |
+| **Security Categorization** | FIPS 199 - Moderate |
 | **Container Hardening** | CIS Docker Benchmark |
 | **Threat Mapping** | MITRE ATT&CK (Enterprise) |
 
@@ -24,7 +24,7 @@
 
 ## GRC Documentation Library
 
-The compliance program is supported by **31 GRC documents** totaling approximately **15,000 lines** of structured governance, risk, and compliance content.
+The compliance program is supported by **37 GRC documents** totaling approximately **18,000 lines** of structured governance, risk, and compliance content.
 
 ### Document Inventory
 
@@ -112,7 +112,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 | POA&M status review | Quarterly (90-day cycle) | 2026-06-09 |
 | Risk register review | Quarterly | 2026-06-11 |
 | CIS Docker Bench rescan | Monthly | 2026-04-11 |
-| Policy review (all 9) | Annual | 2027-03-11 |
+| Policy review (all 10) | Annual | 2027-03-11 |
 | Tabletop exercise | Semi-annual | TBD |
 
 ---
@@ -121,7 +121,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 **Exercise Name:** Operation Phantom Container
 **Scenario:** Compromised container with lateral movement attempt across trust zones
-**Structure:** 5 phases — Initial Detection, Containment, Investigation, Eradication, Recovery
+**Structure:** 5 phases - Initial Detection, Containment, Investigation, Eradication, Recovery
 **Participants:** System Owner (all roles simulated)
 **Outcome:** Validated IR playbook procedures, identified communication gaps, confirmed Falco detection coverage
 
@@ -131,13 +131,13 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 | Area | Readiness |
 |------|-----------|
-| **Documentation completeness** | Strong — 31 documents covering all major GRC domains |
-| **Control implementation** | Strong — 86% implemented or partially implemented |
-| **Automated evidence** | Strong — continuous collection from 8+ sources |
-| **Risk management** | Strong — 17 scenarios assessed, all tracked to disposition |
-| **Finding remediation** | Adequate — 0 Critical/High, 7 Medium tracked with compensating controls |
-| **Exercise program** | Developing — 1 tabletop completed, cadence being established |
-| **Multi-region resilience** | Gap — single-region deployment, DR plan documented but untested |
+| **Documentation completeness** | Strong - 37 documents covering all major GRC domains |
+| **Control implementation** | Strong - 86% implemented or partially implemented |
+| **Automated evidence** | Strong - continuous collection from 8+ sources |
+| **Risk management** | Strong - 17 scenarios assessed, all tracked to disposition |
+| **Finding remediation** | Adequate - 0 Critical/High, 7 Medium tracked with compensating controls |
+| **Exercise program** | Developing - 1 tabletop completed, cadence being established |
+| **Multi-region resilience** | Gap - single-region deployment, DR plan documented but untested |
 
 ---
 
@@ -149,6 +149,6 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | 27 tracked findings with remediation timelines |
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | 17 threat scenarios with 5x5 risk matrix |
 | [CIS_RISK_REGISTER.md](CIS_RISK_REGISTER.md) | CIS Docker Bench compensating controls |
-| [TABLETOP_EXERCISE.md](TABLETOP_EXERCISE.md) | Operation Phantom Container — 5-phase TTX |
+| [TABLETOP_EXERCISE.md](TABLETOP_EXERCISE.md) | Operation Phantom Container - 5-phase TTX |
 | [EXECUTIVE_SUMMARY_SECURITY_POSTURE.md](EXECUTIVE_SUMMARY_SECURITY_POSTURE.md) | Security posture one-pager |
 | [EXECUTIVE_SUMMARY_ARCHITECTURE.md](EXECUTIVE_SUMMARY_ARCHITECTURE.md) | Architecture one-pager |

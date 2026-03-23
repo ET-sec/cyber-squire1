@@ -11,7 +11,7 @@ TEXT = '#ffffff'
 GREEN = '#00FF41'
 FONT = 'JetBrains Mono'
 DPI = 300
-OUT = '/Users/et/cyber-squire-ops/docs/grc/diagrams/poam_summary.png'
+OUT = './diagrams/poam_summary.png'
 
 plt.rcParams.update({
     'font.family': FONT,

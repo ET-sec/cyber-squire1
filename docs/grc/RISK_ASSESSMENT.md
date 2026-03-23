@@ -23,7 +23,7 @@ This assessment covers the following assets and boundaries:
 | Boundary | Description |
 |----------|-------------|
 | **Compute** | Single VPS (4 vCPU, 8 GB RAM, 160 GB disk) running Ubuntu 24.04 LTS |
-| **Containers** | 13 Docker containers on an internal bridge network |
+| **Containers** | 14 containers across 3 Docker networks (net-core, net-ai, net-monitoring) |
 | **Network** | Zero-trust tunnel (sole public ingress), cloud firewall (deny-all default) |
 | **IAM** | 3-tier RBAC via svc-identity and svc-gateway |
 | **Secrets** | External secrets manager injecting environment variables at runtime |
@@ -31,7 +31,7 @@ This assessment covers the following assets and boundaries:
 | **Monitoring** | Observability agent, eBPF runtime detection, immutable audit log chain |
 | **IaC** | Infrastructure-as-code with remote encrypted state |
 
-**Out of scope:** End-user workstations, third-party SaaS platforms (beyond their integration points), and physical security of the DigitalOcean's data centers.
+**Out of scope:** End-user workstations, third-party SaaS platforms (beyond their integration points), and physical security of DigitalOcean's data centers.
 
 ### 1.3 Security Categorization (FIPS 199)
 
@@ -39,7 +39,7 @@ This assessment covers the following assets and boundaries:
 |-------------------|--------------|---------------|
 | **Confidentiality** | Moderate | Platform processes API keys, credentials, and operational telemetry |
 | **Integrity** | Moderate | Workflow logic and infrastructure state must remain trustworthy |
-| **Availability** | Low | Single-operator platform; short outages are tolerable |
+| **Availability** | Moderate | Single-operator platform; short outages are tolerable |
 
 **Overall categorization:** Moderate
 
@@ -135,9 +135,9 @@ Risk Score = Likelihood x Impact
 |---------|--------|---------------|---------------|-----------------|------------|--------|---------------|-----------------|-------------------|----------------|---------------|
 | R-01 | DDoS (T-01) | External adversary | Single VPS, single ingress point | svc-tunnel, all services | 3 | 3 | **9 (Mod)** | Cloudflare DDoS protection; cloud firewall deny-all; rate limiting at tunnel | 2 | 3 | **6 (Low)** |
 | R-02 | Brute Force (T-02) | External adversary | Authentication endpoints exposed via tunnel | svc-automation, svc-gateway | 4 | 3 | **12 (Mod)** | TOTP MFA on svc-gateway; password policy in svc-identity; session TTL limits; fail2ban equivalent at tunnel | 2 | 3 | **6 (Low)** |
-| R-03 | Supply Chain — Container Images (T-03) | Nation-state / organized crime | Use of upstream Docker images | All 13 containers | 2 | 5 | **10 (Mod)** | Container image CVE scanning in CI; container signing tool; pinned image digests; SAST scanner on Dockerfiles | 1 | 5 | **5 (Low)** |
+| R-03 | Supply Chain - Container Images (T-03) | Nation-state / organized crime | Use of upstream Docker images | All 13 containers | 2 | 5 | **10 (Mod)** | Container image CVE scanning in CI; container signing tool; pinned image digests; SAST scanner on Dockerfiles | 1 | 5 | **5 (Low)** |
 | R-04 | Webhook Exploitation (T-04) | External adversary | Automation platform accepts webhook payloads from internet | svc-automation, svc-tunnel | 3 | 4 | **12 (Mod)** | Webhook authentication tokens; input validation in workflow logic; svc-detection monitors for shell spawns; no-new-privileges on container | 2 | 4 | **8 (Mod)** |
-| R-05 | Credential Phishing (T-05) | External adversary | Human factor — operator targeted | Operator credentials, MFA seeds | 2 | 4 | **8 (Mod)** | TOTP MFA (hardware token recommended); session recording; JIT admin with 4h TTL; credential vault with biometric lock | 1 | 4 | **4 (Low)** |
+| R-05 | Credential Phishing (T-05) | External adversary | Human factor - operator targeted | Operator credentials, MFA seeds | 2 | 4 | **8 (Mod)** | TOTP MFA (hardware token recommended); session recording; JIT admin with 4h TTL; credential vault with biometric lock | 1 | 4 | **4 (Low)** |
 | R-06 | Zero-Day Exploit (T-06) | Nation-state / advanced adversary | Unpatched vulnerabilities in exposed services | svc-tunnel, svc-automation | 1 | 5 | **5 (Low)** | Minimal attack surface (only tunnel exposed); eBPF runtime detection; immutable audit logs; container isolation | 1 | 5 | **5 (Low)** |
 
 ### 4.2 Internal Threats
@@ -199,10 +199,10 @@ LEGEND:
  Multiple risks may share a cell.
 
 RISK RATING:
- [1-6]  Low    — within acceptance threshold
- [7-14] Moderate  — mitigate within 90 days
- [15-19] High    — mitigate within 30 days
- [20-25] Critical  — immediate action required
+ [1-6]  Low    - within acceptance threshold
+ [7-14] Moderate  - mitigate within 90 days
+ [15-19] High    - mitigate within 30 days
+ [20-25] Critical  - immediate action required
 ```
 
 ### Risk Distribution Summary
@@ -220,7 +220,7 @@ RISK RATING:
 
 The following five risks carry the highest residual risk scores after current controls are applied.
 
-### Rank 1: R-10 — Accidental Secret Exposure (Residual: 10 — Moderate)
+### Rank 1: R-10 - Accidental Secret Exposure (Residual: 10 - Moderate)
 
 **Why it matters:** Secrets injected as environment variables are accessible to any process inside a container. A debug command, misconfigured log level, or core dump could expose credentials to logs or monitoring streams.
 
@@ -230,17 +230,17 @@ The following five risks carry the highest residual risk scores after current co
 3. Add automated secret scanning to container runtime logs (not just CI)
 4. Establish a credential rotation runbook with maximum 24-hour rotation SLA after suspected exposure
 
-### Rank 2: R-04 — Webhook Exploitation (Residual: 8 — Moderate)
+### Rank 2: R-04 - Webhook Exploitation (Residual: 8 - Moderate)
 
 **Why it matters:** The automation platform accepts webhook payloads through the zero-trust tunnel. A crafted payload exploiting a deserialization or injection flaw could achieve remote code execution inside the automation container, which has database credentials in its environment.
 
 **Recommended actions:**
 1. Implement webhook payload schema validation at the tunnel layer (before reaching the automation container)
-2. Deploy a WAF rule set at the Cloudflare for webhook endpoints
+2. Deploy a WAF rule set at Cloudflare for webhook endpoints
 3. Restrict automation container's network egress to only required destinations (svc-db, specific API endpoints)
 4. Implement webhook request signing with HMAC verification
 
-### Rank 3: R-14 — Data Loss (Residual: 8 — Moderate)
+### Rank 3: R-14 - Data Loss (Residual: 8 - Moderate)
 
 **Why it matters:** Database volumes and secrets engine data exist on a single VPS with no automated off-site replication. A simultaneous disk failure and backup corruption would result in permanent data loss.
 
@@ -248,9 +248,9 @@ The following five risks carry the highest residual risk scores after current co
 1. Implement automated daily database backups to encrypted object storage (off-VPS)
 2. Add backup integrity verification (restore testing) on a monthly schedule
 3. Document Recovery Point Objective (RPO) and Recovery Time Objective (RTO) targets
-4. Implement volume snapshot scheduling at the DigitalOcean level
+4. Implement volume snapshot scheduling at DigitalOcean level
 
-### Rank 4: R-12 — DigitalOcean Outage (Residual: 6 — Low)
+### Rank 4: R-12 - DigitalOcean Outage (Residual: 6 - Low)
 
 **Why it matters:** All 13 services run on a single VPS in a single region. A prolonged regional outage would render the entire platform unavailable with no automatic failover.
 
@@ -260,7 +260,7 @@ The following five risks carry the highest residual risk scores after current co
 3. Define and test RTO targets (current estimated RTO: 2-4 hours for IaC redeployment)
 4. Evaluate multi-region architecture as the platform scales
 
-### Rank 5: R-16 — POA&M Remediation Failure (Residual: 6 — Low)
+### Rank 5: R-16 - POA&M Remediation Failure (Residual: 6 - Low)
 
 **Why it matters:** The CIS Docker Bench scan identified 96 WARN findings. While 29 have documented compensating controls, the remaining findings require either remediation or formal risk acceptance. Drift from the remediation schedule erodes the compliance posture.
 
@@ -300,8 +300,8 @@ The following five risks carry the highest residual risk scores after current co
 |-----------|-------|-------|
 | **Accept** | 12 | R-01, R-02, R-03, R-05, R-06, R-07, R-08, R-09, R-11, R-13, R-15, R-17 |
 | **Mitigate** | 5 | R-04, R-10, R-12, R-14, R-16 |
-| **Transfer** | 0 | — |
-| **Avoid** | 0 | — |
+| **Transfer** | 0 | - |
+| **Avoid** | 0 | - |
 
 ---
 
@@ -353,9 +353,9 @@ The following five risks carry the highest residual risk scores after current co
 | NIST SP 800-30 Rev. 1 | Guide for Conducting Risk Assessments |
 | NIST SP 800-53 Rev. 5 | Security and Privacy Controls (RA family) |
 | FIPS 199 | Standards for Security Categorization |
-| CIS Docker Benchmark Risk Register | Internal — docs/grc/CIS_RISK_REGISTER.md |
-| IAM RBAC Role Map | Internal — docs/grc/IAM_RBAC_ROLE_MAP.md |
-| IAM Access Review | Internal — docs/grc/IAM_ACCESS_REVIEW.md |
+| CIS Docker Benchmark Risk Register | Internal - docs/grc/CIS_RISK_REGISTER.md |
+| IAM RBAC Role Map | Internal - docs/grc/IAM_RBAC_ROLE_MAP.md |
+| IAM Access Review | Internal - docs/grc/IAM_ACCESS_REVIEW.md |
 
 ---
 
