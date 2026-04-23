@@ -43,13 +43,18 @@ The embedding provider Anthropic officially recommends for Claude-based retrieva
 
 ## Decision
 
-Squire will use Option A (OpenAI `text-embedding-3-large`) as the default embedding provider for the Phase 17 reference deployment at `squire.tigouetheory.com`.
+Squire will use **Option C (Voyage AI `voyage-3-large`)** as the default embedding provider for the Phase 17 reference deployment at `squire.tigouetheory.com`.
 
-The choice is driven by three factors:
+The choice is driven by four factors:
 
-1. The `ir_chunks.embedding vector(1536)` column was pre-sized in the schema migration (17-06 migration 001) to match OpenAI's 1536-dimensional output exactly. Choosing A requires zero schema change.
-2. Option A is the dominant pattern in the commercial SOC-AI space (Dropzone, Prophet, AirMDR). Interviewers at that tier recognize it instantly and do not need the choice defended.
-3. The reference deployment processes synthetic alerts against a sanitized GRC corpus. There is no classified or regulated data in the demo path, so the data-residency disadvantage of Option A does not apply to the current use case.
+1. **Anthropic-native stack coherence.** The rest of Squire runs on Claude Opus 4.7 (reasoning) and Claude Sonnet 4.6 (classification). Voyage is the embedding provider Anthropic explicitly recommends in its RAG documentation, producing a clean single-vendor narrative for commercial interviews (Dropzone, Prophet, Resilience, OneDigital) while still matching or exceeding OpenAI quality on MTEB retrieval benchmarks.
+2. **Zero marginal cost.** Voyage's free tier covers 200 million tokens per month. Squire's 41-document corpus is approximately 1 million tokens after chunking, so the free tier has 200 times the headroom for the initial ingest and every subsequent re-embed. Under the current 12-week-year financial constraint, zero is the right price.
+3. **Ownership trajectory.** MongoDB acquired Voyage in February 2025. MongoDB is the database layer most commonly deployed alongside pgvector-style vector stacks in AI security products, and their GitHub Education benefit is one Emmanuel can activate as a peripheral resume-building step. Using Voyage positions the stack inside an ecosystem that is actively consolidating.
+4. **Dimension alignment with the air-gap fallback.** Voyage returns 1024-dimensional vectors by default. `BAAI/bge-large-en-v1.5` (Option B, the air-gap fallback) also returns 1024-dimensional vectors. Standardizing on 1024 dims across both the commercial and air-gapped deployment modes means swapping providers never requires a re-index or another schema migration. The 1024 choice is the dimension that makes operational portability free.
+
+The reference deployment processes synthetic alerts against a sanitized GRC corpus, so the data-residency disadvantage of a cloud embedding service does not apply to the current use case. Production customer deployments that cannot send alert content to external APIs are covered by the swap procedure below.
+
+**Schema migration applied alongside this decision:** `builds/squire/migrations/002_vector_1024.sql` drops the original `vector(1536)` column and replaces it with `vector(1024)`, recreating the HNSW index on the new column. This migration runs before bulk ingest since `ir_chunks` is empty at this point.
 
 ## Consequences for Customer Deployments
 
@@ -57,12 +62,11 @@ The reference deployment is not the only target. Squire's architecture explicitl
 
 ### Air-Gapped / Classified / Defense-Contractor Deployments
 
-For deployments where alert content cannot leave the tenant boundary (federal civilian agencies, defense contractors, Secret Service-adjacent fusion centers, healthcare PHI environments, financial PII environments), the operator will deploy Squire with Option B active.
+For deployments where alert content cannot leave the tenant boundary (federal civilian agencies, defense contractors, Secret Service-adjacent fusion centers, healthcare PHI environments, financial PII environments), the operator deploys Squire with Option B active.
 
-The swap is a three-step change:
-1. Flip `SQUIRE_EMBEDDING_PROVIDER` env var from `openai` to `local_bge` (already consumed by `builds/squire/src/squire/retrievers/grc_retriever.py`).
-2. Apply migration `002_vector_1024.sql` to shrink `ir_chunks.embedding` from `vector(1536)` to `vector(1024)` and re-index.
-3. Re-run the indexer with the local model; no further code change required.
+Because the reference deployment already uses 1024-dim vectors (matching Voyage), the swap is a two-step change with no schema migration:
+1. Flip `SQUIRE_EMBEDDING_PROVIDER` env var from `voyage` to `local_bge` in Doppler.
+2. Re-run the indexer inside the air-gapped container; `BAAI/bge-large-en-v1.5` produces 1024-dim vectors that land in the same schema.
 
 The migration file and the provider abstraction exist in the codebase specifically so this swap is operational, not architectural. Any customer engagement that requires air-gapped AI inference can be onboarded without touching Squire's retrieval, ingestion, or LangGraph layers.
 
@@ -74,17 +78,19 @@ For deployments that can tolerate cloud embeddings for non-sensitive corpus docu
 
 | Risk | Mitigation |
 | --- | --- |
-| OpenAI API outage blocks Squire retrieval | Ollama fallback on the droplet is already wired for LLM reasoning (17-08a). Retrieval falls back to the last known good `ir_chunks` snapshot; no re-embed on outage. |
-| OpenAI price change or deprecation of `text-embedding-3-large` | Provider abstraction at the retriever module makes a swap to Voyage or a newer OpenAI model a single env var change plus re-index. |
+| Voyage API outage blocks Squire retrieval | At query time, Squire falls back to the already-indexed `ir_chunks` rows (no re-embed needed for stored corpus). For the alert-side embed, degraded mode returns an explicit error with a code that the LangGraph router converts into a human-escalation path. |
+| Voyage price change or free-tier revocation | Provider abstraction at the retriever module makes a swap to OpenAI, local BGE, or another vendor a single env var change; bulk re-embed fits inside the free tier of most alternatives. |
+| MongoDB repositions Voyage into paid-only tier | Schema already sits on 1024 dims, so Option B (local BAAI/bge-large) becomes the default escape hatch with no migration. |
 | Interviewer challenge on data residency | This ADR is the defensive artifact. Option B is a documented, supported deployment mode, not a future roadmap item. |
-| Embedding dimension drift across providers | The schema migration path (`002_vector_1024.sql` for B, `003_vector_2048.sql` for any larger model) is pre-planned and idempotent. |
+| Embedding dimension drift across providers | Locked on 1024 dims for both Option C and Option B; no migration required when switching between the two. |
 
 ## References
 
 - Squire scaffold: `/Users/et/cyber-squire-ops/builds/squire/` (gitignored locally; built artifact)
-- Schema migration: `builds/squire/migrations/001_squire_tables.sql`
+- Schema migration (original 1536 dims): `builds/squire/migrations/001_squire_tables.sql`
+- Schema migration (1024 dims, applied): `builds/squire/migrations/002_vector_1024.sql`
 - Provider abstraction: `builds/squire/src/squire/retrievers/grc_retriever.py` (created in 17-07)
-- Deferred local-model migration: `builds/squire/migrations/002_vector_1024.sql` (created alongside 001, not applied)
-- OpenAI text-embedding-3-large documentation: platform.openai.com/docs/guides/embeddings
+- Voyage AI embeddings documentation: docs.voyageai.com/docs/embeddings
 - BAAI bge-large-en-v1.5 model card: huggingface.co/BAAI/bge-large-en-v1.5
+- OpenAI text-embedding-3-large documentation (historical reference for Option A): platform.openai.com/docs/guides/embeddings
 - Voyage AI embeddings: docs.voyageai.com/docs/embeddings
