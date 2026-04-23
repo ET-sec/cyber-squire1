@@ -38,3 +38,13 @@ resource "cloudflare_record" "ssh_tunnel" {
   proxied = true
   ttl     = 1
 }
+
+# Langfuse v3 self-hosted UI (Phase 17-04)
+resource "cloudflare_record" "langfuse" {
+  zone_id = var.cf_zone_id
+  name    = "langfuse"
+  type    = "CNAME"
+  content = "${var.cf_tunnel_id}.cfargotunnel.com"
+  proxied = true
+  ttl     = 1
+}
