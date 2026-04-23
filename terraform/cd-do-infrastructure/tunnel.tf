@@ -51,6 +51,25 @@ resource "cloudflare_tunnel_config" "cd_alpha" {
       }
     }
 
+    # Squire FastAPI surface (Phase 17-09)
+    ingress_rule {
+      hostname = "squire.tigouetheory.com"
+      service  = "http://localhost:8020"
+      origin_request {
+        connect_timeout        = "30s"
+        tls_timeout            = "10s"
+        tcp_keep_alive         = "30s"
+        keep_alive_timeout     = "1m30s"
+        keep_alive_connections = 100
+        proxy_address          = "127.0.0.1"
+        no_tls_verify          = false
+        access {
+          required  = false
+          team_name = ""
+        }
+      }
+    }
+
     # REQUIRED: catch-all rule must be last
     ingress_rule {
       service = "http_status:404"
