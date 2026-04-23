@@ -32,6 +32,25 @@ resource "cloudflare_tunnel_config" "cd_alpha" {
       service  = "ssh://localhost:22"
     }
 
+    # Langfuse v3 self-hosted UI (Phase 17-04)
+    ingress_rule {
+      hostname = "langfuse.tigouetheory.com"
+      service  = "http://localhost:3100"
+      origin_request {
+        connect_timeout        = "30s"
+        tls_timeout            = "10s"
+        tcp_keep_alive         = "30s"
+        keep_alive_timeout     = "1m30s"
+        keep_alive_connections = 100
+        proxy_address          = "127.0.0.1"
+        no_tls_verify          = false
+        access {
+          required  = false
+          team_name = ""
+        }
+      }
+    }
+
     # REQUIRED: catch-all rule must be last
     ingress_rule {
       service = "http_status:404"
