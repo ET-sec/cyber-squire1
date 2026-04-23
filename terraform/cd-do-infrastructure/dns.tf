@@ -48,3 +48,13 @@ resource "cloudflare_record" "langfuse" {
   proxied = true
   ttl     = 1
 }
+
+# Squire FastAPI surface (Phase 17-09)
+resource "cloudflare_record" "squire" {
+  zone_id = var.cf_zone_id
+  name    = "squire"
+  type    = "CNAME"
+  content = "${var.cf_tunnel_id}.cfargotunnel.com"
+  proxied = true
+  ttl     = 1
+}
