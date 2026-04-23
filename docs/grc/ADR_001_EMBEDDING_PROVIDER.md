@@ -1,4 +1,4 @@
-# ADR 001 — Embedding Provider Selection for Squire RAG
+# ADR 001: Embedding Provider Selection for Squire RAG
 
 **Status:** Accepted
 **Date:** 2026-04-23
