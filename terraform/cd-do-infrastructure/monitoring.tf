@@ -318,6 +318,141 @@ resource "datadog_monitor" "n8n_container_restarts" {
 }
 
 # =============================================================================
+# PHASE 17 - LANGFUSE OBSERVABILITY STACK (17-04)
+# =============================================================================
+# Three monitors covering:
+#   1. langfuse_web_down      -- web container log silence >= 10m (proxy for liveness)
+#   2. langfuse_clickhouse_down -- clickhouse container log silence >= 10m
+#   3. langfuse_trace_ingestion_stall -- worker stopped acknowledging events for 15m
+#
+# Log-alert pattern chosen because Fluentd -> Datadog Logs pipeline is the only
+# signal channel currently live on cd-alpha (Docker metrics integration is not
+# enabled on this host; follow-up tracked in Phase 17 deviations).
+
+# --- Monitor: Langfuse web container silent (log-based liveness) ---
+
+resource "datadog_monitor" "langfuse_web_down" {
+  name    = "[CoreDirective] Langfuse web container down"
+  type    = "log alert"
+  message = <<-EOT
+    {{#is_alert}}
+    CRITICAL: cd-service-langfuse-web produced zero log lines in the last 10 minutes.
+    Treat as container down or deadlocked.
+    {{/is_alert}}
+    {{#is_warning}}
+    WARNING: cd-service-langfuse-web log volume unusually low (<3 lines in 10m).
+    {{/is_warning}}
+
+    **Impact:** Squire LLM tracing UI unavailable at https://langfuse.tigouetheory.com.
+
+    **Remediation:**
+    - Status: `ssh cd-alpha 'docker inspect cd-service-langfuse-web --format "{{.State.Status}} health={{.State.Health.Status}}"'`
+    - Logs: `ssh cd-alpha 'docker logs --tail 100 cd-service-langfuse-web'`
+    - Restart: `ssh cd-alpha 'cd /root/COREDIRECTIVE_ENGINE && docker compose restart cd-service-langfuse-web'`
+
+    ${local.telegram_notify}
+  EOT
+
+  query = "logs(\"container_name:cd-service-langfuse-web host:${local.dd_host}\").index(\"*\").rollup(\"count\").last(\"10m\") < 1"
+
+  monitor_thresholds {
+    warning  = "3"
+    critical = "1"
+  }
+
+  renotify_interval  = 30
+  notify_no_data     = true
+  no_data_timeframe  = 15
+  enable_logs_sample = true
+  include_tags       = true
+
+  tags = concat(local.monitor_tags_base, ["severity:critical", "service:langfuse", "phase:17"])
+}
+
+# --- Monitor: Langfuse ClickHouse container silent ---
+
+resource "datadog_monitor" "langfuse_clickhouse_down" {
+  name    = "[CoreDirective] Langfuse ClickHouse container down"
+  type    = "log alert"
+  message = <<-EOT
+    {{#is_alert}}
+    CRITICAL: cd-service-langfuse-clickhouse produced zero log lines in the last 10 minutes.
+    ClickHouse backs all trace storage -- Langfuse traces will stop persisting.
+    {{/is_alert}}
+    {{#is_warning}}
+    WARNING: cd-service-langfuse-clickhouse log volume unusually low.
+    {{/is_warning}}
+
+    **Remediation:**
+    - Status: `ssh cd-alpha 'docker inspect cd-service-langfuse-clickhouse --format "{{.State.Status}} health={{.State.Health.Status}}"'`
+    - Logs: `ssh cd-alpha 'docker logs --tail 100 cd-service-langfuse-clickhouse'`
+    - Free memory check: `ssh cd-alpha 'free -h'`
+    - Restart: `ssh cd-alpha 'cd /root/COREDIRECTIVE_ENGINE && docker compose restart cd-service-langfuse-clickhouse cd-service-langfuse-worker cd-service-langfuse-web'`
+
+    ${local.telegram_notify}
+  EOT
+
+  query = "logs(\"container_name:cd-service-langfuse-clickhouse host:${local.dd_host}\").index(\"*\").rollup(\"count\").last(\"10m\") < 1"
+
+  monitor_thresholds {
+    warning  = "3"
+    critical = "1"
+  }
+
+  renotify_interval  = 30
+  notify_no_data     = true
+  no_data_timeframe  = 15
+  enable_logs_sample = true
+  include_tags       = true
+
+  tags = concat(local.monitor_tags_base, ["severity:critical", "service:langfuse", "phase:17"])
+}
+
+# --- Monitor: Langfuse trace ingestion stalled ---
+# Watches worker logs for ingestion activity. Langfuse worker emits
+# "Starting batch" / "Processed event" / "ingested" lines whenever traces flow.
+# If the worker is running but no ingestion lines appear for 15 minutes,
+# either the pipeline is broken upstream (web->worker queue) or traces stopped
+# being submitted. Either case is a Squire observability gap.
+
+resource "datadog_monitor" "langfuse_trace_ingestion_stall" {
+  name    = "[CoreDirective] Langfuse trace ingestion stalled"
+  type    = "log alert"
+  message = <<-EOT
+    {{#is_alert}}
+    CRITICAL: Langfuse worker has not reported trace ingestion in 15 minutes.
+    Squire -> Langfuse trace pipeline is likely broken.
+    {{/is_alert}}
+
+    **Triage:**
+    - Worker logs: `ssh cd-alpha 'docker logs --tail 200 cd-service-langfuse-worker | grep -iE "ingest|process|queue|error"'`
+    - Redis queue depth: `ssh cd-alpha 'docker exec cd-service-langfuse-redis redis-cli -a $LANGFUSE_REDIS_PASSWORD LLEN "bull:ingestion:wait"'`
+    - Web submit endpoint reachable: `curl -sI https://langfuse.tigouetheory.com/api/public/health`
+
+    **Possible causes:**
+    - Squire (17-09) agent stopped invoking Langfuse (cost ceiling breach, crash)
+    - Redis queue stuck (restart langfuse-worker)
+    - ClickHouse write path broken (check clickhouse container)
+
+    ${local.telegram_notify}
+  EOT
+
+  query = "logs(\"container_name:cd-service-langfuse-worker host:${local.dd_host} (ingest OR ingested OR processed OR batch)\").index(\"*\").rollup(\"count\").last(\"15m\") < 1"
+
+  monitor_thresholds {
+    critical = "1"
+  }
+
+  renotify_interval  = 60
+  notify_no_data     = true
+  no_data_timeframe  = 20
+  enable_logs_sample = true
+  include_tags       = true
+
+  tags = concat(local.monitor_tags_base, ["severity:error", "service:langfuse", "phase:17"])
+}
+
+# =============================================================================
 # DND DOWNTIME SCHEDULE
 # =============================================================================
 # Mutes Sev 3-4 (warning + error) monitors from 10 PM - 8:30 AM ET daily
