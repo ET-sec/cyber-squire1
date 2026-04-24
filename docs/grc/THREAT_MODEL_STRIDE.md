@@ -7,7 +7,7 @@
 **NIST 800-53 Controls:** RA-3 (Risk Assessment), RA-5 (Vulnerability Monitoring and Scanning), SA-11 (Developer Testing and Evaluation), SA-15 (Development Process, Standards, and Tools)
 **OWASP References:** OWASP Threat Modeling Cheat Sheet, OWASP LLM Top 10 (2025)
 **Classification:** Internal Use Only
-**Version:** 1.0
+**Version:** 1.1 (Phase 17 scope extension 2026-04-24)
 
 ---
 
@@ -28,6 +28,7 @@
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-12 | Information Security Officer | Initial STRIDE analysis across full architecture including AI systems |
+| 1.1 | 2026-04-24 | Information Security Officer | Phase 17 scope extension added. STRIDE rows for Squire subsystem (svc-squire, svc-nemo, svc-langfuse family). Cross-ref to SQUIRE_THREAT_MODEL pending from 17-14. |
 
 ### Trust Boundary Architecture
 
@@ -795,12 +796,33 @@ The following table maps every STRIDE threat identified in this analysis to the 
 
 ---
 
+## 12.5 Phase 17 Scope Extension: Squire Subsystem STRIDE
+
+> **Key Point:** The Squire autonomous SOC analyst subsystem introduces 6 new components. STRIDE rows below map each Squire component to each STRIDE category with the Phase 17 control that resists the threat. `SQUIRE_THREAT_MODEL.md` (scheduled 17-14) will become the integrated authoritative Squire-scope threat view.
+
+### 12.5.1 Squire components x STRIDE
+
+| Component | S (Spoofing) | T (Tampering) | R (Repudiation) | I (Info Disclosure) | D (Denial of Service) | E (Elevation) |
+|-----------|--------------|---------------|-----------------|---------------------|------------------------|---------------|
+| svc-squire | Threat: forged X-Squire-Token. Control: HMAC token, ephemeral, 60-day rotation (HITL_POLICY 6). | Threat: modified alert payload. Control: pre-graph PII scanner plus NeMo input rail. | Threat: missing audit trail. Control: Langfuse trace every invocation (AI_AUDIT_TRAIL_SPEC). | Threat: PII in logs. Control: pre-graph block returns reason_code only, no raw payload. | Threat: runaway alert flood. Control: Cloudflare rate limit, cost ceiling. | Threat: privileged action without HITL. Control: actions allow-list plus HITL gate on HIGH/CRITICAL. |
+| svc-nemo | Threat: Colang bypass. Control: deny-by-default, tested rail coverage. | Threat: rail config tamper. Control: read-only mount, change control via git. | Threat: rail decision not logged. Control: rail invocation trace to Langfuse. | Threat: rail output exposes secrets. Control: output rail presidio PII strip. | Threat: rail overload. Control: NeMo worker pool sized for peak load. | Threat: rail escape to host. Control: container non-root, read-only rootfs. |
+| svc-langfuse-web | Threat: fake trace ingest. Control: project-scoped API key. | Threat: trace body modified. Control: ClickHouse immutable append. | Threat: gap in trace chain. Control: span parent ID enforcement. | Threat: trace data contains PII. Control: SDK sanitize plus classification per SQUIRE_DATA_FLOW_CLASSIFICATION. | Threat: trace backlog. Control: worker auto-scale, Redis dedup. | Threat: admin UI RCE. Control: least-privilege role, patched Langfuse v3. |
+| svc-langfuse-worker | Threat: worker impersonation. Control: dedicated network, no public ingress. | Threat: processed span rewrite. Control: worker writes append-only to ClickHouse. | Threat: lost span. Control: Redis dedup plus retry with backoff. | Threat: worker logs leak. Control: log level INFO, redact at SDK. | Threat: worker saturation. Control: horizontal worker scaling. | Threat: worker privilege drift. Control: read-only rootfs, minimal syscalls. |
+| svc-langfuse-clickhouse | Threat: query injection. Control: parameterized queries only. | Threat: trace row mutation. Control: append-only semantics. | Threat: schema drift. Control: migration review in change control. | Threat: dump via malformed query. Control: role-scoped DB user. | Threat: storage exhaustion. Control: 90-day retention plus disk alert. | Threat: ClickHouse admin access. Control: no external ingress, admin over bastion only. |
+| svc-langfuse-redis | Threat: key collision. Control: dedicated DB index. | Threat: cache poison. Control: short TTL 24h, dedup-only use. | Threat: lost replay token. Control: primary writes to ClickHouse, Redis is cache only. | Threat: Redis exposes dedup keys. Control: internal network only. | Threat: Redis memory blow. Control: maxmemory-policy allkeys-lru. | Threat: Redis command abuse. Control: no CONFIG, no FLUSH in ACL. |
+
+### 12.5.2 Cross-reference
+
+See `ATTACK_TREE_AI_PIPELINE.md` Phase 17 Scope Extension for the 3 new Squire-specific attack roots. See `AI_THREAT_CATALOG.md` Phase 17 Mitigation Addendum for per-threat Phase 17 controls. See `SQUIRE_SSP.md` for the 36 Squire control implementations. See `REDTEAM_RESULTS.md` for 6 executed red-team cases.
+
+---
+
 ## 13. Related Documents
 
 | Document | Relationship |
 |----------|-------------|
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Quantitative risk analysis (17 scenarios); this STRIDE model provides structural decomposition |
-| [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack tree for AI inference pipeline compromise - detailed path analysis |
+| [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack tree for AI inference pipeline compromise, detailed path analysis |
 | [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | Comprehensive AI threat catalog with OWASP/MITRE/NIST mapping |
 | [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI governance policy including AI risk register (AI-R01 through AI-R10) |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Control implementations referenced in the Threat-Control Mapping (Section 11) |
