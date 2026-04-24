@@ -765,6 +765,24 @@ All AI-related actions are logged, correlated, and subject to audit. Personnel s
 
 ---
 
-*Policy ID: POL-AI-001 | Version 1.0 | Classification: Internal Use Only*
+## Squire Integration (Phase 17)
+
+> **Key Point:** The Squire autonomous SOC analyst is an AI system operating under this policy. It extends the AI governance framework with Squire-specific implementation artifacts and operational controls.
+
+The Squire autonomous SOC analyst is deployed under the NIST AI RMF and ISO 42001 requirements codified in this policy. The following Squire-scope documents implement the policy for the Squire subsystem:
+
+- `SQUIRE_MODEL_CARD.md` implements model transparency with a Mitchell et al. card covering Opus 4.7 primary, Sonnet 4.6 routing, and text-embedding-3-large for pgvector RAG.
+- `AI_SUPPLY_CHAIN_REGISTER.md` implements supply chain governance as a living register of 14 components with version, license, hash, and 60-day review cadence.
+- `HITL_POLICY.md` implements human oversight with HIGH and CRITICAL severity gating, action approval flow, and ephemeral token rotation at 60-day production cadence plus per-interview revocation.
+- `SQUIRE_AI_RISK_ASSESSMENT.md` implements AI risk assessment using NIST AI RMF plus CSA Agentic Profile across 10 risks.
+- `AI_AUDIT_TRAIL_SPEC.md` implements auditability with per-invocation Langfuse tracing, ir_investigations logging, and retention tiers.
+- `GUARDRAILS_CONFIGURATION.md` implements safety controls with rail-by-rail coverage, failure modes, and change control.
+- `REDTEAM_RESULTS.md` implements adversarial testing with 6 executed red-team cases and Langfuse trace IDs.
+
+Cross-reference: `SQUIRE_SSP.md` AC, AU, SI, CM, IR, RA families; `FRAMEWORK_CROSSWALK_SQUIRE.md` for 31 controls across 7 frameworks.
+
+---
+
+*Policy ID: POL-AI-001 | Version 1.1 (Phase 17 integration added 2026-04-24) | Classification: Internal Use Only*
 
 *This policy is reviewed annually or upon significant change to the AI system inventory, threat landscape, regulatory environment, or organizational structure. All personnel with administrative or operational access to Organization AI systems are responsible for understanding and complying with this policy.*
