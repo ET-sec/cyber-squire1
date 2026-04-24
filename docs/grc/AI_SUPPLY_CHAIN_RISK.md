@@ -399,7 +399,7 @@ fi
 # /etc/cron.d/model-integrity-check (daily at 03:00 UTC)
 0 3 * * * root docker exec svc-llm ollama show qwen3:8b --format json \
   | jq -r '.layers[] | select(.mediaType == "application/vnd.ollama.image.model") | .digest' \
-  | diff - /root/model-baselines/qwen3-8b.sha256 \
+  | diff - /opt/platform/model-baselines/qwen3-8b.sha256 \
   || curl -X POST https://example-ops.com/webhook/master-cmd \
      -H "Content-Type: application/json" \
      -d '{"action":"telegram","chat_id":"OPERATOR","text":"ALERT: Ollama model hash mismatch detected"}'
@@ -550,7 +550,7 @@ BASELINE_PROMPTS = [
 
 ### 9.2 Quick Wins (Achievable Within 30 Days)
 
-1. **Record current model hashes** - Run `ollama show qwen3:8b --format json` and `sha256sum` on Whisper weight files. Store in `/root/model-baselines/` on alpha-node.
+1. **Record current model hashes** - Run `ollama show qwen3:8b --format json` and `sha256sum` on Whisper weight files. Store in `/opt/platform/model-baselines/` on alpha-node.
 2. **Pin Ollama image** - Change `ollama/ollama` to `ollama/ollama@sha256:<current_digest>` in docker-compose.yaml.
 3. **Document model update procedure** - Add a section to the Change Management Policy requiring hash verification before and after any `ollama pull` or image rebuild.
 

@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-04-23
 **Phase:** 17-07 (Squire GRC ingestion)
-**Decision owner:** Emmanuel Tigoue, CoreDirective
+**Decision owner:** System Owner, Organization
 
 ## Context
 
@@ -43,7 +43,7 @@ The embedding provider Anthropic officially recommends for Claude-based retrieva
 
 ## Decision
 
-Squire will use **Option C (Voyage AI `voyage-3-large`)** as the default embedding provider for the Phase 17 reference deployment at `squire.tigouetheory.com`.
+Squire will use **Option C (Voyage AI `voyage-3-large`)** as the default embedding provider for the Phase 17 reference deployment at `squire.example-ops.com`.
 
 The choice is driven by four factors:
 
