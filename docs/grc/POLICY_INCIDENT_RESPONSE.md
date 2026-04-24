@@ -414,10 +414,27 @@ When an incident touches the Squire subsystem, the responder:
 2. Captures the relevant Langfuse trace (trace ID, span tree, model I/O) to the incident evidence folder per `AI_AUDIT_TRAIL_SPEC.md` section on replay procedure.
 3. Queries `ir_investigations` for the affected verdict set and flags each row in the `ir_rotation_events` audit trail.
 4. Reviews `REDTEAM_RESULTS.md` for prior known bypass patterns before rebuilding rails.
-5. Executes the Squire-scope tabletop (`SQUIRE_TABLETOP.md` scheduled in plan 17-14) to validate the response path with stakeholders.
+5. Executes the Squire-scope tabletop (`SQUIRE_TABLETOP_EXERCISE.md`, delivered in plan 17-14) to validate the response path with stakeholders.
 
-Cross-reference: `PLAYBOOK_AI_INCIDENT.md` is the canonical AI incident runbook (prompt injection, excessive agency, data exfiltration, model supply chain). `HITL_POLICY.md` governs token revocation. `AI_AUDIT_TRAIL_SPEC.md` defines per-invocation logging and replay.
+Cross-reference: `PLAYBOOK_AI_INCIDENT.md` is the canonical AI incident runbook (prompt injection, excessive agency, data exfiltration, model supply chain). `HITL_POLICY.md` governs token revocation. `AI_AUDIT_TRAIL_SPEC.md` defines per-invocation logging and replay. `SQUIRE_THREAT_MODEL.md` provides the STRIDE + MITRE ATLAS threat catalog; ATLAS tactic IDs appear in post-incident reports when applicable.
+
+## Squire Scope Extension: 17-14 deliverables
+
+The following 17-14 artifacts are canonical inputs to the IR process when Squire is in scope:
+
+| Artifact | IR use |
+|----------|--------|
+| `SQUIRE_THREAT_MODEL.md` | First classification step: map the observed incident behavior to a STRIDE cell or ATLAS tactic. |
+| `SQUIRE_TABLETOP_EXERCISE.md` | Quarterly TTX; each hot-wash produces IR process corrections. |
+| `diagrams/squire-atlas-threat-model.png` | Communication aid during incident command briefings. |
+| `diagrams/squire-architecture.png` | Blast-radius reasoning during containment. |
+| `diagrams/squire-data-flow.png` | Evidence-capture scope (which data stores to freeze). |
+
+Additional IR triggers derived from 17-14:
+
+- Any observed incident matching an OPEN POAM-P17-* MED residual (P17-11 through P17-14) requires a post-incident decision whether to re-rate the residual as HIGH or accelerate the remediation target.
+- Any incident that invalidates a rail configuration requires both a POAM entry and a regression case added to `builds/squire/tests/test_redteam.py` per the tabletop Phase 6 protocol.
 
 ---
 
-*Policy ID: POL-IR-001 | Version 1.1 (Phase 17 integration added 2026-04-24) | Classification: Internal Use Only*
+*Policy ID: POL-IR-001 | Version 1.2 (Phase 17 plan 17-14 integration added 2026-04-24) | Classification: Internal Use Only*
