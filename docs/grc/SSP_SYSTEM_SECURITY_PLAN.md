@@ -4,8 +4,8 @@
 
 **Document Identifier:** SSP-OPS-001
 **Classification:** CONTROLLED UNCLASSIFIED - INTERNAL USE ONLY
-**Version:** 1.0
-**Last Updated:** 2026-03-11
+**Version:** 1.1
+**Last Updated:** 2026-04-24
 **Next Scheduled Review:** 2026-09-11
 **Prepared By:** System Owner
 **Approved By:** System Owner (Authorizing Official)
@@ -542,7 +542,7 @@ The following tables document the implementation status of NIST SP 800-53 Rev. 5
 | SI-6 | Security and Privacy Function Verification | Implemented | Security function verification is automated through: (1) Terraform health checks validate `svc-automation` and SSH tunnel reachability on every plan/apply; (2) Container health checks verify each service is operational; (3) CI/CD pipeline validates security scanning tools execute successfully; (4) Infrastructure policy checks verify security constraints are enforced on infrastructure changes. | `terraform/*/checks.tf` (automation_reachable, ssh_tunnel_reachable); `docker-compose.yaml` (healthcheck definitions); `.github/workflows/terraform-pr.yml` |
 | SI-7 | Software, Firmware, and Information Integrity | Implemented | Software integrity is verified through: (1) Container signature verification for upstream container images in CI/CD; (2) Image digest manifest generation for all deployed images; (3) SBOM generation (SPDX-JSON) for repository and 6 container images with 90-day retention; (4) Infrastructure policy prevents deletion of production resources (`prevent_destroy`); (5) Object storage versioning prevents audit log overwrites (enforced by infrastructure policy). | `.github/workflows/security.yml` (Cosign, SBOM jobs); `terraform/*/policy/deny_missing_prevent_destroy.rego`; `terraform/*/policy/deny_no_encryption.rego` |
 | SI-8 | Spam Protection | Not Applicable | The system does not process inbound email. | N/A |
-| SI-10 | Information Input Validation | Partially Implemented | Input validation is enforced through: (1) Terraform variable validation with postconditions (VPC CIDR, VPS status, IPv4 assignment); (2) infrastructure policies validate plan inputs against security constraints; (3) Application-level input validation is delegated to individual services (svc-identity, svc-automation). | `terraform/*/compute.tf` (postconditions); `terraform/*/networking.tf` (postconditions); `terraform/*/policy/` |
+| SI-10 | Information Input Validation | Implemented | Input validation is enforced through: (1) Terraform variable validation with postconditions (VPC CIDR, VPS status, IPv4 assignment); (2) infrastructure policies validate plan inputs against security constraints; (3) Application-level input validation is delegated to individual services (svc-identity, svc-automation); (4) **Pre-graph PII scanner** (added 2026-04-23) runs before Squire LLM graph invocation, scanning raw `/alert` payloads for SSN (regex + context), Luhn-valid credit card, email, and US phone. On detection, the scanner returns a structured block with `reason_code=PII_DETECTED_PRE_GRAPH`, `rail_name=pre_graph`, at 0ms and zero token cost. This closes the rail-architecture gap where the NeMo input rail only fronts draft and critique LLM calls. Cross-maps to OWASP LLM06 (Sensitive Information Disclosure) and CSA Agentic MG-4.1. Framework: NIST AI RMF MAP-4.1 and MANAGE-4.1. | `terraform/*/compute.tf` (postconditions); `terraform/*/networking.tf` (postconditions); `terraform/*/policy/`; `builds/squire/src/squire/pre_graph_pii.py` (scanner); `builds/squire/src/squire/app.py` (integration point); `builds/squire/tests/test_pre_graph_pii.py` (12 unit tests) |
 | SI-11 | Error Handling | Implemented | Error handling includes: (1) Container health checks with configurable retries and start periods; (2) `restart: unless-stopped` policy on all services for automatic recovery; (3) Dedicated error handler workflow in SOAR engine; (4) Container down monitor alerts on service failures; (5) `svc-detection-router` health check validates event routing pipeline integrity. | `docker-compose.yaml` (healthcheck, restart); `terraform/*/monitoring.tf` (container_down) |
 | SI-12 | Information Management and Retention | Partially Implemented | Log retention: Docker JSON logs rotate at 10MB/3 files per container; Datadog retains logs for 15 days; audit logs exported to versioned object storage. SBOM artifacts retained for 90 days in CI/CD. Formal data retention schedule with automated lifecycle management is planned. | `docker-compose.yaml` (logging.options); `.github/workflows/security.yml` (retention-days: 90) |
 
@@ -633,6 +633,61 @@ Open findings and planned remediations are tracked in the Plan of Action and Mil
 
 ---
 
+## 7.5 Squire Subsystem (Phase 17) Annex
+
+> **Key Point:** The Squire autonomous SOC analyst subsystem is authorized under this parent SSP and ships with its own scoped SSP (`SQUIRE_SSP.md`) that details 36 Squire-specific control implementations across 9 control families. Squire inherits infrastructure controls from this parent SSP (container hardening, secrets management, network segmentation, monitoring, logging) and adds AI-specific control implementations for input validation, output validation, rate limiting, human-in-the-loop, audit trail, and cost ceiling.
+
+### 7.5.1 Control count reconciliation
+
+| Source | Control rows | Scope |
+|--------|--------------|-------|
+| This SSP (parent) | 133 | Platform-wide NIST 800-53 Moderate baseline |
+| SQUIRE_SSP.md (child) | 36 | Squire-scoped controls with inheritance annotations |
+| Combined coverage | 169 | Platform + Squire subsystem |
+
+### 7.5.2 Squire subsystem summary
+
+| Component | Function | Service name |
+|-----------|----------|--------------|
+| Squire | LangGraph 7-node state machine (classify, retrieve, enrich, investigate, draft, critique, route_severity) | svc-squire |
+| NeMo Guardrails | Colang input and output rails, PII detection sidecar | svc-nemo |
+| Langfuse web | Observability UI and trace ingest API | svc-langfuse-web |
+| Langfuse worker | Async trace processing | svc-langfuse-worker |
+| Langfuse ClickHouse | Columnar trace storage | svc-langfuse-clickhouse |
+| Langfuse Redis | Dedup and cache | svc-langfuse-redis |
+| Pre-graph scanner | Regex PII block before LLM invocation (Python) | `builds/squire/src/squire/pre_graph_pii.py` |
+
+### 7.5.3 Defense-in-depth layers (Phase 17)
+
+```
+ Layer 1  WAF                          Cloudflare
+ Layer 2  Rate limit                   Cloudflare (per-IP, per-token)
+ Layer 3  X-Squire-Token auth          HMAC token, ephemeral, 60-day rotation
+ Layer 4  Cost ceiling                 Hard stop at per-alert budget
+ Layer 5  Actions allow-list           Typed action schema, deny-by-default
+ Layer 6  Pre-graph PII scanner        Regex block before graph.invoke
+ Layer 7  NeMo input rails             Colang + presidio PII detection
+ Layer 8  HITL review                  HIGH and CRITICAL severity gate
+ Layer 9  Audit trail                  Langfuse + pgvector ir_investigations
+```
+
+### 7.5.4 Cross-references
+
+| Squire doc | Purpose |
+|------------|---------|
+| `SQUIRE_SSP.md` | 36-control scoped SSP with inheritance annotations |
+| `GUARDRAILS_CONFIGURATION.md` | Rail-by-rail test coverage, failure modes, change control |
+| `SQUIRE_MODEL_CARD.md` | Mitchell et al. model card for Opus 4.7, Sonnet 4.6, text-embedding-3-large |
+| `AI_AUDIT_TRAIL_SPEC.md` | Per-invocation logging, retention tiers, immutability, replay procedure |
+| `HITL_POLICY.md` | Human-in-the-loop triggers, SLA, 60-day ephemeral token rotation |
+| `SQUIRE_DATA_FLOW_CLASSIFICATION.md` | Data classification, storage, retention, sanitization rules |
+| `REDTEAM_RESULTS.md` | 6 executed red-team cases with Langfuse trace IDs |
+| `FRAMEWORK_CROSSWALK_SQUIRE.md` | 31-control cross-framework mapping |
+| `SQUIRE_AI_RISK_ASSESSMENT.md` | NIST AI RMF + CSA Agentic Profile, 10 AI risks |
+| `AI_SUPPLY_CHAIN_REGISTER.md` | Living asset register, 14 components with version, license, hash |
+
+---
+
 ## Related GRC Documents
 
 The following documents comprise the GRC library for this system and support the control implementations documented in this SSP:
@@ -658,6 +713,16 @@ The following documents comprise the GRC library for this system and support the
 | IR Playbook: DDoS/Service Degradation | `docs/grc/PLAYBOOK_DDOS_SERVICE_DEGRADATION.md` | IR Playbook: DDoS/Service Degradation |
 | IR Playbook: Unauthorized Access | `docs/grc/PLAYBOOK_UNAUTHORIZED_ACCESS.md` | IR Playbook: Unauthorized Access |
 | Tabletop Exercise | `docs/grc/TABLETOP_EXERCISE.md` | Tabletop Exercise: Operation Phantom Container |
+| Squire SSP (scoped) | `docs/grc/SQUIRE_SSP.md` | Squire subsystem SSP, 36 controls, 9 families |
+| Squire AI Risk Assessment | `docs/grc/SQUIRE_AI_RISK_ASSESSMENT.md` | NIST AI RMF + CSA Agentic, 10 AI risks |
+| Guardrails Configuration | `docs/grc/GUARDRAILS_CONFIGURATION.md` | Rail-by-rail test coverage and change control |
+| Red-Team Results | `docs/grc/REDTEAM_RESULTS.md` | 6 executed red-team cases with Langfuse traces |
+| Framework Crosswalk (Squire) | `docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md` | 31 Squire controls across 7 frameworks |
+| Squire Model Card | `docs/grc/SQUIRE_MODEL_CARD.md` | Mitchell et al. model card |
+| Squire Data Flow Classification | `docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md` | Per-class data rules |
+| AI Audit Trail Spec | `docs/grc/AI_AUDIT_TRAIL_SPEC.md` | Per-invocation logging spec |
+| HITL Policy | `docs/grc/HITL_POLICY.md` | Human-in-the-loop policy + token rotation |
+| AI Supply Chain Register | `docs/grc/AI_SUPPLY_CHAIN_REGISTER.md` | Living asset register, 14 components |
 
 ---
 
@@ -668,6 +733,7 @@ The following documents comprise the GRC library for this system and support the
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-11 | System Owner | Initial SSP creation - 13-service architecture, NIST 800-53 Moderate baseline, 16 control families mapped |
+| 1.1 | 2026-04-24 | System Owner | Phase 17 annex added. SI-10 upgraded to Implemented with pre-graph PII scanner. Squire subsystem documented (36 additional controls in SQUIRE_SSP.md). Cross-refs to 10 Squire-specific GRC docs added. |
 
 ### 8.2 Review Schedule
 
