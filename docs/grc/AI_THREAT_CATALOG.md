@@ -6,7 +6,7 @@
 **Framework References:** OWASP LLM Top 10 (2025), OWASP Agentic Applications Top 10 (2026), MITRE ATLAS v4, NIST AI RMF (AI 100-1), ISO/IEC 42001:2023
 **NIST 800-53 Controls:** RA-3 (Risk Assessment), RA-5 (Vulnerability Monitoring), PM-16 (Threat Awareness Program), SI-5 (Security Alerts and Advisories)
 **Classification:** Internal Use Only
-**Version:** 1.0
+**Version:** 1.1 (Phase 17 mitigation addendum 2026-04-24)
 
 ---
 
@@ -27,6 +27,7 @@
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-12 | Information Security Officer | Initial AI threat catalog with cross-framework mapping |
+| 1.1 | 2026-04-24 | Information Security Officer | Phase 17 Mitigation Addendum added. Per-threat Phase 17 controls: pre_graph_pii, NeMo rails, cost ceiling, HITL, actions allow-list, citation validator, dedup, Ollama fallback. |
 
 ---
 
@@ -510,6 +511,45 @@ The following matrix documents which monitoring and detection systems can identi
 | MITRE ATLAS technique update | Semi-annual | 2026-09-12 | Information Security Officer |
 | Remediation progress review | Quarterly | 2026-06-12 | System Owner |
 | New AI system threat assessment | Per deployment (mandatory) | As needed | Information Security Officer |
+
+---
+
+## 7.5 Phase 17 Mitigation Addendum
+
+> **Key Point:** Phase 17 shipped 9 defense-in-depth layers and 10 new GRC docs (`SQUIRE_SSP`, `GUARDRAILS_CONFIGURATION`, `REDTEAM_RESULTS`, etc.). The table below adds a Phase 17 mitigation column to each of the 10 threats in this catalog. The 6 red-team cases executed 2026-04-23 validate 4 of these controls.
+
+### 7.5.1 Phase 17 controls applied per threat
+
+| Catalog ID | Threat | Pre-Phase 17 mitigation | Phase 17 control(s) added | Verification |
+|------------|--------|-------------------------|---------------------------|--------------|
+| AI-T01 | Prompt Injection (direct) | Input filter, prompt hardening | Pre-graph PII scanner, NeMo input rail, graph classifier held through adversarial framing | REDTEAM_RESULTS Findings 1, 2, 5, 6 (RESISTED) |
+| AI-T02 | Prompt Injection (indirect via retrieval) | None | Citation validator, ir_chunks source allow-list | Scheduled red-team cycle 2 |
+| AI-T03 | Sensitive Information Disclosure (training data, prompts) | Out-of-scope (no fine-tune) | Pre-graph PII scanner (SSN, Luhn CC, email, phone), NeMo output rail with presidio, SQUIRE_DATA_FLOW_CLASSIFICATION retention rules | REDTEAM_RESULTS Finding 3 (CLOSED post-remediation) |
+| AI-T04 | Model Theft | API key rotation, no model hosting locally | No additional Phase 17 control; covered by vendor posture | AI_SUPPLY_CHAIN_REGISTER |
+| AI-T05 | Supply Chain Vulnerabilities | SBOM, container signing | 14-component living register (AI_SUPPLY_CHAIN_REGISTER) with version plus hash plus review cadence | 60-day register review |
+| AI-T06 | Insecure Output Handling | Output sanitization | NeMo output rail, critique node, action allow-list, HITL gate on HIGH/CRITICAL | GUARDRAILS_CONFIGURATION rail coverage |
+| AI-T07 | Excessive Agency | Human approval on destructive ops | Actions allow-list (typed schema, deny-by-default), HITL policy for HIGH/CRITICAL severity, 60-day token rotation | HITL_POLICY sections 2-6 |
+| AI-T08 | Overreliance (hallucinated output) | Human review spot-check | Critique node gates draft, citation validator requires source match, Ollama fallback when Opus unavailable | SQUIRE_MODEL_CARD limitations |
+| AI-T09 | Model Denial of Service | Rate limit | Cost ceiling (hard stop at per-alert budget), Cloudflare rate limit, Redis dedup | SQUIRE_SSP SC-5 |
+| AI-T10 | Sensitive Info Disclosure (logs or traces) | Log hygiene | SDK redaction, Langfuse classification policy, per-class retention in SQUIRE_DATA_FLOW_CLASSIFICATION | AI_AUDIT_TRAIL_SPEC |
+
+### 7.5.2 Defense-in-depth layers introduced
+
+```
+ 1. WAF                            Cloudflare
+ 2. Rate limit                     Cloudflare plus Redis dedup
+ 3. X-Squire-Token auth            HMAC ephemeral, 60-day rotation
+ 4. Cost ceiling                   Hard stop per alert
+ 5. Actions allow-list             Deny-by-default typed schema
+ 6. Pre-graph PII scanner          Regex block before LLM call (0ms, $0)
+ 7. NeMo input rails               Colang plus presidio
+ 8. HITL review                    HIGH/CRITICAL gate
+ 9. Audit trail                    Langfuse plus pgvector ir_investigations
+```
+
+### 7.5.3 Cross-reference
+
+See `GUARDRAILS_CONFIGURATION.md` for rail-by-rail test coverage. See `REDTEAM_RESULTS.md` for 6 executed red-team cases. See `SQUIRE_AI_RISK_ASSESSMENT.md` for the 10 Squire-specific AI risks (distinct from this pre-Phase 17 catalog). See `POAM_PLAN_OF_ACTION.md` POAM-P17-01 through P17-10 for tracked remediations.
 
 ---
 
