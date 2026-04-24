@@ -1,0 +1,96 @@
+---
+title: Squire MITRE ATLAS Threat Model - Adversary to Residual Risk
+---
+flowchart LR
+    %% Column 1: Threat Actors
+    subgraph ACTORS["THREAT ACTORS"]
+        A1["External attacker<br/>POST /alert"]
+        A2["Compromised upstream<br/>n8n, gmail-reader"]
+        A3["Insider<br/>operator / analyst"]
+        A4["Supply chain<br/>pip, dockerhub, model vendor"]
+        A5["Search-result poisoner<br/>Tavily-indexed site"]
+    end
+
+    %% Column 2: Attack Surfaces
+    subgraph SURFACE["ATTACK SURFACES"]
+        S1["/alert webhook"]
+        S2["ir_chunks corpus<br/>pgvector"]
+        S3["Tavily enrichment merge"]
+        S4["svc-nemo rail config"]
+        S5["Anthropic egress<br/>Opus 4.7 / Sonnet 4.6"]
+        S6["Dependency updates<br/>NeMo, Langfuse, pgvector"]
+        S7["Langfuse trace store"]
+    end
+
+    %% Column 3: Controls
+    subgraph CONTROLS["CONTROLS"]
+        C1["Token auth<br/>60-day rotation"]
+        C2["Pre-graph PII scanner<br/>0ms 0 cost"]
+        C3["NeMo input + output rails<br/>presidio 0.7 / 0.85"]
+        C4["actions.yml allow-list<br/>rewrite destructive verbs"]
+        C5["Critique consistency<br/>override + 3 iter cap"]
+        C6["Cost ceilings<br/>0.75 per call / 10 per day"]
+        C7["Cloudflare WAF<br/>+ 100 rpm rate limit"]
+        C8["SBOM + Cosign<br/>+ Renovate pins"]
+        C9["Langfuse retention 30d<br/>+ secret masking"]
+    end
+
+    %% Column 4: Residual Risks
+    subgraph RESIDUAL["RESIDUAL RISKS"]
+        R1["Novel injection bypass<br/>MED"]
+        R2["Non-US PII false-neg<br/>MED"]
+        R3["Tavily directive injection<br/>MED"]
+        R4["Supply chain zero-day<br/>MED"]
+        R5["Model stealing<br/>LOW"]
+        R6["Inference DoS<br/>LOW"]
+        R7["Output leak via trace<br/>MED"]
+    end
+
+    %% Edges: actors to surfaces with ATLAS IDs
+    A1 -- "AML.T0051" --> S1
+    A1 -- "AML.T0024" --> S1
+    A1 -- "AML.T0029" --> S1
+    A2 -- "AML.T0041" --> S1
+    A2 -- "AML.T0051" --> S3
+    A3 -- "AML.T0041" --> S5
+    A3 -- "AML.T0041" --> S7
+    A4 -- "AML.T0010" --> S6
+    A4 -- "AML.T0010" --> S4
+    A5 -- "AML.T0051" --> S3
+
+    %% Edges: surfaces to controls
+    S1 --> C1
+    S1 --> C2
+    S1 --> C7
+    S2 --> C3
+    S2 --> C5
+    S3 --> C3
+    S3 --> C5
+    S4 --> C3
+    S4 --> C4
+    S5 --> C6
+    S5 --> C9
+    S6 --> C8
+    S7 --> C9
+
+    %% Edges: controls to residuals
+    C1 --> R5
+    C2 --> R2
+    C3 --> R1
+    C3 --> R2
+    C4 --> R1
+    C5 --> R3
+    C6 --> R6
+    C8 --> R4
+    C9 --> R7
+
+    %% Styling
+    classDef threat fill:#fee,stroke:#c00,color:#111,font-weight:bold
+    classDef att fill:#ffe8cc,stroke:#d97706,color:#111,font-weight:bold
+    classDef ctrl fill:#d1fae5,stroke:#059669,color:#111,font-weight:bold
+    classDef res fill:#e5e7eb,stroke:#374151,color:#111,font-weight:bold
+
+    class A1,A2,A3,A4,A5 threat
+    class S1,S2,S3,S4,S5,S6,S7 att
+    class C1,C2,C3,C4,C5,C6,C7,C8,C9 ctrl
+    class R1,R2,R3,R4,R5,R6,R7 res
