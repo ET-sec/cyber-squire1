@@ -3,8 +3,8 @@
 **System Name:** Organization Security Operations Platform (OSOP)
 **Document Identifier:** EXEC-ARCH-001
 **Classification:** Internal Use Only
-**Version:** 1.0
-**Date:** 2026-03-11
+**Version:** 1.1 (Phase 17 Squire subsystem added)
+**Date:** 2026-04-24
 **Prepared By:** System Owner
 
 ---
@@ -80,8 +80,41 @@ All inter-service communication occurs over Docker bridge networks. No container
 
 | Container | Function | Port (Internal) |
 |-----------|----------|-----------------|
-| tunnel | Cloudflare Tunnel - zero-trust ingress | Host network |
-| svc-secrets | HashiCorp Vault - secrets management | internal |
+| tunnel | Cloudflare Tunnel, zero-trust ingress | Host network |
+| svc-secrets | HashiCorp Vault, secrets management | internal |
+
+### Squire Subsystem (Phase 17)
+
+| Container | Function | Port (Internal) |
+|-----------|----------|-----------------|
+| svc-squire | LangGraph 7-node autonomous SOC analyst (classify, retrieve, enrich, investigate, draft, critique, route_severity) | internal |
+| svc-nemo | NeMo Guardrails, Colang rails plus presidio PII detection | internal |
+| svc-langfuse-web | Langfuse observability UI and trace ingest | internal |
+| svc-langfuse-worker | Langfuse async trace processing | internal |
+| svc-langfuse-clickhouse | Langfuse columnar trace storage | internal |
+| svc-langfuse-redis | Langfuse dedup and cache | internal |
+
+### Squire pipeline
+
+```mermaid
+flowchart LR
+    A[alert ingress] --> CF[Cloudflare WAF]
+    CF --> PRE[pre_graph_pii scanner]
+    PRE --> CLF[classify node]
+    CLF --> NIR[NeMo input rail]
+    NIR --> RET[retrieve: pgvector ir_chunks]
+    RET --> ENR[enrich: Tavily]
+    ENR --> INV[investigate: Anthropic]
+    INV --> DRAFT[draft node]
+    DRAFT --> CRT[critique node]
+    CRT --> NOR[NeMo output rail]
+    NOR --> RTE[route_severity]
+    RTE -->|HIGH/CRITICAL| TG[Telegram + HITL review]
+    RTE -->|INFO/LOW| WH[webhook delivery]
+    CLF -.trace.-> LF[Langfuse traces]
+    INV -.trace.-> LF
+    CRT -.trace.-> LF
+```
 
 ---
 
@@ -138,3 +171,5 @@ All inter-service communication occurs over Docker bridge networks. No container
 | [IAM_ACCESS_REVIEW.md](IAM_ACCESS_REVIEW.md) | Access review process with JIT workflow |
 | [EXECUTIVE_SUMMARY_SECURITY_POSTURE.md](EXECUTIVE_SUMMARY_SECURITY_POSTURE.md) | Security posture one-pager |
 | [EXECUTIVE_SUMMARY_COMPLIANCE.md](EXECUTIVE_SUMMARY_COMPLIANCE.md) | Compliance readiness one-pager |
+| [SQUIRE_SSP.md](SQUIRE_SSP.md) | Squire subsystem SSP |
+| [DATA_FLOW_DIAGRAM.md](DATA_FLOW_DIAGRAM.md) | DFD including Phase 17 extension |
