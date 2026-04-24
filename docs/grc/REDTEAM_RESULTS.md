@@ -218,7 +218,7 @@ Cumulative (cycle 1 + cycle 2): 17/20 RESISTED at graph or rail layer, 0 true by
 
 **Trigger cases**: 08, 16, 18 (cycle 2, all returned HTTP 500).
 
-**Root cause**: At concurrency 5, the Anthropic API returned 429 with message "request would exceed your organization's rate limit of 30,000 input tokens per minute" followed by "8,000 output tokens per minute" on the Opus 4.7 model. The llm_backend fallback chain then attempted Ollama, which failed with `[Errno -3] Temporary failure in name resolution`. The `cd-service-ollama` container sits on the `net-ai` internal-only docker network; squire on `net-core` cannot resolve it by service name even when both are on the droplet. Final backend in the chain (nemo) also returned 429 from the sidecar which fronts the same Anthropic endpoint.
+**Root cause**: At concurrency 5, the Anthropic API returned 429 with message "request would exceed your organization's rate limit of 30,000 input tokens per minute" followed by "8,000 output tokens per minute" on the Opus 4.7 model. The llm_backend fallback chain then attempted Ollama, which failed with `[Errno -3] Temporary failure in name resolution`. The `svc-ollama` container sits on the `net-ai` internal-only docker network; squire on `net-core` cannot resolve it by service name even when both are on the droplet. Final backend in the chain (nemo) also returned 429 from the sidecar which fronts the same Anthropic endpoint.
 
 **Severity**: MED. This affects availability dimension under stress, not integrity or confidentiality. Red-team cases with high token footprint running in parallel can exhaust the per-minute allotment in the demo environment.
 

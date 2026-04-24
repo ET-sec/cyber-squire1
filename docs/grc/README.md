@@ -203,10 +203,10 @@ All numbers regenerated from filesystem as of 2026-04-24. Commands shown for rep
 
 ```bash
 # Document count
-ls docs/grc/*.md | wc -l                                                         # 49
+ls docs/grc/*.md | wc -l                                                         # 51
 
 # Line count
-cat docs/grc/*.md | wc -l                                                        # ~24,300
+cat docs/grc/*.md | wc -l                                                        # ~25,458
 
 # Legacy SSP control rows
 grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SSP_SYSTEM_SECURITY_PLAN.md              # 133
@@ -215,20 +215,20 @@ grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SSP_SYSTEM_SECURITY_PLAN.md            
 grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SQUIRE_SSP.md                            # 36
 
 # POA&M register rows
-grep -c "^| POAM-" docs/grc/POAM_PLAN_OF_ACTION.md                                # 25
+grep -c "^| POAM-" docs/grc/POAM_PLAN_OF_ACTION.md                                # 30
 
 # Phase 17 POA&M rows
-grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                            # 10
+grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                            # 15
 ```
 
 ### Headline counts
 
-- **49 documents** in this library
-- **~24,300 lines** of compliance documentation
+- **51 documents** in this library
+- **~25,458 lines** of compliance documentation
 - **133 NIST 800-53 controls** mapped in the enterprise SSP across 16 families
 - **36 NIST 800-53 control rows** in the Squire scoped SSP
 - **31 Squire controls** cross-walked to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM, NIST 800-61 r3, and NIST AI RMF
-- **25 POA&M entries** tracked (15 legacy plus 10 Phase 17: 15 accepted, 4 open, 6 closed)
+- **30 POA&M entries** tracked (15 legacy plus 15 Phase 17: 15 accepted, 9 open, 6 closed)
 - **17 enterprise risk scenarios** plus **10 Squire-specific AI risks** assessed
 - **11 frameworks** covered (NIST 800-53, NIST AI RMF, CSA Agentic, OWASP LLM, MITRE ATLAS, ISO 42001, ISO 27701, NIST 800-154, NIST 800-61 r3, CIS Docker Benchmark, FIPS 199)
 
