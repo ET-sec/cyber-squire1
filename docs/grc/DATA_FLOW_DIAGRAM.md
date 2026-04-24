@@ -1,12 +1,12 @@
 # Data Flow Diagram - Organization Security Operations Platform
 
 **Organization:** Organization Security Operations Platform
-**Assessment Date:** 2026-03-12
+**Assessment Date:** 2026-03-12 (v1.0), 2026-04-24 (v1.1 Phase 17 scope extension)
 **Assessor:** System Owner
-**Methodology:** Data Flow Diagrams (DFD) Levels 0–2, per NIST SP 800-154 (Data-Centric Threat Modeling)
+**Methodology:** Data Flow Diagrams (DFD) Levels 0 through 2, per NIST SP 800-154 (Data-Centric Threat Modeling)
 **NIST 800-53 Controls:** RA-3 (Risk Assessment), SA-8 (Security and Privacy Engineering Principles), PL-8 (Security and Privacy Architectures)
 **Classification:** Internal Use Only
-**Version:** 1.0
+**Version:** 1.1
 
 ---
 
@@ -442,6 +442,139 @@ Each trust boundary crossing in this DFD maps to STRIDE threats in `THREAT_MODEL
 | DF-13, DF-14, DF-28 (Skill execution) | ATC-02 (Indirect Injection via Data), ATC-06 (Insecure Skill Execution) |
 | DF-25 (AI → svc-automation) | ATC-03 (Insecure Output Handling), ATC-07 (Excessive Agency) |
 | DF-16 (svc-automation → svc-llm) | ATC-04 (Supply Chain), ATC-10 (Lateral Movement) |
+
+## 11. Phase 17 Scope Extension: Squire Autonomous SOC Analyst
+
+> **Key Point:** Phase 17 added a new AI-driven SOC analyst subsystem. This extends the Level 2 DFD with 10 new data flows, 3 new trust boundaries, 6 new data stores, and 3 new external entities. The canonical classification of every Squire data class lives in `SQUIRE_DATA_FLOW_CLASSIFICATION.md`.
+
+### 11.1 Phase 17 alert pipeline (Mermaid Level 2)
+
+```mermaid
+flowchart LR
+    subgraph Public [Public Internet]
+        A[Alert source]
+    end
+    subgraph CF [Cloudflare trust zone]
+        CFWAF[WAF plus rate limit]
+    end
+    subgraph SquireZone [Squire trust zone]
+        PRE[pre_graph_pii scanner]
+        CLF[classify node]
+        RET[retrieve node]
+        ENR[enrich node]
+        INV[investigate node]
+        DRAFT[draft node]
+        CRT[critique node]
+        RTE[route_severity node]
+        PG[(pgvector ir_chunks)]
+        IRA[(ir_alerts)]
+        IRI[(ir_investigations)]
+        IRR[(ir_rotation_events)]
+    end
+    subgraph NeMoZone [NeMo Guardrails zone]
+        NIR[NeMo input rail]
+        NOR[NeMo output rail]
+    end
+    subgraph LangfuseZone [Langfuse observability zone]
+        LW[svc-langfuse-web]
+        LCH[(ClickHouse traces)]
+        LR[(Redis dedup)]
+    end
+    subgraph LLM [External LLM zone]
+        ANT[Anthropic Opus 4.7 / Sonnet 4.6]
+        TAV[Tavily search]
+        OC[OpenClaw gateway]
+    end
+    subgraph Delivery [Delivery zone]
+        TG[Telegram bot]
+        WH[webhook consumer]
+    end
+
+    A -->|POST /alert + X-Squire-Token| CFWAF
+    CFWAF -->|forwarded request| PRE
+    PRE -->|scan pass| CLF
+    PRE -.->|PII block| WH
+    CLF --> NIR
+    NIR --> RET
+    RET --> PG
+    RET --> ENR
+    ENR --> TAV
+    ENR --> INV
+    INV --> ANT
+    INV --> DRAFT
+    DRAFT --> CRT
+    CRT --> NOR
+    NOR --> RTE
+    RTE -->|HIGH or CRITICAL| TG
+    RTE -->|INFO or LOW| WH
+    CLF --> IRA
+    INV --> IRI
+    RTE --> IRR
+    CLF -.trace.-> LW
+    INV -.trace.-> LW
+    CRT -.trace.-> LW
+    LW --> LCH
+    LW --> LR
+    INV -.agent.-> OC
+```
+
+### 11.2 New data flows (+10)
+
+| ID | Source | Destination | Data | Encryption | Trust crossing |
+|----|--------|-------------|------|------------|----------------|
+| DF-31 | Alert source | Cloudflare WAF | Raw alert payload JSON | TLS 1.3 | TB-8 (public to CF zone) |
+| DF-32 | Cloudflare WAF | Pre-graph scanner | Filtered alert payload | TLS 1.3 internal | TB-9 (CF to Squire) |
+| DF-33 | Pre-graph scanner | classify node | Validated payload | in-process | intra-zone |
+| DF-34 | classify node | NeMo input rail | Classification plus raw text | in-process | TB-10 (Squire to NeMo) |
+| DF-35 | retrieve node | pgvector ir_chunks | Query embedding | in-process | intra-zone |
+| DF-36 | enrich node | Tavily API | Search query | TLS 1.3 | TB-9 (Squire to external) |
+| DF-37 | investigate node | Anthropic API | Prompt plus tool calls | TLS 1.3 | TB-9 (Squire to external) |
+| DF-38 | critique node | NeMo output rail | Draft report | in-process | TB-10 (Squire to NeMo) |
+| DF-39 | route_severity | Telegram bot | HIGH or CRITICAL report | TLS 1.3 | TB-8 (Squire to public) |
+| DF-40 | Squire nodes | Langfuse web | Trace span data | TLS 1.3 internal | TB-11 (Squire to Langfuse) |
+
+### 11.3 New trust boundaries (+3)
+
+| ID | Boundary | Crosses | Controls |
+|----|----------|---------|----------|
+| TB-8 | Public Internet to Cloudflare | Inbound alert ingress, outbound delivery | Cloudflare WAF, rate limit, HMAC token |
+| TB-9 | Squire to external LLM and search | Prompts to Anthropic, queries to Tavily, agent dispatch to OpenClaw | TLS 1.3, per-provider auth, cost ceiling |
+| TB-10 | Squire to NeMo Guardrails | Input rail, output rail | Colang rail definitions, presidio PII detection |
+| TB-11 | Squire to Langfuse observability | Trace span data | Internal TLS, dedicated observability network |
+
+### 11.4 New data stores (+6)
+
+| ID | Store | Location | Data class | Retention |
+|----|-------|----------|------------|-----------|
+| DS-10 | ir_alerts | PostgreSQL | Alert payloads (sanitized) | 180 days |
+| DS-11 | ir_chunks | pgvector | Embedding vectors plus source text chunks | 365 days |
+| DS-12 | ir_investigations | PostgreSQL | Investigation records with verdict and evidence | 365 days |
+| DS-13 | ir_rotation_events | PostgreSQL | HITL token rotation audit log | 3 years |
+| DS-14 | Langfuse ClickHouse | Dedicated container | Trace spans | 90 days |
+| DS-15 | Langfuse Redis | Dedicated container | Dedup cache, short TTL | 24 hours |
+
+### 11.5 New external entities (+3)
+
+| ID | Entity | Purpose | Auth |
+|----|--------|---------|------|
+| E-12 | Anthropic API | Primary Opus 4.7 and Sonnet 4.6 inference | API key, 60-day rotation |
+| E-13 | Tavily API | Enrichment search | API key |
+| E-14 | OpenClaw gateway | Agent dispatch path | OAuth bearer, pending |
+
+### 11.6 Reconciled counts
+
+| Metric | Pre-Phase 17 | Phase 17 delta | Total |
+|--------|--------------|----------------|-------|
+| Data flows | 30 | +10 | 40 |
+| Data stores | 9 | +6 | 15 |
+| External entities | 11 | +3 | 14 |
+| Trust boundaries | 7 | +3 | 10 |
+
+### 11.7 Cross-references
+
+See `SQUIRE_DATA_FLOW_CLASSIFICATION.md` for per-class encryption, retention, sanitization, and access rules. See `SQUIRE_SSP.md` for control implementation. See `GUARDRAILS_CONFIGURATION.md` for rail configuration. See `AI_AUDIT_TRAIL_SPEC.md` for per-invocation logging. `SQUIRE_THREAT_MODEL.md` (scheduled in plan 17-14) will supersede this section as the integrated Squire-scope threat view.
+
+---
 
 ### 10.4 Related Documents
 
