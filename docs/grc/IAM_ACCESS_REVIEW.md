@@ -232,6 +232,33 @@ ssh alpha-node 'docker exec svc-gateway tctl recordings ls'
 - [ ] Review Docker container access (no new privileged containers)
 - [ ] Verify `.env` file permissions remain `chmod 600`: `ssh alpha-node 'stat -c %a /opt/platform/.env'`
 
+### 5.7 Squire Subsystem Access Review (Phase 17, 60-day cadence)
+
+> **Key Point:** Phase 17 introduces ephemeral HMAC tokens for Squire `/alert` ingress, plus per-interview tokens for the interview-presenter demo path. Token lifecycle is audited on a 60-day cycle per `HITL_POLICY.md` section 6. The SQUIRE_INTERVIEW_TOKENS rotation pattern is the authoritative per-interview cadence.
+
+| Activity | Frequency | Next Date | Evidence |
+|----------|-----------|-----------|----------|
+| HITL production token rotation audit | 60 days | 2026-06-22 | `ir_rotation_events` table, HITL_POLICY section 6 |
+| Per-interview token issuance audit | Per-interview plus monthly aggregate | Monthly first business day | Issued and revoked list in `ir_rotation_events` |
+| Squire actions allow-list audit | 60 days | 2026-06-22 | `actions.yml` git log, change control record |
+| NeMo rail config audit | 60 days | 2026-06-22 | `svc-nemo-config` git log |
+| AI supply chain register review | 60 days | 2026-06-22 | AI_SUPPLY_CHAIN_REGISTER.md |
+
+**5.7.1 Phase 17 token rotation check commands**
+
+```bash
+# Verify ir_rotation_events log has entries for the window
+ssh host-alpha 'docker exec svc-db psql -U squire -d squire -c "SELECT token_id, event_type, created_at FROM ir_rotation_events WHERE created_at > NOW() - INTERVAL '\''60 days'\'' ORDER BY created_at DESC;"'
+
+# Verify interview tokens are revoked within 24h of use
+ssh host-alpha 'docker exec svc-db psql -U squire -d squire -c "SELECT token_id, issued_at, revoked_at, (revoked_at - issued_at) AS lifetime FROM ir_rotation_events WHERE token_class = '\''interview'\'' AND revoked_at IS NOT NULL;"'
+```
+
+- [ ] Every production token issuance has a paired rotation event within 60 days
+- [ ] Every interview token has a revocation event within 24h of issuance
+- [ ] No orphan tokens (issued with no matching audit row)
+- [ ] Squire Operator role not granted outside documented JIT windows
+
 ---
 
 ## 6. Escalation Path
@@ -309,7 +336,8 @@ The current access gateway Community Edition provides solid JIT access controls.
 
 | Date | Reviewer | Findings | Actions Taken |
 |------|----------|----------|---------------|
-| 2026-03-11 | System Owner | Initial review -- baseline established | Created operator/admin/auditor roles, tested JIT workflow, documented process |
+| 2026-03-11 | System Owner | Initial review, baseline established | Created operator/admin/auditor roles, tested JIT workflow, documented process |
+| 2026-04-24 | System Owner | Phase 17 extension, 60-day Squire token rotation audit cadence added | Section 5.7 added. SOC Analyst, Squire Operator, Interview Presenter roles referenced in IAM_RBAC_ROLE_MAP. |
 
 ---
 
@@ -319,4 +347,7 @@ The current access gateway Community Edition provides solid JIT access controls.
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [IAM_RBAC_ROLE_MAP.md](IAM_RBAC_ROLE_MAP.md) | Core 3-tier RBAC plus Phase 17 Squire roles |
+| [HITL_POLICY.md](HITL_POLICY.md) | Section 6: HITL production and per-interview token rotation |
+| [SQUIRE_SSP.md](SQUIRE_SSP.md) | Squire subsystem SSP with AC-1, AC-2, AC-3 controls |
 | [README.md](README.md) | GRC library index and reading guide |
