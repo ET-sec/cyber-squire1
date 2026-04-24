@@ -560,10 +560,28 @@ Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
 
 ---
 
+## When the incident involves Squire subsystem (Phase 17)
+
+> **Key Point:** The Phase 17 Squire containers (svc-squire, svc-nemo, svc-langfuse-web, svc-langfuse-worker, svc-langfuse-clickhouse, svc-langfuse-redis) follow this parent playbook plus Squire-specific evidence capture. Langfuse trace data is high-value forensic evidence.
+
+Standard container compromise response applies to all Squire containers. In addition, the responder:
+
+1. Before container isolation, exports Langfuse trace IDs for the affected window (`ir_investigations` query, then Langfuse UI export).
+2. Captures `ir_alerts`, `ir_chunks`, `ir_investigations`, `ir_rotation_events` table state before any container state change.
+3. For svc-nemo compromise, treats the rail config (`/opt/platform/nemo-config`) as untrusted until rebuilt from git.
+4. For svc-langfuse-clickhouse compromise, the trace data itself may be tampered; cross-check against SDK-side trace IDs captured by the Squire app log.
+5. For svc-squire compromise, revokes all X-Squire-Tokens immediately (HITL_POLICY section 6).
+
+Cross-reference: `PLAYBOOK_AI_INCIDENT.md` for AI-specific response; `AI_AUDIT_TRAIL_SPEC.md` for trace capture; `HITL_POLICY.md` for token revocation.
+
+---
+
 ## Cross-References
 
 | Document | Relationship |
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [PLAYBOOK_AI_INCIDENT.md](PLAYBOOK_AI_INCIDENT.md) | AI-specific incident playbook including Squire section |
+| [AI_AUDIT_TRAIL_SPEC.md](AI_AUDIT_TRAIL_SPEC.md) | Langfuse trace retention and replay |
 | [README.md](README.md) | GRC library index and reading guide |
