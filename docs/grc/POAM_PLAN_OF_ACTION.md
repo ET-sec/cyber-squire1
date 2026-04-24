@@ -537,7 +537,7 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | POAM-P17-05 | Benign framing severity flip attempt; graph classifier held. Regression test added. | MED | System Owner | 2026-04-23 | CLOSED | `REDTEAM_RESULTS.md` Finding 5 (RESISTED) |
 | POAM-P17-06 | Drill framing severity flip attempt; graph classifier held. Regression test added. | MED | System Owner | 2026-04-23 | CLOSED | `REDTEAM_RESULTS.md` Finding 6 (RESISTED) |
 | POAM-P17-07 | Lakera Guard rail deferred. Blocked on free-tier re-evaluation. Current rail coverage is NeMo plus pre-graph scanner. | LOW | Operator | 2026-Q3 | OPEN | `GUARDRAILS_CONFIGURATION.md` deferred rails section |
-| POAM-P17-08 | PolicyAI self-check path degraded. Blocked on Anthropic credit balance rebalance. Critique node still gates draft. | LOW | Operator | 2026-Q2 | OPEN | `SQUIRE_MODEL_CARD.md` limitations section |
+| POAM-P17-08 | PolicyAI self-check path held in degraded mode pending the next provider-access rotation cycle. Critique node still gates draft and enforces severity consistency. | LOW | Operator | 2026-Q2 | OPEN | `SQUIRE_MODEL_CARD.md` limitations section |
 | POAM-P17-09 | OpenClaw agent LLM auth not yet configured. Deferred to 17-07 follow-up. Squire currently calls Anthropic direct, not via OpenClaw gateway. | LOW | Operator | 2026-Q3 | OPEN | Plan 17-07 |
 | POAM-P17-10 | AI supply chain register TBDs: Langfuse v3 exact commit pinning, NeMo Guardrails upgrade cadence, pgvector extension provenance. | LOW | System Owner | 2026-06-22 | OPEN | `AI_SUPPLY_CHAIN_REGISTER.md` |
 

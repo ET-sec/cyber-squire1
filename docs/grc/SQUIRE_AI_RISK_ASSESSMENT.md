@@ -156,7 +156,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Category.** LLM10 Model Theft (in the sense of resource theft); CSA Agentic MG-3.1 (cost governance).
 
-**Inherent.** L=3, I=3, score=9 (MODERATE). Likely enough given agentic systems and high enough impact given the $0 credit constraint already hit in Phase 17.
+**Inherent.** L=3, I=3, score=9 (MODERATE). Agentic systems with unbounded iteration are prone to runaway inference loops; per-call and daily cost ceilings plus iteration caps are the primary inherent-risk reducers.
 
 **Mitigations.**
 

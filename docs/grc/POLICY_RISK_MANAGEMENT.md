@@ -141,7 +141,7 @@ The framing step establishes the context, assumptions, and constraints under whi
 
 1. The platform operates on a resource-constrained VPS (4 vCPU, 8 GB RAM), which limits the ability to deploy certain compensating controls (e.g., full `auditd` alongside eBPF monitoring).
 2. Single-node architecture precludes automatic failover; availability risk is accepted as Low impact per FIPS 199 categorization.
-3. Budget constraints limit the platform to a single DigitalOcean region; multi-region redundancy is documented as a future enhancement.
+3. Single-region deployment is the current architectural baseline; multi-region redundancy is documented as a future enhancement aligned with scale targets.
 
 **Risk tolerance statement:**
 
