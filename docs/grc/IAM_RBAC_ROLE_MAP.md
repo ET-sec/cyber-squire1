@@ -318,10 +318,44 @@ spec:
 
 ---
 
+## Phase 17 Scope Extension: Squire roles (2026-04-24)
+
+> **Key Point:** Phase 17 added three Squire-specific roles layered on top of the 3-tier RBAC model: SOC Analyst (HITL Reviewer), Squire Operator, Interview Presenter. These roles do not replace the core admin/operator/auditor tiers; they augment with scoped access to the Squire subsystem.
+
+### Squire role definitions
+
+| Role | Duties | Permissions | Token source | Rotation cadence |
+|------|--------|-------------|--------------|------------------|
+| SOC Analyst (HITL Reviewer) | Review HIGH and CRITICAL severity Squire investigations before external action. Approve or deny routed actions per HITL_POLICY section 3. | Read `ir_alerts`, `ir_investigations`. Write `ir_rotation_events` (via approval API). No direct DB access. | Production HMAC token (long-lived, 60-day rotation) | 60 days |
+| Squire Operator | Operate the Squire subsystem. Start or stop svc-squire, svc-nemo, svc-langfuse-*. Rotate tokens. Deploy guardrail changes through change control. | SSH to host (JIT via access gateway), no Prod DB write, read Langfuse traces. | Access gateway admin role (JIT), 4h TTL | per session |
+| Interview Presenter | Ephemeral demo path for showcasing Squire end-to-end without production data. | Access a demo token that grants read-only `/alert` POST with sanitized seed alerts. No DB read. | Per-interview ephemeral HMAC token | per interview, revoked within 24h |
+
+### RBAC matrix (roles x Squire resources)
+
+| Role | ir_alerts | ir_investigations | ir_rotation_events | Langfuse traces | NeMo config | actions.yml |
+|------|-----------|-------------------|--------------------|-----------------|-------------|-------------|
+| cd-admin | RW | RW | RW | RW | RW | RW |
+| cd-operator | R | R | R | R | R (no W) | R |
+| cd-auditor | R | R | R | R | R | R |
+| SOC Analyst (HITL Reviewer) | R | R | W (approvals only) | R | - | - |
+| Squire Operator | R | R | R | R | RW (via change control) | RW (via change control) |
+| Interview Presenter | - (POST /alert only) | - | - | - | - | - |
+
+**Legend:** R = read, W = write, RW = read and write, `-` = no access.
+
+### Cross-reference
+
+See `HITL_POLICY.md` section 6 for per-interview token rotation procedure. See `SQUIRE_SSP.md` AC-3, AC-6 for control implementations. See `IAM_ACCESS_REVIEW.md` for the 60-day audit cadence.
+
+---
+
 ## Cross-References
 
 | Document | Relationship |
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [SQUIRE_SSP.md](SQUIRE_SSP.md) | Squire subsystem SSP with AC-3 and AC-6 control implementations |
+| [HITL_POLICY.md](HITL_POLICY.md) | Human-in-the-loop policy with token rotation section |
+| [IAM_ACCESS_REVIEW.md](IAM_ACCESS_REVIEW.md) | Access review process with Phase 17 cadences |
 | [README.md](README.md) | GRC library index and reading guide |
