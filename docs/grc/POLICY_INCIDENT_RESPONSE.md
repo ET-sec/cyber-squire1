@@ -404,4 +404,20 @@ Failure to comply with this policy may result in disciplinary action up to and i
 
 ---
 
-*Policy ID: POL-IR-001 | Version 1.0 | Classification: Internal Use Only*
+## Squire Integration (Phase 17)
+
+> **Key Point:** Incidents involving the Squire autonomous SOC analyst (svc-squire, svc-nemo, svc-langfuse-*) follow this parent policy plus a Squire-specific evidence capture and tabletop exercise. Prompt injection, hallucinated actions, and guardrail bypass each have documented response paths.
+
+When an incident touches the Squire subsystem, the responder:
+
+1. Isolates Squire by disabling `/alert` at the Cloudflare edge (X-Squire-Token revoke plus WAF block).
+2. Captures the relevant Langfuse trace (trace ID, span tree, model I/O) to the incident evidence folder per `AI_AUDIT_TRAIL_SPEC.md` section on replay procedure.
+3. Queries `ir_investigations` for the affected verdict set and flags each row in the `ir_rotation_events` audit trail.
+4. Reviews `REDTEAM_RESULTS.md` for prior known bypass patterns before rebuilding rails.
+5. Executes the Squire-scope tabletop (`SQUIRE_TABLETOP.md` scheduled in plan 17-14) to validate the response path with stakeholders.
+
+Cross-reference: `PLAYBOOK_AI_INCIDENT.md` is the canonical AI incident runbook (prompt injection, excessive agency, data exfiltration, model supply chain). `HITL_POLICY.md` governs token revocation. `AI_AUDIT_TRAIL_SPEC.md` defines per-invocation logging and replay.
+
+---
+
+*Policy ID: POL-IR-001 | Version 1.1 (Phase 17 integration added 2026-04-24) | Classification: Internal Use Only*
