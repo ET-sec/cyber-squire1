@@ -36,9 +36,10 @@ Start with the executive summaries, then follow the numbered path below. Each la
          │                        and AI incidents. Each has a decision flowchart
          │                        at the top for quick reference.
          │
- 7. RISK TRACKING                 The open items. POA&M tracks 27 findings across
-    (POA&M + CIS Risk Register    4 assessment sources. The CIS Risk Register
-     + Risk Assessment)           documents compensating controls for each finding.
+ 7. RISK TRACKING                 The open items. POA&M tracks 25 findings across
+    (POA&M + CIS Risk Register    5 assessment sources (includes Phase 17 Squire
+     + Risk Assessment)           cluster). The CIS Risk Register documents
+                                  compensating controls for each finding.
          │
  8. IAM                           Identity and access management. RBAC role map,
     (RBAC > Access Review         access review process, and Google Cloud IAM
@@ -76,9 +77,9 @@ Most documents include cross-references to related documents in their final sect
 
 | Document | Description |
 |----------|-------------|
-| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan - NIST 800-53 control mapping (16 families, 133 controls) |
-| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Plan of Action & Milestones - 27 entries from CIS Docker Bench, Checkov IaC, Falco runtime, and risk assessment |
-| [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Risk Assessment - 17 threats, 5x5 matrix, MITRE ATT&CK mapping |
+| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan, NIST 800-53 control mapping (16 families, 133 controls) plus Phase 17 Squire annex |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Plan of Action & Milestones, 25 entries from CIS Docker Bench, Checkov IaC, Falco runtime, risk assessment, and Phase 17 Squire cluster |
+| [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Risk Assessment, 17 threats, 5x5 matrix, MITRE ATT&CK mapping |
 
 ### Policies
 
@@ -117,7 +118,7 @@ Most documents include cross-references to related documents in their final sect
 
 | Document | Description |
 |----------|-------------|
-| [DATA_FLOW_DIAGRAM.md](DATA_FLOW_DIAGRAM.md) | DFD Levels 0–2 - 30 data flows, 9 data stores, 11 external entities, 7 trust boundaries |
+| [DATA_FLOW_DIAGRAM.md](DATA_FLOW_DIAGRAM.md) | DFD Levels 0 through 2, 40 data flows, 15 data stores, 14 external entities, 10 trust boundaries (includes Phase 17 extension) |
 | [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md) | STRIDE analysis - 29 threats across 6 categories with AI extensions, mapped to NIST 800-53 |
 | [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack tree - 4 paths to compromise AI inference pipeline, MITRE ATLAS / OWASP LLM mapping |
 | [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | AI threat catalog - 10 threats mapped to OWASP LLM Top 10, MITRE ATLAS, NIST AI RMF, ISO 42001 |
@@ -144,7 +145,13 @@ Most documents include cross-references to related documents in their final sect
 
 | Document | Description |
 |----------|-------------|
-| [TABLETOP_EXERCISE.md](TABLETOP_EXERCISE.md) | Operation Phantom Container - 5-phase TTX scenario |
+| [TABLETOP_EXERCISE.md](TABLETOP_EXERCISE.md) | Operation Phantom Container, 5-phase TTX scenario |
+
+### Architecture Decision Records
+
+| Document | Description |
+|----------|-------------|
+| [ADR_001_EMBEDDING_PROVIDER.md](ADR_001_EMBEDDING_PROVIDER.md) | Embedding provider decision record (text-embedding-3-large for pgvector RAG) |
 
 ### Squire (Phase 17)
 
@@ -192,19 +199,72 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 
 ## Statistics
 
-- **47 documents** in this library
-- **~19,900 lines** of compliance documentation
-- **133 NIST 800-53 controls** mapped across 16 families
-- **5 AI/ML frameworks** mapped (ISO 42001, ISO 27701, NIST AI RMF, OWASP LLM Top 10, MITRE ATLAS)
-- **30 data flows** mapped across 7 trust boundaries and 3 Docker networks
-- **29 STRIDE threats** analyzed with AI-specific extensions
-- **10 AI threats** cataloged with cross-framework traceability
-- **4 attack paths** decomposed for AI inference pipeline compromise
-- **25 adversarial test cases** across 6 categories with quarterly execution cadence (plus 6 Squire-specific red team cases with live Langfuse traces)
-- **15 supply chain risks** assessed across 3 AI systems with ML-BOM and integrity verification procedures
-- **14 components** in the Squire AI supply chain living register with version, license, and hash tracking
+All numbers regenerated from filesystem as of 2026-04-24. Commands shown for reproducibility.
+
+```bash
+# Document count
+ls docs/grc/*.md | wc -l                                                         # 49
+
+# Line count
+cat docs/grc/*.md | wc -l                                                        # ~24,300
+
+# Legacy SSP control rows
+grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SSP_SYSTEM_SECURITY_PLAN.md              # 133
+
+# Squire subsystem SSP control rows
+grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SQUIRE_SSP.md                            # 36
+
+# POA&M register rows
+grep -c "^| POAM-" docs/grc/POAM_PLAN_OF_ACTION.md                                # 25
+
+# Phase 17 POA&M rows
+grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                            # 10
+```
+
+### Headline counts
+
+- **49 documents** in this library
+- **~24,300 lines** of compliance documentation
+- **133 NIST 800-53 controls** mapped in the enterprise SSP across 16 families
+- **36 NIST 800-53 control rows** in the Squire scoped SSP
 - **31 Squire controls** cross-walked to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM, NIST 800-61 r3, and NIST AI RMF
-- **27 POA&M entries** tracked (15 accepted, 11 open, 1 closed)
-- **17 risk scenarios** assessed with MITRE ATT&CK mapping
+- **25 POA&M entries** tracked (15 legacy plus 10 Phase 17: 15 accepted, 4 open, 6 closed)
+- **17 enterprise risk scenarios** plus **10 Squire-specific AI risks** assessed
+- **11 frameworks** covered (NIST 800-53, NIST AI RMF, CSA Agentic, OWASP LLM, MITRE ATLAS, ISO 42001, ISO 27701, NIST 800-154, NIST 800-61 r3, CIS Docker Benchmark, FIPS 199)
+
+### Threat modeling
+
+- **40 data flows** mapped across **10 trust boundaries** (30 legacy plus 10 Phase 17)
+- **29 legacy STRIDE threats** plus **Squire STRIDE matrix** covering svc-squire, svc-nemo, and 4 Langfuse containers
+- **10 AI threats** cataloged with Phase 17 mitigation addendum
+- **7 attack paths** decomposed (4 legacy plus 3 Phase 17: prompt injection, RAG poisoning, exfil via inference API)
+- **25 adversarial test cases** planned plus **6 Phase 17 red-team cases** executed with live Langfuse traces
+
+### Supply chain and guardrails
+
+- **15 legacy supply chain risks** assessed across 3 AI systems with ML-BOM
+- **14 components** in the Squire AI supply chain living register with version, license, and hash tracking
+- **9-layer defense-in-depth** on Squire (WAF, rate limit, HMAC auth, cost ceiling, actions allow-list, pre-graph PII scan, NeMo rails, HITL, audit trail)
+
+### Response
+
 - **5 IR playbooks** with step-by-step containment procedures
-- **1 tabletop exercise** with 5-phase scenario and evaluation criteria
+- **1 tabletop exercise** with 5-phase scenario plus Squire-scope tabletop scheduled in 17-14
+
+### Doc categories
+
+```mermaid
+pie title GRC library by category (49 docs)
+    "Squire (Phase 17)" : 10
+    "Policies" : 10
+    "Threat Modeling" : 6
+    "AppSec" : 5
+    "IR Playbooks" : 5
+    "Core Plans" : 3
+    "Exec Summaries" : 3
+    "IAM" : 3
+    "Risk Register" : 1
+    "Exercises" : 1
+    "ADR" : 1
+    "README" : 1
+```
