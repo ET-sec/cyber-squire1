@@ -1,0 +1,57 @@
+---
+title: Squire Data Flow - alert ingress to response, 3 swimlanes
+---
+sequenceDiagram
+    autonumber
+    box rgb(255,232,204) Consumer
+        participant N as n8n / operator
+    end
+    box rgb(209,250,229) Squire
+        participant API as svc-squire FastAPI
+        participant PG as pre_graph_pii
+        participant GR as LangGraph runner
+        participant NM as svc-nemo rail
+        participant AN as Anthropic API
+        participant TV as Tavily
+    end
+    box rgb(237,233,254) Data + Observability
+        participant DB as svc-db pgvector
+        participant LW as svc-langfuse-web
+        participant LC as svc-langfuse-clickhouse
+        participant LR as svc-langfuse-redis
+    end
+
+    N->>API: POST /alert (x-squire-token)
+    API->>API: Token auth check + Cloudflare rate limit
+    API->>LR: increment daily cost counter
+    LR-->>API: under ceiling
+    API->>PG: scan raw payload (regex SSN/CC/email/phone)
+    alt PII detected
+        PG-->>API: PII_DETECTED_PRE_GRAPH
+        API->>LW: trace write (rail_outcomes)
+        LW->>LC: persist trace
+        API-->>N: 400 PII_BLOCK (0ms 0 cost)
+    else Clean
+        PG-->>API: CLEAN
+        API->>GR: invoke graph
+        GR->>NM: input rail evaluate
+        NM-->>GR: ALLOW
+        GR->>DB: pgvector top-k retrieve
+        DB-->>GR: ir_chunks
+        GR->>TV: enrichment query (optional)
+        TV-->>GR: search results
+        GR->>AN: classify (Sonnet 4.6)
+        AN-->>GR: severity
+        loop critique loop max 3
+            GR->>AN: draft + critique (Opus 4.7)
+            AN-->>GR: critique result
+        end
+        GR->>NM: output rail scan
+        NM-->>GR: masked or pass
+        GR->>DB: insert squire_invocations audit row
+        GR->>LW: trace write with rail_outcomes + cost + node timings
+        LW->>LC: persist trace
+        LW->>LR: cache invocation metadata
+        GR-->>API: report
+        API-->>N: 200 report + severity + citations
+    end
