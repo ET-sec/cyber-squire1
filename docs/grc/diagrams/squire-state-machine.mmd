@@ -1,0 +1,45 @@
+---
+title: Squire LangGraph State Machine - nodes, models, caps
+---
+flowchart TD
+    START(["START<br/>POST /alert"])
+    PG["pre_graph_pii<br/>deterministic regex<br/>0ms 0 cost"]
+    CL["classify<br/>Sonnet 4.6<br/>severity LOW/MED/HIGH/CRITICAL"]
+    RT["retrieve<br/>deterministic<br/>pgvector top-k on ir_chunks"]
+    EN["enrich<br/>deterministic<br/>Tavily optional"]
+    IN["investigate<br/>Opus 4.7<br/>context synthesis"]
+    DR["draft<br/>Opus 4.7<br/>report + recommendations"]
+    CR["critique<br/>Opus 4.7<br/>consistency + severity override"]
+    RS["route_severity<br/>deterministic<br/>LOW/MED/HIGH/CRITICAL path"]
+    END_N(["END<br/>response + trace"])
+    BLOCK(["BLOCK<br/>PII_DETECTED<br/>400 return"])
+
+    START --> PG
+    PG -->|CLEAN| CL
+    PG -->|PII| BLOCK
+    CL --> RT
+    RT --> EN
+    EN --> IN
+    IN --> DR
+    DR --> CR
+    CR -->|APPROVED or<br/>iter_cap hit 3/3| RS
+    CR -->|NOT APPROVED and<br/>iter less than 3| DR
+    RS --> END_N
+
+    %% Caps annotation box
+    CAPS["CAPS:<br/>max_critique_iterations = 3<br/>max_invocation_cost_usd = 0.50<br/>max_invocation_seconds = 30"]
+    START -.- CAPS
+
+    classDef startend fill:#111,stroke:#111,color:#fff,font-weight:bold
+    classDef det fill:#e5e7eb,stroke:#374151,color:#111
+    classDef sonnet fill:#dbeafe,stroke:#2563eb,color:#111,font-weight:bold
+    classDef opus fill:#d1fae5,stroke:#059669,color:#111,font-weight:bold
+    classDef block fill:#fee,stroke:#c00,color:#111,font-weight:bold
+    classDef caps fill:#fef3c7,stroke:#d97706,color:#111
+
+    class START,END_N startend
+    class PG,RT,EN,RS det
+    class CL sonnet
+    class IN,DR,CR opus
+    class BLOCK block
+    class CAPS caps
