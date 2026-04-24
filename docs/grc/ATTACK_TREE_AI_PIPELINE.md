@@ -8,7 +8,7 @@
 **OWASP LLM Top 10 (2025):** LLM01, LLM02, LLM03, LLM06, LLM08, LLM10
 **MITRE ATLAS:** AML.T0015, AML.T0018, AML.T0040, AML.T0043, AML.T0048, AML.T0051, AML.T0054
 **Classification:** Internal Use Only
-**Version:** 1.0
+**Version:** 1.1 (Phase 17 scope extension 2026-04-24)
 
 ---
 
@@ -28,6 +28,7 @@
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
+| 1.1 | 2026-04-24 | Information Security Officer | Phase 17 scope extension added. 3 new attack roots for Squire (prompt injection, RAG poisoning, exfil via inference API). 4 leaves RESISTED in red-team cycle 1, 2 scheduled for cycle 2. |
 | 1.0 | 2026-03-12 | Information Security Officer | Initial attack tree for AI inference pipeline |
 
 ---
@@ -324,6 +325,100 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 | 3 | Path 4 | Implement micro-segmentation within net-core; restrict AI container network egress to documented endpoints only | AML.M0002 (Passive ML Output Obfuscation) | 2026-09-12 |
 | 4 | Path 2 | Automate model integrity verification with behavioral regression testing against curated baselines | AML.M0014 (Verify ML Artifacts) | 2026-09-12 |
 | 5 | Path 1 | Implement structured decision logging with full AI reasoning chain attribution | AML.M0015 | 2026-06-12 |
+
+---
+
+## 6.5 Phase 17 Scope Extension: Squire-Specific Attack Roots
+
+> **Key Point:** Phase 17 deploys a new autonomous SOC analyst (Squire) with tool-calling, RAG retrieval, and a dedicated webhook. Three new attack roots target Squire specifically. Each root maps to remediation controls now deployed.
+
+### 6.5.1 Root A: Prompt injection into Squire
+
+```mermaid
+graph TD
+    A[Root A: Prompt injection into Squire] --> A1[A.1 Inject via alert payload]
+    A --> A2[A.2 Inject via ir_chunks retrieval]
+    A --> A3[A.3 Inject via Tavily search result]
+    A1 --> A1a[IGNORE-PREVIOUS directive]
+    A1 --> A1b[Role hijack attempt]
+    A1 --> A1c[Severity flip via benign framing]
+    A1 --> A1d[Severity flip via drill framing]
+    A2 --> A2a[Poisoned retrieval chunk directs action]
+    A3 --> A3a[Enriched search result carries directive]
+
+    A1a -.->|RESISTED| CTRL1[Graph classifier plus NeMo input rail]
+    A1b -.->|RESISTED| CTRL1
+    A1c -.->|RESISTED| CTRL1
+    A1d -.->|RESISTED| CTRL1
+    A2a -.->|BLOCKED| CTRL2[Citation validator plus source allow-list]
+    A3a -.->|MITIGATED| CTRL3[Enrichment budget plus provenance tag]
+```
+
+| Leaf | Status | Evidence |
+|------|--------|----------|
+| A.1.a IGNORE-PREVIOUS | RESISTED | REDTEAM_RESULTS.md Finding 1 |
+| A.1.b Role hijack | RESISTED | REDTEAM_RESULTS.md Finding 2 |
+| A.1.c Benign framing | RESISTED | REDTEAM_RESULTS.md Finding 5 |
+| A.1.d Drill framing | RESISTED | REDTEAM_RESULTS.md Finding 6 |
+| A.2.a Poisoned chunk | Not yet executed | Scheduled in AI_RED_TEAM_PLAN cycle 2 |
+| A.3.a Search directive | Not yet executed | Scheduled in AI_RED_TEAM_PLAN cycle 2 |
+
+### 6.5.2 Root B: RAG corpus poisoning via ir_chunks
+
+```mermaid
+graph TD
+    B[Root B: RAG corpus poisoning via ir_chunks] --> B1[B.1 Direct DB write to ir_chunks]
+    B --> B2[B.2 Abuse ingest endpoint]
+    B --> B3[B.3 Corrupt embedding provider]
+    B1 --> B1a[Breach postgres admin]
+    B1 --> B1b[Exploit ingest SQL]
+    B2 --> B2a[Unauthenticated ingest to /chunks]
+    B3 --> B3a[MITM text-embedding-3-large call]
+
+    B1a -.->|BLOCKED| CTRLB1[DB AC and row-level ownership]
+    B1b -.->|BLOCKED| CTRLB2[Parameterized queries in retriever]
+    B2a -.->|BLOCKED| CTRLB3[No public /chunks endpoint, ingest through authenticated pipeline only]
+    B3a -.->|MITIGATED| CTRLB4[TLS pinning plus provider allow-list]
+```
+
+| Leaf | Control | Doc |
+|------|---------|-----|
+| B.1.a | Role-scoped Postgres user, no shell for svc-squire | SQUIRE_SSP SC-4, AC-3 |
+| B.1.b | Parameterized queries, no string concat in retriever | CODE_REVIEW_FINDINGS |
+| B.2.a | No public ingest path, only batch loader with auth | SQUIRE_SSP AC-3 |
+| B.3.a | Provider allow-list in ADR_001_EMBEDDING_PROVIDER | ADR_001_EMBEDDING_PROVIDER |
+
+### 6.5.3 Root C: Exfil via inference API
+
+```mermaid
+graph TD
+    C[Root C: Exfil via inference API] --> C1[C.1 Coerce Squire to reveal secrets]
+    C --> C2[C.2 Exfil via tool output channel]
+    C --> C3[C.3 Exfil via observability trace]
+    C1 --> C1a[Prompt asks for config dump]
+    C1 --> C1b[Prompt asks for DB row dump]
+    C2 --> C2a[Coerce use of external webhook]
+    C3 --> C3a[PII slips into Langfuse trace]
+
+    C1a -.->|BLOCKED| CTRLC1[NeMo output rail plus pre-graph scrub]
+    C1b -.->|BLOCKED| CTRLC2[Tool schema forbids raw DB queries, allow-list]
+    C2a -.->|BLOCKED| CTRLC3[Actions allow-list, no generic HTTP tool]
+    C3a -.->|BLOCKED| CTRLC4[SDK-level redaction, classification policy]
+```
+
+| Leaf | Control | Doc |
+|------|---------|-----|
+| C.1.a | NeMo output rail strips secrets; pre-graph scrub catches PII upstream | GUARDRAILS_CONFIGURATION |
+| C.1.b | Tool schema forbids raw DB queries; only typed investigator tools | SQUIRE_SSP AC-6 |
+| C.2.a | Actions allow-list; no generic HTTP tool exposed | SQUIRE_SSP AC-6 |
+| C.3.a | SDK-level redaction plus data class policy | SQUIRE_DATA_FLOW_CLASSIFICATION |
+
+### 6.5.4 Reconciled counts
+
+| Metric | Pre-Phase 17 | Phase 17 delta | Total |
+|--------|--------------|----------------|-------|
+| Attack paths or roots | 4 | +3 | 7 |
+| Leaves tested | 0 | 4 RESISTED, 2 scheduled | 4 RESISTED plus 2 scheduled |
 
 ---
 
