@@ -146,6 +146,23 @@ Most documents include cross-references to related documents in their final sect
 |----------|-------------|
 | [TABLETOP_EXERCISE.md](TABLETOP_EXERCISE.md) | Operation Phantom Container - 5-phase TTX scenario |
 
+### Squire (Phase 17)
+
+Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state machine with pgvector RAG, Opus 4.7 primary and Sonnet 4.6 routing, NeMo Guardrails v0.21.0 sidecar, Langfuse v3 observability. Ten documents covering compliance, risk, red-team, and governance.
+
+| Document | Description |
+|----------|-------------|
+| [SQUIRE_SSP.md](SQUIRE_SSP.md) | System Security Plan scoped to Squire - NIST 800-53 Rev 5 control implementation across 9 families, control inheritance from parent SSP, authorization boundary and interconnections |
+| [SQUIRE_AI_RISK_ASSESSMENT.md](SQUIRE_AI_RISK_ASSESSMENT.md) | AI risk assessment using NIST AI RMF + CSA Agentic Profile - 10 risks covering prompt injection, PII leakage, hallucinated actions, runaway cost, supply chain, autonomous action, and audit trail tampering |
+| [FRAMEWORK_CROSSWALK_SQUIRE.md](FRAMEWORK_CROSSWALK_SQUIRE.md) | Cross-framework control mapping - 31 Squire controls mapped to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM 2025, NIST 800-61 r3, and NIST AI RMF |
+| [GUARDRAILS_CONFIGURATION.md](GUARDRAILS_CONFIGURATION.md) | Guardrail layer configuration - pre-graph regex scan, NeMo input and output Colang rails, presidio PII detection, rail-by-rail test coverage, failure modes, change control |
+| [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) | Red team test results - 6 executed cases covering prompt injection, severity manipulation, and PII exfiltration with live Langfuse trace IDs and post-remediation verification |
+| [SQUIRE_MODEL_CARD.md](SQUIRE_MODEL_CARD.md) | Mitchell et al. model card - Opus 4.7 primary plus Sonnet 4.6 routing plus text-embedding-3-large, intended use, evaluation data, ethical considerations, limitations, provenance |
+| [SQUIRE_DATA_FLOW_CLASSIFICATION.md](SQUIRE_DATA_FLOW_CLASSIFICATION.md) | Data flow classification - alert payloads, investigation records, trace data, chunk embeddings, per-class source and storage and retention and sanitization and encryption and access rules |
+| [AI_AUDIT_TRAIL_SPEC.md](AI_AUDIT_TRAIL_SPEC.md) | AI audit trail specification - what is logged per invocation, retention tiers, integrity and immutability, replay procedure, cold-storage cadence |
+| [HITL_POLICY.md](HITL_POLICY.md) | Human-in-the-loop policy - HIGH/CRITICAL triggers, roles, SLA, delegation, override authority, production and per-interview token rotation procedures |
+| [AI_SUPPLY_CHAIN_REGISTER.md](AI_SUPPLY_CHAIN_REGISTER.md) | Living asset register - 14 components with version, provider, license, hash, review cadence, and risk score. Distinct from AI_SUPPLY_CHAIN_RISK.md which is the policy |
+
 ## Review Schedule
 
 | Activity | Frequency | Next Date |
@@ -167,10 +184,15 @@ Most documents include cross-references to related documents in their final sect
 | DAST assessment | Quarterly | 2026-06-20 |
 | Google Cloud IAM review | Semi-annual | 2026-09-22 |
 | Pen test self-assessment | Annual | 2027-03-22 |
+| Squire SSP review | Semi-annual | 2026-10-23 |
+| Squire AI risk assessment | Quarterly | 2026-07-23 |
+| Squire red-team expansion | Quarterly | 2026-07-23 |
+| HITL token rotation audit | 60-day | 2026-06-22 |
+| AI supply chain register review | 60-day | 2026-06-22 |
 
 ## Statistics
 
-- **37 documents** in this library
+- **47 documents** in this library
 - **~19,900 lines** of compliance documentation
 - **133 NIST 800-53 controls** mapped across 16 families
 - **5 AI/ML frameworks** mapped (ISO 42001, ISO 27701, NIST AI RMF, OWASP LLM Top 10, MITRE ATLAS)
@@ -178,8 +200,10 @@ Most documents include cross-references to related documents in their final sect
 - **29 STRIDE threats** analyzed with AI-specific extensions
 - **10 AI threats** cataloged with cross-framework traceability
 - **4 attack paths** decomposed for AI inference pipeline compromise
-- **25 adversarial test cases** across 6 categories with quarterly execution cadence
+- **25 adversarial test cases** across 6 categories with quarterly execution cadence (plus 6 Squire-specific red team cases with live Langfuse traces)
 - **15 supply chain risks** assessed across 3 AI systems with ML-BOM and integrity verification procedures
+- **14 components** in the Squire AI supply chain living register with version, license, and hash tracking
+- **31 Squire controls** cross-walked to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM, NIST 800-61 r3, and NIST AI RMF
 - **27 POA&M entries** tracked (15 accepted, 11 open, 1 closed)
 - **17 risk scenarios** assessed with MITRE ATT&CK mapping
 - **5 IR playbooks** with step-by-step containment procedures
