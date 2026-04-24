@@ -1,0 +1,93 @@
+---
+title: Squire Deployed Architecture - host-alpha topology
+---
+flowchart TB
+    subgraph EXT["EXTERNAL"]
+        AN["Anthropic<br/>Opus 4.7 / Sonnet 4.6"]
+        TV["Tavily<br/>search enrichment"]
+        TG["Telegram<br/>operator bot"]
+        N8C["n8n webhook<br/>consumers"]
+    end
+
+    subgraph CF["CLOUDFLARE EDGE"]
+        TUN["cloudflare-tunnel<br/>WAF + 100 rpm rate limit"]
+        R1["squire.example-ops.com"]
+        R2["n8n.example-ops.com"]
+        R3["langfuse.example-ops.com"]
+    end
+
+    subgraph HOST["host-alpha droplet - /opt/platform"]
+        subgraph SQ["Squire stack"]
+            SVC["svc-squire<br/>FastAPI + LangGraph"]
+            NM["svc-nemo<br/>Guardrails sidecar"]
+        end
+
+        subgraph LF["Langfuse stack"]
+            LW["svc-langfuse-web"]
+            LK["svc-langfuse-worker"]
+            LC["svc-langfuse-clickhouse"]
+            LR["svc-langfuse-redis"]
+        end
+
+        subgraph CORE["Core platform"]
+            DB["svc-db<br/>Postgres + pgvector"]
+            N8["svc-n8n<br/>SOAR orchestration"]
+            OL["svc-ollama<br/>local LLM"]
+            VA["svc-vault<br/>HashiCorp Vault"]
+            KC["svc-keycloak<br/>SSO + MFA"]
+            TP["svc-teleport<br/>PAM + JIT"]
+        end
+
+        subgraph OBS["Observability + detection"]
+            DD["svc-datadog"]
+            FK["svc-falco<br/>eBPF detection"]
+        end
+
+        subgraph GW["Gateway"]
+            OC["openclaw-gateway<br/>Claude Opus 4.7 agent"]
+        end
+    end
+
+    TUN --> R1
+    TUN --> R2
+    TUN --> R3
+
+    R1 -->|x-squire-token| SVC
+    R2 --> N8
+    R3 --> LW
+
+    SVC --> NM
+    SVC --> DB
+    SVC --> LW
+    SVC --> LK
+    SVC -.->|Opus 4.7 draft/critique,<br/>Sonnet 4.6 classify| AN
+    SVC -.->|enrichment| TV
+
+    N8 -->|alert dispatch| SVC
+    SVC -.->|recommend-only<br/>via n8n route| TG
+    N8 --> N8C
+
+    LW --> LC
+    LK --> LC
+    LW --> LR
+    LK --> LR
+
+    DD -.->|metrics + logs| FK
+    DD -.->|metrics| SVC
+    DD -.->|metrics| N8
+
+    classDef edge fill:#e0f2fe,stroke:#0284c7,color:#111,font-weight:bold
+    classDef sq fill:#d1fae5,stroke:#059669,color:#111,font-weight:bold
+    classDef lf fill:#ede9fe,stroke:#7c3aed,color:#111
+    classDef core fill:#f3f4f6,stroke:#374151,color:#111
+    classDef obs fill:#fef3c7,stroke:#d97706,color:#111
+    classDef ext fill:#fee,stroke:#c00,color:#111
+    classDef gw fill:#fce7f3,stroke:#db2777,color:#111
+
+    class TUN,R1,R2,R3 edge
+    class SVC,NM sq
+    class LW,LK,LC,LR lf
+    class DB,N8,OL,VA,KC,TP core
+    class DD,FK obs
+    class AN,TV,TG,N8C ext
+    class OC gw
