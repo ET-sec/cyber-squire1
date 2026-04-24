@@ -438,10 +438,33 @@ A quarterly change log summary SHALL be produced for audit purposes, containing:
 
 ---
 
+## Squire Integration (Phase 17)
+
+> **Key Point:** Squire subsystem changes follow this policy. Guardrail configs, model routing, and actions allow-list changes are high-risk and require pre-approval plus post-change red-team validation. The 2026-04-23 pre-graph PII scanner deployment serves as the reference example for in-session emergency remediation under this policy.
+
+Phase 17 change categories under this policy:
+
+1. **Guardrail config change** (`svc-nemo-config`, `GUARDRAILS_CONFIGURATION.md`): Pre-change, the change is tested in staging with the full rail coverage suite. Post-change, the 6-case red-team battery runs against prod. High risk.
+2. **Model routing change** (`SQUIRE_MODEL_CARD.md` version field): Requires regression eval against the evaluation data set documented in the model card. Medium risk.
+3. **Actions allow-list change** (`actions.yml`): Requires security review of new action schemas plus audit trail validation. High risk (new agent capabilities).
+4. **pgvector schema change** (`ir_chunks`, `ir_alerts`, `ir_investigations`, `ir_rotation_events`): Migration plus rollback procedure plus backup verified before apply. Medium risk.
+5. **Token rotation policy change** (`HITL_POLICY.md` section 6): Requires IAM reviewer sign-off. Medium risk.
+
+### Reference example: in-session emergency remediation
+
+On 2026-04-23, red-team Case 03 revealed that the NeMo input rail did not catch raw SSN in `/alert` payloads. Under the emergency remediation provision of this policy, the pre_graph_pii.py scanner was drafted, unit-tested (12 tests), wired into `builds/squire/src/squire/app.py` before `graph.invoke`, and validated against the same red-team payload. Commit 3e47524. The full suite of 127 tests passed. Post-deployment: a CLOSED entry was added to POAM (POAM-P17-01) with full evidence linkage. This path is documented as the standard for in-session emergency remediation when a live red-team finding surfaces a HIGH severity gap.
+
+Cross-reference: `REDTEAM_RESULTS.md` Finding 1 (evidence); `POAM_PLAN_OF_ACTION.md` POAM-P17-01 (tracking); `SSP_SYSTEM_SECURITY_PLAN.md` SI-10 (control); `builds/squire/src/squire/pre_graph_pii.py` (artifact).
+
+---
+
 ## Cross-References
 
 | Document | Relationship |
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) | 6 executed red-team cases including Finding 1 emergency remediation |
+| [GUARDRAILS_CONFIGURATION.md](GUARDRAILS_CONFIGURATION.md) | Guardrail change control |
+| [SQUIRE_MODEL_CARD.md](SQUIRE_MODEL_CARD.md) | Model routing change reference |
 | [README.md](README.md) | GRC library index and reading guide |
