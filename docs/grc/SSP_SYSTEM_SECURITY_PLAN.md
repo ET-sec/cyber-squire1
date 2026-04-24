@@ -685,6 +685,31 @@ Open findings and planned remediations are tracked in the Plan of Action and Mil
 | `FRAMEWORK_CROSSWALK_SQUIRE.md` | 31-control cross-framework mapping |
 | `SQUIRE_AI_RISK_ASSESSMENT.md` | NIST AI RMF + CSA Agentic Profile, 10 AI risks |
 | `AI_SUPPLY_CHAIN_REGISTER.md` | Living asset register, 14 components with version, license, hash |
+| `SQUIRE_THREAT_MODEL.md` | STRIDE + MITRE ATLAS first-class threat model (plan 17-14) |
+| `SQUIRE_TABLETOP_EXERCISE.md` | Jailbreak + hallucinated containment TTX with recovery procedure (plan 17-14) |
+
+### 7.5.5 Squire subsystem diagrams (plan 17-14)
+
+Four sanitized diagrams support the Squire SSP annex. Sources `.mmd` and rendered `.png` live in `docs/grc/diagrams/`.
+
+| Diagram | File | Purpose |
+|---------|------|---------|
+| Architecture | `squire-architecture.png` | Deployed topology of the Squire stack on host-alpha, Cloudflare tunnel routes, external integrations |
+| State machine | `squire-state-machine.png` | LangGraph node and edge diagram with per-node model assignment and invocation caps |
+| Data flow | `squire-data-flow.png` | 3-lane swimlane: alert ingress, graph execution, observability writes |
+| ATLAS threat model | `squire-atlas-threat-model.png` | Portfolio-grade adversary to attack-surface to control to residual-risk visual |
+
+### 7.5.6 Interconnections and boundaries (Phase 17)
+
+The Squire subsystem introduces the following external interconnections, each subject to SSP control SA-9 (External System Services):
+
+| Connection | Direction | Purpose | Control reference |
+|------------|-----------|---------|-------------------|
+| Anthropic API | Outbound HTTPS from svc-squire | Sonnet 4.6 classify, Opus 4.7 draft + critique | SA-9, SC-7, SC-8 |
+| Tavily API | Outbound HTTPS from svc-squire | Optional enrichment query | SA-9, SC-7, SC-8 |
+| Telegram Bot API | Outbound via n8n route | Operator notification of severity HIGH + CRITICAL alerts | SA-9, IR-6 |
+| n8n webhook | Inbound to svc-squire /alert | Alert dispatch from upstream SOAR workflows | AC-4, IA-3 |
+| Cloudflare tunnel | Ingress for squire.example-ops.com, langfuse.example-ops.com | Zero-trust edge termination | SC-7, SC-8, AC-3 |
 
 ---
 
