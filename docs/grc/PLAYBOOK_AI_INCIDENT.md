@@ -973,4 +973,44 @@ SCENARIO D - SUPPLY CHAIN:
 
 ---
 
+## When the incident involves Squire (Phase 17)
+
+> **Key Point:** Squire incidents require evidence capture from Langfuse traces plus the ir_investigations table in addition to the standard AI incident response steps above. HITL token revocation is the immediate isolation action.
+
+### Squire-specific isolation sequence
+
+1. Revoke the X-Squire-Token at the Cloudflare edge to stop ingress.
+2. Block the alert source at Cloudflare WAF.
+3. Query `ir_investigations` for the affected verdicts and record the trace IDs.
+4. Export the Langfuse trace tree for each trace ID to the incident evidence folder.
+5. Snapshot `ir_alerts`, `ir_chunks`, `ir_investigations`, `ir_rotation_events` tables for forensics.
+6. If guardrail bypass is suspected, freeze `svc-nemo-config` and schedule a rail coverage regression in staging.
+
+### Squire-specific containment
+
+```
+# Disable /alert ingress at Squire container level (does not require compose down)
+ssh host-alpha 'docker exec svc-squire /opt/platform/scripts/disable_alert_ingress.sh'
+
+# Verify rail coverage is intact
+ssh host-alpha 'docker exec svc-nemo /opt/platform/nemo-config/run_rail_coverage.sh'
+
+# Replay the incident payload against the current rail config
+python -m squire.replay --trace-id <trace_id> --env staging
+```
+
+### Squire-specific evidence
+
+| Artifact | Location | Retention |
+|----------|----------|-----------|
+| Langfuse trace tree | ClickHouse via Langfuse UI export | 90 days |
+| ir_investigations row | `svc-db` postgres table `ir_investigations` | 365 days |
+| ir_rotation_events audit trail | `svc-db` postgres table `ir_rotation_events` | 3 years |
+| Pre-graph scanner result | Langfuse span attribute `pre_graph_pii.result` | 90 days |
+| NeMo rail decision log | NeMo container stdout, Datadog log retention | 15 days |
+
+Cross-reference: `AI_AUDIT_TRAIL_SPEC.md` for full replay procedure; `HITL_POLICY.md` for token revocation; `REDTEAM_RESULTS.md` for known attack patterns; `POAM_PLAN_OF_ACTION.md` POAM-P17 cluster for tracked Phase 17 issues.
+
+---
+
 *This playbook is a living document. It SHALL be updated after any AI-related security incident, when new AI systems are deployed, when AI integration scope changes, or when new OWASP LLM or MITRE ATLAS techniques relevant to this environment are published. The next scheduled review is 2026-09-12.*
