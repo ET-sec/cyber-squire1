@@ -781,8 +781,27 @@ The Squire autonomous SOC analyst is deployed under the NIST AI RMF and ISO 4200
 
 Cross-reference: `SQUIRE_SSP.md` AC, AU, SI, CM, IR, RA families; `FRAMEWORK_CROSSWALK_SQUIRE.md` for 31 controls across 7 frameworks.
 
+## Squire Scope Extension: Threat Model and Tabletop (plan 17-14)
+
+This additive section incorporates the Phase 17 Wave 6 artifacts produced in plan 17-14.
+
+| Artifact | Role in governance |
+|----------|--------------------|
+| `SQUIRE_THREAT_MODEL.md` | First-class STRIDE + MITRE ATLAS threat model. 48 STRIDE cells, 5 ATLAS tactics. Drives quarterly risk review cadence and change-control triggers. |
+| `SQUIRE_TABLETOP_EXERCISE.md` | Quarterly TTX for the Squire jailbreak / hallucinated-containment / runaway-loop response path. Validates HITL controls. |
+| `diagrams/squire-atlas-threat-model.png` | Portfolio-grade visual of adversary to attack surface to control to residual risk. Included in executive governance reviews. |
+| `diagrams/squire-architecture.png` | Deployed topology; attached to architecture change proposals under this policy. |
+| `diagrams/squire-state-machine.png` | LangGraph node diagram; attached to model card updates. |
+| `diagrams/squire-data-flow.png` | Sanitized alert-ingress swimlane; attached to data-flow classification updates. |
+
+Governance cadence with 17-14 deliverables:
+
+- Quarterly AI governance review must ingest the latest `SQUIRE_THREAT_MODEL.md` residual ratings and any tabletop hot-wash findings.
+- Any change to svc-squire graph topology, svc-nemo rail config, or pgvector corpus triggers a targeted threat-model update and a sign-off in the POA&M register.
+- The AI Review Board (per section 3 of this policy) reviews the ATLAS tactic coverage against the latest MITRE ATLAS release at least annually.
+
 ---
 
-*Policy ID: POL-AI-001 | Version 1.1 (Phase 17 integration added 2026-04-24) | Classification: Internal Use Only*
+*Policy ID: POL-AI-001 | Version 1.2 (Phase 17 plan 17-14 integration added 2026-04-24) | Classification: Internal Use Only*
 
 *This policy is reviewed annually or upon significant change to the AI system inventory, threat landscape, regulatory environment, or organizational structure. All personnel with administrative or operational access to Organization AI systems are responsible for understanding and complying with this policy.*
