@@ -484,10 +484,10 @@ The full Squire operational runbook lives in `docs/context/rules-of-engagement.m
 
 ### C.2 Rollback Sequence
 
-Each container has a `:pre-17-10` image tag pinned on the droplet (see `/root/COREDIRECTIVE_ENGINE/ROLLBACK_TAGS.md`). A rollback is:
+Each container has a `:pre-17-10` image tag pinned on the droplet (see `/opt/platform/ROLLBACK_TAGS.md`). A rollback is:
 
 1. `docker compose stop svc-squire svc-nemo`
-2. Restore the previous `docker-compose.yaml` snapshot from `/root/COREDIRECTIVE_ENGINE/snapshots/<date>/`
+2. Restore the previous `docker-compose.yaml` snapshot from `/opt/platform/snapshots/<date>/`
 3. `docker compose up -d svc-squire svc-nemo`
 4. Healthcheck
 
