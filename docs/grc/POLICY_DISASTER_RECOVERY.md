@@ -264,14 +264,14 @@ Step 4: SSH to new VPS
 $ ssh alpha-node
 
 Step 5: Clone operations repository
-$ git clone <repo-url> /root/operations
+$ git clone <repo-url> /opt/platform/operations
 
 Step 6: Create environment file
 $ # Pull secrets from secrets manager
-$ # Write to /root/operations/.env (chmod 600)
+$ # Write to /opt/platform/operations/.env (chmod 600)
 
 Step 7: Pull and start containers
-$ cd /root/operations
+$ cd /opt/platform/operations
 $ docker compose pull
 $ docker compose up -d svc-db
 $ # Wait for svc-db to be ready

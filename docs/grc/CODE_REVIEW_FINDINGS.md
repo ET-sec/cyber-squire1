@@ -53,13 +53,13 @@ The single HIGH finding (environment variable credential exposure in svc-automat
 
 | Artifact | Location | Description |
 |----------|----------|-------------|
-| Docker Compose configuration | `primary-node:/root/ENGINE/docker-compose.yaml` | 13-service container orchestration definition |
-| Environment file | `primary-node:/root/ENGINE/.env` | 44 secrets injected at container startup |
+| Docker Compose configuration | `primary-node:/opt/platform/docker-compose.yaml` | 13-service container orchestration definition |
+| Environment file | `primary-node:/opt/platform/.env` | 44 secrets injected at container startup |
 | Terraform IaC | Repository: `terraform/infrastructure/` | 16 `.tf` files defining Cloud Provider infrastructure |
 | OPA policies | Repository: `terraform/infrastructure/policies/` | 8 Rego policy files enforcing infrastructure guardrails |
 | CI/CD pipelines | Repository: `.github/workflows/` | 2 workflow files (PR pipeline, merge pipeline) |
 | n8n workflows | svc-automation runtime | 16 active workflows including Master Orchestrator |
-| Cloudflare Tunnel config | `primary-node:/root/.cloudflared/config.yml` | Tunnel routing and ingress rules |
+| Cloudflare Tunnel config | `primary-node:/opt/platform/.cloudflared/config.yml` | Tunnel routing and ingress rules |
 | OpenClaw gateway config | `primary-node:/opt/ai-gateway/config/openclaw.json` | AI gateway routing and model configuration |
 
 ### 2.2 Review Methodology

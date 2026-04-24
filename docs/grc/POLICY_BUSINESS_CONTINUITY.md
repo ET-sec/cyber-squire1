@@ -97,14 +97,14 @@ svc-tunnel (ingress)
 
 Recovery SHALL proceed in strict tier order. Within each tier, services are restored in the sequence listed below to satisfy dependencies.
 
-### Phase 1 - Critical Services (Target: 0–60 minutes)
+### Phase 1 - Critical Services (Target: 0 to 60 minutes)
 
 1. **`svc-db`** - Restore PostgreSQL from backup or redeploy with empty schema
 2. **`svc-secrets`** - Unseal Vault; verify seal keys are available offline
 3. **`svc-tunnel`** - Re-establish zero-trust tunnel for remote access
 4. **`svc-gateway`** - Restore SSH gateway and session recording
 
-### Phase 2 - Important Services (Target: 1–4 hours)
+### Phase 2 - Important Services (Target: 1 to 4 hours)
 
 5. **`svc-identity`** - Restore identity provider with realm configuration
 6. **`svc-automation`** - Redeploy SOAR engine; verify workflow state in `svc-db`
@@ -112,7 +112,7 @@ Recovery SHALL proceed in strict tier order. Within each tier, services are rest
 8. **`svc-detection-router`** - Reconnect detection alert routing
 9. **`svc-monitor`** - Restore observability agent and verify telemetry flow
 
-### Phase 3 - Deferrable Services (Target: 4–24 hours)
+### Phase 3 - Deferrable Services (Target: 4 to 24 hours)
 
 10. **`Fluentd`** - Restore log aggregation pipeline
 11. **`svc-event-shipper`** - Resume audit event export
@@ -199,10 +199,10 @@ If the primary DigitalOcean region is unavailable:
 
 | Elapsed Time | Action |
 |--------------|--------|
-| 0–15 minutes | System Owner begins triage; automated alerts fire |
-| 15–30 minutes | BCP activation decision; Information Security Officer notified |
-| 30–60 minutes | Phase 1 recovery underway; external communication if needed |
-| 1–4 hours | Phase 2 recovery; situation report prepared |
+| 0 to 15 minutes | System Owner begins triage; automated alerts fire |
+| 15 to 30 minutes | BCP activation decision; Information Security Officer notified |
+| 30 to 60 minutes | Phase 1 recovery underway; external communication if needed |
+| 1 to 4 hours | Phase 2 recovery; situation report prepared |
 | 4+ hours | Alternate site strategy evaluated; extended outage procedures |
 
 ---
