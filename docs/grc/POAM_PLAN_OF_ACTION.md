@@ -540,28 +540,32 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | POAM-P17-08 | PolicyAI self-check path held in degraded mode pending the next provider-access rotation cycle. Critique node still gates draft and enforces severity consistency. | LOW | Operator | 2026-Q2 | OPEN | `SQUIRE_MODEL_CARD.md` limitations section |
 | POAM-P17-09 | OpenClaw agent LLM auth not yet configured. Deferred to 17-07 follow-up. Squire currently calls Anthropic direct, not via OpenClaw gateway. | LOW | Operator | 2026-Q3 | OPEN | Plan 17-07 |
 | POAM-P17-10 | AI supply chain register TBDs: Langfuse v3 exact commit pinning, NeMo Guardrails upgrade cadence, pgvector extension provenance. | LOW | System Owner | 2026-06-22 | OPEN | `AI_SUPPLY_CHAIN_REGISTER.md` |
+| POAM-P17-11 | Novel injection patterns (YAML-framed role-hijack, structured key-value directives) can bypass NeMo presidio input rail because presidio is PII-centric, not behavioral. Critique consistency override and actions.yml rewrite provide defense-in-depth. Expand rail pre-check for directive patterns; add regression cases in 17-11 cycle 2. | MED | System Owner | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.2 AML.T0051 |
+| POAM-P17-12 | International phone formats and non-Luhn-checked CC patterns can false-negative against US-only pre-graph regex. NeMo output rail at 0.85 threshold is the last-chance net. Expand pre-graph scanner to E.164 international phone and secondary structural CC checks. | MED | System Owner | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.5 AML.T0041 |
+| POAM-P17-13 | Tavily enrichment results are untrusted text; a poisoned index entry could inject directives at the enrichment merge point. Critique consistency check is the sole behavioral override. Red-team cycle 2 will execute attack tree leaf A.3.a to quantify. | MED | Security Eng | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.2, `ATTACK_TREE_AI_PIPELINE.md` A.3.a |
+| POAM-P17-14 | Supply chain attestation gap: several AI_SUPPLY_CHAIN_REGISTER entries lack reproducible-build attestation or upstream signing-key pinning. Zero-day in a pinned transitive dependency remains accepted residual until SBOM + runtime attestation is in place. | MED | System Owner | 2026-Q4 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.6 AML.T0010, `AI_SUPPLY_CHAIN_REGISTER.md` |
 
 #### Phase 17 POAM severity distribution
 
 ```
-Phase 17 POAM severity (10 entries)
+Phase 17 POAM severity (14 entries)
 ┌─────────────────────────────────────────────┐
 │ █                                    HIGH   │  1
-│ ████                                 MED    │  4
+│ ████████                             MED    │  8
 │ █████                                LOW    │  5
 └─────────────────────────────────────────────┘
 
-Phase 17 POAM status (10 entries)
+Phase 17 POAM status (14 entries)
 ┌─────────────────────────────────────────────┐
 │ ██████                               CLOSED │  6
-│ ████                                 OPEN   │  4
+│ ████████                             OPEN   │  8
 └─────────────────────────────────────────────┘
 ```
 
 ```mermaid
 pie title Phase 17 POAM by severity
     "HIGH" : 1
-    "MED" : 4
+    "MED" : 8
     "LOW" : 5
 ```
 
