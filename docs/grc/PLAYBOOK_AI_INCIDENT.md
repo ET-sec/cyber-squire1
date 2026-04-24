@@ -1011,6 +1011,80 @@ python -m squire.replay --trace-id <trace_id> --env staging
 
 Cross-reference: `AI_AUDIT_TRAIL_SPEC.md` for full replay procedure; `HITL_POLICY.md` for token revocation; `REDTEAM_RESULTS.md` for known attack patterns; `POAM_PLAN_OF_ACTION.md` POAM-P17 cluster for tracked Phase 17 issues.
 
+## Squire Agent Incidents (plan 17-14)
+
+This subsection enumerates the three primary Squire incident classes and maps each to NIST CSF 2.0 subcategories, MITRE ATLAS tactics, and Phase 17 response artifacts.
+
+### Case A: Jailbreak via prompt injection
+
+Squire produces a recommendation that contradicts the source alert (for example, recommends halting svc-n8n for a phishing alert delivered through n8n). Classic symptom of role-hijack injection.
+
+| Mapping | Reference |
+|---------|-----------|
+| CSF 2.0 | RS.AN-03 (analyze impact), MG-4.3 (manage AI incidents) |
+| ATLAS | AML.T0051 Prompt Injection |
+| Threat model | `SQUIRE_THREAT_MODEL.md` section 2.2 |
+| Tabletop | `SQUIRE_TABLETOP_EXERCISE.md` full scenario |
+| POAM | P17-11 (novel injection coverage gap) |
+| Response lead | Incident Commander |
+
+Quick response:
+
+1. Operator confirms suspicion on Telegram recommendation.
+2. Rotate `SQUIRE_WEBHOOK_TOKEN` via Doppler (revokes ingress).
+3. Stop svc-squire, keep all other services.
+4. Langfuse trace diagnosis: check rail_outcomes for `INCONSISTENT_FLAG` from critique node.
+5. Follow Phase 3 through 6 of `SQUIRE_TABLETOP_EXERCISE.md`.
+
+### Case B: Hallucinated containment (runaway recommendation)
+
+Squire drafts a destructive containment recommendation that slips past actions.yml rewrite because the phrasing used a synonym or paraphrase the allow-list did not anticipate.
+
+| Mapping | Reference |
+|---------|-----------|
+| CSF 2.0 | RS.MA-01 (execute response plan), MG-4.3 |
+| ATLAS | AML.T0051 Prompt Injection + excessive agency (OWASP LLM06) |
+| Threat model | `SQUIRE_THREAT_MODEL.md` section 1.1 (svc-squire Elevation of Privilege row) |
+| Tabletop | `SQUIRE_TABLETOP_EXERCISE.md` Phase 1 and 4 |
+| POAM | P17-11 + new entry at time of incident |
+| Response lead | Incident Commander |
+
+Quick response:
+
+1. Operator does not execute the recommendation under any circumstances; all destructive verbs require separate human approval per `HITL_POLICY.md`.
+2. Update actions.yml allow-list with the observed synonym within the same release cycle.
+3. Add regression test in `builds/squire/tests/test_redteam.py`.
+4. Record in `REDTEAM_RESULTS.md` as a new case.
+
+### Case C: Runaway loop (critique fails to converge)
+
+Squire exhausts its 3 critique iterations without reaching APPROVED state; returns with `INCONSISTENT_FLAG`. Cost ceiling caps spend but operator receives ambiguous output.
+
+| Mapping | Reference |
+|---------|-----------|
+| CSF 2.0 | RS.AN-03 (analyze impact), DE.CM-07 (monitoring) |
+| ATLAS | AML.T0029 Model DoS (self-induced) |
+| Threat model | `SQUIRE_THREAT_MODEL.md` section 2.4 |
+| Tabletop | `SQUIRE_TABLETOP_EXERCISE.md` Phase 3 |
+| POAM | Open new entry if pattern repeats more than 2 times in 30 days |
+| Response lead | SOC Analyst |
+
+Quick response:
+
+1. SOC Analyst treats INCONSISTENT output as unverified; does not forward to on-call.
+2. Pull Langfuse trace, examine critique node costs per iteration.
+3. If recurring pattern, adjust iteration cap or classifier prompt per change control.
+
+### Cross-reference to 17-14 artifacts
+
+| Artifact | Use |
+|----------|-----|
+| `SQUIRE_THREAT_MODEL.md` | Tactic ID lookup, residual rating, control mapping |
+| `SQUIRE_TABLETOP_EXERCISE.md` | Runbook for the full jailbreak recovery flow |
+| `diagrams/squire-atlas-threat-model.png` | Incident command briefing visual |
+| `diagrams/squire-state-machine.png` | Node-level diagnosis reference |
+| `diagrams/squire-data-flow.png` | Evidence capture scope |
+
 ---
 
 *This playbook is a living document. It SHALL be updated after any AI-related security incident, when new AI systems are deployed, when AI integration scope changes, or when new OWASP LLM or MITRE ATLAS techniques relevant to this environment are published. The next scheduled review is 2026-09-12.*
