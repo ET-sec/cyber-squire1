@@ -132,7 +132,7 @@ Container logs, latency histograms, error rates. Shipped via fluentd. Structured
 
 Phase 7 established the immutable log export path. Same path is reused here:
 
-1. Monthly cron dumps `ir_*` tables as SQL to `/root/backups/<month>/`
+1. Monthly cron dumps `ir_*` tables as SQL to `/var/backups/platform/<month>/`
 2. `aws s3 cp` uploads to DO Spaces `archive/ir/<month>/`
 3. Spaces Object Lock governs the `archive/` prefix with retention set to Retain Until date equal to 7 years from upload
 4. SHA-256 manifest written to `archive/ir/<month>/MANIFEST.sha256` before Object Lock engages
