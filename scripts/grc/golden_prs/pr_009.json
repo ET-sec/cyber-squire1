@@ -1,0 +1,13 @@
+{
+  "name": "threat-model-add-tampering-langgraph-row",
+  "category": "threat model edit",
+  "diff": "diff --git a/docs/grc/SQUIRE_THREAT_MODEL.md b/docs/grc/SQUIRE_THREAT_MODEL.md\n--- a/docs/grc/SQUIRE_THREAT_MODEL.md\n+++ b/docs/grc/SQUIRE_THREAT_MODEL.md\n@@ -42,6 +42,7 @@\n | STRIDE | Asset | Threat | ATLAS | Control | Mitigation |\n |--------|-------|--------|-------|---------|------------|\n | Spoofing | Auth Service | Token replay | AML.T0012 | IA-2 | MFA + short-lived tokens |\n | Repudiation | Audit Log | Log deletion | AML.T0031 | AU-9 | Append-only WORM storage |\n | Information Disclosure | Vector DB | Embedding leak | AML.T0024 | SC-28 | Encrypt at rest |\n+| Tampering | LangGraph State Machine | Adversarial mutation of graph state transitions to alter agent control flow | AML.T0044 | SI-7 | State integrity hashing on each node transition with signed checkpoints |\n \n ## Residual Risk Notes\n See section 7 for accepted residual risks.\n",
+  "expected": {
+    "controls": [
+      "SI-7"
+    ],
+    "poams": [],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}

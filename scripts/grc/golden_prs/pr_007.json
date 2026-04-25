@@ -1,0 +1,11 @@
+{
+  "name": "add-rag-guardrails-missing-residual-risk",
+  "category": "missing residual_risk",
+  "diff": "diff --git a/docs/grc/AI_RAG_GUARDRAILS.md b/docs/grc/AI_RAG_GUARDRAILS.md\nnew file mode 100644\nindex 0000000..a1b2c3d\n--- /dev/null\n+++ b/docs/grc/AI_RAG_GUARDRAILS.md\n@@ -0,0 +1,28 @@\n+---\n+title: AI RAG Guardrails Policy\n+version: \"1.0\"\n+classification: INTERNAL\n+owner: ai-platform-team\n+last_reviewed: 2025-02-14\n+---\n+\n+# AI RAG Guardrails Policy\n+\n+## Purpose\n+\n+This document defines guardrails for retrieval-augmented generation (RAG)\n+systems deployed within the organization, covering prompt handling,\n+context window hygiene, and output filtering.\n+\n+## Scope\n+\n+Applies to all internal LLM-backed assistants that retrieve from corporate\n+knowledge bases.\n+\n+## Guardrails\n+\n+- Input sanitization on all user prompts\n+- Retrieval source allowlist\n+- Output filtering for sensitive categories\n+- Rate limiting per principal\n+- Logging of prompt/response pairs to the audit pipeline\n",
+  "expected": {
+    "controls": [],
+    "poams": [],
+    "sanitization_violations": [],
+    "residual_risk_required": true
+  }
+}

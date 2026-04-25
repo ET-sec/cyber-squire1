@@ -1,0 +1,14 @@
+{
+  "name": "redteam-cycle3-finding8-citation-fabrication",
+  "category": "red-team finding addition",
+  "diff": "diff --git a/docs/grc/REDTEAM_RESULTS.md b/docs/grc/REDTEAM_RESULTS.md\n--- a/docs/grc/REDTEAM_RESULTS.md\n+++ b/docs/grc/REDTEAM_RESULTS.md\n@@ -142,3 +142,21 @@\n - Mitigation: Updated retrieval prompt to require source-grounding token.\n - Status: Closed.\n \n+### Finding 8 (Cycle 3) \u2014 Citation Fabrication\n+\n+- Severity: LOW\n+- Test class: Citation fabrication / hallucinated control references\n+- Cycle: 3\n+- Date: 2024-11-14\n+- Tester: GRC red-team rotation B\n+\n+**Summary.** Probed the assistant with 14 prompts asking it to cite specific\n+NIST 800-53 controls supporting incident-response and vulnerability-scanning\n+claims. In 1 of 14 cases the model produced a plausible-looking but\n+non-existent control identifier (\"IR-4(19)\") when justifying an escalation\n+workflow. Remaining 13 cases correctly grounded answers in IR-4 and RA-5.\n+\n+**Relevant controls.** IR-4, RA-5.\n+\n+**Disposition.** Low severity: single low-confidence fabrication, no downstream\n+control mapping was altered. Tracked under existing retrieval-grounding work.\n",
+  "expected": {
+    "controls": [
+      "IR-4",
+      "RA-5"
+    ],
+    "poams": [],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}

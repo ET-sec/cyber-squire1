@@ -1,0 +1,19 @@
+{
+  "name": "redteam-references-missing-poam-p99-99",
+  "category": "broken POA&M ID reference",
+  "diff": "diff --git a/docs/grc/REDTEAM_RESULTS.md b/docs/grc/REDTEAM_RESULTS.md\n--- a/docs/grc/REDTEAM_RESULTS.md\n+++ b/docs/grc/REDTEAM_RESULTS.md\n@@ -22,6 +22,13 @@\n ## Findings Summary\n \n The Q3 red team engagement surfaced gaps in incident response handling (CA-8, IR-4)\n that warrant follow-up tracking.\n+\n+### Finding RT-2024-07: Delayed alert triage\n+\n+During the simulated phishing wave, on-call responders took 47 minutes to acknowledge\n+the initial alert, exceeding the 15-minute SLA defined under IR-4.\n+\n+Remediation is tracked under POAM-P99-99 with a target close date of 2024-12-31.\n\uff3fSee the POA&M plan for milestone details.\n",
+  "expected": {
+    "controls": [
+      "CA-8",
+      "IR-4"
+    ],
+    "poams": [
+      {
+        "poam_id": "P99-99",
+        "change": "referenced-missing"
+      }
+    ],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}

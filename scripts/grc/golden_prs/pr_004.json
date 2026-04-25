@@ -1,0 +1,11 @@
+{
+  "name": "policy-access-control-version-bump-1.2-to-1.3",
+  "category": "version bump",
+  "diff": "diff --git a/docs/grc/POLICY_ACCESS_CONTROL.md b/docs/grc/POLICY_ACCESS_CONTROL.md\n--- a/docs/grc/POLICY_ACCESS_CONTROL.md\n+++ b/docs/grc/POLICY_ACCESS_CONTROL.md\n@@ -1,7 +1,7 @@\n ---\n title: Access Control Policy\n owner: ciso-office\n-version: '1.2'\n+version: '1.3'\n last_reviewed: 2024-09-01\n residual_risk: low\n ---\n",
+  "expected": {
+    "controls": [],
+    "poams": [],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}

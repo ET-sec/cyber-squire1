@@ -1,0 +1,18 @@
+{
+  "name": "add-poam-row-P19-50-IR4",
+  "category": "add new POA&M row",
+  "diff": "diff --git a/docs/grc/POAM_PLAN_OF_ACTION.md b/docs/grc/POAM_PLAN_OF_ACTION.md\n--- a/docs/grc/POAM_PLAN_OF_ACTION.md\n+++ b/docs/grc/POAM_PLAN_OF_ACTION.md\n@@ -1,6 +1,7 @@\n ---\n title: Plan of Action and Milestones\n residual_risk: moderate\n+last_updated: 2025-04-12\n ---\n \n # POA&M Register\n@@ -14,4 +15,5 @@\n | POAM-P18-02 | Patch cadence drift on edge nodes | MED | platform-team | 2025-05-30 | OPEN |\n | POAM-P18-03 | Stale IAM roles in staging | LOW | iam-team | 2025-06-15 | OPEN |\n | POAM-P18-04 | Missing DLP coverage on file shares | HIGH | secops | 2025-04-30 | OPEN |\n+| POAM-P19-50 | Incident response runbook gaps identified during IR-4 tabletop exercise | MED | secops | 2025-07-15 | OPEN |\n",
+  "expected": {
+    "controls": [
+      "IR-4"
+    ],
+    "poams": [
+      {
+        "poam_id": "P19-50",
+        "change": "added"
+      }
+    ],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}
