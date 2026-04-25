@@ -1,0 +1,18 @@
+[config]
+model = "anthropic/claude-sonnet-4-6"
+fallback_models = ["anthropic/claude-opus-4-7"]
+publish_output = true
+max_model_tokens = 100000
+
+[ignore]
+glob = ['docs/grc/**', '.planning/**', '.skills-staging/**', 'CoreDirective/**']
+
+[pr_reviewer]
+require_focused_review = true
+require_score_review = true
+require_tests_review = true
+num_max_findings = 5
+
+[pr_description]
+publish_description_as_comment = true
+add_original_user_description = true
