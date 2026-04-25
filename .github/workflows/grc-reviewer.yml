@@ -1,0 +1,56 @@
+---
+name: GRC Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'docs/grc/**'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Print comment to stdout instead of posting"
+        type: boolean
+        default: true
+      pr_number:
+        description: "PR number to review (manual dispatch only)"
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: grc-reviewer-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: ${{ vars.GRC_REVIEWER_DISABLED != 'true' && github.event.sender.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Anthropic SDK
+        run: pip install --quiet anthropic
+      - name: Budget guard
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DAILY_LIMIT_USD: "1.00"
+        run: python3 scripts/grc/budget_guard.py
+      - name: Run GRC reviewer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: python3 scripts/grc/grc_reviewer.py ${{ github.event.pull_request.number || inputs.pr_number }}
+
+# NOTE: this workflow uses an inclusive path filter only. Do NOT add the
+# negative-path-filter directive (the inverse pattern), since GitHub Actions
+# refuses to mix the two on the same trigger. PR-Agent owns the inverse
+# filter in its own workflow file (Plan 19-04).
