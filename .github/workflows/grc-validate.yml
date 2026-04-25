@@ -1,0 +1,191 @@
+name: GRC Validate
+
+on:
+  pull_request:
+    paths:
+      - 'docs/grc/**'
+      - 'scripts/grc/**'
+      - 'builds/grc_librarian/**'
+      - '.github/workflows/grc-validate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/grc/**'
+      - 'scripts/grc/**'
+      - 'builds/grc_librarian/**'
+      - '.github/workflows/grc-validate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: GRC corpus structural checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Run validator
+        run: python3 scripts/grc/validate_grc.py
+
+  librarian-smoke:
+    name: grc_librarian build and import smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install grc_librarian
+        run: pip install --quiet ./builds/grc_librarian
+
+      - name: Verify CLI loads
+        run: grc-librarian --help
+
+      - name: Verify drift command parses (no DB call)
+        run: grc-librarian drift --help
+
+      - name: Compute repo file hashes the librarian would compare
+        run: |
+          python3 - <<'PY'
+          import hashlib, pathlib
+          grc = pathlib.Path("docs/grc")
+          n = 0
+          for p in sorted(grc.glob("*.md")):
+              h = hashlib.sha256(p.read_bytes()).hexdigest()
+              print(f"{h[:12]}  {p}")
+              n += 1
+          print(f"hashed {n} markdown files")
+          PY
+
+  conftest-policy:
+    name: OPA frontmatter policy gate (soft-fail)
+    runs-on: ubuntu-latest
+    continue-on-error: true   # soft-fail belt-and-suspenders for first 7 days
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install --quiet python-frontmatter pyyaml
+      - name: Extract frontmatter
+        run: python3 scripts/grc/frontmatter_to_yaml.py
+      - name: Install conftest (pinned)
+        run: |
+          CONFTEST_VERSION="0.55.0"
+          wget -qO- "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz" | tar xz
+          sudo mv conftest /usr/local/bin/
+          conftest --version
+      - name: Run policies (soft-fail mode)
+        run: |
+          cat > /tmp/policy_config.yaml <<EOF
+          config:
+            soft_fail: true
+          EOF
+          conftest test build/grc-frontmatter.yaml \
+            --policy policies/grc/ \
+            --data /tmp/policy_config.yaml \
+            --output github 2>&1 | tee conftest-results.txt
+      - name: Upload conftest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conftest-results
+          path: conftest-results.txt
+
+  oscal-sign-on-merge:
+    name: Cosign keyless OSCAL sign (merge to main only)
+    if: >
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # REQUIRED for keyless OIDC
+      contents: read    # bundles published as workflow artifacts, NOT committed
+    concurrency:
+      group: oscal-sign-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet pyyaml
+      - uses: sigstore/cosign-installer@v4.0.0
+      - name: Build + sign OSCAL artifacts
+        env:
+          OSCAL_SIGN: "1"
+        run: python3 scripts/grc/build_oscal.py
+      - name: Publish signed bundles as workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oscal-bundles-${{ github.sha }}
+          path: docs/grc/oscal/output/*.sigstore.json
+          retention-days: 90
+          if-no-files-found: error
+
+  oscal-verify:
+    name: Cosign verify OSCAL bundles (PR + push)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read     # required to download artifacts from prior workflow runs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: sigstore/cosign-installer@v4.0.0
+      - name: Download latest bundle artifact from main
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: grc-validate.yml
+          workflow_conclusion: success
+          branch: main
+          name_is_regexp: true
+          name: '^oscal-bundles-.*$'
+          path: ./_oscal_bundles
+          if_no_artifact_found: warn
+          search_artifacts: true
+      - name: Verify each bundle that exists
+        run: |
+          shopt -s nullglob
+          BUNDLE_DIR="./_oscal_bundles"
+          if [ ! -d "$BUNDLE_DIR" ] || [ -z "$(ls -A "$BUNDLE_DIR" 2>/dev/null || true)" ]; then
+            echo "::warning::No bundle artifact downloaded (first-deploy gap or no prior sign run on main). Verification skipped this run; first push-to-main will produce the seed artifact."
+            exit 0
+          fi
+          count=0
+          mismatch=0
+          for f in docs/grc/oscal/output/*.json; do
+            name="$(basename "$f").sigstore.json"
+            bundle="$BUNDLE_DIR/$name"
+            if [ ! -f "$bundle" ]; then
+              echo "INFO: no bundle yet for $f (will be produced on next push-to-main)"
+              continue
+            fi
+            if ! cosign verify-blob "$f" \
+              --bundle "$bundle" \
+              --certificate-identity-regexp="https://github.com/ET-sec/cyber-squire1/.github/workflows/grc-validate.yml@refs/heads/main" \
+              --certificate-oidc-issuer=https://token.actions.githubusercontent.com; then
+              echo "::error::Signature mismatch for $f"
+              mismatch=$((mismatch+1))
+            fi
+            count=$((count+1))
+          done
+          echo "Verified $count OSCAL bundles ($mismatch mismatches)"
+          exit "$mismatch"
