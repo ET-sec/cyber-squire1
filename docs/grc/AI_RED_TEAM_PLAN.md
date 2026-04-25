@@ -409,7 +409,7 @@ This plan is scoped to adversarial testing of AI systems only. Infrastructure pe
 
 | System ID | Service | Technology | Trust Zone | Primary Risk Profile |
 |-----------|---------|------------|------------|---------------------|
-| AI-001 | svc-ai-gateway | OpenClaw (Claude Opus 4.6) | DMZ | External user input via Telegram; 16+ svc-automation integrations; Anthropic API data flow |
+| AI-001 | svc-ai-gateway | OpenClaw (Claude Opus 4.7) | DMZ | External user input via Telegram; 16+ svc-automation integrations; Anthropic API data flow |
 | AI-002 | svc-llm | Ollama (Qwen 3 8B) | Internal (net-ai) | Local inference; no internet egress; internal workflow consumer |
 | AI-003 | svc-transcription | Whisper | Internal (net-ai) | Audio input processing; local CPU inference; no external API calls |
 

@@ -246,7 +246,7 @@ Legend: [TB-N] = Trust Boundary | [AI-0N] = AI System | ──► = Data Flow
       ▼
 ┌─ DMZ ─────────────────────────────────────────────────────────────────────┐
 │                                                                           │
-│  [P-04] svc-ai-gateway (OpenClaw - Claude Opus 4.6) [AI-001]               │
+│  [P-04] svc-ai-gateway (OpenClaw - Claude Opus 4.7) [AI-001]               │
 │  ├── System prompt + conversation context                                 │
 │  ├── Skills: Tavily search, browser, GitHub, Notion, python-interpreter   │
 │  │                                                                        │
