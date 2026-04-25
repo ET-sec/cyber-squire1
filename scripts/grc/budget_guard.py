@@ -19,9 +19,9 @@ from __future__ import annotations
 import logging
 import os
 import sys
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
+
+import requests
 
 from scripts.grc.spend_ledger import today_total_usd
 
@@ -57,38 +57,25 @@ def _admin_api_spend_today() -> float | None:
         log.warning("ANTHROPIC_API_KEY not set; skipping admin API check")
         return None
     today_iso = datetime.now(timezone.utc).date().isoformat()
-    url = f"{ANTHROPIC_USAGE_URL}?starting_at={today_iso}"
-    # Refuse anything that isn't HTTPS to close urllib's file:// scheme path.
-    # ANTHROPIC_USAGE_URL is a hardcoded constant; this guard exists to satisfy
-    # SAST scanners and to harden against future code paths that derive the URL
-    # from configuration.
-    if not url.startswith("https://"):
-        log.warning("Refusing non-HTTPS admin API URL: %s", url)
-        return None
-    req = urllib.request.Request(  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-        url,
-        headers={
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-        },
-    )
     try:
-        # URL is the constant ANTHROPIC_USAGE_URL plus a date query string;
-        # scheme is verified above. SAST rule suppressed with documented
-        # rationale (no user-controlled input, hardcoded base URL).
-        with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as resp:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-            if resp.status != 200:
-                log.info("Admin API returned %s; falling back to ledger", resp.status)
-                return None
-            import json
-            payload = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        log.info("Admin API HTTPError %s; falling back to ledger", e.code)
-        return None
-    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        resp = requests.get(
+            ANTHROPIC_USAGE_URL,
+            params={"starting_at": today_iso},
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+            },
+            timeout=TIMEOUT_SECONDS,
+        )
+    except requests.exceptions.RequestException as e:
         log.info("Admin API unreachable (%s); falling back to ledger", e.__class__.__name__)
         return None
-    except Exception as e:  # pragma: no cover - defensive
+    if resp.status_code != 200:
+        log.info("Admin API returned %s; falling back to ledger", resp.status_code)
+        return None
+    try:
+        payload = resp.json()
+    except ValueError as e:
         log.info("Admin API parse failure (%s); falling back to ledger", e.__class__.__name__)
         return None
 

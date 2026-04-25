@@ -25,10 +25,10 @@ import logging
 import os
 import subprocess
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 from typing import Any
+
+import requests
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -47,27 +47,27 @@ EXPERIMENT_NAME = "Squire-GRC-Reviewer baseline"
 
 def _langfuse_health_ok(host: str) -> bool:
     """Return True if /api/public/health returns 200 OK."""
-    # Refuse anything that isn't HTTPS so urllib never resolves a file:// or
-    # similar scheme. host comes from LANGFUSE_HOST (Doppler-managed) but we
-    # validate at the call site as defense in depth.
     if not host.startswith("https://"):
         log.warning("Refusing non-HTTPS Langfuse host: %s", host)
         return False
-    url = f"{host.rstrip('/')}/api/public/health"
     try:
-        # host comes from LANGFUSE_HOST (Doppler-managed) and was scheme-checked
-        # above. SAST rule suppressed with documented rationale (no user input,
-        # secrets-manager-controlled base URL).
-        with urllib.request.urlopen(url, timeout=HEALTH_TIMEOUT_SECONDS) as resp:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
-            if resp.status != 200:
-                log.warning("Langfuse health: HTTP %s", resp.status)
-                return False
-            payload = json.loads(resp.read().decode("utf-8"))
-            log.info("Langfuse health: %s", payload)
-            return payload.get("status") == "OK"
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
+        resp = requests.get(
+            f"{host.rstrip('/')}/api/public/health",
+            timeout=HEALTH_TIMEOUT_SECONDS,
+        )
+    except requests.exceptions.RequestException as exc:
         log.warning("Langfuse health unreachable: %s", exc)
         return False
+    if resp.status_code != 200:
+        log.warning("Langfuse health: HTTP %s", resp.status_code)
+        return False
+    try:
+        payload = resp.json()
+    except ValueError as exc:
+        log.warning("Langfuse health parse failure: %s", exc)
+        return False
+    log.info("Langfuse health: %s", payload)
+    return payload.get("status") == "OK"
 
 
 def _budget_guard_pass() -> bool:
