@@ -262,12 +262,6 @@ jobs:
           output-file: "sbom-repo.spdx.json"
           artifact-name: "sbom-repo-${{ github.sha }}-${{ github.run_id }}"
 
-      - name: Upload repo SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: "sbom-repo-${{ github.sha }}-${{ github.run_id }}"
-          path: "sbom-repo.spdx.json"
-          retention-days: 90
 
       # --- Per-image SBOMs ---
       - name: SBOM — postgres:16-alpine
@@ -278,12 +272,6 @@ jobs:
           output-file: sbom-postgres.spdx.json
           artifact-name: sbom-postgres-${{ github.sha }}-${{ github.run_id }}
 
-      - name: Upload postgres SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-postgres-${{ github.sha }}-${{ github.run_id }}
-          path: sbom-postgres.spdx.json
-          retention-days: 90
 
       - name: SBOM — n8nio/n8n:latest
         uses: anchore/sbom-action@v0
@@ -293,12 +281,6 @@ jobs:
           output-file: sbom-n8n.spdx.json
           artifact-name: sbom-n8n-${{ github.sha }}-${{ github.run_id }}
 
-      - name: Upload n8n SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-n8n-${{ github.sha }}-${{ github.run_id }}
-          path: sbom-n8n.spdx.json
-          retention-days: 90
 
       - name: SBOM — hashicorp/vault:1.15
         uses: anchore/sbom-action@v0
@@ -308,12 +290,6 @@ jobs:
           output-file: sbom-vault.spdx.json
           artifact-name: sbom-vault-${{ github.sha }}-${{ github.run_id }}
 
-      - name: Upload vault SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-vault-${{ github.sha }}-${{ github.run_id }}
-          path: sbom-vault.spdx.json
-          retention-days: 90
 
       - name: SBOM — datadog/agent:latest
         uses: anchore/sbom-action@v0
@@ -323,12 +299,6 @@ jobs:
           output-file: sbom-datadog.spdx.json
           artifact-name: sbom-datadog-${{ github.sha }}-${{ github.run_id }}
 
-      - name: Upload datadog SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-datadog-${{ github.sha }}-${{ github.run_id }}
-          path: sbom-datadog.spdx.json
-          retention-days: 90
 
       - name: SBOM — cloudflare/cloudflared:latest
         uses: anchore/sbom-action@v0
@@ -338,9 +308,3 @@ jobs:
           output-file: sbom-cloudflared.spdx.json
           artifact-name: sbom-cloudflared-${{ github.sha }}-${{ github.run_id }}
 
-      - name: Upload cloudflared SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom-cloudflared-${{ github.sha }}-${{ github.run_id }}
-          path: sbom-cloudflared.spdx.json
-          retention-days: 90
