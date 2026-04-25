@@ -1,3 +1,23 @@
+---
+document_id: TM-SQUIRE-001
+title: Squire Threat Model - STRIDE + MITRE ATLAS
+doc_type: threat_model
+classification: PUBLIC-SANITIZED
+version: "1.0"
+last_updated: 2026-04-24
+next_review: 2026-07-24
+owner: Organization Security Engineering
+review_cadence: Quarterly, or on any svc-squire graph/topology change
+frameworks:
+  - STRIDE
+  - MITRE ATLAS (AML.T codes 2026-04)
+related:
+  - SSP-SQUIRE-001
+  - RT-SQUIRE-001
+  - AITC-OPS-001
+  - POAM-OPS-001
+---
+
 # Squire Threat Model: STRIDE + MITRE ATLAS
 
 **Document owner:** Organization Security Engineering

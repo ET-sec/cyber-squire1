@@ -1,3 +1,27 @@
+---
+document_id: SSP-SQUIRE-001
+title: System Security Plan - Squire Autonomous SOC Analyst
+doc_type: ssp
+system_name: Squire Autonomous SOC Analyst
+classification: CUI-INTERNAL
+version: "1.0"
+last_updated: 2026-04-23
+next_review: 2026-10-23
+owner: System Owner
+approver: System Owner (Authorizing Official)
+parent: SSP-OPS-001
+frameworks:
+  - NIST SP 800-53 Rev 5
+  - NIST AI RMF 1.0
+  - MITRE ATLAS
+related:
+  - SSP-OPS-001
+  - TM-SQUIRE-001
+  - RT-SQUIRE-001
+  - CW-SQUIRE-001
+  - POAM-OPS-001
+---
+
 # System Security Plan: Squire Autonomous SOC Analyst
 
 **Document Identifier:** SSP-SQUIRE-001
@@ -231,7 +255,7 @@ Overall system category: MODERATE (driven by integrity).
 
 | Store | Content | Encryption |
 |-------|---------|------------|
-| `svc-db` (`ir_chunks`, `ir_incidents`, `ir_replay_events`) | Vector corpus, replay audit | LUKS at the volume layer; `CD_VOL_POSTGRES` |
+| `svc-db` (`ir_chunks`, `ir_incidents`, `ir_replay_events`) | Vector corpus, replay audit | LUKS at the volume layer; `db-data-volume` |
 | `svc-langfuse-clickhouse` | Trace analytics | LUKS at the volume layer |
 | `svc-langfuse-redis` | Queue state | Ephemeral, no disk persistence |
 | Doppler | API keys | Provider-managed (Doppler KMS) |

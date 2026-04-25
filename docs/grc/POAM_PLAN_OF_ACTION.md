@@ -1,3 +1,22 @@
+---
+document_id: POAM-OPS-001
+title: Plan of Action and Milestones
+doc_type: poam
+system_name: Organization Security Operations Platform
+classification: INTERNAL-USE-ONLY
+version: "1.1"
+last_updated: 2026-04-24
+next_review: 2026-05-24
+owner: System Owner (Platform Administrator)
+contact: admin@example-ops.com
+parent_ssp: SSP-OPS-001
+related:
+  - SSP-OPS-001
+  - SSP-SQUIRE-001
+  - RT-SQUIRE-001
+  - AITC-OPS-001
+---
+
 # Plan of Action and Milestones (POA&M)
 
 **System Name:** Organization Security Operations Platform

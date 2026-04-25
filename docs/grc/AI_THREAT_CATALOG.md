@@ -1,3 +1,31 @@
+---
+document_id: AITC-OPS-001
+title: AI Threat Catalog
+doc_type: threat_catalog
+system_name: Organization Security Operations Platform
+classification: INTERNAL-USE-ONLY
+version: "1.1"
+last_updated: 2026-04-24
+next_review: 2026-07-24
+owner: System Owner
+assessment_date: 2026-03-12
+frameworks:
+  - OWASP LLM Top 10 (2025)
+  - OWASP Agentic Applications Top 10 (2026)
+  - MITRE ATLAS v4
+  - NIST AI RMF (AI 100-1)
+  - ISO/IEC 42001:2023
+nist_controls:
+  - RA-3
+  - RA-5
+  - PM-16
+  - SI-5
+related:
+  - TM-SQUIRE-001
+  - RT-SQUIRE-001
+  - POAM-OPS-001
+---
+
 # AI Threat Catalog
 
 **Organization:** Organization Security Operations Platform

@@ -1,3 +1,24 @@
+---
+document_id: RT-SQUIRE-001
+title: Red-Team Results - Squire
+doc_type: redteam_results
+classification: CUI-INTERNAL
+version: "1.1"
+last_updated: 2026-04-24
+next_review: 2026-05-24
+review_cadence: Monthly (living document)
+owner: System Owner
+approver: System Owner (Authorizing Official)
+frameworks:
+  - MITRE ATLAS
+  - OWASP LLM Top 10 (2025)
+related:
+  - TM-SQUIRE-001
+  - AITC-OPS-001
+  - SSP-SQUIRE-001
+  - POAM-OPS-001
+---
+
 # Red-Team Results: Squire
 
 **Document Identifier:** RT-SQUIRE-001

@@ -1,3 +1,23 @@
+---
+document_id: SSP-OPS-001
+title: System Security Plan
+doc_type: ssp
+system_name: Organization Security Operations Platform
+classification: CUI-INTERNAL
+version: "1.1"
+last_updated: 2026-04-24
+next_review: 2026-09-11
+owner: System Owner
+approver: System Owner (Authorizing Official)
+frameworks:
+  - NIST SP 800-53 Rev 5
+  - NIST CSF 2.0
+related:
+  - POAM-OPS-001
+  - CW-SQUIRE-001
+  - SSP-SQUIRE-001
+---
+
 # System Security Plan (SSP)
 
 ## Organization Security Operations Platform

@@ -1,3 +1,27 @@
+---
+document_id: CW-SQUIRE-001
+title: Framework Crosswalk - Squire Controls
+doc_type: crosswalk
+classification: CUI-INTERNAL
+version: "1.0"
+last_updated: 2026-04-23
+next_review: 2026-07-23
+owner: System Owner
+approver: System Owner (Authorizing Official)
+frameworks:
+  - NIST SP 800-53 Rev 5
+  - NIST CSF 2.0
+  - MITRE ATT&CK Enterprise
+  - CSA Agentic Profile MANAGE
+  - OWASP LLM Top 10 (2025)
+  - NIST SP 800-61 Rev 3
+  - NIST AI RMF 1.0
+related:
+  - SSP-SQUIRE-001
+  - TM-SQUIRE-001
+  - RT-SQUIRE-001
+---
+
 # Framework Crosswalk: Squire Controls
 
 **Document Identifier:** CW-SQUIRE-001
