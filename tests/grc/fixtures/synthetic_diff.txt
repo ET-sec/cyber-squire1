@@ -1,0 +1,22 @@
+diff --git a/docs/grc/POAM_PLAN_OF_ACTION.md b/docs/grc/POAM_PLAN_OF_ACTION.md
+index aaaaaaa..bbbbbbb 100644
+--- a/docs/grc/POAM_PLAN_OF_ACTION.md
++++ b/docs/grc/POAM_PLAN_OF_ACTION.md
+@@ -42,6 +42,7 @@ The Plan of Action and Milestones (POA&M) tracks identified weaknesses and remed
+ | POAM-P17-13 | Tavily directive injection | RA-5 | open | MED |
+ | POAM-P17-14 | Supply chain attestation gap | SR-3 | open | MED |
+ | POAM-P17-15 | Cycle 2 redteam infra rate-limit | RA-5 | open | MED |
++| POAM-P19-99 | Demo finding for offline reviewer fixture | RA-5 | open | MED |
+
+ ## Distribution
+
+diff --git a/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md b/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md
+index ccccccc..ddddddd 100644
+--- a/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md
++++ b/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md
+@@ -118,6 +118,7 @@ The crosswalk maps Squire controls to NIST 800-53, ISO 27001, SOC 2, and CIS v8.
+ | RA-5 | Vulnerability scanning | A.12.6.1 | CC7.1 | 7.1 |
+ | SI-4 | System monitoring | A.12.4.1 | CC7.2 | 8.1 |
+ | SI-7 | Software, firmware, and information integrity | A.12.5.1 | CC7.1 | 2.1 |
++| AC-2 | Account management (demo crosswalk row) | A.9.2.1 | CC6.1 | 5.1 |
+ | AU-2 | Event logging | A.12.4.1 | CC7.2 | 8.1 |
