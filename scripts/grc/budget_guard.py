@@ -65,7 +65,7 @@ def _admin_api_spend_today() -> float | None:
     if not url.startswith("https://"):
         log.warning("Refusing non-HTTPS admin API URL: %s", url)
         return None
-    req = urllib.request.Request(
+    req = urllib.request.Request(  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
         url,
         headers={
             "x-api-key": api_key,
@@ -73,7 +73,10 @@ def _admin_api_spend_today() -> float | None:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as resp:
+        # URL is the constant ANTHROPIC_USAGE_URL plus a date query string;
+        # scheme is verified above. SAST rule suppressed with documented
+        # rationale (no user-controlled input, hardcoded base URL).
+        with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as resp:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
             if resp.status != 200:
                 log.info("Admin API returned %s; falling back to ledger", resp.status)
                 return None

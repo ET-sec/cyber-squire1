@@ -55,7 +55,10 @@ def _langfuse_health_ok(host: str) -> bool:
         return False
     url = f"{host.rstrip('/')}/api/public/health"
     try:
-        with urllib.request.urlopen(url, timeout=HEALTH_TIMEOUT_SECONDS) as resp:
+        # host comes from LANGFUSE_HOST (Doppler-managed) and was scheme-checked
+        # above. SAST rule suppressed with documented rationale (no user input,
+        # secrets-manager-controlled base URL).
+        with urllib.request.urlopen(url, timeout=HEALTH_TIMEOUT_SECONDS) as resp:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
             if resp.status != 200:
                 log.warning("Langfuse health: HTTP %s", resp.status)
                 return False
