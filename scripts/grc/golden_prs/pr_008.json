@@ -1,0 +1,15 @@
+{
+  "name": "crosswalk-add-ac2-ac6-au12",
+  "category": "NIST control mapping update",
+  "diff": "diff --git a/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md b/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md\n--- a/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md\n+++ b/docs/grc/FRAMEWORK_CROSSWALK_SQUIRE.md\n@@ -42,6 +42,21 @@\n | NIST Control | Squire Capability | Evidence Source |\n |--------------|-------------------|-----------------|\n | IA-2         | SSO enforcement   | auth-service logs |\n+| AC-2         | Account lifecycle automation in IdP | iam-provisioning pipeline audit trail |\n+| AC-6         | Least-privilege role bindings for Squire workloads | rbac-policy-bundle review reports |\n+| AU-12        | Centralized audit record generation for Squire APIs | siem-ingest dashboard, retention 400d |\n \n ## Notes\n \n-Crosswalk last reviewed 2024-Q4.\n+Crosswalk last reviewed 2025-Q1. Added AC-2, AC-6, and AU-12 mappings\n+following the access governance uplift initiative.\n",
+  "expected": {
+    "controls": [
+      "AC-2",
+      "AC-6",
+      "AU-12"
+    ],
+    "poams": [],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}

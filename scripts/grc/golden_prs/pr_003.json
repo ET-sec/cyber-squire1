@@ -1,0 +1,11 @@
+{
+  "name": "classification-change-threat-model-public-to-internal",
+  "category": "classification change",
+  "diff": "diff --git a/docs/grc/THREAT_MODEL_STRIDE.md b/docs/grc/THREAT_MODEL_STRIDE.md\n--- a/docs/grc/THREAT_MODEL_STRIDE.md\n+++ b/docs/grc/THREAT_MODEL_STRIDE.md\n@@ -1,7 +1,7 @@\n ---\n title: STRIDE Threat Model\n owner: security-engineering\n-classification: PUBLIC\n+classification: INTERNAL\n review_cadence: quarterly\n last_reviewed: 2024-09-15\n ---\n",
+  "expected": {
+    "controls": [],
+    "poams": [],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}

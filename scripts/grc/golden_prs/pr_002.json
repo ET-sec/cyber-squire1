@@ -1,0 +1,18 @@
+{
+  "name": "modify-poam-p17-15-status-shift",
+  "category": "modify existing POA&M",
+  "diff": "diff --git a/docs/grc/POAM_PLAN_OF_ACTION.md b/docs/grc/POAM_PLAN_OF_ACTION.md\n--- a/docs/grc/POAM_PLAN_OF_ACTION.md\n+++ b/docs/grc/POAM_PLAN_OF_ACTION.md\n@@ -42,7 +42,7 @@\n | POAM-P17-13 | AC-2 | Stale account review automation | OPEN | 2025-09-30 |\n | POAM-P17-14 | AU-6 | Audit log centralization gap | IN_PROGRESS | 2025-10-15 |\n-| POAM-P17-15 | IR-4 | Incident response tabletop deficiency remediation | OPEN | 2025-10-31 |\n+| POAM-P17-15 | IR-4 | Incident response tabletop deficiency remediation | IN_PROGRESS | 2026-01-31 |\n | POAM-P17-16 | CM-3 | Change control board charter update | OPEN | 2025-11-15 |\n",
+  "expected": {
+    "controls": [
+      "IR-4"
+    ],
+    "poams": [
+      {
+        "poam_id": "P17-15",
+        "change": "modified"
+      }
+    ],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}

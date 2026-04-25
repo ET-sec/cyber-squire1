@@ -1,0 +1,11 @@
+{
+  "name": "binary-architecture-diagram-update",
+  "category": "binary file change",
+  "diff": "diff --git a/docs/grc/diagrams/squire-architecture.png b/docs/grc/diagrams/squire-architecture.png\nindex 4a3f2c1b8d9e6f0a2b5c7d8e9f1a3b4c5d6e7f8a..9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b 100644\nBinary files a/docs/grc/diagrams/squire-architecture.png and b/docs/grc/diagrams/squire-architecture.png differ\n",
+  "expected": {
+    "controls": [],
+    "poams": [],
+    "sanitization_violations": [],
+    "residual_risk_required": false
+  }
+}
