@@ -59,6 +59,54 @@ jobs:
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
+      # Snyk Open Source dependency scan, free tier.
+      # Runs alongside Trivy. Trivy covers OS packages and image layers.
+      # Snyk covers application dependency manifests (pip, poetry, npm, go.mod)
+      # with reachability scoring. continue-on-error keeps the pipeline green
+      # while the baseline is tuned. Flip to false once the baseline is clean.
+      - name: Detect Snyk token
+        id: snyk_token
+        run: |
+          if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
+            echo "present=true" >> $GITHUB_OUTPUT
+          else
+            echo "present=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Snyk Open Source dependency scan
+        if: steps.snyk_token.outputs.present == 'true'
+        continue-on-error: true
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --severity-threshold=high --sarif-file-output=snyk-results.sarif --all-projects --exclude=DEPRECATED
+
+      - name: Upload Snyk SARIF results
+        if: steps.snyk_token.outputs.present == 'true' && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-results.sarif
+          category: snyk
+
+      - name: Snyk Container scan (Squire image)
+        if: steps.snyk_token.outputs.present == 'true' && hashFiles('builds/squire/Dockerfile') != ''
+        continue-on-error: true
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ghcr.io/${{ github.repository_owner }}/svc-squire:${{ github.sha }}
+          args: --file=builds/squire/Dockerfile --severity-threshold=high --sarif-file-output=snyk-container.sarif
+
+      - name: Upload Snyk container SARIF
+        if: steps.snyk_token.outputs.present == 'true' && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-container.sarif
+          category: snyk-container
+
   terraform-apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
@@ -130,7 +178,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Verify upstream image signatures
         continue-on-error: true
@@ -212,12 +260,12 @@ jobs:
           path: "."
           format: "spdx-json"
           output-file: "sbom-repo.spdx.json"
-          artifact-name: "sbom-repo-${{ github.sha }}"
+          artifact-name: "sbom-repo-${{ github.sha }}-${{ github.run_id }}"
 
       - name: Upload repo SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: "sbom-repo-${{ github.sha }}"
+          name: "sbom-repo-${{ github.sha }}-${{ github.run_id }}"
           path: "sbom-repo.spdx.json"
           retention-days: 90
 
@@ -228,12 +276,12 @@ jobs:
           image: postgres:16-alpine
           format: spdx-json
           output-file: sbom-postgres.spdx.json
-          artifact-name: sbom-postgres-${{ github.sha }}
+          artifact-name: sbom-postgres-${{ github.sha }}-${{ github.run_id }}
 
       - name: Upload postgres SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-postgres-${{ github.sha }}
+          name: sbom-postgres-${{ github.sha }}-${{ github.run_id }}
           path: sbom-postgres.spdx.json
           retention-days: 90
 
@@ -243,12 +291,12 @@ jobs:
           image: n8nio/n8n:latest
           format: spdx-json
           output-file: sbom-n8n.spdx.json
-          artifact-name: sbom-n8n-${{ github.sha }}
+          artifact-name: sbom-n8n-${{ github.sha }}-${{ github.run_id }}
 
       - name: Upload n8n SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-n8n-${{ github.sha }}
+          name: sbom-n8n-${{ github.sha }}-${{ github.run_id }}
           path: sbom-n8n.spdx.json
           retention-days: 90
 
@@ -258,12 +306,12 @@ jobs:
           image: hashicorp/vault:1.15
           format: spdx-json
           output-file: sbom-vault.spdx.json
-          artifact-name: sbom-vault-${{ github.sha }}
+          artifact-name: sbom-vault-${{ github.sha }}-${{ github.run_id }}
 
       - name: Upload vault SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-vault-${{ github.sha }}
+          name: sbom-vault-${{ github.sha }}-${{ github.run_id }}
           path: sbom-vault.spdx.json
           retention-days: 90
 
@@ -273,12 +321,12 @@ jobs:
           image: datadog/agent:latest
           format: spdx-json
           output-file: sbom-datadog.spdx.json
-          artifact-name: sbom-datadog-${{ github.sha }}
+          artifact-name: sbom-datadog-${{ github.sha }}-${{ github.run_id }}
 
       - name: Upload datadog SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-datadog-${{ github.sha }}
+          name: sbom-datadog-${{ github.sha }}-${{ github.run_id }}
           path: sbom-datadog.spdx.json
           retention-days: 90
 
@@ -288,11 +336,11 @@ jobs:
           image: cloudflare/cloudflared:latest
           format: spdx-json
           output-file: sbom-cloudflared.spdx.json
-          artifact-name: sbom-cloudflared-${{ github.sha }}
+          artifact-name: sbom-cloudflared-${{ github.sha }}-${{ github.run_id }}
 
       - name: Upload cloudflared SBOM
         uses: actions/upload-artifact@v4
         with:
-          name: sbom-cloudflared-${{ github.sha }}
+          name: sbom-cloudflared-${{ github.sha }}-${{ github.run_id }}
           path: sbom-cloudflared.spdx.json
           retention-days: 90
