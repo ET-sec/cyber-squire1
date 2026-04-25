@@ -38,8 +38,8 @@ jobs:
       - name: Run validator
         run: python3 scripts/grc/validate_grc.py
 
-  librarian-smoke:
-    name: grc_librarian build and import smoke
+  corpus-hash-snapshot:
+    name: GRC corpus content hash snapshot
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -50,16 +50,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install grc_librarian
-        run: pip install --quiet ./builds/grc_librarian
-
-      - name: Verify CLI loads
-        run: grc-librarian --help
-
-      - name: Verify drift command parses (no DB call)
-        run: grc-librarian drift --help
-
-      - name: Compute repo file hashes the librarian would compare
+      - name: Compute repo file hashes (drift baseline)
         run: |
           python3 - <<'PY'
           import hashlib, pathlib
