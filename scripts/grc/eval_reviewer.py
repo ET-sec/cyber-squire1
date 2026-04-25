@@ -47,10 +47,15 @@ EXPERIMENT_NAME = "Squire-GRC-Reviewer baseline"
 
 def _langfuse_health_ok(host: str) -> bool:
     """Return True if /api/public/health returns 200 OK."""
+    # Refuse anything that isn't HTTPS so urllib never resolves a file:// or
+    # similar scheme. host comes from LANGFUSE_HOST (Doppler-managed) but we
+    # validate at the call site as defense in depth.
+    if not host.startswith("https://"):
+        log.warning("Refusing non-HTTPS Langfuse host: %s", host)
+        return False
+    url = f"{host.rstrip('/')}/api/public/health"
     try:
-        with urllib.request.urlopen(
-            f"{host.rstrip('/')}/api/public/health", timeout=HEALTH_TIMEOUT_SECONDS
-        ) as resp:
+        with urllib.request.urlopen(url, timeout=HEALTH_TIMEOUT_SECONDS) as resp:
             if resp.status != 200:
                 log.warning("Langfuse health: HTTP %s", resp.status)
                 return False

@@ -58,6 +58,13 @@ def _admin_api_spend_today() -> float | None:
         return None
     today_iso = datetime.now(timezone.utc).date().isoformat()
     url = f"{ANTHROPIC_USAGE_URL}?starting_at={today_iso}"
+    # Refuse anything that isn't HTTPS to close urllib's file:// scheme path.
+    # ANTHROPIC_USAGE_URL is a hardcoded constant; this guard exists to satisfy
+    # SAST scanners and to harden against future code paths that derive the URL
+    # from configuration.
+    if not url.startswith("https://"):
+        log.warning("Refusing non-HTTPS admin API URL: %s", url)
+        return None
     req = urllib.request.Request(
         url,
         headers={
