@@ -28,7 +28,7 @@ Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 | svc-event-handler | Teleport audit log shipper |
 | svc-fluentd | Fluentd (audit logs to Datadog) |
 | tunnel-cyber-squire | Cloudflare Tunnel (zero exposed ports) |
-| openclaw-gateway | OpenClaw (Claude Opus 4.6 proxy) |
+| openclaw-gateway | OpenClaw (Claude Opus 4.7 proxy) |
 
 All containers communicate on internal Docker network only.
 

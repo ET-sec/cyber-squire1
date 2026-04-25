@@ -74,7 +74,7 @@ All inter-service communication occurs over Docker bridge networks. No container
 |-----------|----------|-----------------|
 | svc-llm | Ollama - local LLM inference | internal |
 | svc-transcription | Whisper - voice transcription | internal |
-| openclaw-gateway | OpenClaw - Claude Opus 4.6 AI gateway | internal |
+| openclaw-gateway | OpenClaw - Claude Opus 4.7 AI gateway | internal |
 
 ### Infrastructure
 
