@@ -66,7 +66,7 @@ The platform processes API keys, operational credentials, workflow automation lo
 | Accepted Risk (with compensating controls) | 16 |
 | Open (remediation tracked) | 10 |
 | Closed | 1 |
-| **Total** | **27 POA&M entries** |
+| **Total** | **30 POA&M entries** |
 
 ![POA&M Summary](diagrams/poam_summary.png)
 
@@ -101,7 +101,7 @@ Layer 9: Audit trail                 [Langfuse+pgvector]  ███████�
 
 > **Key Point:** The 2026-04-23 red-team exercise validated Layers 5 through 9 against 6 attack scenarios. Layer 6 (pre-graph scanner) was added in-session as remediation for a BYPASSED PII case. Evidence in `REDTEAM_RESULTS.md`. Full Squire SSP in `SQUIRE_SSP.md` (36 additional controls).
 
-The platform runs **14 containers** protected by layered security controls:
+The platform runs **20 containers** protected by layered security controls:
 
 | Layer | Implementation |
 |-------|---------------|
@@ -134,7 +134,7 @@ The platform runs **14 containers** protected by layered security controls:
 4. **Automated evidence collection** via Falco, Datadog, and CI/CD scanners reduces manual audit burden
 5. **Immutable audit chain** from Teleport session recording through Fluentd log shipping to Datadog
 6. **Zero exposed ports** to the public internet - all ingress through Cloudflare zero-trust tunnel
-7. **Comprehensive GRC library** (49 documents after Phase 17 expansion) with defined review cadences
+7. **Comprehensive GRC library** (54 documents after Phase 17 expansion) with defined review cadences
 8. **Squire subsystem live** (Phase 17) with 36 additional controls, 9-layer defense-in-depth, 6 executed red-team cases, 1 HIGH remediation in-session
 
 ## Areas for Improvement
@@ -154,7 +154,7 @@ The platform runs **14 containers** protected by layered security controls:
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Full NIST 800-53 control mapping (16 families, 133 controls) |
 | [SQUIRE_SSP.md](SQUIRE_SSP.md) | Squire subsystem SSP, 36 additional controls |
-| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | All POA&M entries with remediation plans (25 total including 10 Phase 17) |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | All POA&M entries with remediation plans (30 total including 15 Phase 17) |
 | [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) | 6 executed red-team cases with Langfuse trace IDs |
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | 17 threat scenarios with MITRE ATT&CK mapping |
 | [CIS_RISK_REGISTER.md](CIS_RISK_REGISTER.md) | CIS Docker Bench findings with compensating controls |

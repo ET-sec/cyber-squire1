@@ -1,0 +1,370 @@
+{
+  "realm": "coredirective",
+  "enabled": true,
+  "displayName": "CoreDirective",
+  "displayNameHtml": "<strong>CoreDirective</strong>",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername",
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "cd-admin",
+        "description": "Full administrative access to all CoreDirective services",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "cd-operator",
+        "description": "Day-to-day operational access, can manage workflows and containers",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "cd-auditor",
+        "description": "Read-only access to audit logs, session recordings, and compliance data",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:soc-tier1",
+        "description": "SOC tier 1 agent role - read-only triage capability",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:soc-defensive",
+        "description": "SOC defensive response agent - can act on tier 1 recommendations",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:soc-offensive",
+        "description": "SOC offensive red team agent - read-only access to test targets",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:grc-corpus",
+        "description": "GRC corpus search agent",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:audit",
+        "description": "Audit and governance agent - append-only audit log access",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:drift-detector",
+        "description": "Stack drift detection agent",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "clientScopes": [
+    {
+      "name": "drift:read",
+      "description": "Read drift detection facts and reports",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "drift:write",
+      "description": "Write drift events to change log",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "grc:read",
+      "description": "Read GRC corpus, policies, and control mappings",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "telegram:send",
+      "description": "Send notifications via Telegram bot",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "vault:read",
+      "description": "Read scoped secrets from Vault Transit engine",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "audit:read",
+      "description": "Read append-only audit log entries",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "notion:read",
+      "description": "Read from scoped Notion pages",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    },
+    {
+      "name": "notion:write",
+      "description": "Write to scoped Notion pages (Stack Facts mirror)",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "etigoue",
+      "enabled": true,
+      "email": "etigoue@tigouetheory.com",
+      "firstName": "Emmanuel",
+      "lastName": "Tigoue",
+      "emailVerified": true,
+      "realmRoles": [
+        "cd-admin",
+        "default-roles-coredirective"
+      ],
+      "credentials": [],
+      "requiredActions": [
+        "UPDATE_PASSWORD"
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "teleport",
+      "name": "Teleport SSH Gateway",
+      "description": "OIDC client for Teleport integration (requires Teleport Enterprise). Configured as architecture reference for Enterprise upgrade path.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://teleport.tigouetheory.com/v1/webapi/oidc/callback"
+      ],
+      "webOrigins": [
+        "https://teleport.tigouetheory.com"
+      ],
+      "defaultClientScopes": [
+        "openid",
+        "profile",
+        "email",
+        "roles"
+      ]
+    },
+    {
+      "clientId": "squire",
+      "name": "Squire - Tier 1 SOC triage agent",
+      "description": "Read-only Datadog alert triage. LangGraph 7-node state machine with NeMo Guardrails. Tier 1, no write actions, calls grc_librarian for control mapping.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "<sourced-from-doppler-KC_CLIENT_SQUIRE_SECRET>",
+      "optionalClientScopes": [
+        "drift:read",
+        "grc:read",
+        "notion:read"
+      ],
+      "defaultClientScopes": [
+        "roles"
+      ],
+      "attributes": {
+        "access.token.lifespan": "900",
+        "client.session.idle.timeout": "900",
+        "use.refresh.tokens": "false"
+      }
+    },
+    {
+      "clientId": "blue-squire",
+      "name": "Blue Squire - Defensive response agent",
+      "description": "Defensive response to Squire-recommended actions. Can send Telegram alerts and read Vault secrets for credential rotation. Cannot perform offensive actions.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "<sourced-from-doppler-KC_CLIENT_BLUE_SQUIRE_SECRET>",
+      "optionalClientScopes": [
+        "drift:read",
+        "telegram:send",
+        "vault:read"
+      ],
+      "defaultClientScopes": [
+        "roles"
+      ],
+      "attributes": {
+        "access.token.lifespan": "900",
+        "client.session.idle.timeout": "900",
+        "use.refresh.tokens": "false"
+      }
+    },
+    {
+      "clientId": "red-squire",
+      "name": "Red Squire - Offensive red team agent",
+      "description": "Adversarial testing against Squire and OpenClaw skill catalog. Read-only access to test target metadata. Cannot mutate production state.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "<sourced-from-doppler-KC_CLIENT_RED_SQUIRE_SECRET>",
+      "optionalClientScopes": [
+        "drift:read"
+      ],
+      "defaultClientScopes": [
+        "roles"
+      ],
+      "attributes": {
+        "access.token.lifespan": "900",
+        "client.session.idle.timeout": "900",
+        "use.refresh.tokens": "false"
+      }
+    },
+    {
+      "clientId": "grc-librarian",
+      "name": "GRC Librarian - corpus search agent",
+      "description": "Searches GRC corpus (54 docs in docs/grc/) via MCP server. Returns control mappings, policy citations, framework crosswalks. Read-only.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "<sourced-from-doppler-KC_CLIENT_GRC_LIBRARIAN_SECRET>",
+      "optionalClientScopes": [
+        "grc:read"
+      ],
+      "defaultClientScopes": [
+        "roles"
+      ],
+      "attributes": {
+        "access.token.lifespan": "900",
+        "client.session.idle.timeout": "900",
+        "use.refresh.tokens": "false"
+      }
+    },
+    {
+      "clientId": "keeper-squire",
+      "name": "Keeper Squire - audit and governance agent",
+      "description": "Reads append-only audit log entries. Verifies cross-agent compliance with assigned scopes. Reports drift to drift-detector for ChangeLog entry.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "<sourced-from-doppler-KC_CLIENT_KEEPER_SQUIRE_SECRET>",
+      "optionalClientScopes": [
+        "audit:read",
+        "grc:read"
+      ],
+      "defaultClientScopes": [
+        "roles"
+      ],
+      "attributes": {
+        "access.token.lifespan": "900",
+        "client.session.idle.timeout": "900",
+        "use.refresh.tokens": "false"
+      }
+    },
+    {
+      "clientId": "drift-detector",
+      "name": "Drift Detector - stack drift agent",
+      "description": "Runs verify-facts.py, diffs stack-facts.yaml against filesystem and droplet, writes drift events to Notion ChangeLog, alerts via Telegram on HIGH severity drift.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "<sourced-from-doppler-KC_CLIENT_DRIFT_DETECTOR_SECRET>",
+      "optionalClientScopes": [
+        "drift:write",
+        "telegram:send",
+        "notion:write"
+      ],
+      "defaultClientScopes": [
+        "roles"
+      ],
+      "attributes": {
+        "access.token.lifespan": "900",
+        "client.session.idle.timeout": "900",
+        "use.refresh.tokens": "false"
+      }
+    }
+  ],
+  "scopeMappings": [],
+  "eventsEnabled": true,
+  "eventsListeners": [
+    "jboss-logging"
+  ],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+  "internationalizationEnabled": false,
+  "supportedLocales": [],
+  "browserSecurityHeaders": {
+    "contentSecurityPolicyReportOnly": "",
+    "xContentTypeOptions": "nosniff",
+    "referrerPolicy": "no-referrer",
+    "xRobotsTag": "none",
+    "xFrameOptions": "SAMEORIGIN",
+    "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'self'; object-src 'none';",
+    "xXSSProtection": "1; mode=block",
+    "strictTransportSecurity": "max-age=31536000; includeSubDomains"
+  }
+}

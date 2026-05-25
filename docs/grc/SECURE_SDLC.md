@@ -44,8 +44,8 @@ This document satisfies NIST 800-53 controls for developer security testing (SA-
 
 This Secure SDLC applies to all code, configuration, and infrastructure managed within the Organization's GitHub repository:
 
-- **Infrastructure-as-Code:** 16 Terraform files defining Cloud Provider resources (droplet, firewall, DNS, Spaces, volumes, Cloudflare tunnel configuration)
-- **Docker Compose:** 13-service container orchestration stack
+- **Infrastructure-as-Code:** 19 Terraform files defining Cloud Provider resources (droplet, firewall, DNS, Spaces, volumes, Cloudflare tunnel configuration)
+- **Docker Compose:** 19-service container orchestration stack
 - **OPA Policies:** 8 Rego policy files (249 lines) enforcing security, naming, and operational standards
 - **CI/CD Workflows:** 2 GitHub Actions workflow files (`security.yml`, `terraform-pr.yml`)
 - **Container Images:** 8 upstream images consumed from public registries
@@ -587,7 +587,7 @@ Every pipeline run is traceable through:
 
 | Enhancement | Priority | Target | NIST Control |
 |-------------|----------|--------|-------------|
-| DAST integration (OWASP ZAP) | Medium | Q3 2026 | SA-11(8), RA-5 |
+| DAST integration (OWASP ZAP) | Medium | Shipped 2026-05-25 | SA-11(8), RA-5 |
 | Container runtime scanning in pipeline | Medium | Q3 2026 | RA-5, SI-7 |
 | Signed commits enforcement | Low | Q4 2026 | CM-3, SI-7 |
 | Dependency update automation (Dependabot) | Low | Q4 2026 | SI-2, RA-5 |
@@ -603,7 +603,7 @@ Every pipeline run is traceable through:
 | [CIS_RISK_REGISTER.md](CIS_RISK_REGISTER.md) | Documents accepted risks and Checkov skip justifications |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks open remediation items from pipeline findings |
 | [AI_SUPPLY_CHAIN_RISK.md](AI_SUPPLY_CHAIN_RISK.md) | Covers supply chain risks for AI-specific container images (Ollama, OpenClaw) |
-| [DAST_METHODOLOGY.md](DAST_METHODOLOGY.md) | Documents the planned DAST assessment approach referenced in Section 12.2 |
+| [DAST_METHODOLOGY.md](DAST_METHODOLOGY.md) | Documents the DAST assessment approach now running in CI referenced in Section 12.2 |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Maps NIST 800-53 controls to this SDLC's technical implementation |
 | [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md) | Identifies threats that this SDLC's security gates are designed to detect |
 

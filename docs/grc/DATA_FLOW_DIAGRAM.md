@@ -26,7 +26,7 @@
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| 1.0 | 2026-03-12 | Information Security Officer | Initial DFD covering all 14 services, 3 networks, 7 trust boundaries |
+| 1.0 | 2026-03-12 | Information Security Officer | Initial DFD covering all 20 services, 3 networks, 7 trust boundaries |
 
 ---
 
@@ -135,7 +135,7 @@ The platform is represented as a single process. All external entities and their
 
 ## 4. Level 1 - System Decomposition
 
-The platform is decomposed into five trust zones with 14 services, 3 Docker networks, and 7 trust boundaries.
+The platform is decomposed into five trust zones with 20 services, 3 Docker networks, and 7 trust boundaries.
 
 ```
 Legend: [TB-N] = Trust Boundary | [P-NN] = Process | [DS-NN] = Data Store | ──► = Data Flow
@@ -177,7 +177,7 @@ Legend: [TB-N] = Trust Boundary | [P-NN] = Process | [DS-NN] = Data Store | ─�
 │  net-core:              │         │          net-ai (internal: true):        │
 │  ┌──────────────────┐   │    ┌────┴────┐     ┌──────────────────────┐       │
 │  │[DS-01] svc-db    │◄──┘    │ [DF-15] │     │[P-06] svc-llm       │       │
-│  │(PostgreSQL 16)   │        │         ▼     │(Ollama - Qwen 3 8B) │       │
+│  │(PostgreSQL 16)   │        │         ▼     │(Ollama - Qwen 3 4B) │       │
 │  │                  │        │    [DF-16]     │  No internet egress  │       │
 │  │[DS-02] db-data-  │        │         │     └──────────────────────┘       │
 │  │  volume          │        │         │     ┌──────────────────────┐       │
@@ -265,7 +265,7 @@ Legend: [TB-N] = Trust Boundary | [AI-0N] = AI System | ──► = Data Flow
 │  │                 ─────┼──────────────────────────────── [TB-3]          │
 │  │                      │                                                 │
 │  │                      ├──[DF-16]──► [P-06] svc-llm [AI-002]            │
-│  │                      │             (Ollama - Qwen 3 8B)               │
+│  │                      │             (Ollama - Qwen 3 4B)               │
 │  │                      │             net-ai: no internet egress          │
 │  │                      │             Local classification,               │
 │  │                      │             summarization, triage               │
@@ -334,7 +334,7 @@ AI Pipeline Data Flow Summary:
 | DS-01 | svc-db (PostgreSQL 16) | Relational database | High - workflow state, credential references, user data, RBAC state | Partial - volume-level encryption depends on host disk config; no TDE | Automated scripts to /opt/platform/CD_BACKUPS/ |
 | DS-02 | db-data-volume | Docker volume (persistent) | High - PostgreSQL data files | Inherits host disk encryption | Included in DS-01 backup scope |
 | DS-03 | svc-automation persistent data | Docker volume (/opt/platform/CD_VOL_N8N/) | Medium - workflow definitions, execution history, imported credentials | No additional encryption beyond host | Not independently backed up |
-| DS-04 | svc-llm model storage | Docker volume (/opt/platform/CD_VOL_OLLAMA/) | Low - public model weights (Qwen 3 8B) | None (public data) | Not backed up (re-pullable) |
+| DS-04 | svc-llm model storage | Docker volume (/opt/platform/CD_VOL_OLLAMA/) | Low - public model weights (Qwen 3 4B) | None (public data) | Not backed up (re-pullable) |
 | DS-05 | svc-transcription model cache | Docker volume (/opt/platform/CD_VOL_WHISPER/) | Low - public Whisper model weights | None (public data) | Not backed up (re-pullable) |
 | DS-06 | svc-secrets storage | Docker volume (/opt/platform/CD_VOL_VAULT/) | Critical - sealed secret data, encryption keys, dynamic credentials | AES-256-GCM (Vault auto-unseal or Shamir) | Not independently backed up (stateless config; secrets sourced from the secrets manager) |
 | DS-07 | Terraform state | Remote encrypted storage | High - full infrastructure state, resource IDs, configuration | AES-256 at rest (remote backend) | Version history in remote backend |

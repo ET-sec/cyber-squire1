@@ -178,7 +178,7 @@ This playbook provides step-by-step procedures for responding to a compromised c
 
 ## 2. Scope
 
-Applies to all 13 containers running on the `alpha-node` VPS (4vCPU/8GB) connected via the `net-core` bridge network. Includes but is not limited to: `svc-db`, `svc-automation`, `svc-llm`, `svc-transcription`, `svc-secrets`, `svc-identity`, `svc-gateway`, `svc-monitor`, `svc-detection`, `svc-detection-router`, `Fluentd`, `svc-event-shipper`, `svc-tunnel`, and `svc-ai-gateway`.
+Applies to all 19 containers running on the `alpha-node` VPS (4vCPU/8GB) connected via the `net-core` bridge network. Includes but is not limited to: `svc-db`, `svc-automation`, `svc-llm`, `svc-transcription`, `svc-secrets`, `svc-identity`, `svc-gateway`, `svc-monitor`, `svc-detection`, `svc-detection-router`, `Fluentd`, `svc-event-shipper`, `svc-tunnel`, and `svc-ai-gateway`.
 
 ---
 

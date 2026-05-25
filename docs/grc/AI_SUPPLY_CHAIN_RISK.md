@@ -37,7 +37,7 @@ AI supply chain risk is fundamentally different from traditional software supply
 This assessment evaluates the supply chain risk posture of all three AI systems within the Organization authorization boundary:
 
 1. **AI-001** (svc-ai-gateway) - Claude Opus 4.7 via Anthropic API, a vendor-hosted model accessed over HTTPS where the Organization has zero visibility into model internals
-2. **AI-002** (svc-llm) - Qwen 3 8B via Ollama registry, a self-hosted model pulled from a public registry and stored locally in llm-model-volume
+2. **AI-002** (svc-llm) - Qwen 3 4B via Ollama registry, a self-hosted model pulled from a public registry and stored locally in llm-model-volume
 3. **AI-003** (svc-transcription) - OpenAI Whisper, an open-weight model with weights baked into or downloaded by the Docker container image
 
 Each system presents a distinct supply chain profile with different trust boundaries, verification capabilities, and failure modes. This document maps those differences, identifies gaps, and provides a prioritized remediation roadmap.
@@ -53,7 +53,7 @@ This assessment supports NIST SP 800-161r1 Cyber Supply Chain Risk Management (C
 | ID | System | Container | Model | Provider | Delivery Method | Update Frequency | License |
 |----|--------|-----------|-------|----------|----------------|-----------------|---------|
 | AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) | Claude Opus 4.7 | Anthropic PBC | REST API (provider-hosted) | Vendor-controlled (no notice) | Proprietary (API ToS) |
-| AI-002 | Local LLM Inference | svc-llm (Ollama) | Qwen 3 8B | Alibaba Cloud (via Ollama registry) | Registry pull (self-hosted) | Manual (`ollama pull`) | Apache 2.0 |
+| AI-002 | Local LLM Inference | svc-llm (Ollama) | Qwen 3 4B | Alibaba Cloud (via Ollama registry) | Registry pull (self-hosted) | Manual (`ollama pull`) | Apache 2.0 |
 | AI-003 | Voice Transcription | svc-transcription (Whisper) | OpenAI Whisper | OpenAI (via Docker image) | Baked into container image | Image rebuild | MIT |
 
 ### 2.2 Supply Chain Type Classification
@@ -115,7 +115,7 @@ The Anthropic API supply chain is a **pure trust relationship**. The Organizatio
 
 ---
 
-### 3.2 AI-002: Ollama Registry (Qwen 3 8B)
+### 3.2 AI-002: Ollama Registry (Qwen 3 4B)
 
 #### Supply Chain Profile
 
@@ -123,7 +123,7 @@ The Anthropic API supply chain is a **pure trust relationship**. The Organizatio
 |-----------|--------|
 | **Model creator** | Alibaba Cloud (Qwen team) |
 | **Registry** | registry.ollama.ai (operated by Ollama Inc.) |
-| **Delivery mechanism** | `ollama pull qwen3:8b` - downloads GGUF model binary to llm-model-volume |
+| **Delivery mechanism** | `ollama pull qwen3:4b` - downloads GGUF model binary to llm-model-volume |
 | **Container image** | `ollama/ollama` from Docker Hub |
 | **Model format** | GGUF (GPT-Generated Unified Format) - single binary file containing weights and metadata |
 | **Runtime network** | net-ai (`internal: true`) - no internet access at inference time |
@@ -140,7 +140,7 @@ svc-llm (Ollama container)
 │   ├── Base image: Ubuntu/Alpine (vendor-specified)
 │   ├── Runtime: Go binary (Ollama server)
 │   └── Inference engine: llama.cpp (compiled into Ollama)
-├── Model artifact: qwen3:8b
+├── Model artifact: qwen3:4b
 │   ├── Source: registry.ollama.ai
 │   ├── Format: GGUF binary
 │   ├── Creator: Alibaba Cloud / Qwen team
@@ -154,7 +154,7 @@ svc-llm (Ollama container)
 
 | Risk | Description | MITRE ATLAS |
 |------|-------------|-------------|
-| **Registry compromise (model swap)** | An attacker who compromises registry.ollama.ai could replace the `qwen3:8b` manifest with a backdoored model. The next `ollama pull` would download the malicious artifact. | AML.T0018 |
+| **Registry compromise (model swap)** | An attacker who compromises registry.ollama.ai could replace the `qwen3:4b` manifest with a backdoored model. The next `ollama pull` would download the malicious artifact. | AML.T0018 |
 | **Model poisoning at source** | The Qwen model is created by Alibaba Cloud. A state-level adversary or insider could introduce backdoors or biased behavior during training that persists through quantization and distribution. | AML.T0018, AML.T0043 |
 | **GGUF format manipulation** | GGUF files contain both weights and metadata. A crafted GGUF file could exploit parsing vulnerabilities in llama.cpp (the inference engine compiled into Ollama) to achieve code execution. | AML.T0018 |
 | **Ollama container image compromise** | The `ollama/ollama` Docker image is pulled from Docker Hub. A compromised Docker Hub account or build pipeline could inject malicious code into the Ollama runtime itself. | - |
@@ -323,12 +323,12 @@ An ML Bill of Materials extends the concept of a Software Bill of Materials (SBO
 | **Model hash** | N/A - vendor-hosted, no local artifact to hash |
 | **SBOM coverage** | Container SBOM only; model internals not enumerable |
 
-### 6.2 AI-002: Qwen 3 8B (Ollama)
+### 6.2 AI-002: Qwen 3 4B (Ollama)
 
 | Field | Value |
 |-------|-------|
-| **Model name** | Qwen 3 8B |
-| **Model version** | qwen3:8b (Ollama tag) |
+| **Model name** | Qwen 3 4B |
+| **Model version** | qwen3:4b (Ollama tag) |
 | **Model format** | GGUF (GPT-Generated Unified Format) |
 | **Model creator** | Alibaba Cloud (Qwen team) |
 | **Model license** | Apache 2.0 |
@@ -338,7 +338,7 @@ An ML Bill of Materials extends the concept of a Software Bill of Materials (SBO
 | **Container tag** | latest (mutable - should pin to digest) |
 | **Runtime dependencies** | Go binary, llama.cpp (compiled into Ollama) |
 | **Model storage** | llm-model-volume (persistent Docker volume on alpha-node) |
-| **Model hash (SHA256)** | Stored in Ollama manifest (`ollama show qwen3:8b --modelfile`) |
+| **Model hash (SHA256)** | Stored in Ollama manifest (`ollama show qwen3:4b --modelfile`) |
 | **Last verified** | 2026-03-11 (pull and hash recorded) |
 | **SBOM coverage** | Container SBOM generated; model weights not in SBOM |
 
@@ -381,14 +381,14 @@ An ML Bill of Materials extends the concept of a Software Bill of Materials (SBO
 **Verification command:**
 ```bash
 # Show model manifest including layer hashes
-ollama show qwen3:8b --modelfile
+ollama show qwen3:4b --modelfile
 
 # List all model layers with SHA256 digests
-ollama show qwen3:8b --format json | jq '.layers[].digest'
+ollama show qwen3:4b --format json | jq '.layers[].digest'
 
 # Compare against previously recorded baseline hash
 BASELINE_HASH="<recorded_sha256>"
-CURRENT_HASH=$(ollama show qwen3:8b --format json | jq -r '.layers[] | select(.mediaType == "application/vnd.ollama.image.model") | .digest')
+CURRENT_HASH=$(ollama show qwen3:4b --format json | jq -r '.layers[] | select(.mediaType == "application/vnd.ollama.image.model") | .digest')
 if [ "$BASELINE_HASH" != "$CURRENT_HASH" ]; then
     echo "ALERT: Model hash mismatch - potential supply chain compromise"
 fi
@@ -397,7 +397,7 @@ fi
 **Recommended cron verification (not yet implemented):**
 ```bash
 # /etc/cron.d/model-integrity-check (daily at 03:00 UTC)
-0 3 * * * root docker exec svc-llm ollama show qwen3:8b --format json \
+0 3 * * * root docker exec svc-llm ollama show qwen3:4b --format json \
   | jq -r '.layers[] | select(.mediaType == "application/vnd.ollama.image.model") | .digest' \
   | diff - /opt/platform/model-baselines/qwen3-8b.sha256 \
   || curl -X POST https://example-ops.com/webhook/master-cmd \
@@ -550,7 +550,7 @@ BASELINE_PROMPTS = [
 
 ### 9.2 Quick Wins (Achievable Within 30 Days)
 
-1. **Record current model hashes** - Run `ollama show qwen3:8b --format json` and `sha256sum` on Whisper weight files. Store in `/opt/platform/model-baselines/` on alpha-node.
+1. **Record current model hashes** - Run `ollama show qwen3:4b --format json` and `sha256sum` on Whisper weight files. Store in `/opt/platform/model-baselines/` on alpha-node.
 2. **Pin Ollama image** - Change `ollama/ollama` to `ollama/ollama@sha256:<current_digest>` in docker-compose.yaml.
 3. **Document model update procedure** - Add a section to the Change Management Policy requiring hash verification before and after any `ollama pull` or image rebuild.
 

@@ -23,7 +23,7 @@ The objective is to ensure that changes are authorized, tested, documented, reve
 This policy applies to all changes affecting:
 
 - Infrastructure-as-code definitions (VPS provisioning, networking, firewall rules, DNS)
-- Docker Compose service definitions (all 13 containers on `alpha-node`)
+- Docker Compose service definitions (all 19 containers on `alpha-node`)
 - CI/CD pipeline configurations and security scanning rules
 - Infrastructure policy definitions (8 Rego policies)
 - Access control configurations (`svc-identity` realms, `svc-gateway` roles, `svc-secrets` policies)

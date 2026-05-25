@@ -1,0 +1,40 @@
+{# LinkedIn About template v2
+   Source: /Users/et/cyber-squire-ops/.facts/stack-facts.yaml
+   Output: /Users/et/cyber-squire-ops/artifacts/linkedin-about.md
+   Constraints: 2600 char LinkedIn limit, no em dashes, no AI tells.
+   Triangulated against an independent drafter to fit under limit.
+#}{% set ai = facts.ai_security -%}
+{% set inf = facts.infrastructure -%}
+{% set det = facts.detection -%}
+{% set grc = facts.grc -%}
+{% set soar = facts.soar -%}
+{% set cert = facts.certs -%}
+{% set edu = facts.education -%}
+{% set frameworks_short = grc.frameworks_covered
+    | map('replace', 'NIST 800-53 Rev. 5', 'NIST 800-53')
+    | map('replace', 'HIPAA Security Rule', 'HIPAA')
+    | map('replace', 'FedRAMP Moderate baseline', 'FedRAMP Moderate')
+    | map('replace', 'NIST AI Risk Management Framework', 'NIST AI Risk Management Framework (RMF)')
+    | list -%}
+{{ facts.identity.title_primary }} running a working AI Security Operations Center (SOC) on real infrastructure. Built Squire, a LangGraph agent with human in loop approval gates that cut Datadog alert triage by {{ det.triage_reduction_percent }} percent. Sitting for the Certified Information Systems Security Professional (CISSP) exam this month.
+
+{{ facts.identity.title_org }} is my AI security practice in Atlanta. The stack below runs in production.
+
+What it does:
+. Falco eBPF runtime detection tuned to MITRE ATT&CK container tactics. Cut Datadog alerts from {{ det.baseline_alerts_per_day }} to {{ det.tuned_alerts_per_day }} daily.
+. {{ soar.workflows_active }} n8n Security Orchestration, Automation, and Response (SOAR) workflows running Claude-backed triage across {{ soar.master_orchestrator_actions }} services.
+. Squire AI SOC analyst on LangGraph with NeMo Guardrails, GLiNER Personally Identifiable Information (PII) redaction, Langfuse tracing, pgvector Retrieval Augmented Generation (RAG). Freed senior triage hours on baseline alert volume.
+. Zero Trust perimeter via Cloudflare Web Application Firewall (WAF) and mutual TLS (mTLS) tunnels. Zero public ingress.
+. Teleport Just In Time Privileged Access Management (JIT PAM) with session recording, Keycloak Single Sign On (SSO). Standing admin eliminated.
+. {{ inf.terraform_files }} Terraform files, {{ inf.terraform_resources_approx }} resources across {{ inf.clouds | map(attribute='name') | join(', ') }}. {{ inf.opa_rego_policies }} Open Policy Agent (OPA) Rego gates enforce KMS encryption, key rotation, least privilege, and zero public ingress.
+
+What it runs:
+. {{ inf.containers_running }} containers: PostgreSQL, n8n, Falco, Teleport, Keycloak SSO, HashiCorp Vault, Ollama, OpenClaw AI gateway on Claude Opus 4.7, Cloudflare Tunnel, Datadog, Langfuse.
+. Shift left Continuous Integration and Continuous Deployment (CI/CD): Trivy, Semgrep, Gitleaks, OPA Conftest, Cosign, Syft Software Bill of Materials (SBOM), OWASP ZAP Dynamic Application Security Testing (DAST). Unsigned images blocked at the registry.
+
+GRC: {{ grc.total_documents }} sanitized documents covering {{ grc.ssp.total_controls }} NIST 800-53 controls across the main System Security Plan (SSP) and Squire AI SSP. Frameworks: {{ frameworks_short | join(', ') }}. {{ grc.ir_playbooks }} Incident Response (IR) playbooks with a Promptfoo eval harness.
+
+Prior: 4 years IT Security and Operations Manager at Texaco, Atlanta, GA. Splunk Security Information and Event Management (SIEM), PCI DSS audits, Active Directory hardening, 4 VLAN segmentation, Python and PowerShell automation.
+
+Certs: CISSP (in progress, {{ cert.in_progress[0].target }}), {{ cert.active | join(', ') }}. Eligible for Security Clearance.
+Education: BBA in Computer Information Systems (Cybersecurity) and BBA in Business Economics, Georgia State University. GPA {{ edu.gpa }}, {{ edu.honors }}, {{ edu.ceremony_date }}.

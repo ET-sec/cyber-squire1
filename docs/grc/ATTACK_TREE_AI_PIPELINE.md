@@ -59,7 +59,7 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 | ID | System | Service | External Dependencies | Trust Zone |
 |----|--------|---------|----------------------|------------|
 | AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw → Claude Opus 4.7) | Anthropic API | DMZ |
-| AI-002 | Local LLM Inference | svc-llm (Ollama → Qwen 3 8B) | None (air-gapped on net-ai) | Internal |
+| AI-002 | Local LLM Inference | svc-llm (Ollama → Qwen 3 4B) | None (air-gapped on net-ai) | Internal |
 | AI-003 | Voice Transcription | svc-transcription (Whisper) | None (local CPU inference) | Internal |
 
 ---

@@ -145,7 +145,7 @@ Applies to all three AI systems within the authorization boundary and their down
 | ID | System | Service | Model | Trust Zone |
 |----|--------|---------|-------|------------|
 | AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) → Claude Opus 4.7 | Anthropic API (external) | DMZ |
-| AI-002 | Local LLM | svc-llm (Ollama) → Qwen 3 8B | Ollama registry (pulled locally) | Internal |
+| AI-002 | Local LLM | svc-llm (Ollama) → Qwen 3 4B | Ollama registry (pulled locally) | Internal |
 | AI-003 | Transcription | svc-transcription (Whisper) | Open-weight (local) | Internal |
 
 **Downstream consumers in scope:**
@@ -649,7 +649,7 @@ Applies to all three AI systems within the authorization boundary and their down
   docker images --digests --format "{{.Repository}}:{{.Tag}} {{.Digest}}" | grep -E "ollama|whisper|openclaw"
 
   # For svc-llm (Ollama): check model metadata
-  docker exec svc-llm ollama show qwen3:8b --modelfile 2>/dev/null
+  docker exec svc-llm ollama show qwen3:4b --modelfile 2>/dev/null
 
   # For container images: compare against known-good digest
   docker inspect svc-ai-gateway --format '{{.Image}}'
@@ -699,7 +699,7 @@ Applies to all three AI systems within the authorization boundary and their down
   docker export svc-llm > /tmp/evidence_model_container_$(date +%Y%m%d_%H%M%S).tar
 
   # Save model metadata
-  docker exec svc-llm ollama show qwen3:8b > /tmp/evidence_model_metadata.txt 2>&1
+  docker exec svc-llm ollama show qwen3:4b > /tmp/evidence_model_metadata.txt 2>&1
   ```
 
 #### D.4 Eradication (30-90 minutes)
@@ -714,13 +714,13 @@ Applies to all three AI systems within the authorization boundary and their down
 - [ ] **Step D.4.2** -- Pull a clean model from the trusted source:
   ```bash
   # Remove the potentially compromised model
-  docker exec svc-llm ollama rm qwen3:8b
+  docker exec svc-llm ollama rm qwen3:4b
 
   # Pull fresh from trusted registry
-  docker exec svc-llm ollama pull qwen3:8b
+  docker exec svc-llm ollama pull qwen3:4b
 
   # Verify the new model hash
-  docker exec svc-llm ollama show qwen3:8b --modelfile
+  docker exec svc-llm ollama show qwen3:4b --modelfile
   ```
 
 - [ ] **Step D.4.3** -- For container image compromise, rebuild from trusted images:

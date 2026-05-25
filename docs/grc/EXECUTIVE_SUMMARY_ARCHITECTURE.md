@@ -11,7 +11,7 @@
 
 ## Platform Overview
 
-The Organization Security Operations Platform is a containerized security operations environment deployed on a single cloud VPS. It provides centralized SOAR, identity management, runtime threat detection, secrets management, and AI-assisted analysis through 14 containerized services.
+The Organization Security Operations Platform is a containerized security operations environment deployed on a single cloud VPS. It provides centralized SOAR, identity management, runtime threat detection, secrets management, and AI-assisted analysis through 20 containerized services.
 
 | Specification | Value |
 |---------------|-------|
@@ -135,7 +135,7 @@ flowchart LR
 | Component | Detail |
 |-----------|--------|
 | **IaC Tool** | Terraform |
-| **Files** | 16 `.tf` files |
+| **Files** | 19 `.tf` files |
 | **State** | Remote, encrypted |
 | **Policy Enforcement** | 8 OPA (Rego) policies evaluated on every PR |
 | **Managed Resources** | VPS, firewall rules, DNS records, tunnel configuration, monitoring |

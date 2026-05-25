@@ -36,7 +36,7 @@ Start with the executive summaries, then follow the numbered path below. Each la
          │                        and AI incidents. Each has a decision flowchart
          │                        at the top for quick reference.
          │
- 7. RISK TRACKING                 The open items. POA&M tracks 25 findings across
+ 7. RISK TRACKING                 The open items. POA&M tracks 30 findings across
     (POA&M + CIS Risk Register    5 assessment sources (includes Phase 17 Squire
      + Risk Assessment)           cluster). The CIS Risk Register documents
                                   compensating controls for each finding.
@@ -53,13 +53,21 @@ Most documents include cross-references to related documents in their final sect
 - **NIST SP 800-53 Rev. 5** - Moderate baseline, 16 control families
 - **NIST SP 800-30 Rev. 1** - Risk assessment methodology
 - **NIST SP 800-39** - Risk management framework
+- **NIST SP 800-66 Rev. 2** - HIPAA Security Rule implementation guidance
 - **NIST AI RMF (AI 100-1)** - AI risk management framework
+- **HIPAA Security Rule** - 45 CFR Part 164 Subpart C, crosswalked to NIST 800-53 (see HIPAA_SECURITY_RULE_CROSSWALK.md, readiness only, no current ePHI)
+- **SOC 2** - AICPA Trust Services Criteria, self-attested crosswalk via FRAMEWORK_CROSSWALK_SOC2_ISO27001.md (not formally audited)
+- **ISO/IEC 27001:2022** - Information security management system, self-attested crosswalk via FRAMEWORK_CROSSWALK_SOC2_ISO27001.md (not certified)
+- **ISO/IEC 27002:2022** - Information security controls implementation guidance
 - **ISO/IEC 42001:2023** - AI management system
 - **ISO/IEC 27701:2019** - Privacy information management
+- **FedRAMP Moderate baseline** - inherited via NIST 800-53 Moderate control set
 - **OWASP LLM Top 10 (2025)** - LLM-specific threat taxonomy
 - **OWASP Agentic Applications Top 10 (2026)** - Autonomous AI agent security risks
 - **MITRE ATLAS v4** - Adversarial ML threat framework
 - **NIST SP 800-154** - Data-centric threat modeling
+- **NIST SP 800-122** - PII safeguards
+- **NIST SP 800-88 Rev. 1** - Media sanitization
 - **FIPS 199** - Security categorization (Moderate)
 - **CIS Docker Benchmark** - Container hardening benchmark
 
@@ -78,7 +86,7 @@ Most documents include cross-references to related documents in their final sect
 | Document | Description |
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan, NIST 800-53 control mapping (16 families, 133 controls) plus Phase 17 Squire annex |
-| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Plan of Action & Milestones, 25 entries from CIS Docker Bench, Checkov IaC, Falco runtime, risk assessment, and Phase 17 Squire cluster |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Plan of Action & Milestones, 30 entries (15 legacy plus 15 Phase 17 P17 rows) from CIS Docker Bench, Checkov IaC, Falco runtime, risk assessment, and Phase 17 Squire cluster |
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Risk Assessment, 17 threats, 5x5 matrix, MITRE ATT&CK mapping |
 
 ### Policies
@@ -111,8 +119,16 @@ Most documents include cross-references to related documents in their final sect
 | [VULN_WRITEUP_N8N_CREDENTIAL_EXPOSURE.md](VULN_WRITEUP_N8N_CREDENTIAL_EXPOSURE.md) | Vulnerability writeup: SOAR credential exposure via process.env (CVSS 8.1 HIGH, remediated) |
 | [CODE_REVIEW_FINDINGS.md](CODE_REVIEW_FINDINGS.md) | Security code review: 5 findings (1 HIGH remediated, 3 MEDIUM accepted, 1 LOW accepted) |
 | [SECURE_SDLC.md](SECURE_SDLC.md) | Secure SDLC: CI/CD pipeline with 12 security gates, 8 OPA policies, Cosign verification, SBOM |
-| [DAST_METHODOLOGY.md](DAST_METHODOLOGY.md) | DAST methodology and baseline results: OWASP ZAP 2.17.0 scan, 0 HIGH, 4 MEDIUM header findings, all injection tests passed |
+| [DAST_METHODOLOGY.md](DAST_METHODOLOGY.md) | DAST methodology and baseline results: OWASP ZAP 2.17.0 scan, 0 HIGH, 4 MEDIUM header findings, all injection tests passed. CI integration shipped 2026-05-25 at .github/workflows/dast-zap.yml |
 | [PENTEST_SELF_ASSESSMENT.md](PENTEST_SELF_ASSESSMENT.md) | Pen test self-assessment: external, application, and infrastructure testing consolidated from DAST + code review + vuln writeup |
+
+### Framework Crosswalks
+
+| Document | Description |
+|----------|-------------|
+| [HIPAA_SECURITY_RULE_CROSSWALK.md](HIPAA_SECURITY_RULE_CROSSWALK.md) | HIPAA Security Rule (45 CFR Part 164 Subpart C) crosswalk to NIST 800-53 controls implemented in OSOP. Forward-looking readiness only; no ePHI is processed today. |
+| [HIPAA_EPHI_HANDLING.md](HIPAA_EPHI_HANDLING.md) | ePHI handling and data lifecycle spec covering ingestion, storage, processing, transmission, retention, sanitization, and destruction. Defines the binary onboarding decision gate for accepting ePHI under a BAA. |
+| [FRAMEWORK_CROSSWALK_SOC2_ISO27001.md](FRAMEWORK_CROSSWALK_SOC2_ISO27001.md) | Combined SOC 2 Trust Services Criteria and ISO 27001:2022 ISMS plus Annex A control crosswalk. Self-attested readiness, not certified. |
 
 ### Threat Modeling
 
@@ -199,11 +215,11 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 
 ## Statistics
 
-All numbers regenerated from filesystem as of 2026-04-24. Commands shown for reproducibility.
+All numbers regenerated from filesystem as of 2026-05-25. Commands shown for reproducibility.
 
 ```bash
 # Document count
-ls docs/grc/*.md | wc -l                                                         # 51
+ls docs/grc/*.md | wc -l                                                         # 54
 
 # Line count
 cat docs/grc/*.md | wc -l                                                        # ~25,458
@@ -223,14 +239,14 @@ grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                          
 
 ### Headline counts
 
-- **51 documents** in this library
-- **~25,458 lines** of compliance documentation
+- **54 documents** in this library
+- **~27,500 lines** of compliance documentation
 - **133 NIST 800-53 controls** mapped in the enterprise SSP across 16 families
 - **36 NIST 800-53 control rows** in the Squire scoped SSP
 - **31 Squire controls** cross-walked to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM, NIST 800-61 r3, and NIST AI RMF
 - **30 POA&M entries** tracked (15 legacy plus 15 Phase 17: 15 accepted, 9 open, 6 closed)
 - **17 enterprise risk scenarios** plus **10 Squire-specific AI risks** assessed
-- **11 frameworks** covered (NIST 800-53, NIST AI RMF, CSA Agentic, OWASP LLM, MITRE ATLAS, ISO 42001, ISO 27701, NIST 800-154, NIST 800-61 r3, CIS Docker Benchmark, FIPS 199)
+- **15 frameworks** covered (NIST 800-53, NIST AI RMF, HIPAA Security Rule, SOC 2, ISO 27001:2022, ISO 42001, ISO 27701, CSA Agentic, OWASP LLM, MITRE ATLAS, NIST 800-154, NIST 800-66, NIST 800-61 r3, CIS Docker Benchmark, FIPS 199)
 
 ### Threat modeling
 
@@ -254,15 +270,17 @@ grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                          
 ### Doc categories
 
 ```mermaid
-pie title GRC library by category (49 docs)
+pie title GRC library by category (54 docs)
     "Squire (Phase 17)" : 10
     "Policies" : 10
     "Threat Modeling" : 6
     "AppSec" : 5
     "IR Playbooks" : 5
+    "Framework Crosswalks" : 3
     "Core Plans" : 3
     "Exec Summaries" : 3
     "IAM" : 3
+    "Squire Exercises" : 2
     "Risk Register" : 1
     "Exercises" : 1
     "ADR" : 1

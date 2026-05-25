@@ -53,9 +53,9 @@ The single HIGH finding (environment variable credential exposure in svc-automat
 
 | Artifact | Location | Description |
 |----------|----------|-------------|
-| Docker Compose configuration | `primary-node:/opt/platform/docker-compose.yaml` | 13-service container orchestration definition |
-| Environment file | `primary-node:/opt/platform/.env` | 44 secrets injected at container startup |
-| Terraform IaC | Repository: `terraform/infrastructure/` | 16 `.tf` files defining Cloud Provider infrastructure |
+| Docker Compose configuration | `primary-node:/opt/platform/docker-compose.yaml` | 19-service container orchestration definition |
+| Environment file | `primary-node:/opt/platform/.env` | 79 secrets injected at container startup |
+| Terraform IaC | Repository: `terraform/infrastructure/` | 19 `.tf` files defining Cloud Provider infrastructure |
 | OPA policies | Repository: `terraform/infrastructure/policies/` | 8 Rego policy files enforcing infrastructure guardrails |
 | CI/CD pipelines | Repository: `.github/workflows/` | 2 workflow files (PR pipeline, merge pipeline) |
 | n8n workflows | svc-automation runtime | 16 active workflows including Master Orchestrator |
@@ -127,7 +127,7 @@ Output confirmed the database password was fully readable from a Code node.
 
 | Dimension | Impact |
 |-----------|--------|
-| Confidentiality | All 44 secrets exposed to any authenticated n8n user via Code node execution |
+| Confidentiality | All 79 secrets exposed to any authenticated n8n user via Code node execution |
 | Integrity | Stolen credentials enable database modification, workflow tampering, infrastructure reconfiguration, and DNS manipulation |
 | Financial | Unauthorized consumption of LLM API credits, cloud resources, and SaaS subscriptions |
 | Lateral Movement | Database credentials provide access to n8n's internal credential store. Cloud provider token enables infrastructure-level pivoting. |
@@ -168,7 +168,7 @@ The Docker Compose deployment passes all secrets to containers via environment v
 4. Child processes inherit the full environment by default
 5. Crash dumps and core files may contain environment variable contents
 
-All 14 containers receive their secrets through this mechanism. The `.env` file contains 44 secrets in cleartext.
+All 20 containers receive their secrets through this mechanism. The `.env` file contains 79 secrets in cleartext.
 
 #### Evidence
 
@@ -192,7 +192,7 @@ The `.env` file permissions are correctly set to `chmod 600`, limiting read acce
 |-----------|--------|
 | Confidentiality | Secrets readable by any process with Docker socket access or host-level root access |
 | Integrity | An attacker with host-level access could modify `.env` and restart containers with altered credentials |
-| Scope | All 14 containers, all 44 secrets |
+| Scope | All 20 containers, all 79 secrets |
 
 #### Risk Decision: ACCEPTED
 
@@ -208,7 +208,7 @@ This finding is accepted with compensating controls for the following reasons:
 |---------|-------------|
 | File permissions | `.env` file permissions set to `chmod 600` (root read/write only) |
 | Git exclusion | `.env` file is listed in `.gitignore` and is not tracked in version control |
-| Source of truth | External secrets manager serves as the external secrets manager and source of truth for all 44 secrets. The `.env` file is a deployment artifact, not the canonical store. |
+| Source of truth | External secrets manager serves as the external secrets manager and source of truth for all 79 secrets. The `.env` file is a deployment artifact, not the canonical store. |
 | Rotation capability | Secrets can be rotated through the external secrets manager and redeployed without manual editing of the `.env` file |
 | SSH access control | Host access requires SSH with ed25519 key authentication through a zero-trust tunnel. No password-based SSH. |
 | Runtime detection | Falco (svc-detection) monitors for sensitive file reads on the host, including reads of `.env` and `/proc/*/environ` |

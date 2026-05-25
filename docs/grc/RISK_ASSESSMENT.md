@@ -23,7 +23,7 @@ This assessment covers the following assets and boundaries:
 | Boundary | Description |
 |----------|-------------|
 | **Compute** | Single VPS (4 vCPU, 8 GB RAM, 160 GB disk) running Ubuntu 24.04 LTS |
-| **Containers** | 14 containers across 3 Docker networks (net-core, net-ai, net-monitoring) |
+| **Containers** | 20 containers across 3 Docker networks (net-core, net-ai, net-monitoring) |
 | **Network** | Zero-trust tunnel (sole public ingress), cloud firewall (deny-all default) |
 | **IAM** | 3-tier RBAC via svc-identity and svc-gateway |
 | **Secrets** | External secrets manager injecting environment variables at runtime |
@@ -135,7 +135,7 @@ Risk Score = Likelihood x Impact
 |---------|--------|---------------|---------------|-----------------|------------|--------|---------------|-----------------|-------------------|----------------|---------------|
 | R-01 | DDoS (T-01) | External adversary | Single VPS, single ingress point | svc-tunnel, all services | 3 | 3 | **9 (Mod)** | Cloudflare DDoS protection; cloud firewall deny-all; rate limiting at tunnel | 2 | 3 | **6 (Low)** |
 | R-02 | Brute Force (T-02) | External adversary | Authentication endpoints exposed via tunnel | svc-automation, svc-gateway | 4 | 3 | **12 (Mod)** | TOTP MFA on svc-gateway; password policy in svc-identity; session TTL limits; fail2ban equivalent at tunnel | 2 | 3 | **6 (Low)** |
-| R-03 | Supply Chain - Container Images (T-03) | Nation-state / organized crime | Use of upstream Docker images | All 13 containers | 2 | 5 | **10 (Mod)** | Container image CVE scanning in CI; container signing tool; pinned image digests; SAST scanner on Dockerfiles | 1 | 5 | **5 (Low)** |
+| R-03 | Supply Chain - Container Images (T-03) | Nation-state / organized crime | Use of upstream Docker images | All 19 containers | 2 | 5 | **10 (Mod)** | Container image CVE scanning in CI; container signing tool; pinned image digests; SAST scanner on Dockerfiles | 1 | 5 | **5 (Low)** |
 | R-04 | Webhook Exploitation (T-04) | External adversary | Automation platform accepts webhook payloads from internet | svc-automation, svc-tunnel | 3 | 4 | **12 (Mod)** | Webhook authentication tokens; input validation in workflow logic; svc-detection monitors for shell spawns; no-new-privileges on container | 2 | 4 | **8 (Mod)** |
 | R-05 | Credential Phishing (T-05) | External adversary | Human factor - operator targeted | Operator credentials, MFA seeds | 2 | 4 | **8 (Mod)** | TOTP MFA (hardware token recommended); session recording; JIT admin with 4h TTL; credential vault with biometric lock | 1 | 4 | **4 (Low)** |
 | R-06 | Zero-Day Exploit (T-06) | Nation-state / advanced adversary | Unpatched vulnerabilities in exposed services | svc-tunnel, svc-automation | 1 | 5 | **5 (Low)** | Minimal attack surface (only tunnel exposed); eBPF runtime detection; immutable audit logs; container isolation | 1 | 5 | **5 (Low)** |
@@ -144,7 +144,7 @@ Risk Score = Likelihood x Impact
 
 | Risk ID | Threat | Threat Source | Vulnerability | Affected Assets | Likelihood | Impact | Inherent Risk | Current Controls | Residual Likelihood | Residual Impact | Residual Risk |
 |---------|--------|---------------|---------------|-----------------|------------|--------|---------------|-----------------|-------------------|----------------|---------------|
-| R-07 | Container Misconfiguration (T-07) | Operator error | Docker Compose complexity; 13 services to configure | All containers | 3 | 3 | **9 (Mod)** | CIS Docker Bench scans (37 PASS); OPA (Rego) policies (8 rules); no-new-privileges on 12/13 containers; resource limits; Checkov in CI | 2 | 3 | **6 (Low)** |
+| R-07 | Container Misconfiguration (T-07) | Operator error | Docker Compose complexity; 19 services to configure | All containers | 3 | 3 | **9 (Mod)** | CIS Docker Bench scans (37 PASS); OPA (Rego) policies (8 rules); no-new-privileges on 18/19 containers; resource limits; Checkov in CI | 2 | 3 | **6 (Low)** |
 | R-08 | Privilege Escalation (T-08) | External/internal adversary | Container with elevated capabilities (svc-detection requires SYS_ADMIN) | svc-detection, host kernel | 2 | 5 | **10 (Mod)** | Only svc-detection has SYS_ADMIN (required for eBPF); all others run no-new-privileges; PID limits; read-only rootfs where feasible; session recording on SSH | 1 | 5 | **5 (Low)** |
 | R-09 | Insider Threat (T-09) | Authorized user | Single-operator environment limits but does not eliminate risk | All infrastructure | 1 | 5 | **5 (Low)** | Session recording on all SSH; immutable audit log with hash chain; JIT admin access (4h TTL); monthly access reviews | 1 | 4 | **4 (Low)** |
 | R-10 | Accidental Secret Exposure (T-10) | Operator error | Secrets in environment variables could leak via logs or debug output | API keys, database credentials, tokens | 3 | 5 | **15 (High)** | External secrets manager (never hardcoded); Gitleaks in CI; log rotation (10MB x 3); .gitignore for sensitive files; env var validation (existence checks only) | 2 | 5 | **10 (Mod)** |
@@ -252,7 +252,7 @@ The following five risks carry the highest residual risk scores after current co
 
 ### Rank 4: R-12 - DigitalOcean Outage (Residual: 6 - Low)
 
-**Why it matters:** All 13 services run on a single VPS in a single region. A prolonged regional outage would render the entire platform unavailable with no automatic failover.
+**Why it matters:** All 19 services run on a single VPS in a single region. A prolonged regional outage would render the entire platform unavailable with no automatic failover.
 
 **Recommended actions:**
 1. Document a warm-standby deployment procedure for an alternate region using IaC

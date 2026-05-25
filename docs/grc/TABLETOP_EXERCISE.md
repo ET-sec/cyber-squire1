@@ -72,7 +72,7 @@ This tabletop exercise tests the Organization's ability to detect, contain, inve
 
 ### Background
 
-It is a normal operating day. All 13 containers are running on the VPS (`alpha-node`). Datadog shows green across the board. The most recent deployment was 48 hours ago - a routine workflow update to svc-automation. The cloud firewall is in its standard deny-all configuration with svc-tunnel as the sole ingress path.
+It is a normal operating day. All 19 containers are running on the VPS (`alpha-node`). Datadog shows green across the board. The most recent deployment was 48 hours ago - a routine workflow update to svc-automation. The cloud firewall is in its standard deny-all configuration with svc-tunnel as the sole ingress path.
 
 The current access posture:
 - System Owner has operator-level access via svc-gateway (no active admin session)

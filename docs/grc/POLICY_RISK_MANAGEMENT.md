@@ -397,7 +397,7 @@ Risks are tracked using two complementary instruments:
 |-----------|----------|---------|
 | **Risk Assessment Register** | `docs/grc/RISK_ASSESSMENT.md`, Section 4 | Tracks 17 organizational risks (R-01 through R-17) across external, internal, environmental, and compliance threat categories |
 | **CIS Risk Register** | `docs/grc/CIS_RISK_REGISTER.md` | Tracks 29 CIS Docker Bench findings with compensating controls and review dates |
-| **POA&M** | `docs/grc/POAM_PLAN_OF_ACTION.md` | Tracks 27 entries (POAM-001 through POAM-027) consolidating findings from 4 assessment sources from CIS Docker Bench, IaC compliance scanning, runtime detection baseline, and Risk Assessment mitigate treatments, with remediation milestones |
+| **POA&M** | `docs/grc/POAM_PLAN_OF_ACTION.md` | Tracks 30 entries (15 legacy POAM rows plus 15 Phase 17 POAM-P17 rows) consolidating findings from 4 assessment sources from CIS Docker Bench, IaC compliance scanning, runtime detection baseline, and Risk Assessment mitigate treatments, with remediation milestones |
 
 ### 7.2 Required Fields for Risk Register Entries
 

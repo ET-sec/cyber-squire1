@@ -417,7 +417,7 @@ Threats where an attacker modifies data, code, or system state to alter intended
 ### T-05: Container Image Tampering in CI/CD Pipeline
 
 **Trust Boundary:** Container registry → Docker runtime
-**Affected Services:** All 14 containers
+**Affected Services:** All 20 containers
 **Description:** An attacker compromises a container image in the build pipeline or at the registry layer, injecting malicious code into an image that passes initial scanning but activates post-deployment.
 
 | Attribute | Assessment |
@@ -600,7 +600,7 @@ Threats where an attacker degrades or eliminates service availability.
 | Attribute | Assessment |
 |-----------|------------|
 | **Current Controls** | Docker resource limits (CPU shares, memory limits) on most containers (Partial - not all containers have hard limits); container restart policies (Implemented); Datadog resource monitoring with alerting thresholds (Implemented) |
-| **Control Status** | Partial - resource limits not uniformly enforced across all 14 containers |
+| **Control Status** | Partial - resource limits not uniformly enforced across all 20 containers |
 | **Residual Risk** | **Medium** - svc-llm inference can spike to 4+ GB RAM; without hard limits, OOM conditions could affect co-resident services |
 | **Recommended Mitigation** | Enforce hard memory limits and CPU quotas on all containers via Docker Compose; implement OOM priority scoring to protect critical services (svc-db, svc-detection, svc-tunnel) |
 
@@ -644,7 +644,7 @@ Threats where an attacker gains capabilities beyond their authorized level.
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | no-new-privileges on 12/13 containers (Implemented); only svc-detection has SYS_ADMIN (required for eBPF, documented exception) (Implemented); PID limits (Implemented); read-only rootfs where feasible (Partial); Docker socket not mounted into non-privileged containers (Implemented); Falco eBPF detection of container escape attempts (Implemented) |
+| **Current Controls** | no-new-privileges on 18/19 containers (Implemented); only svc-detection has SYS_ADMIN (required for eBPF, documented exception) (Implemented); PID limits (Implemented); read-only rootfs where feasible (Partial); Docker socket not mounted into non-privileged containers (Implemented); Falco eBPF detection of container escape attempts (Implemented) |
 | **Control Status** | Implemented |
 | **Residual Risk** | **Medium** - svc-detection's SYS_ADMIN capability is the highest-risk container; a kernel zero-day combined with SYS_ADMIN could enable breakout |
 | **Recommended Mitigation** | Evaluate gVisor or Kata Containers for high-risk workloads; implement host-level seccomp profiles; maintain aggressive kernel patching cadence |

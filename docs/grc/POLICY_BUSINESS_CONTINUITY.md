@@ -14,7 +14,7 @@
 
 This Business Continuity Plan establishes the framework for maintaining and restoring critical security operations platform services following a disruption event. The plan defines business impact thresholds, recovery priorities, and operational procedures to minimize downtime and data loss across the Organization's containerized infrastructure.
 
-This policy applies to all 14 services (13 Compose-managed containers plus 1 standalone service) operating on the production VPS (`alpha-node`), supporting infrastructure-as-code assets, CI/CD pipelines, and associated data stores.
+This policy applies to all 20 services (19 Compose-managed containers plus 1 standalone service) operating on the production VPS (`alpha-node`), supporting infrastructure-as-code assets, CI/CD pipelines, and associated data stores.
 
 ---
 
@@ -157,7 +157,7 @@ All containers are defined in Docker Compose with pinned image references. Recov
 
 ```
 Recovery sequence:
-1. docker compose pull     # Pull all 13 images from registries
+1. docker compose pull     # Pull all 19 images from registries
 2. docker compose up -d svc-db # Start database first
 3. [restore PostgreSQL backup]
 4. docker compose up -d     # Start remaining services
@@ -270,7 +270,7 @@ Before declaring recovery complete, the following validations SHALL be performed
 - [ ] `svc-monitor` is reporting metrics to Datadog
 - [ ] Audit log hash chain is intact or re-initialized with documented gap
 - [ ] Cloudflare DNS records point to correct endpoint
-- [ ] All 13 Compose-managed containers show healthy status in `docker compose ps`; standalone `svc-ai-gateway` verified separately
+- [ ] All 19 Compose-managed containers show healthy status in `docker compose ps`; standalone `svc-ai-gateway` verified separately
 
 ---
 

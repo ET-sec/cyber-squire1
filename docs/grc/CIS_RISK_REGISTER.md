@@ -13,7 +13,7 @@ justification and compensating controls.
 
 **Scan Summary (post-remediation):**
 - PASS: 37 | WARN: 96 | INFO: 85 | NOTE: 10
-- Compose-managed containers: 13 services hardened with resource limits, PIDs limits,
+- Compose-managed containers: 19 services hardened with resource limits, PIDs limits,
  no-new-privileges, healthchecks, log rotation, and read-only rootfs (where safe)
 - AI gateway (standalone): not managed by compose, contributes residual WARNs
 

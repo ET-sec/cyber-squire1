@@ -62,7 +62,7 @@ A manual architecture security review of the Organization platform identified th
 | **Privileges Required (PR)** | Low | Any authenticated n8n user can create workflows containing Code nodes. No elevated privileges needed. |
 | **User Interaction (UI)** | None | The Code node executes on trigger without any interaction from another user. |
 | **Scope (S)** | Unchanged | The vulnerability operates within the svc-automation container boundary. Secrets from other services are exposed only because they were injected into this container's environment. |
-| **Confidentiality (C)** | High | All 44 secrets are readable, including database credentials, infrastructure API keys, and encryption material. |
+| **Confidentiality (C)** | High | All 79 secrets are readable, including database credentials, infrastructure API keys, and encryption material. |
 | **Integrity (I)** | High | With the exposed secrets, an attacker could modify workflows, send messages through bot integrations, alter database records, reconfigure infrastructure via cloud provider API, and manipulate tunnel routing. |
 | **Availability (A)** | None | The vulnerability itself does not directly enable denial of service. Downstream misuse of stolen credentials could affect availability, but that is a secondary effect. |
 
@@ -207,7 +207,7 @@ The following table categorizes all 44 environment variables by function and imp
 
 | Impact Dimension | Assessment |
 |-----------------|------------|
-| **Confidentiality** | Complete. All 44 secrets readable. Every integrated system is exposed. |
+| **Confidentiality** | Complete. All 79 secrets readable. Every integrated system is exposed. |
 | **Integrity** | High. Database write access, workflow manipulation, infrastructure reconfiguration, DNS changes, and code repository modification are all possible. |
 | **Availability** | Moderate (indirect). Attacker could destroy infrastructure via cloud provider API, corrupt database, or disable tunnel connectivity. |
 | **Financial** | Moderate. Unauthorized LLM API consumption, cloud resource creation, and SaaS platform abuse. |
@@ -284,7 +284,7 @@ None observed. n8n workflows that legitimately need external data should use the
 | 2026-03-22 | 09:00 | Manual architecture security review initiated | System Owner |
 | 2026-03-22 | 09:30 | Discovery: Code node `process.env` access confirmed with test workflow | System Owner |
 | 2026-03-22 | 09:45 | CVSS scoring completed, rated HIGH (8.1) | Information Security Officer |
-| 2026-03-22 | 10:00 | Blast radius analysis completed, 44 secrets confirmed exposed | Information Security Officer |
+| 2026-03-22 | 10:00 | Blast radius analysis completed, 79 secrets confirmed exposed | Information Security Officer |
 | 2026-03-22 | 10:15 | Remediation applied: `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` | System Owner |
 | 2026-03-22 | 10:20 | svc-automation container restarted | System Owner |
 | 2026-03-22 | 10:25 | Verification completed: `process.env` returns empty object | System Owner |
@@ -305,7 +305,7 @@ n8n's default configuration does not restrict Code node access to the host proce
 
 | Factor | Description |
 |--------|-------------|
-| **Secret injection method** | All 44 secrets are injected as environment variables through the Docker Compose `.env` file. This is the standard method for containerized applications but creates a flat namespace where every variable is equally accessible to any process in the container. |
+| **Secret injection method** | All 79 secrets are injected as environment variables through the Docker Compose `.env` file. This is the standard method for containerized applications but creates a flat namespace where every variable is equally accessible to any process in the container. |
 | **n8n's execution model** | Code nodes run JavaScript in a Node.js VM context that shares the process environment with the n8n server process. There is no sandboxing or capability restriction between the workflow engine and user-authored code. |
 | **Single-container secret scope** | Docker Compose environment variables are scoped to the container, not to individual processes within the container. Every process inside svc-automation, including user-authored Code nodes, inherits the full environment. |
 | **Missing hardening checklist** | The initial deployment of svc-automation did not include a review of n8n-specific security configuration flags. The `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS` flag was not in the deployment checklist. |
@@ -360,7 +360,7 @@ Every application deployed on the platform should undergo a security configurati
 | **P2** | Add n8n security flags to deployment hardening checklist | OPEN | 30 days |
 | **P3** | Implement Falco custom rule for unusual outbound connections from svc-automation | OPEN | 60 days |
 | **P4** | Migrate from static environment variables to Vault AppRole dynamic credentials | OPEN | 90 days (tracked in POA&M) |
-| **P5** | Conduct application-specific security configuration reviews for all 14 containers | OPEN | 90 days |
+| **P5** | Conduct application-specific security configuration reviews for all 20 containers | OPEN | 90 days |
 | **P6** | Implement n8n execution logging that captures Code node source and output | OPEN | 60 days |
 
 ---

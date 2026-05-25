@@ -152,3 +152,26 @@ terraform/cd-do-infrastructure/rendered/
 .doppler/
 doppler.yaml
 docs/grc/zap-report-*.html
+.venv-grc/
+
+# ============================================
+# Stack facts SSOT (contains internal counts, not secrets, but local-only)
+# ============================================
+.facts/
+
+# ============================================
+# Staging and scratch directories (never commit)
+# ============================================
+.agents/
+.audits/
+.n8nac/
+.tmp-linkedin/
+.tmp-resumes/
+.skills-staging/
+
+# ============================================
+# Personal coursework (academic work, not project)
+# ============================================
+[0-9].[0-9]_*.md
+[0-9]_MGT*.md
+1.7_Environmental_Policy.md

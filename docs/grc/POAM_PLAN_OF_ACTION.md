@@ -31,14 +31,14 @@ related:
 ### POA&M Dashboard
 
 ```
-POA&M Status Distribution (25 entries, Phase 17 v1.1)
+POA&M Status Distribution (30 entries, Phase 17 v1.1)
 ┌─────────────────────────────────────────────────────────────┐
 │ ████████████████████████████████████████        Accepted    │  15  (60%)
 │ ████████                                        Open        │   4  (16%)
 │ ████████████                                    Closed      │   6  (24%)
 └─────────────────────────────────────────────────────────────┘
 
-Source Distribution (25 entries)
+Source Distribution (30 entries)
 ┌──────────────────────────┬──────────────────────────────────┐
 │ CIS Docker Bench         │ ███████████████                  │   9 entries
 │ Risk Assessment          │ ████████                         │   5 entries
@@ -157,7 +157,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Risk Level** | Medium |
 | **NIST 800-53 Control** | AC-6 (Least Privilege), CM-6 (Configuration Settings) |
 | **Affected Components** | svc-detection, svc-ai-gateway |
-| **Compensating Controls** | svc-detection uses `cap_drop: ALL` with explicit minimum `cap_add`. svc-ai-gateway memory usage monitored by Datadog (typically under 200MB). All other 12 of 13 Compose-managed containers enforce `no-new-privileges: true`. |
+| **Compensating Controls** | svc-detection uses `cap_drop: ALL` with explicit minimum `cap_add`. svc-ai-gateway memory usage monitored by Datadog (typically under 200MB). All other 12 of 19 Compose-managed containers enforce `no-new-privileges: true`. |
 | **Remediation Plan** | Migrate svc-ai-gateway to Docker Compose management with `no-new-privileges: true` and resource limits. svc-detection exemption is permanent (eBPF requires privilege escalation path). |
 | **Milestone** | 2026-06-09 -- Migrate svc-ai-gateway to Compose with hardening |
 | **Status** | Open |
@@ -512,7 +512,7 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **POA&M ID** | POAM-026 |
 | **Finding Source** | Risk Assessment (RA-2026-001) |
 | **Finding ID** | R-12 |
-| **Description** | DigitalOcean Outage - all 13 services run on a single VPS in a single region. A prolonged regional outage would render the entire platform unavailable with no automatic failover. |
+| **Description** | DigitalOcean Outage - all 19 services run on a single VPS in a single region. A prolonged regional outage would render the entire platform unavailable with no automatic failover. |
 | **Risk Level** | Medium (inherent: 8) / Low (residual: 6) |
 | **NIST 800-53 Control** | CP-7 (Alternate Processing Site), CP-2 (Contingency Plan) |
 | **Affected Components** | All services on alpha-node |

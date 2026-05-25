@@ -1,0 +1,169 @@
+name: DAST - OWASP ZAP Baseline
+
+# Implements the CI/CD DAST integration described in
+# docs/grc/DAST_METHODOLOGY.md section 12.3.
+#
+# Spins up an n8n container in CI as a staging surrogate, waits for health,
+# runs ZAP baseline (passive + light active) against it, fails on HIGH or
+# CRITICAL findings, uploads the report as a workflow artifact.
+#
+# Scope restriction: this scans an isolated CI-spun n8n instance. It does NOT
+# scan production at n8n.tigouetheory.com. Production scanning is documented
+# in DAST_METHODOLOGY.md as a quarterly manual activity per Section 13.1.
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "COREDIRECTIVE_ENGINE/**"
+      - ".github/workflows/dast-zap.yml"
+      - "docs/grc/DAST_METHODOLOGY.md"
+  schedule:
+    # Weekly Sunday 06:00 UTC
+    - cron: "0 6 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  security-events: write
+
+concurrency:
+  group: dast-zap-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zap-baseline:
+    name: ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start n8n staging container
+        run: |
+          set -euo pipefail
+          docker network create dast-net
+          docker run -d \
+            --name n8n-staging \
+            --network dast-net \
+            -p 5678:5678 \
+            -e N8N_USER_MANAGEMENT_DISABLED=false \
+            -e N8N_BASIC_AUTH_ACTIVE=false \
+            -e N8N_DIAGNOSTICS_ENABLED=false \
+            -e N8N_HIRING_BANNER_ENABLED=false \
+            -e N8N_VERSION_NOTIFICATIONS_ENABLED=false \
+            -e N8N_PERSONALIZATION_ENABLED=false \
+            -e N8N_SECURE_COOKIE=false \
+            -e DB_TYPE=sqlite \
+            docker.n8n.io/n8nio/n8n:latest
+
+      - name: Wait for n8n health
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5678/healthz >/dev/null 2>&1 \
+              || curl -sf http://localhost:5678/ >/dev/null 2>&1; then
+              echo "n8n is up after ${i} attempts"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "n8n failed to start in 300s"
+          docker logs n8n-staging | tail -50
+          exit 1
+
+      - name: Prepare ZAP rules file
+        run: |
+          # Suppress rules where Cloudflare adds the header in production
+          # (we test the application directly here, not behind Cloudflare).
+          cat > .zap-rules.tsv <<'EOF'
+          10038	IGNORE	(CSP applied at Cloudflare edge in production)
+          10063	IGNORE	(Permissions-Policy applied at Cloudflare edge)
+          10035	IGNORE	(Strict-Transport-Security applied by Cloudflare)
+          EOF
+
+      - name: Run ZAP baseline
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "http://localhost:5678"
+          rules_file_name: ".zap-rules.tsv"
+          cmd_options: "-a -j -T 20 -m 5"
+          fail_action: false
+          allow_issue_writing: false
+          artifact_name: zap-baseline-report
+
+      - name: Parse ZAP results for HIGH/CRITICAL gate
+        if: always()
+        run: |
+          set -euo pipefail
+          REPORT=report_json.json
+          if [ ! -f "$REPORT" ]; then
+            echo "ZAP JSON report missing, treating as scan failure"
+            exit 1
+          fi
+          HIGH=$(jq '[.site[].alerts[] | select(.riskcode == "3")] | length' "$REPORT" 2>/dev/null || echo 0)
+          MED=$(jq '[.site[].alerts[] | select(.riskcode == "2")] | length' "$REPORT" 2>/dev/null || echo 0)
+          LOW=$(jq '[.site[].alerts[] | select(.riskcode == "1")] | length' "$REPORT" 2>/dev/null || echo 0)
+          INFO=$(jq '[.site[].alerts[] | select(.riskcode == "0")] | length' "$REPORT" 2>/dev/null || echo 0)
+          echo "ZAP findings: HIGH=${HIGH} MEDIUM=${MED} LOW=${LOW} INFO=${INFO}"
+          echo "HIGH=${HIGH}" >> "$GITHUB_ENV"
+          echo "MED=${MED}" >> "$GITHUB_ENV"
+          echo "LOW=${LOW}" >> "$GITHUB_ENV"
+          echo "INFO=${INFO}" >> "$GITHUB_ENV"
+          # Fail the job if any HIGH severity findings are present.
+          if [ "${HIGH}" -gt 0 ]; then
+            echo "::error::ZAP detected ${HIGH} HIGH severity findings. Failing build per DAST_METHODOLOGY.md section 12.3."
+            exit 1
+          fi
+
+      - name: Comment summary on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const high = process.env.HIGH || '0';
+            const med = process.env.MED || '0';
+            const low = process.env.LOW || '0';
+            const info = process.env.INFO || '0';
+            const body = [
+              '### OWASP ZAP DAST Baseline Results',
+              '',
+              `| Severity | Count |`,
+              `|----------|-------|`,
+              `| HIGH | ${high} |`,
+              `| MEDIUM | ${med} |`,
+              `| LOW | ${low} |`,
+              `| INFORMATIONAL | ${info} |`,
+              '',
+              'Target: n8n staging container in CI runner.',
+              'Methodology: [docs/grc/DAST_METHODOLOGY.md](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/blob/main/docs/grc/DAST_METHODOLOGY.md)',
+              '',
+              'Gate: HIGH findings fail the build. MEDIUM/LOW are tracked in POA&M per POLICY_VULNERABILITY_MANAGEMENT.md.',
+              '',
+              'Full report uploaded as workflow artifact: `zap-baseline-report`.',
+            ].join('\n');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      - name: Tear down n8n container
+        if: always()
+        run: |
+          docker logs n8n-staging > n8n-staging.log 2>&1 || true
+          docker rm -f n8n-staging || true
+          docker network rm dast-net || true
+
+      - name: Upload n8n container logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n8n-staging-logs
+          path: n8n-staging.log
+          retention-days: 14

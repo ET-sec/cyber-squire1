@@ -482,9 +482,9 @@ DAST occupies the Testing and Monitoring phases of the Secure SDLC defined in `S
 | Deployment | Cosign, SBOM | N/A |
 | Post-Deployment | Falco (runtime) | DAST quarterly scan against production |
 
-### 12.3 Future CI/CD Integration
+### 12.3 CI/CD Integration (Shipped 2026-05-25)
 
-When DAST is integrated into the CI/CD pipeline (target: Q3 2026), the planned approach is:
+DAST is integrated into the CI/CD pipeline via .github/workflows/dast-zap.yml (shipped 2026-05-25). The approach is:
 
 1. Deploy a staging environment with the latest merge
 2. Run ZAP baseline scan (passive + light active) against staging

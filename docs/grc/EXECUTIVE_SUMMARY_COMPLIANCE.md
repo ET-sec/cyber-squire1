@@ -24,7 +24,7 @@
 
 ## GRC Documentation Library
 
-The compliance program is supported by **49 GRC documents** after Phase 17 expansion (Squire autonomous SOC analyst subsystem). The 10 new Phase 17 docs cover AI-specific compliance artifacts: scoped SSP, AI risk assessment, framework crosswalk, guardrails configuration, red-team results, model card, data flow classification, audit trail spec, HITL policy, supply chain register.
+The compliance program is supported by **54 GRC documents** after the 2026-05-25 framework expansion. Three new docs cover HIPAA Security Rule readiness, ePHI handling, and a combined SOC 2 plus ISO 27001:2022 crosswalk. The 10 Phase 17 docs cover AI-specific compliance artifacts: scoped SSP, AI risk assessment, framework crosswalk, guardrails configuration, red-team results, model card, data flow classification, audit trail spec, HITL policy, supply chain register.
 
 ### Document Inventory
 
@@ -41,8 +41,9 @@ The compliance program is supported by **49 GRC documents** after Phase 17 expan
 | **Exercises** | 1 | Operation Phantom Container (5-phase tabletop exercise) |
 | **Squire (Phase 17)** | 10 | SSP (scoped), AI Risk Assessment, Framework Crosswalk, Guardrails Configuration, Red-Team Results, Model Card, Data Flow Classification, Audit Trail Spec, HITL Policy, Supply Chain Register |
 | **ADR** | 1 | Embedding Provider decision record |
+| **Framework Crosswalks** | 3 | HIPAA Security Rule, HIPAA ePHI Handling, combined SOC 2 plus ISO 27001:2022 |
 | **README** | 1 | GRC library index and reading guide |
-| **Total** | **49** | |
+| **Total** | **54** | |
 
 ### Framework coverage by doc family
 
@@ -50,12 +51,17 @@ The compliance program is supported by **49 GRC documents** after Phase 17 expan
 |-----------|------------|
 | NIST SP 800-53 Rev 5 | SSP_SYSTEM_SECURITY_PLAN, SQUIRE_SSP, FRAMEWORK_CROSSWALK_SQUIRE, all policies |
 | NIST AI RMF | POLICY_AI_GOVERNANCE, SQUIRE_AI_RISK_ASSESSMENT, AI_THREAT_CATALOG, FRAMEWORK_CROSSWALK_SQUIRE |
+| HIPAA Security Rule | HIPAA_SECURITY_RULE_CROSSWALK, HIPAA_EPHI_HANDLING (readiness, no current ePHI) |
+| SOC 2 (AICPA TSC 2017/2022) | FRAMEWORK_CROSSWALK_SOC2_ISO27001 (self-attested, not audited) |
+| ISO/IEC 27001:2022 | FRAMEWORK_CROSSWALK_SOC2_ISO27001 (self-attested, not certified) |
+| FedRAMP Moderate | inherited via NIST 800-53 Moderate baseline in SSP_SYSTEM_SECURITY_PLAN |
 | CSA Agentic Applications | SQUIRE_AI_RISK_ASSESSMENT, FRAMEWORK_CROSSWALK_SQUIRE |
 | OWASP LLM Top 10 (2025) | AI_THREAT_CATALOG, ATTACK_TREE_AI_PIPELINE, AI_RED_TEAM_PLAN, FRAMEWORK_CROSSWALK_SQUIRE |
 | MITRE ATLAS v4 | AI_THREAT_CATALOG, ATTACK_TREE_AI_PIPELINE, FRAMEWORK_CROSSWALK_SQUIRE |
 | ISO 42001:2023 | POLICY_AI_GOVERNANCE, AI_THREAT_CATALOG, SQUIRE_AI_RISK_ASSESSMENT |
 | ISO 27701:2019 | POLICY_AI_GOVERNANCE, SQUIRE_DATA_FLOW_CLASSIFICATION |
 | NIST 800-154 | DATA_FLOW_DIAGRAM, THREAT_MODEL_STRIDE |
+| NIST 800-66 Rev 2 | HIPAA_SECURITY_RULE_CROSSWALK, HIPAA_EPHI_HANDLING |
 | NIST 800-61 r3 | POLICY_INCIDENT_RESPONSE, PLAYBOOK_AI_INCIDENT, FRAMEWORK_CROSSWALK_SQUIRE |
 | CIS Docker Benchmark | CIS_RISK_REGISTER, POAM_PLAN_OF_ACTION |
 | FIPS 199 | SSP_SYSTEM_SECURITY_PLAN |
@@ -152,7 +158,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 | Area | Readiness |
 |------|-----------|
-| **Documentation completeness** | Strong: 49 documents covering all major GRC domains plus Phase 17 AI subsystem |
+| **Documentation completeness** | Strong: 54 documents covering all major GRC domains plus Phase 17 AI subsystem |
 | **Control implementation** | Strong: 86% implemented or partially implemented, plus 36 Squire-specific controls |
 | **Automated evidence** | Strong: continuous collection from 9+ sources, Langfuse trace capture for AI invocations |
 | **Risk management** | Strong: 17 enterprise scenarios plus 10 AI-specific risks, all tracked |
@@ -169,7 +175,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Full NIST 800-53 control mapping (133 controls) plus Phase 17 annex |
 | [SQUIRE_SSP.md](SQUIRE_SSP.md) | Squire subsystem scoped SSP (36 controls) |
-| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | 25 tracked POA&M entries (15 legacy plus 10 Phase 17) |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | 30 tracked POA&M entries (15 legacy plus 15 Phase 17) |
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | 17 enterprise threat scenarios with 5x5 risk matrix |
 | [SQUIRE_AI_RISK_ASSESSMENT.md](SQUIRE_AI_RISK_ASSESSMENT.md) | 10 AI-specific risks, NIST AI RMF plus CSA Agentic |
 | [FRAMEWORK_CROSSWALK_SQUIRE.md](FRAMEWORK_CROSSWALK_SQUIRE.md) | 31 Squire controls across 7 frameworks |

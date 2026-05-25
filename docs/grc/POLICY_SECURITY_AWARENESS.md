@@ -22,7 +22,7 @@ Effective security awareness is a critical compensating control. Technical contr
 
 This policy applies to all individuals who:
 
-- Have access to `alpha-node` or any of the 13 containerized services
+- Have access to `alpha-node` or any of the 19 containerized services
 - Have access to the code repository platform, CI/CD pipelines, or infrastructure-as-code definitions
 - Have access to the secrets manager, credential vault, or production secret material
 - Manage, operate, or audit the security operations platform
