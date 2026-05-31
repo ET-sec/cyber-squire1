@@ -1,0 +1,22 @@
+{
+  "priority": "Critical",
+  "rule": "Terminal shell in container",
+  "output": "A shell was spawned in a container with an attached terminal (user=root shell=bash container_id=abc123 container_name=cd-service-n8n image=n8nio/n8n:latest)",
+  "time": "2026-04-23T12:00:00Z",
+  "source": "syscall",
+  "hostname": "cd-alpha",
+  "tags": ["container", "shell", "mitre_execution", "T1059"],
+  "output_fields": {
+    "evt.time": "2026-04-23T12:00:00.123456000Z",
+    "user.name": "root",
+    "user.loginuid": "0",
+    "proc.name": "bash",
+    "proc.cmdline": "bash",
+    "proc.pname": "runc",
+    "proc.tty": 34816,
+    "container.id": "abc123def456",
+    "container.name": "cd-service-n8n",
+    "container.image.repository": "n8nio/n8n",
+    "container.image.tag": "latest"
+  }
+}

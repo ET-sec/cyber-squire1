@@ -1,0 +1,61 @@
+# Squire Phase 17 Action Allow-list
+# Mode: recommend_only
+# This file is loaded at FastAPI app boot. Any response body that contains
+# directives outside the recommend_only scope is rewritten or rejected by
+# actions_allowlist.enforce() before being returned to the caller.
+
+mode: recommend_only
+phase: "17"
+rationale: "Phase 17 is a demo-grade autonomous SOC analyst. Squire recommends; a human operator executes. Autonomous execution is out of scope until a future phase with explicit approval flow."
+
+allowed_verbs:
+  # Verbs that are allowed in the recommended_actions output field.
+  # Each entry is matched case-insensitively against the start of a bullet.
+  - "investigate"
+  - "review"
+  - "verify"
+  - "collect"
+  - "correlate"
+  - "triage"
+  - "escalate"
+  - "notify"
+  - "document"
+  - "recommend"
+  - "assess"
+  - "monitor"
+  - "alert"
+  - "flag"
+  - "prioritize"
+  - "suggest"
+  - "advise"
+  - "draft"
+  - "analyze"
+  - "summarize"
+
+forbidden_verb_patterns:
+  # Case-insensitive regex patterns. If any match a recommended_action, that action
+  # is rewritten to prepend "RECOMMEND: human operator should ..." OR the whole response
+  # is rejected depending on enforcement_mode below.
+  - "\\bdocker\\s+(stop|kill|rm|restart|exec)\\b"
+  - "\\bkubectl\\s+(delete|apply|patch|drain|cordon)\\b"
+  - "\\b(iptables|ufw|nft)\\s+-[AID]\\b"
+  - "\\brm\\s+-rf\\b"
+  - "\\bkill(all)?\\s+"
+  - "\\bsystemctl\\s+(stop|disable|mask|restart)\\b"
+  - "\\brevoke\\b"
+  - "\\bdisable\\s+(account|user|mfa)\\b"
+  - "\\brotate\\s+(key|secret|token|password)\\b"
+  - "\\bshutdown\\b"
+  - "\\breboot\\b"
+  - "\\b(curl|wget)\\s+.*\\|\\s*(bash|sh)\\b"
+  - "\\bchmod\\s+"
+  - "\\bchown\\s+"
+
+enforcement_mode: rewrite
+# rewrite: forbidden verb detected -> prepend "RECOMMEND:" to the bullet and tag response {sanitized: true}
+# reject:  forbidden verb detected -> 403 with structured reason
+
+on_enforcement:
+  log_event: true
+  langfuse_tag: "actions_allowlist_hit"
+  response_field: "sanitization_events"

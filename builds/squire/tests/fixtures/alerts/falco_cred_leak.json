@@ -1,0 +1,21 @@
+{
+  "priority": "Critical",
+  "rule": "Read sensitive file untrusted",
+  "output": "Sensitive file opened for reading by non-trusted program (file=/root/.aws/credentials user=root program=curl container_id=xyz789 container_name=cd-service-n8n image=n8nio/n8n:latest parent=bash cmdline='curl https://169.254.169.254/latest/meta-data/iam/security-credentials/')",
+  "time": "2026-04-23T12:05:30Z",
+  "source": "syscall",
+  "hostname": "cd-alpha",
+  "tags": ["credentials", "filesystem", "mitre_credential_access", "T1552"],
+  "output_fields": {
+    "evt.time": "2026-04-23T12:05:30.987654000Z",
+    "fd.name": "/root/.aws/credentials",
+    "user.name": "root",
+    "proc.name": "curl",
+    "proc.cmdline": "curl https://169.254.169.254/latest/meta-data/iam/security-credentials/",
+    "proc.pname": "bash",
+    "container.id": "xyz789abc012",
+    "container.name": "cd-service-n8n",
+    "container.image.repository": "n8nio/n8n",
+    "container.image.tag": "latest"
+  }
+}

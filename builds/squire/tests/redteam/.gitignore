@@ -1,0 +1,3 @@
+# Raw response bodies may carry seeded PII-like tokens from test payloads.
+# Parent builds/ is already gitignored, but flag this explicitly.
+results/
