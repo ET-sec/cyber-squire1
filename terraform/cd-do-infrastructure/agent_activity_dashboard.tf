@@ -23,7 +23,7 @@ resource "datadog_dashboard" "agent_activity" {
   description = "Per-agent_id breakdown of calls per minute, success rate, top destinations, and top tools. Authoritative source for which agents are doing what across the CoreDirective stack. Phase 20 limitation: cdirective_bot traffic appears under agent_id:openclaw due to host-level tag inheritance through the openclaw gateway; per-bot breakdown deferred to Phase 21."
   layout_type = "ordered"
 
-  tags = ["team:coredirective", "phase:20", "framework:cosai"]
+  tags = ["team:coredirective", "ai:agent_visibility"]
 
   # ===========================================================================
   # GROUP 1: VISIBILITY PHASE 1 OF 3 (CoSAI)
