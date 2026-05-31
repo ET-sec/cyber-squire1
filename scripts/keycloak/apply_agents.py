@@ -39,32 +39,51 @@ AGENT_ROLES = [
     ("agent:drift-detector", "Stack drift detection agent"),
 ]
 
-# Service-account clients: (client_id, name, description, secret_env_var, optional_scopes)
+# TTL tiers (seconds). TTL must match expected operation duration. See
+# .planning/sessions/2026-05-27-jit-ca-agent-iam.md for the full tier model.
+# Long TTLs are an anti-pattern for agentic systems: a compromised agent with
+# a 15-minute standing token can do 30-60 LLM calls before the credential
+# expires. Tier the lifespan to the work, refresh via heartbeat for longer
+# tasks (heartbeat support is JIT-CA Gate 4 work, not yet implemented).
+TTL_TIERS = {
+    "T0_EPHEMERAL": 30,   # single tool call or sub-second corpus lookup
+    "T1_SHORT":     90,   # one LLM round trip with tools, single cron run
+    "T2_STANDARD":  300,  # multi-step agent task (LangGraph orchestrator)
+    "T3_LONG":      900,  # browser automation, large batch jobs (use sparingly)
+}
+
+# Service-account clients: (client_id, name, description, secret_env_var, optional_scopes, ttl_tier)
 AGENT_CLIENTS = [
     ("squire", "Squire - Tier 1 SOC triage agent",
      "Read-only Datadog alert triage. LangGraph 7-node state machine with NeMo Guardrails. Tier 1, no write actions.",
      "KC_CLIENT_SQUIRE_SECRET",
-     ["drift:read", "grc:read", "notion:read"]),
+     ["drift:read", "grc:read", "notion:read"],
+     "T2_STANDARD"),
     ("blue-squire", "Blue Squire - Defensive response agent",
      "Defensive response to Squire-recommended actions. Can send Telegram alerts and read Vault secrets.",
      "KC_CLIENT_BLUE_SQUIRE_SECRET",
-     ["drift:read", "telegram:send", "vault:read"]),
+     ["drift:read", "telegram:send", "vault:read"],
+     "T1_SHORT"),
     ("red-squire", "Red Squire - Offensive red team agent",
      "Adversarial testing against Squire and OpenClaw skill catalog. Read-only access to test target metadata.",
      "KC_CLIENT_RED_SQUIRE_SECRET",
-     ["drift:read"]),
+     ["drift:read"],
+     "T0_EPHEMERAL"),
     ("grc-librarian", "GRC Librarian - corpus search agent",
      "Searches GRC corpus (54 docs) via MCP server. Returns control mappings and citations. Read-only.",
      "KC_CLIENT_GRC_LIBRARIAN_SECRET",
-     ["grc:read"]),
+     ["grc:read"],
+     "T0_EPHEMERAL"),
     ("keeper-squire", "Keeper Squire - audit and governance agent",
      "Reads append-only audit log entries. Verifies cross-agent compliance with assigned scopes.",
      "KC_CLIENT_KEEPER_SQUIRE_SECRET",
-     ["audit:read", "grc:read"]),
+     ["audit:read", "grc:read"],
+     "T2_STANDARD"),
     ("drift-detector", "Drift Detector - stack drift agent",
      "Runs verify-facts.py, diffs stack-facts.yaml against reality, writes to Notion ChangeLog, alerts via Telegram.",
      "KC_CLIENT_DRIFT_DETECTOR_SECRET",
-     ["drift:write", "telegram:send", "notion:write"]),
+     ["drift:write", "telegram:send", "notion:write"],
+     "T1_SHORT"),
 ]
 
 
@@ -148,7 +167,7 @@ def add_clients(token, scope_ids):
     print("\n=== SERVICE ACCOUNT CLIENTS ===")
     code, existing = http("GET", f"/admin/realms/{REALM}/clients", token=token)
     existing_ids = {c["clientId"]: c["id"] for c in existing} if isinstance(existing, list) else {}
-    for client_id, name, desc, secret_env, opt_scopes in AGENT_CLIENTS:
+    for client_id, name, desc, secret_env, opt_scopes, ttl_tier in AGENT_CLIENTS:
         if client_id in existing_ids:
             print(f"  SKIP {client_id} (exists)")
             continue
@@ -156,6 +175,7 @@ def add_clients(token, scope_ids):
         if not secret:
             print(f"  FAIL {client_id}: missing env {secret_env}")
             continue
+        ttl = TTL_TIERS[ttl_tier]
         body = {
             "clientId": client_id,
             "name": name,
@@ -169,8 +189,8 @@ def add_clients(token, scope_ids):
             "serviceAccountsEnabled": True,
             "secret": secret,
             "attributes": {
-                "access.token.lifespan": "900",
-                "client.session.idle.timeout": "900",
+                "access.token.lifespan": str(ttl),
+                "client.session.idle.timeout": str(ttl),
                 "use.refresh.tokens": "false",
             },
         }
@@ -193,7 +213,7 @@ def add_clients(token, scope_ids):
             code3, _ = http("PUT", f"/admin/realms/{REALM}/clients/{c_uuid}/optional-client-scopes/{sid}", token=token)
             if code3 in (204, 200):
                 attached += 1
-        print(f"  ADD  {client_id} (HTTP 201, scopes attached: {attached}/{len(opt_scopes)})")
+        print(f"  ADD  {client_id} (HTTP 201, scopes attached: {attached}/{len(opt_scopes)}, ttl={ttl}s [{ttl_tier}])")
 
 
 def test_token(client_id, secret_env, scopes):

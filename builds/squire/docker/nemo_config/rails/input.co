@@ -1,0 +1,25 @@
+# Colang input/shared rails for Squire (NeMo Guardrails v0.21.0)
+#
+# We use NeMo's built-in library flow `detect sensitive data on input`
+# (presidio-analyzer local scan). When it fires, the library's subflow
+# emits `bot inform answer unknown`. We override that utterance here to
+# return the canonical BLOCKED_BY_RAIL string that nemo_client.parse_block
+# matches on, so Squire's app layer rewrites the response via
+# build_block_response.
+#
+# The output-side `detect sensitive data on output` flow ALSO emits the
+# same `bot inform answer unknown` on a hit, so one override covers both
+# directions. Rail attribution at the app layer is done by the rule_name
+# (presidio_pii); the rail_name defaults to "input" here because we can't
+# disambiguate from the utterance alone -- the full NeMo event stream
+# carries source but the string refusal does not.
+#
+# self check input is intentionally NOT listed in config.yml rails.input
+# because Anthropic credit is exhausted; see config.yml comment. When
+# credit returns, uncomment it there to restore PolicyAI judging.
+
+define bot inform answer unknown
+  "BLOCKED_BY_RAIL reason=PII_DETECTED rail=input rule=presidio_pii"
+
+define bot refuse to respond
+  "BLOCKED_BY_RAIL reason=POLICY_VIOLATION rail=input rule=default"

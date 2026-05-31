@@ -1,0 +1,16 @@
+# Colang output rails for Squire (NeMo Guardrails v0.21.0)
+#
+# The `bot inform answer unknown` override in input.co covers both
+# directions (NeMo's PII subflow emits the same utterance on input-side
+# and output-side hits). This file is intentionally empty except for a
+# placeholder comment so the rails/ directory remains non-empty and any
+# future Squire-specific output customisation has a natural home.
+#
+# When the output-side PII detector fires and the BLOCKED_BY_RAIL line is
+# returned to nemo_client.parse_block, the rail_name field is "input"
+# (string constant in the refusal message). The Squire response_builder
+# emits the block with that rail_name; the rule_name "presidio_pii" is
+# what downstream consumers actually key on. If distinguishing input vs
+# output attribution becomes important, the fix is to read NeMo's
+# /v1/chat/completions `events` array (where source is carried
+# structurally), not the content string.

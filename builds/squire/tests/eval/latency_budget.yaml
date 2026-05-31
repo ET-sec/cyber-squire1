@@ -1,0 +1,11 @@
+# Per node target p95 latency in milliseconds for the Squire LangGraph runtime.
+# Tuned from empirical defaults; tighten as observability matures.
+# Sum across nodes leaves headroom under the 30 second p95 end to end target.
+classify:    1500    # Sonnet 4.6 classify call
+retrieve:     500    # pgvector cosine over ir_chunks
+enrich:     10000    # Tavily external API; budget relaxed for network variance
+investigate: 5000    # Opus 4.7 hypothesis generation
+draft:       7000    # Opus 4.7 structured output plus citation retry budget
+critique:    3000    # Opus 4.7 reviewer pass
+route:        500    # Telegram send
+# Sum of targeted p95s: ~27 seconds. ~3 seconds headroom for orchestration.

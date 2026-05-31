@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "squire"
+version = "0.1.0"
+description = "Squire - autonomous SOC analyst (Phase 17 scaffold)"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "Proprietary" }
+authors = [{ name = "CoreDirective", email = "ops@tigouetheory.com" }]
+dependencies = [
+  "fastapi>=0.115,<0.120",
+  "uvicorn[standard]>=0.30,<0.35",
+  "pydantic>=2.7,<3",
+  "pydantic-settings>=2.3,<3",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
+  "pgvector>=0.3,<0.4",
+  "httpx>=0.27,<0.29",
+  "redis>=5.0,<6",
+  "pyyaml>=6.0,<7",
+  "voyageai>=0.3.2,<0.4",
+  "langchain>=1.0,<2",
+  "langchain-anthropic>=0.3,<2",
+  "langchain-core>=0.3,<2",
+  "langgraph>=0.2,<2",
+  "langfuse>=3.0,<4",
+  "tenacity>=8.0,<10",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0,<9",
+  "pytest-asyncio>=0.23,<0.25",
+  "httpx>=0.27,<0.29",
+  "ruff>=0.5,<0.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["src"]
+markers = [
+  "integration: end-to-end tests that hit live APIs + DB (gated on RUN_INTEGRATION=1)",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"

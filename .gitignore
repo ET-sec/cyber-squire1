@@ -131,10 +131,25 @@ credentials_cloudflare.json
 # ============================================
 # Project Build Artifacts
 # ============================================
-builds/
+# Use builds/* (not builds/) so we can re-include specific subdirs below.
+# Git cannot re-include files under a parent directory that is itself ignored.
+builds/*
+# Squire (autonomous SOC agent) is tracked. Other builds/ subdirs (client
+# work, interview take-homes, student projects) stay ignored by default.
+!builds/squire/
+builds/squire/.venv/
+builds/squire/.ruff_cache/
+builds/squire/.pytest_cache/
+builds/squire/**/__pycache__/
+builds/squire/src/squire.egg-info/
+builds/squire/.coverage
+builds/squire/htmlcov/
 .skills-staging/
 .claude/
 get-shit-done/
+# .planning/ stays ignored. Contains operational STATE, internal session
+# notes, and at least one real Bearer token in 18-RESEARCH.md. Move
+# selectively to tracked locations after sanitization.
 .planning/
 1password-vault-reference.md
 notes-golden-file-*.txt
