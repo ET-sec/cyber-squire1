@@ -756,6 +756,10 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 | 1.0 | 2026-03-11 | Platform Administrator | Initial POA&M creation. 32 findings documented from 3 sources. 15 formally accepted, 6 open for remediation, 1 closed (baseline). |
 | 1.1 | 2026-03-11 | Platform Administrator | Added 5 findings from Risk Assessment mitigate treatments (POAM-023 through POAM-027). Fixed SI-17→SC-24 (invalid NIST control). Total: 37 findings from 4 sources. |
 
+### Sub-POAMs (control-family-specific)
+
+- [POAM_MCP_2025.md](POAM_MCP_2025.md) - OWASP MCP Top 10 2025 beta v0.1 gaps for `scripts/grc/grc_mcp_server.py` (agent_id: fastmcp_grc_corpus). Tracks MCP01 (Token Mismanagement and Secret Exposure), MCP06 (Intent Flow Subversion), MCP07 (Insufficient Authentication and Authorization, Accepted Risk), MCP08 (Lack of Audit and Telemetry).
+
 ### Related Documents
 
 | Document | Location | Relationship |
