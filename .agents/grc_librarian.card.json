@@ -1,0 +1,36 @@
+{
+  "name": "GRC Librarian",
+  "description": "Read-only librarian over the GRC corpus. Answers control, framework, and POA&M questions by searching docs/grc/. Low sensitivity because the corpus is sanitized and the agent has no write paths.",
+  "version": "1.0.0",
+  "url": "stdio:///agents/grc_librarian/mcp_server",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "grc_search",
+      "name": "GRC Search",
+      "description": "Searches the GRC corpus for documents matching a control id, family, or natural language query.",
+      "tags": ["grc", "search"]
+    },
+    {
+      "id": "grc_read",
+      "name": "GRC Read",
+      "description": "Returns the body of a named GRC document by path under docs/grc/.",
+      "tags": ["grc", "read"]
+    },
+    {
+      "id": "framework_lookup",
+      "name": "Framework Lookup",
+      "description": "Resolves NIST 800-53 controls, family codes, and FedRAMP baselines against the crosswalk.",
+      "tags": ["grc", "framework"]
+    }
+  ]
+}

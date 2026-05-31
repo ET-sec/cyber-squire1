@@ -1,0 +1,114 @@
+{
+  "name": "Master Orchestrator",
+  "description": "n8n master dispatcher exposing 16 workspace actions behind a single webhook. Routes inbound action payloads to the right downstream system (postgres, telegram, github, drive, tasks, sheets, docs, slides, gumroad, ollama, cloudflare, notion, tavily, gmail, workspace_admin, excel). High sensitivity because the action set spans every connected workspace credential.",
+  "version": "1.0.0",
+  "url": "https://n8n.example-ops.com/webhook/master-cmd",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": true,
+    "stateTransitionHistory": true
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "postgres_action",
+      "name": "Postgres",
+      "description": "Runs a parameterized SQL statement against the n8n postgres database and returns the result set.",
+      "tags": ["data", "workspace"]
+    },
+    {
+      "id": "telegram_action",
+      "name": "Telegram",
+      "description": "Posts a message to a configured telegram chat through the bot credential.",
+      "tags": ["notification", "workspace"]
+    },
+    {
+      "id": "github_action",
+      "name": "GitHub",
+      "description": "Performs a GitHub API operation (read repo, open issue, comment) under the orchestrator service token.",
+      "tags": ["scm", "workspace"]
+    },
+    {
+      "id": "drive_action",
+      "name": "Drive",
+      "description": "Lists, reads, or writes Google Drive resources scoped to the orchestrator OAuth grant.",
+      "tags": ["workspace", "file"]
+    },
+    {
+      "id": "tasks_action",
+      "name": "Tasks",
+      "description": "Creates or updates Google Tasks entries on the orchestrator-linked account.",
+      "tags": ["workspace", "productivity"]
+    },
+    {
+      "id": "sheets_action",
+      "name": "Sheets",
+      "description": "Reads or appends rows in a Google Sheet keyed by spreadsheet id.",
+      "tags": ["workspace", "data"]
+    },
+    {
+      "id": "docs_action",
+      "name": "Docs",
+      "description": "Reads or appends content in a Google Doc keyed by document id.",
+      "tags": ["workspace", "content"]
+    },
+    {
+      "id": "slides_action",
+      "name": "Slides",
+      "description": "Reads or updates a Google Slides deck under the orchestrator OAuth grant.",
+      "tags": ["workspace", "content"]
+    },
+    {
+      "id": "gumroad_action",
+      "name": "Gumroad",
+      "description": "Reads product, sale, and payout data from the Gumroad API.",
+      "tags": ["commerce", "workspace"]
+    },
+    {
+      "id": "ollama_action",
+      "name": "Ollama",
+      "description": "Proxies an inference call to the local Ollama runtime. Deprecated at the n8n action layer; preserved as a card skill until the workflow is purged.",
+      "tags": ["llm", "workspace"]
+    },
+    {
+      "id": "cloudflare_action",
+      "name": "Cloudflare",
+      "description": "Performs a Cloudflare API call (DNS, zone, WAF rule) under the orchestrator token.",
+      "tags": ["network", "workspace"]
+    },
+    {
+      "id": "notion_action",
+      "name": "Notion",
+      "description": "Reads or writes Notion pages and databases under the orchestrator integration.",
+      "tags": ["workspace", "content"]
+    },
+    {
+      "id": "tavily_action",
+      "name": "Tavily",
+      "description": "Performs a Tavily web search and returns scored results.",
+      "tags": ["search", "workspace"]
+    },
+    {
+      "id": "gmail_action",
+      "name": "Gmail",
+      "description": "Sends a message via the orchestrator-linked Gmail account.",
+      "tags": ["workspace", "email"]
+    },
+    {
+      "id": "workspace_admin_action",
+      "name": "Workspace Admin",
+      "description": "Performs a Google Workspace admin API call (users, groups, security) under the admin credential.",
+      "tags": ["workspace", "iam"]
+    },
+    {
+      "id": "excel_action",
+      "name": "Excel",
+      "description": "Reads or appends rows in a Microsoft Excel workbook via the Graph API.",
+      "tags": ["workspace", "data"]
+    }
+  ]
+}

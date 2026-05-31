@@ -1,0 +1,46 @@
+{
+  "name": "n8n Gmail Readers",
+  "description": "Consolidated card for the four Gmail reader workflows (main, brand, personal, business). Each skill maps to one OAuth-scoped account and is invoked via its dedicated webhook. Medium sensitivity because mailbox contents include customer threads and personal email.",
+  "version": "1.0.0",
+  "url": "https://n8n.example-ops.com/webhook/gmail-read",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "gmail_read_main",
+      "name": "Gmail Read Main",
+      "description": "Reads recent messages from the primary CoreDirective mailbox.",
+      "tags": ["email", "read", "iam"],
+      "webhook": "https://n8n.example-ops.com/webhook/gmail-read-main"
+    },
+    {
+      "id": "gmail_read_brand",
+      "name": "Gmail Read Brand",
+      "description": "Reads recent messages from the brand mailbox.",
+      "tags": ["email", "read", "iam"],
+      "webhook": "https://n8n.example-ops.com/webhook/gmail-read"
+    },
+    {
+      "id": "gmail_read_personal",
+      "name": "Gmail Read Personal",
+      "description": "Reads recent messages from the personal mailbox.",
+      "tags": ["email", "read", "iam"],
+      "webhook": "https://n8n.example-ops.com/webhook/gmail-read-personal"
+    },
+    {
+      "id": "gmail_read_business",
+      "name": "Gmail Read Business",
+      "description": "Reads recent messages from the business mailbox.",
+      "tags": ["email", "read", "iam"],
+      "webhook": "https://n8n.example-ops.com/webhook/gmail-read-business"
+    }
+  ]
+}

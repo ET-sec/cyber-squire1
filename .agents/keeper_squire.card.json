@@ -1,0 +1,36 @@
+{
+  "name": "Keeper Squire",
+  "description": "Governance and audit reviewer. Walks audit logs, summarizes drift, and reports compliance status against POA&M items. Low sensitivity because it only reads from audit log and GRC corpus and produces summary text.",
+  "version": "1.0.0",
+  "url": "http://localhost:8020/keeper_squire",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "audit_walk",
+      "name": "Audit Walk",
+      "description": "Walks the audit log over a time window and surfaces events tied to a control family.",
+      "tags": ["grc", "audit"]
+    },
+    {
+      "id": "governance_review",
+      "name": "Governance Review",
+      "description": "Reviews an artifact against the active policy set and reports gaps.",
+      "tags": ["grc", "governance"]
+    },
+    {
+      "id": "poam_status",
+      "name": "POA&M Status",
+      "description": "Reports current status of POA&M items by id with cited evidence.",
+      "tags": ["grc", "poam"]
+    }
+  ]
+}

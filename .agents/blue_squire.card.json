@@ -1,0 +1,30 @@
+{
+  "name": "Blue Squire",
+  "description": "Defensive responder agent. Executes incident runbooks, contains affected assets, and pages oncall. High sensitivity because it can post to telegram, write notion, and invoke n8n webhooks that touch production identity surfaces.",
+  "version": "1.0.0",
+  "url": "http://localhost:8020/blue_squire",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": true,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "defensive_action",
+      "name": "Defensive Action",
+      "description": "Executes a registered defensive runbook against an incident scope (rotate creds, isolate host, revoke session).",
+      "tags": ["soc", "ir", "iam"]
+    },
+    {
+      "id": "incident_contain",
+      "name": "Incident Contain",
+      "description": "Drives the contain phase of the IR playbook and pages oncall when human approval is required.",
+      "tags": ["soc", "ir", "notification"]
+    }
+  ]
+}

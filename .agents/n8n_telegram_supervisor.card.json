@@ -1,0 +1,30 @@
+{
+  "name": "n8n Telegram Supervisor",
+  "description": "Telegram supervisor workflow inside n8n. Classifies inbound user intent and routes commands to the master orchestrator. High sensitivity because the same channel can drive any orchestrator action.",
+  "version": "1.0.0",
+  "url": "https://n8n.example-ops.com/webhook/telegram-bot",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": true,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "telegram_route",
+      "name": "Telegram Route",
+      "description": "Routes an inbound telegram message to the matching downstream workflow or action.",
+      "tags": ["routing", "telegram"]
+    },
+    {
+      "id": "intent_classify",
+      "name": "Intent Classify",
+      "description": "Classifies the user intent of an inbound message using an LLM call.",
+      "tags": ["llm", "telegram"]
+    }
+  ]
+}

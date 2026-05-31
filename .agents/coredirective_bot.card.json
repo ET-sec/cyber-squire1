@@ -1,0 +1,36 @@
+{
+  "name": "CoreDirective Bot",
+  "description": "Telegram operations agent fronted by n8n workflows. Dispatches ADHD command, finance, and status queries through the master orchestrator. High sensitivity because the same channel surfaces every orchestrator action to the operator.",
+  "version": "1.0.0",
+  "url": "tg://@Coredirective_bot",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": true,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [
+    {
+      "id": "adhd_command",
+      "name": "ADHD Command",
+      "description": "Routes an ADHD commander request to the n8n ADHD workflow and returns the response.",
+      "tags": ["telegram", "productivity"]
+    },
+    {
+      "id": "finance_query",
+      "name": "Finance Query",
+      "description": "Routes a finance manager request to the n8n finance workflow and returns the response.",
+      "tags": ["telegram", "finance"]
+    },
+    {
+      "id": "status_report",
+      "name": "Status Report",
+      "description": "Returns the consolidated system status for the connected stack.",
+      "tags": ["telegram", "ops"]
+    }
+  ]
+}
