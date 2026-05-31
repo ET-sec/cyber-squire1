@@ -19,6 +19,14 @@ COPY config ./config
 
 RUN pip install --upgrade pip && pip install -e .
 
+# Run as non-root. UID 10001 chosen to avoid collisions with host UIDs and
+# to stay outside typical reserved system UID ranges. /app is chowned so the
+# uvicorn worker can read installed package metadata.
+RUN groupadd --system --gid 10001 squire \
+ && useradd  --system --uid 10001 --gid squire --no-create-home --shell /usr/sbin/nologin squire \
+ && chown -R squire:squire /app
+USER squire
+
 EXPOSE 8020
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

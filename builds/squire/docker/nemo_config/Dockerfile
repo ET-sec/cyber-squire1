@@ -68,9 +68,18 @@ RUN apt-get purge -y --auto-remove build-essential \
 # expects `--config <dir>` to be a PARENT folder of named config sub-folders
 # (one per deployment). We ship exactly one config, named `default`, so
 # clients call /v1/chat/completions with config_id="default".
-RUN mkdir -p /app/configs/default
+RUN mkdir -p /app/configs/default /app/models
 COPY config.yml prompts.yml /app/configs/default/
 COPY rails /app/configs/default/rails
+
+# Run as non-root. UID 10002 distinct from the Squire app container (10001)
+# so the two services have separate identities even on a shared host kernel.
+# /app and /app/models are chowned so HuggingFace cache writes (HF_HOME) and
+# nemoguardrails server bind work without root.
+RUN groupadd --system --gid 10002 nemo \
+ && useradd  --system --uid 10002 --gid nemo --no-create-home --shell /usr/sbin/nologin nemo \
+ && chown -R nemo:nemo /app
+USER nemo
 
 EXPOSE 8000
 
