@@ -1,0 +1,39 @@
+---
+# Agent Card verify-on-PR gate.
+#
+# On any PR that touches .agents/**, this workflow runs cosign verify-blob
+# against every Agent Card's sibling .sigstore.json bundle, with the
+# Fulcio certificate identity pinned to agent-signing.yml on refs/heads/main.
+# PRs introducing unsigned or wrongly-signed cards fail this gate.
+#
+# Both workflows pin the SAME sigstore/cosign-installer SHA so the toolchain
+# stays consistent between signer and verifier.
+
+name: agent-verify
+
+on:
+  pull_request:
+    paths:
+      - '.agents/**'
+
+permissions:
+  contents: read
+  id-token: write   # some cosign-installer versions probe OIDC even on verify
+
+jobs:
+  verify-cards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Cosign
+        # pinned to v3.7.0 (sigstore/cosign-installer)
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+        with:
+          cosign-release: 'v2.6.0'
+
+      - name: Verify Agent Card signatures
+        run: |
+          bash scripts/grc/verify_agent_signatures.sh
