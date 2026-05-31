@@ -1,0 +1,121 @@
+# 10 canonical alerts for the Squire dual judge eval harness.
+# Each alert is run twice against the live /alert endpoint:
+#   max_iters=0  (critique loop disabled, control)
+#   max_iters=3  (critique loop enabled, treatment)
+# Two judges (Opus 4.7 primary, Sonnet 4.6 secondary) score each candidate pair.
+# Families intentionally span EDR, network, identity, container, application,
+# data, supply chain, IaC, AI, and false positive shapes so any per family
+# regression in critique behavior surfaces in the per case agreement matrix.
+- id: shell_in_db
+  family: container
+  expected_severity: HIGH
+  alert:
+    rule: "Terminal shell in container"
+    output_fields:
+      user_name: root
+      container.image.repository: svc-db
+      proc.cmdline: "sh -i"
+    description: "Falco detected an interactive shell in the database container"
+
+- id: lsass_credential_dump
+  family: edr
+  expected_severity: CRITICAL
+  alert:
+    rule: "EDR: lsass.exe memory read"
+    output_fields:
+      host: workstation-104
+      process: "rundll32.exe"
+      target: "lsass.exe"
+      access: "PROCESS_VM_READ"
+    description: "EDR observed a process reading lsass memory"
+
+- id: outbound_to_unknown_asn
+  family: network
+  expected_severity: HIGH
+  alert:
+    rule: "Egress to unknown ASN"
+    output_fields:
+      src_container: svc-n8n
+      dst_ip: "203.0.113.42"
+      dst_asn: "AS200000"
+      bytes: 1500000
+    description: "Workflow engine sustained outbound traffic to an unfamiliar destination"
+
+- id: failed_logins_then_success
+  family: identity
+  expected_severity: HIGH
+  alert:
+    rule: "Auth anomaly: failed logins followed by success"
+    output_fields:
+      account: "kc-admin"
+      failed_count: 28
+      success_at: "2026-04-24T13:14:08Z"
+      src_ip: "198.51.100.7"
+    description: "Identity provider shows brute force pattern then a success"
+
+- id: suspicious_role_attached
+  family: cloud_iam
+  expected_severity: HIGH
+  alert:
+    rule: "IAM: privileged role attached to new principal"
+    output_fields:
+      role: "OrganizationAdministrator"
+      principal: "user/intern-2026-04"
+      attached_by: "user/build-bot"
+    description: "Sensitive role attached outside of change management"
+
+- id: pii_in_log_pipeline
+  family: data
+  expected_severity: HIGH
+  alert:
+    rule: "Suspected PII in log stream"
+    output_fields:
+      stream: "app/payments"
+      sample: "ssn pattern detected"
+      retention_days: 90
+    description: "Log pipeline shows what looks like PII; verify and contain"
+
+- id: malicious_pip_dep
+  family: supply_chain
+  expected_severity: CRITICAL
+  alert:
+    rule: "Trivy: malicious package detected"
+    output_fields:
+      package: "requests-secure"
+      version: "1.0.4"
+      cve: "CVE-2026-12345"
+      project: "svc-squire"
+    description: "Build pulled a typosquatted dependency"
+
+- id: terraform_drift_security_group
+  family: iac
+  expected_severity: MED
+  alert:
+    rule: "Terraform drift: ingress 0.0.0.0/0"
+    output_fields:
+      resource: "aws_security_group.demo_sg"
+      drift_type: "ingress_added"
+      ports: "22, 3389"
+    description: "Drift opened broad inbound access on a security group"
+
+- id: prompt_injection_attempt
+  family: ai
+  expected_severity: HIGH
+  alert:
+    rule: "Squire input rail: prompt injection signature"
+    output_fields:
+      rail_name: "input_rail"
+      reason_code: "JAILBREAK_PATTERN"
+      sample_excerpt: "ignore previous instructions"
+    description: "Guardrail rejected a probable injection attempt"
+
+- id: noisy_neighbor_false_positive
+  family: false_positive
+  expected_severity: LOW
+  alert:
+    rule: "Datadog: container CPU spike"
+    output_fields:
+      container: svc-langfuse-worker
+      cpu_pct: 120
+      duration_s: 14
+    description: "Brief CPU spike within normal seasonal pattern; expected to be LOW"
