@@ -36,8 +36,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Anthropic SDK
-        run: pip install --quiet anthropic
+      - name: Install Anthropic SDK and requests
+        run: pip install --quiet anthropic requests
       - name: Budget guard
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
