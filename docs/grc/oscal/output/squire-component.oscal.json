@@ -1,0 +1,366 @@
+{
+  "component-definition": {
+    "uuid": "8e5336e5-358a-527e-a4ea-c20fadceb180",
+    "metadata": {
+      "title": "Squire Component Definition",
+      "last-modified": "2026-05-31T09:49:34Z",
+      "version": "1.0.0",
+      "oscal-version": "1.1.3",
+      "parties": [
+        {
+          "uuid": "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0",
+          "type": "organization",
+          "name": "Organization Security Engineering",
+          "short-name": "OrgSecEng"
+        }
+      ],
+      "roles": [
+        {
+          "id": "system-owner",
+          "title": "System Owner",
+          "description": "Operator and owner of the Squire autonomous SOC analyst."
+        },
+        {
+          "id": "security-engineer",
+          "title": "Security Engineer",
+          "description": "Authority over rail configuration, threat model, and red team cadence."
+        }
+      ],
+      "responsible-parties": [
+        {
+          "role-id": "system-owner",
+          "party-uuids": [
+            "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0"
+          ]
+        },
+        {
+          "role-id": "security-engineer",
+          "party-uuids": [
+            "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0"
+          ]
+        }
+      ]
+    },
+    "components": [
+      {
+        "uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+        "type": "service",
+        "title": "svc-squire",
+        "description": "FastAPI plus LangGraph runtime, seven nodes. Alerts arrive at POST /alert, the graph classifies severity, retrieves chunks, enriches with Tavily, investigates with hypotheses, drafts a report, critiques the draft, and routes a recommendation.",
+        "props": [
+          {
+            "name": "version",
+            "value": "0.17.0",
+            "ns": "https://example-ops.com/ns/oscal"
+          },
+          {
+            "name": "image",
+            "value": "ghcr.io/organization/svc-squire:0.17.0",
+            "ns": "https://example-ops.com/ns/oscal"
+          }
+        ],
+        "responsible-roles": [
+          {
+            "role-id": "system-owner",
+            "party-uuids": [
+              "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0"
+            ]
+          }
+        ],
+        "control-implementations": [
+          {
+            "uuid": "60b93924-9543-5df1-b0de-636167328913",
+            "source": "#nist-800-53-rev5",
+            "description": "Squire control implementations against NIST 800-53 Rev 5.",
+            "implemented-requirements": [
+              {
+                "uuid": "828d94d9-3ed4-5825-99be-19231c8092b6",
+                "control-id": "ac-2",
+                "description": "System Owner credentials are scoped to Doppler config 'prd'. Squire reads secrets at container start via doppler run. No user accounts exist inside the application itself."
+              },
+              {
+                "uuid": "088bb11a-d3b7-58cc-a338-7cba06cc49d8",
+                "control-id": "ac-3",
+                "description": "POST /alert requires header x-squire-token validated against the Doppler secret SQUIRE_INGEST_TOKEN. Missing or mismatched token returns HTTP 401."
+              },
+              {
+                "uuid": "0deb0135-e4be-5960-ab7f-022c8a1dd5d2",
+                "control-id": "ac-4",
+                "description": "Three docker networks isolate traffic: net-ai (LLM path), net-core (database), net-monitoring (telemetry). svc-squire joins net-ai and net-core only."
+              },
+              {
+                "uuid": "6164522b-1d69-5ab9-a479-c0ceb25c9034",
+                "control-id": "ac-6",
+                "description": "Container runs as USER 10001:10001, read_only filesystem, tmpfs for /tmp. No CAP_* added. no-new-privileges set. Recommend only mode for actions."
+              },
+              {
+                "uuid": "31415976-1cbc-598e-a8df-98fa86b7f865",
+                "control-id": "ac-17",
+                "description": "Remote administration goes through the Cloudflare zero trust tunnel or SSH on the alpha-node host. Application does not listen on the public internet."
+              },
+              {
+                "uuid": "004d8af4-0271-5c30-8b71-f307ac889973",
+                "control-id": "au-2",
+                "description": "Four audit event types: every /alert call emits a Langfuse trace, every pre-graph block writes a row to ir_pregraph_blocks, every recommend only rewrite writes to ir_sanitization_events, every replay writes to ir_replay_events."
+              },
+              {
+                "uuid": "416ac874-b6dd-5cd1-9580-113374c88402",
+                "control-id": "au-3",
+                "description": "Audit records include timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms."
+              },
+              {
+                "uuid": "5666a6eb-917c-54ff-987e-5dd5cfb2c49a",
+                "control-id": "au-6",
+                "description": "Daily automated review queries Langfuse for traces with rail_triggered=true and posts a summary to the operator chat. Weekly human review of red team regression runs."
+              },
+              {
+                "uuid": "cfe492c3-ebbe-5323-8584-b78a8f9f42cd",
+                "control-id": "au-9",
+                "description": "Langfuse writes are append only from the worker perspective. The Postgres role used for audit storage has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly pg_dump to object storage with 14 day retention."
+              },
+              {
+                "uuid": "a2b163e8-8445-5b46-b807-75dd907e784f",
+                "control-id": "au-12",
+                "description": "Audit generation is immutable at the code path. Every graph node is instrumented with the langfuse observe decorator. Removing the decorator breaks CI through tests/test_trace_coverage.py."
+              },
+              {
+                "uuid": "2ef26501-3abf-5505-bee2-06d0c7356b8f",
+                "control-id": "cm-2",
+                "description": "Baseline is the docker compose plus Dockerfile plus pinned requirements (107 deps). Baseline is checked into git and tagged per release."
+              },
+              {
+                "uuid": "9c2a98c7-d81f-5e55-a12a-7b8242612ec4",
+                "control-id": "cm-3",
+                "description": "Changes flow through GitHub pull requests. Pre-commit hooks run ruff, mypy, and a redteam pytest subset. CI runs the full test suite plus Trivy on the built image."
+              },
+              {
+                "uuid": "9cb66baa-1f9f-5343-92dc-5299e22e0f0b",
+                "control-id": "cm-6",
+                "description": "Configuration is split between version controlled files (Dockerfile, compose, rails, actions allow list) and Doppler managed secrets. No runtime configuration writes exist."
+              },
+              {
+                "uuid": "75bdfe2b-8abc-5501-9235-a8106116079a",
+                "control-id": "cm-7",
+                "description": "Container runs only the FastAPI process plus a healthcheck. No shell, no package manager, no extra binaries. pip install runs with no-cache-dir and verified pin manifests."
+              },
+              {
+                "uuid": "3cf1917f-fb87-53d0-a867-a17ba773e619",
+                "control-id": "cm-8",
+                "description": "Component inventory is produced as an SPDX JSON SBOM by syft on every image build via the security CI workflow. The artifact is uploaded to the GitHub Actions run with 90 day retention."
+              },
+              {
+                "uuid": "58975957-ed13-5c56-bbe1-b2dd024a2623",
+                "control-id": "ia-2",
+                "description": "Machine to machine only. No human users authenticate to Squire. Every inbound call presents x-squire-token."
+              },
+              {
+                "uuid": "4b8f6fb8-a78c-5794-982e-2de49b8c7329",
+                "control-id": "ia-5",
+                "description": "Tokens rotate via Doppler. Quarterly cadence. Old tokens revoked atomically by updating Doppler and recreating the container."
+              },
+              {
+                "uuid": "6d380201-f139-5ede-be1c-cf0d3c93810f",
+                "control-id": "ir-4",
+                "description": "Squire is itself an incident handling tool. Incidents against Squire (rail bypass, prompt injection success) are captured in the red team results and tracked as POA&M entries."
+              },
+              {
+                "uuid": "7ac6f876-53de-5bf0-9265-26c7f14397b1",
+                "control-id": "ir-5",
+                "description": "Every /alert call is monitored through Langfuse. Latency p95 budget is 45 seconds. Cost budget per call is 0.75 USD. Violations fire a Datadog monitor."
+              },
+              {
+                "uuid": "63681b01-ab9f-59f2-b465-1f7d9a2cdb65",
+                "control-id": "ir-6",
+                "description": "Rail triggers and pre-graph blocks route to the operator chat within 30 seconds via the event handler path."
+              },
+              {
+                "uuid": "6a599150-ae1e-5b99-87f2-786789781090",
+                "control-id": "ra-3",
+                "description": "Risk assessment for Squire is documented in SQUIRE_AI_RISK_ASSESSMENT.md covering ten agent specific risks with heat map and treatment plan."
+              },
+              {
+                "uuid": "b68fda69-be91-5795-ba86-61073e004c7c",
+                "control-id": "ra-5",
+                "description": "Trivy scans run on every svc-squire image build. Critical CVEs fail the CI pipeline. A separate nightly Trivy pass tracks drift."
+              },
+              {
+                "uuid": "f1c7858f-73fa-5045-88fa-f92d9b99cc71",
+                "control-id": "ra-9",
+                "description": "Supply chain risk is bounded: only python:3.11-slim base, all Python deps pinned, pip-audit in CI, signature verification on the final image via cosign."
+              },
+              {
+                "uuid": "b8828533-642c-5f0b-af28-bd4e51f4baa9",
+                "control-id": "sa-8",
+                "description": "Secure design principles applied: fail closed, defense in depth (pre-graph regex plus NeMo rails plus critique validator), least privilege (no remediation capability, recommend only)."
+              },
+              {
+                "uuid": "235a7f78-5b33-5a6b-b3ed-a3a013b2e4dc",
+                "control-id": "sa-11",
+                "description": "Security testing is continuous. Pytest suite has 127 tests including 24 red team regression cases. All passing as of 2026-04-23."
+              },
+              {
+                "uuid": "06a7e6a6-821f-59e1-8d36-31c9d167a5c2",
+                "control-id": "sa-15",
+                "description": "Development tooling is minimal: uv, ruff, mypy, pytest. No proprietary build server."
+              },
+              {
+                "uuid": "0366efe7-bf0f-54c5-92dc-e825aa205f83",
+                "control-id": "sc-7",
+                "description": "Only svc-squire receives external traffic through the Cloudflare tunnel. svc-nemo, Langfuse, and svc-db are on internal networks only."
+              },
+              {
+                "uuid": "d0646189-589f-5f6c-9169-9076f589dea3",
+                "control-id": "sc-8",
+                "description": "All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container."
+              },
+              {
+                "uuid": "dd730e6f-258b-5a62-83b6-6d28ac14e108",
+                "control-id": "sc-12",
+                "description": "Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on demand for the ingest token."
+              },
+              {
+                "uuid": "7c73fec7-c501-5f99-ba2a-17e09f58562f",
+                "control-id": "sc-28",
+                "description": "Data at rest in the ir_* tables is encrypted at the volume layer. Langfuse trace data has the same treatment."
+              },
+              {
+                "uuid": "917134fc-9252-534a-8acc-2d46b5eaf7a9",
+                "control-id": "si-4",
+                "description": "Four independent integrity checks per /alert: pre-graph regex PII scanner, NeMo Colang input rail, NeMo Colang output rail, critique node citation validation."
+              },
+              {
+                "uuid": "4016fa82-7a0e-5278-a416-c172c7fe1aee",
+                "control-id": "si-7",
+                "description": "Structured output validation: the graph returns a Pydantic model. Any schema deviation causes HTTP 500 with reason_code SCHEMA_VIOLATION."
+              },
+              {
+                "uuid": "c4d4cba4-6f30-59f6-9edf-436006abd563",
+                "control-id": "si-10",
+                "description": "Pydantic model on /alert with 64 KiB size cap, required fields, and the pre-graph PII scanner."
+              },
+              {
+                "uuid": "5096a68a-aee1-5cc2-9a6f-c3312b4e9e09",
+                "control-id": "si-12",
+                "description": "Langfuse retains 30 days. Replay events retain indefinitely. PII blocks retain only the blocked reason code, never the raw input."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "uuid": "63e47af1-98b1-5716-b23c-bef9d8c5bc80",
+        "type": "service",
+        "title": "svc-nemo",
+        "description": "NeMo Guardrails sidecar. Hosts input and output rails written in Colang plus a presidio entity detector at threshold 0.85.",
+        "props": [
+          {
+            "name": "version",
+            "value": "0.10.0",
+            "ns": "https://example-ops.com/ns/oscal"
+          }
+        ],
+        "control-implementations": [
+          {
+            "uuid": "9eea6e26-2113-5283-9b1d-b7a97472d507",
+            "source": "#nist-800-53-rev5",
+            "description": "NeMo guardrails controls.",
+            "implemented-requirements": [
+              {
+                "uuid": "ca6149c8-4381-57d1-ae14-a3e5463a8882",
+                "control-id": "si-4",
+                "description": "Input and output Colang rails plus presidio detector."
+              },
+              {
+                "uuid": "3ebe5566-f523-5ac1-94cb-10bf52a6cccc",
+                "control-id": "si-7",
+                "description": "Output schema validation by rail policy."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "uuid": "34de695f-251f-5991-aa18-13b59e0601ef",
+        "type": "service",
+        "title": "svc-langfuse",
+        "description": "Self hosted Langfuse stack with web, worker, redis, clickhouse. Provides trace storage, redaction, and dashboards.",
+        "control-implementations": [
+          {
+            "uuid": "d0c33607-1428-55ec-b714-a55961c19225",
+            "source": "#nist-800-53-rev5",
+            "description": "Audit and retention controls.",
+            "implemented-requirements": [
+              {
+                "uuid": "50ab9ddc-a692-5527-8c0a-42474f6dc56f",
+                "control-id": "au-2",
+                "description": "Trace ingestion, decoration, and retention."
+              },
+              {
+                "uuid": "da79bc03-ea30-5686-a14a-a1d526b6efaa",
+                "control-id": "au-9",
+                "description": "Append only writes plus revoke update on service role."
+              },
+              {
+                "uuid": "9f1a3b1b-764d-5171-8ddc-99e3aece7624",
+                "control-id": "si-12",
+                "description": "Thirty day retention with field level redaction."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "uuid": "b15349c5-26af-5fd6-9b83-0b99082ecbdc",
+        "type": "service",
+        "title": "svc-db",
+        "description": "PostgreSQL 16 with pgvector. Holds ir_chunks, ir_investigations, ir_evidence, and ir_citations tables. Embedding column is vector(1024) per ADR 001.",
+        "control-implementations": [
+          {
+            "uuid": "71fdc6e5-863c-56a6-b44d-a1d69f8ece7b",
+            "source": "#nist-800-53-rev5",
+            "description": "Data at rest and access controls for the corpus store.",
+            "implemented-requirements": [
+              {
+                "uuid": "471d265b-e967-52a1-9db9-3fa8a439be3d",
+                "control-id": "ac-3",
+                "description": "Password authentication; role scoped grants; no external port."
+              },
+              {
+                "uuid": "cc1c6fdc-b8b1-54da-ae0b-72f1b43c634c",
+                "control-id": "sc-28",
+                "description": "Encryption at rest at the volume layer; backup to encrypted object storage."
+              },
+              {
+                "uuid": "956aea71-ebd0-51d8-bf42-b31a70cd969e",
+                "control-id": "cm-8",
+                "description": "Schema and migrations checked into git; alembic enforced order."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "back-matter": {
+      "resources": [
+        {
+          "uuid": "c982a238-8e79-52f1-ada7-7bff83cd79c5",
+          "title": "Squire threat model",
+          "rlinks": [
+            {
+              "href": "../../SQUIRE_THREAT_MODEL.md"
+            }
+          ]
+        },
+        {
+          "uuid": "c11107fd-614d-57b7-b784-89b10d41c6e3",
+          "title": "Guardrails configuration",
+          "rlinks": [
+            {
+              "href": "../../GUARDRAILS_CONFIGURATION.md"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

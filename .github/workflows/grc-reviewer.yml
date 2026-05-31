@@ -36,18 +36,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Anthropic SDK
-        run: pip install --quiet anthropic
+      - name: Install Anthropic SDK and requests
+        run: pip install --quiet anthropic requests
       - name: Budget guard
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DAILY_LIMIT_USD: "1.00"
+          PYTHONPATH: ${{ github.workspace }}
         run: python3 scripts/grc/budget_guard.py
       - name: Run GRC reviewer
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          PYTHONPATH: ${{ github.workspace }}
         run: python3 scripts/grc/grc_reviewer.py ${{ github.event.pull_request.number || inputs.pr_number }}
 
 # NOTE: this workflow uses an inclusive path filter only. Do NOT add the
