@@ -12,6 +12,15 @@ Add to ~/Library/Application Support/Claude/claude_desktop_config.json:
     }
 
 Restart Claude Desktop to load.
+
+Phase 20 Plan 20-06 hardening (see docs/grc/OWASP_MCP_TOP10_AUDIT.md):
+- MCP01 (Token Mismanagement and Secret Exposure): _SanitizingFilter on the
+  root logger runs every log record through sanitize_output() before stderr
+  emission, closing the secret-exposure gap on the log path.
+- MCP08 (Lack of Audit and Telemetry): _audit_log(tool_name) decorator
+  appends one JSON line per tool call to AUDIT_LOG_PATH (env-configurable,
+  defaults to /tmp/grc_mcp_audit.jsonl). args_hash is logged, never raw
+  args, so the audit record cannot re-introduce the MCP01 issue.
 """
 
 # Wrap surface (Plan 19-03):
@@ -32,9 +41,13 @@ Restart Claude Desktop to load.
 
 from __future__ import annotations
 
+import hashlib as _hashlib
+import json as _json
 import logging
+import os
 import re
 import sys
+import time as _time
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 log = logging.getLogger("grc_corpus")
@@ -46,6 +59,90 @@ from typing import Any, Dict, List, Optional
 from mcp.server.fastmcp import FastMCP
 
 from scripts.grc.sanitize_output import sanitize  # final defense-in-depth wrap (owned by Plan 19-02)
+from scripts.grc.sanitize_output import sanitize as _sanitize_for_log  # MCP01 log-path filter alias
+
+
+class _SanitizingFilter(logging.Filter):
+    """Apply project sanitization patterns to every log record's message.
+
+    Closes OWASP MCP Top 10 2025 beta v0.1 MCP01 (Token Mismanagement and
+    Secret Exposure) gap identified in docs/grc/OWASP_MCP_TOP10_AUDIT.md.
+    Runs after logging.basicConfig so every record emitted to stderr is
+    swept through sanitize_output() before it leaves the process.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        try:
+            if isinstance(record.msg, str):
+                record.msg = _sanitize_for_log(record.msg)
+            if record.args:
+                record.args = tuple(
+                    _sanitize_for_log(str(a)) if isinstance(a, str) else a
+                    for a in record.args
+                )
+        except Exception:
+            # never let log sanitization crash the server
+            pass
+        return True
+
+
+_root_logger = logging.getLogger()
+if not any(isinstance(f, _SanitizingFilter) for f in _root_logger.filters):
+    _root_logger.addFilter(_SanitizingFilter())
+
+
+# MCP08 (Lack of Audit and Telemetry) structured per-tool-call audit log.
+# Env-configurable path so CI / production can redirect; defaults to /tmp.
+AUDIT_LOG_PATH = os.getenv("GRC_MCP_AUDIT_LOG", "/tmp/grc_mcp_audit.jsonl")
+
+
+def _audit_log(tool_name: str):
+    """Decorator that appends one JSON line per tool call.
+
+    Record shape: ts, tool, args_hash, success, duration_ms.
+
+    Closes OWASP MCP Top 10 2025 beta v0.1 MCP08 (Lack of Audit and
+    Telemetry) gap identified in docs/grc/OWASP_MCP_TOP10_AUDIT.md.
+    """
+
+    def deco(fn):
+        def wrapper(*args, **kwargs):
+            t0 = _time.time()
+            # args_hash is logged, NOT raw args; this prevents PII / secret leakage
+            # in the audit log itself, which would re-introduce the MCP01 issue
+            # inside the MCP08 fix.
+            args_repr = _json.dumps(
+                {"args": list(args), "kwargs": kwargs},
+                default=str,
+                sort_keys=True,
+            )
+            args_hash = _hashlib.sha256(args_repr.encode("utf-8")).hexdigest()[:16]
+            success = True
+            try:
+                return fn(*args, **kwargs)
+            except Exception:
+                success = False
+                raise
+            finally:
+                rec = {
+                    "ts": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+                    "tool": tool_name,
+                    "args_hash": args_hash,
+                    "success": success,
+                    "duration_ms": int((_time.time() - t0) * 1000),
+                }
+                try:
+                    with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as fh:
+                        fh.write(_json.dumps(rec) + "\n")
+                except Exception:
+                    # audit log write failure must not break the tool call
+                    pass
+
+        wrapper.__name__ = fn.__name__
+        wrapper.__doc__ = fn.__doc__
+        return wrapper
+
+    return deco
 
 
 mcp = FastMCP("grc_corpus")
@@ -113,6 +210,7 @@ def _read_frontmatter(p: Path) -> Dict[str, Any]:
 
 
 @mcp.tool(annotations={"readOnlyHint": True, "idempotentHint": True})
+@_audit_log("list_docs")
 def list_docs() -> List[dict]:
     """List all GRC corpus markdown documents with title and classification."""
     try:
@@ -149,6 +247,7 @@ def list_docs() -> List[dict]:
 
 
 @mcp.tool(annotations={"readOnlyHint": True, "idempotentHint": True})
+@_audit_log("read_doc")
 def read_doc(filename: str) -> str:
     """Read a single GRC document by filename. Path-traversal and symlink guarded."""
     try:
@@ -179,6 +278,7 @@ def read_doc(filename: str) -> str:
 
 
 @mcp.tool(annotations={"readOnlyHint": True})
+@_audit_log("search_corpus")
 def search_corpus(query: str, limit: int = 10) -> List[dict]:
     """Substring/regex search across the GRC corpus; returns up to `limit` snippets (cap 50)."""
     try:
@@ -232,6 +332,7 @@ def search_corpus(query: str, limit: int = 10) -> List[dict]:
 
 
 @mcp.tool(annotations={"readOnlyHint": True})
+@_audit_log("get_poam")
 def get_poam(poam_id: str) -> Optional[dict]:
     """Look up a POA&M row by short ID (e.g. P17-15). Returns the parsed table row."""
     try:
@@ -263,6 +364,7 @@ def get_poam(poam_id: str) -> Optional[dict]:
 
 
 @mcp.tool(annotations={"readOnlyHint": True})
+@_audit_log("get_threat_model_entry")
 def get_threat_model_entry(threat_id: str) -> Optional[str]:
     """Look up a threat-model section by id (e.g. T0051, ATC-01) across SQUIRE_THREAT_MODEL.md and AI_THREAT_CATALOG.md."""
     try:
