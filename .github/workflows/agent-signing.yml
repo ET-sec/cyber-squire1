@@ -1,0 +1,97 @@
+---
+# Agent Card signing workflow.
+#
+# On any push to main that touches .agents/*.card.json, this workflow signs
+# every card with cosign sign-blob using keyless OIDC and commits the
+# resulting .sigstore.json bundles back to main.
+#
+# Trust model: keyless OIDC via Sigstore. There is no long-lived key. Every
+# signature ties to this workflow run on this branch via a Fulcio-issued
+# short-lived certificate. See docs/grc/AGENT_SIGNING.md.
+#
+# Kill switch: set repo Variable AGENT_SIGNING_DISABLED=true to skip the job
+# without touching code.
+
+name: agent-signing
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.agents/**.card.json'
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write   # required for keyless OIDC
+  contents: write   # required to commit .sigstore.json bundles back to main
+
+concurrency:
+  group: agent-signing-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sign-cards:
+    if: vars.AGENT_SIGNING_DISABLED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Install Cosign
+        # pinned to v3.7.0 (sigstore/cosign-installer)
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+        with:
+          cosign-release: 'v2.6.0'
+
+      - name: Validate cards before signing
+        run: |
+          python3 scripts/grc/validate_agent_cards.py
+
+      - name: Sign each Agent Card with cosign sign-blob
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          signed_count=0
+          for f in .agents/*.card.json; do
+            echo "Signing ${f}"
+            cosign sign-blob \
+              --bundle "${f}.sigstore.json" \
+              --new-bundle-format \
+              --yes \
+              "${f}"
+            signed_count=$((signed_count + 1))
+          done
+          echo "Signed ${signed_count} card(s)."
+          echo "SIGNED_COUNT=${signed_count}" >> "${GITHUB_ENV}"
+
+      - name: Commit bundles back to main
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .agents/*.sigstore.json
+          if git diff --cached --quiet; then
+            echo "No new or changed bundles to commit."
+            exit 0
+          fi
+          git commit -m 'chore(agent-signing): sign agent cards [skip ci]'
+          git push origin HEAD:main
+
+      - name: Job summary
+        if: always()
+        run: |
+          set -euo pipefail
+          {
+            echo "## Agent Card signing summary"
+            echo ""
+            echo "| Card | Bundle |"
+            echo "| ---- | ------ |"
+            for f in .agents/*.card.json; do
+              bundle="${f}.sigstore.json"
+              echo "| ${f} | ${bundle} |"
+            done
+          } >> "${GITHUB_STEP_SUMMARY}"
