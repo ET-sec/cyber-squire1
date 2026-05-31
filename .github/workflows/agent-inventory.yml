@@ -1,0 +1,122 @@
+name: Agent Inventory Scan
+
+# Daily shadow-agent discovery + per-PR drift gate. Implements Phase 20
+# Plan 04: scripts/grc/inventory_scan.py walks 6 sources (docker_compose,
+# n8n_workflows, mcp_servers, claude_skills, openclaw_skills, python_grep),
+# diffs findings against .agents/registry.yaml, and flags shadow agents.
+
+on:
+  schedule:
+    # Daily 14:00 UTC = 10:00 ET morning hand-off window.
+    - cron: '0 14 * * *'
+  pull_request:
+    # Path filter covers every surface the scanner reads. The MCP server
+    # filename is scripts/grc/grc_mcp_server.py (RESEARCH Topic 1 confirmed
+    # the correct filename). Agent_Squire/** and builds/squire/** are listed
+    # because the python_grep plugin scans those subtrees for LLM
+    # constructor calls.
+    paths:
+      - '.agents/**'
+      - 'COREDIRECTIVE_ENGINE/docker-compose.yaml'
+      - 'Agent_Squire/**'
+      - 'builds/squire/**'
+      - 'scripts/grc/grc_mcp_server.py'
+      - 'scripts/grc/inventory_scan.py'
+      - 'scripts/grc/inventory_allow_list.yaml'
+      - 'scripts/grc/inventory_sources/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  scan:
+    name: Inventory scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        # actions/checkout v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Python
+        # actions/setup-python v5.6.0
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema
+
+      - name: Generate JSON report
+        run: |
+          python3 scripts/grc/inventory_scan.py --format json > inventory-report.json
+          echo "--- JSON report head ---"
+          head -40 inventory-report.json
+
+      - name: Human-readable report (log)
+        run: python3 scripts/grc/inventory_scan.py --format human
+
+      - name: Fail PR on shadow agents
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/grc/inventory_scan.py --fail-on-shadow
+
+      - name: Upload scan artifact
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: inventory-report
+          path: inventory-report.json
+          retention-days: 14
+
+      - name: Summarise shadow agents
+        id: summary
+        run: |
+          shadow=$(python3 -c "import json; d=json.load(open('inventory-report.json')); print(','.join(d.get('shadow') or []))")
+          echo "shadow=${shadow}" >> "$GITHUB_OUTPUT"
+          if [ -n "${shadow}" ]; then
+            echo "shadow_present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "shadow_present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on PR when shadow agents present
+        if: |
+          github.event_name == 'pull_request'
+          && steps.summary.outputs.shadow_present == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHADOW: ${{ steps.summary.outputs.shadow }}
+        run: |
+          body=$(cat <<EOF
+          Shadow agents detected by Agent Inventory Scan:
+
+          ${SHADOW}
+
+          Resolve by either:
+          1. Adding each agent to .agents/registry.yaml (preferred when the
+             discovery represents a genuine LLM-calling identity)
+          2. Adding an entry to scripts/grc/inventory_allow_list.yaml with a
+             documented reason (only for infrastructure or tools that are
+             discovered but are not first-class agents)
+
+          See .agents/README.md "Adding a New Agent" for workflow.
+          EOF
+          )
+          gh pr comment "${{ github.event.pull_request.number }}" --body "$body"
+
+      - name: Open tracking issue on scheduled shadow detection
+        if: |
+          github.event_name == 'schedule'
+          && steps.summary.outputs.shadow_present == 'true'
+          && vars.AGENT_INVENTORY_AUTO_ISSUE != 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          today=$(date -u +%F)
+          gh issue create \
+            --title "Shadow agents detected ${today}" \
+            --body "$(cat inventory-report.json)" \
+            --label shadow-agent
