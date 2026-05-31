@@ -1,0 +1,949 @@
+{
+  "system-security-plan": {
+    "uuid": "aa2dd99e-9d09-57e1-9dd3-c1640982fd01",
+    "metadata": {
+      "title": "Squire Autonomous SOC Analyst System Security Plan",
+      "last-modified": "2026-05-31T09:49:34Z",
+      "version": "1.0.0",
+      "oscal-version": "1.1.3",
+      "parties": [
+        {
+          "uuid": "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0",
+          "type": "organization",
+          "name": "Organization Security Engineering",
+          "short-name": "OrgSecEng"
+        }
+      ],
+      "roles": [
+        {
+          "id": "system-owner",
+          "title": "System Owner",
+          "description": "Operator and owner of the Squire autonomous SOC analyst."
+        },
+        {
+          "id": "security-engineer",
+          "title": "Security Engineer",
+          "description": "Authority over rail configuration, threat model, and red team cadence."
+        }
+      ],
+      "responsible-parties": [
+        {
+          "role-id": "system-owner",
+          "party-uuids": [
+            "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0"
+          ]
+        },
+        {
+          "role-id": "security-engineer",
+          "party-uuids": [
+            "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0"
+          ]
+        }
+      ]
+    },
+    "import-profile": {
+      "href": "#nist-800-53-rev5-low-baseline",
+      "remarks": "Profile reference is symbolic; Squire selects controls individually rather than applying a packaged baseline. Future revisions will emit a profile artifact."
+    },
+    "system-characteristics": {
+      "system-ids": [
+        {
+          "identifier-type": "https://ietf.org/rfc/rfc4122",
+          "id": "15a292af-f415-5674-9101-2b3637f02338"
+        }
+      ],
+      "system-name": "Squire Autonomous SOC Analyst",
+      "system-name-short": "svc-squire",
+      "description": "FastAPI plus LangGraph runtime that triages security alerts through seven nodes: classify, retrieve, enrich, investigate, draft, critique, route. NeMo Guardrails sidecar provides input and output rails. Langfuse provides observability. Inference via Anthropic Opus 4.7 and Sonnet 4.6 with Ollama fallback.",
+      "security-sensitivity-level": "low",
+      "system-information": {
+        "information-types": [
+          {
+            "uuid": "aac41991-6476-57ff-84d8-7413c6b1500f",
+            "title": "Security Alerts",
+            "description": "Falco and Datadog alert payloads ingested via the /alert endpoint.",
+            "categorizations": [
+              {
+                "system": "https://doi.org/10.6028/NIST.SP.800-60v2r1",
+                "information-type-ids": [
+                  "C.3.5.4"
+                ]
+              }
+            ],
+            "confidentiality-impact": {
+              "base": "fips-199-low"
+            },
+            "integrity-impact": {
+              "base": "fips-199-moderate"
+            },
+            "availability-impact": {
+              "base": "fips-199-low"
+            }
+          }
+        ]
+      },
+      "security-impact-level": {
+        "security-objective-confidentiality": "fips-199-low",
+        "security-objective-integrity": "fips-199-moderate",
+        "security-objective-availability": "fips-199-low"
+      },
+      "status": {
+        "state": "operational",
+        "remarks": "Phase 17 demo deployment."
+      },
+      "authorization-boundary": {
+        "description": "Boundary: svc-squire FastAPI plus the NeMo sidecar plus the shared pgvector store plus the local Langfuse stack. Cloudflare tunnel bridges public hostname to the container internal port. Anthropic and Tavily egress remain outside the boundary."
+      }
+    },
+    "system-implementation": {
+      "users": [
+        {
+          "uuid": "ab08a3be-56c3-5bb3-b234-ebec0861547f",
+          "title": "System Owner",
+          "role-ids": [
+            "system-owner"
+          ],
+          "authorized-privileges": [
+            {
+              "title": "Read",
+              "functions-performed": [
+                "query traces",
+                "view evidence"
+              ]
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+          "type": "service",
+          "title": "svc-squire",
+          "description": "FastAPI plus LangGraph runtime. Seven node pipeline.",
+          "status": {
+            "state": "operational"
+          },
+          "responsible-roles": [
+            {
+              "role-id": "system-owner",
+              "party-uuids": [
+                "a3ffbeeb-91e4-5de0-872e-51faa2e17ad0"
+              ]
+            }
+          ]
+        },
+        {
+          "uuid": "63e47af1-98b1-5716-b23c-bef9d8c5bc80",
+          "type": "service",
+          "title": "svc-nemo",
+          "description": "NeMo Guardrails sidecar. Colang rails for input and output paths.",
+          "status": {
+            "state": "operational"
+          }
+        },
+        {
+          "uuid": "34de695f-251f-5991-aa18-13b59e0601ef",
+          "type": "service",
+          "title": "svc-langfuse",
+          "description": "Self hosted Langfuse stack: web, worker, redis, clickhouse.",
+          "status": {
+            "state": "operational"
+          }
+        },
+        {
+          "uuid": "b15349c5-26af-5fd6-9b83-0b99082ecbdc",
+          "type": "service",
+          "title": "svc-db",
+          "description": "PostgreSQL plus pgvector. ir_chunks, ir_investigations, ir_evidence, ir_citations tables.",
+          "status": {
+            "state": "operational"
+          }
+        }
+      ]
+    },
+    "control-implementation": {
+      "description": "Squire selects controls individually from NIST 800-53 Rev 5.",
+      "implemented-requirements": [
+        {
+          "uuid": "e6c62307-b0e6-5d6c-8584-2e9fbfa2fe20",
+          "control-id": "ac-2",
+          "remarks": "Account Management. System Owner credentials are scoped to Doppler config 'prd'. Squire reads secrets at container start via doppler run. No user accounts exist inside the application itself.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "ee15c9ad-bd6a-580b-9f60-a3f9d4255a21",
+              "description": "System Owner credentials are scoped to Doppler config 'prd'. Squire reads secrets at container start via doppler run. No user accounts exist inside the application itself.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "ff2e49ef-22a3-53f3-94eb-00b2512c2296",
+          "control-id": "ac-3",
+          "remarks": "Access Enforcement. POST /alert requires header x-squire-token validated against the Doppler secret SQUIRE_INGEST_TOKEN. Missing or mismatched token returns HTTP 401.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "8c521346-94ab-52a7-aac2-3543bc03da33",
+              "description": "POST /alert requires header x-squire-token validated against the Doppler secret SQUIRE_INGEST_TOKEN. Missing or mismatched token returns HTTP 401.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "61c960b7-a9dd-579f-a1e3-584b2894a326",
+          "control-id": "ac-4",
+          "remarks": "Information Flow Enforcement. Three docker networks isolate traffic: net-ai (LLM path), net-core (database), net-monitoring (telemetry). svc-squire joins net-ai and net-core only.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "0509a96c-6cfa-5bf5-bba1-14b6e915ecb7",
+              "description": "Three docker networks isolate traffic: net-ai (LLM path), net-core (database), net-monitoring (telemetry). svc-squire joins net-ai and net-core only.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "d613a591-e9b5-5435-93cb-b2d21b49997c",
+          "control-id": "ac-6",
+          "remarks": "Least Privilege. Container runs as USER 10001:10001, read_only filesystem, tmpfs for /tmp. No CAP_* added. no-new-privileges set. Recommend only mode for actions.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "05b97ffb-39e3-5411-82c5-d80f51050c9a",
+              "description": "Container runs as USER 10001:10001, read_only filesystem, tmpfs for /tmp. No CAP_* added. no-new-privileges set. Recommend only mode for actions.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "0f4528e8-94a0-5964-a59a-b0394946bb0a",
+          "control-id": "ac-17",
+          "remarks": "Remote Access. Remote administration goes through the Cloudflare zero trust tunnel or SSH on the alpha-node host. Application does not listen on the public internet.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "79860f3d-e5e1-5a06-994f-318ba732462e",
+              "description": "Remote administration goes through the Cloudflare zero trust tunnel or SSH on the alpha-node host. Application does not listen on the public internet.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "218ed410-4181-5468-bf1a-6eeb35a98d02",
+          "control-id": "au-2",
+          "remarks": "Event Logging. Four audit event types: every /alert call emits a Langfuse trace, every pre-graph block writes a row to ir_pregraph_blocks, every recommend only rewrite writes to ir_sanitization_events, every replay writes to ir_replay_events.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "c36b53c4-2bd4-5e1c-902c-b6a3c1962369",
+              "description": "Four audit event types: every /alert call emits a Langfuse trace, every pre-graph block writes a row to ir_pregraph_blocks, every recommend only rewrite writes to ir_sanitization_events, every replay writes to ir_replay_events.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "036cab66-4755-502c-899f-c272d9e22d26",
+          "control-id": "au-3",
+          "remarks": "Content of Audit Records. Audit records include timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "eacdab40-597a-548c-9f86-3aa2e37630f6",
+              "description": "Audit records include timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "4df09346-5efb-5f2b-884b-02c2b15522c6",
+          "control-id": "au-6",
+          "remarks": "Audit Record Review. Daily automated review queries Langfuse for traces with rail_triggered=true and posts a summary to the operator chat. Weekly human review of red team regression runs.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "080d8306-4f90-51e0-bf5a-20707413ba40",
+              "description": "Daily automated review queries Langfuse for traces with rail_triggered=true and posts a summary to the operator chat. Weekly human review of red team regression runs.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "2c6436a6-645e-5d45-9fc2-53f269e9adf3",
+          "control-id": "au-9",
+          "remarks": "Protection of Audit Information. Langfuse writes are append only from the worker perspective. The Postgres role used for audit storage has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly pg_dump to object storage with 14 day retention.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "a7da4821-d152-55a4-9978-0ef9c50a62fe",
+              "description": "Langfuse writes are append only from the worker perspective. The Postgres role used for audit storage has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly pg_dump to object storage with 14 day retention.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "bf1dc8b1-4c85-50a6-a07c-b75366635f91",
+          "control-id": "au-12",
+          "remarks": "Audit Record Generation. Audit generation is immutable at the code path. Every graph node is instrumented with the langfuse observe decorator. Removing the decorator breaks CI through tests/test_trace_coverage.py.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "0be16ea3-6ddf-5fe5-9909-47f50c3d56a2",
+              "description": "Audit generation is immutable at the code path. Every graph node is instrumented with the langfuse observe decorator. Removing the decorator breaks CI through tests/test_trace_coverage.py.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "dbcc050b-cfd4-53a0-8c4c-bc1eb2fc7d1d",
+          "control-id": "cm-2",
+          "remarks": "Baseline Configuration. Baseline is the docker compose plus Dockerfile plus pinned requirements (107 deps). Baseline is checked into git and tagged per release.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "f0d89fe9-d6dc-551c-8b10-45bd12a88efc",
+              "description": "Baseline is the docker compose plus Dockerfile plus pinned requirements (107 deps). Baseline is checked into git and tagged per release.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "70c1ab32-31f0-5da9-9159-3a882bfcf023",
+          "control-id": "cm-3",
+          "remarks": "Configuration Change Control. Changes flow through GitHub pull requests. Pre-commit hooks run ruff, mypy, and a redteam pytest subset. CI runs the full test suite plus Trivy on the built image.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "b779f4fd-3ad4-552d-a33e-40c95dc3d1d3",
+              "description": "Changes flow through GitHub pull requests. Pre-commit hooks run ruff, mypy, and a redteam pytest subset. CI runs the full test suite plus Trivy on the built image.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "f472c18b-c541-5e09-a844-bca268257264",
+          "control-id": "cm-6",
+          "remarks": "Configuration Settings. Configuration is split between version controlled files (Dockerfile, compose, rails, actions allow list) and Doppler managed secrets. No runtime configuration writes exist.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "a3863de4-be50-5d72-a5b3-97d0cc8ffc04",
+              "description": "Configuration is split between version controlled files (Dockerfile, compose, rails, actions allow list) and Doppler managed secrets. No runtime configuration writes exist.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "c7ed61e3-7d07-5cb6-b9fc-56b1c73beb09",
+          "control-id": "cm-7",
+          "remarks": "Least Functionality. Container runs only the FastAPI process plus a healthcheck. No shell, no package manager, no extra binaries. pip install runs with no-cache-dir and verified pin manifests.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "bacc0f40-1ab5-5e63-a464-e05dafb528c8",
+              "description": "Container runs only the FastAPI process plus a healthcheck. No shell, no package manager, no extra binaries. pip install runs with no-cache-dir and verified pin manifests.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "3c0a7a5e-3900-53e9-bb19-f4bba3964c38",
+          "control-id": "cm-8",
+          "remarks": "System Component Inventory. Component inventory is produced as an SPDX JSON SBOM by syft on every image build via the security CI workflow. The artifact is uploaded to the GitHub Actions run with 90 day retention.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "9abf8c61-4905-55cc-b380-f1ab36a91d23",
+              "description": "Component inventory is produced as an SPDX JSON SBOM by syft on every image build via the security CI workflow. The artifact is uploaded to the GitHub Actions run with 90 day retention.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "9293021e-8993-5e12-8033-a7bc1bccbe77",
+          "control-id": "ia-2",
+          "remarks": "Identification and Authentication (Organizational Users). Machine to machine only. No human users authenticate to Squire. Every inbound call presents x-squire-token.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "6ed1f527-1c7f-5c96-960b-89c3686bbb30",
+              "description": "Machine to machine only. No human users authenticate to Squire. Every inbound call presents x-squire-token.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "9295b74f-6e42-50c4-a7bc-2f610c7fa70c",
+          "control-id": "ia-5",
+          "remarks": "Authenticator Management. Tokens rotate via Doppler. Quarterly cadence. Old tokens revoked atomically by updating Doppler and recreating the container.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "5d185474-49a9-5041-b3fc-7a59bdeaf48e",
+              "description": "Tokens rotate via Doppler. Quarterly cadence. Old tokens revoked atomically by updating Doppler and recreating the container.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "9740c519-42bc-5aab-abc4-816135e31dab",
+          "control-id": "ir-4",
+          "remarks": "Incident Handling. Squire is itself an incident handling tool. Incidents against Squire (rail bypass, prompt injection success) are captured in the red team results and tracked as POA&M entries.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "c89623a5-e9fe-50ef-bc6a-e58626fe977d",
+              "description": "Squire is itself an incident handling tool. Incidents against Squire (rail bypass, prompt injection success) are captured in the red team results and tracked as POA&M entries.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "41dce826-e9f3-50a6-aa9c-b00ecf43cdb1",
+          "control-id": "ir-5",
+          "remarks": "Incident Monitoring. Every /alert call is monitored through Langfuse. Latency p95 budget is 45 seconds. Cost budget per call is 0.75 USD. Violations fire a Datadog monitor.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "ffb79880-05e6-505d-ac86-47e1635510ca",
+              "description": "Every /alert call is monitored through Langfuse. Latency p95 budget is 45 seconds. Cost budget per call is 0.75 USD. Violations fire a Datadog monitor.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "fe4ee187-cddd-5a2b-88b4-9b1f080c6fd4",
+          "control-id": "ir-6",
+          "remarks": "Incident Reporting. Rail triggers and pre-graph blocks route to the operator chat within 30 seconds via the event handler path.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "cdc2e193-f88b-5d71-b205-16985f6c0fd2",
+              "description": "Rail triggers and pre-graph blocks route to the operator chat within 30 seconds via the event handler path.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "b92dd587-bc55-598e-9130-4200542156df",
+          "control-id": "ra-3",
+          "remarks": "Risk Assessment. Risk assessment for Squire is documented in SQUIRE_AI_RISK_ASSESSMENT.md covering ten agent specific risks with heat map and treatment plan.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "6b84755f-6a69-5067-800f-4a53bb75bee9",
+              "description": "Risk assessment for Squire is documented in SQUIRE_AI_RISK_ASSESSMENT.md covering ten agent specific risks with heat map and treatment plan.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "87b29d4d-19e3-5429-9400-eac2f0849a11",
+          "control-id": "ra-5",
+          "remarks": "Vulnerability Monitoring and Scanning. Trivy scans run on every svc-squire image build. Critical CVEs fail the CI pipeline. A separate nightly Trivy pass tracks drift.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "8b202ad2-f268-5a25-8b5e-e9f801ad6660",
+              "description": "Trivy scans run on every svc-squire image build. Critical CVEs fail the CI pipeline. A separate nightly Trivy pass tracks drift.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "c5e1f732-f424-57f5-b2f0-a22179f8a922",
+          "control-id": "ra-9",
+          "remarks": "Criticality Analysis. Supply chain risk is bounded: only python:3.11-slim base, all Python deps pinned, pip-audit in CI, signature verification on the final image via cosign.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "edb1b3a6-6a21-50ef-b477-730274c31509",
+              "description": "Supply chain risk is bounded: only python:3.11-slim base, all Python deps pinned, pip-audit in CI, signature verification on the final image via cosign.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "7524806f-88ad-5ef4-b378-30063a1f1c95",
+          "control-id": "sa-8",
+          "remarks": "Security and Privacy Engineering Principles. Secure design principles applied: fail closed, defense in depth (pre-graph regex plus NeMo rails plus critique validator), least privilege (no remediation capability, recommend only).",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "2ccca7ad-8449-5165-8362-4ce01ad3144b",
+              "description": "Secure design principles applied: fail closed, defense in depth (pre-graph regex plus NeMo rails plus critique validator), least privilege (no remediation capability, recommend only).",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "e508fd87-079e-529c-adba-a325e71f228d",
+          "control-id": "sa-11",
+          "remarks": "Developer Testing and Evaluation. Security testing is continuous. Pytest suite has 127 tests including 24 red team regression cases. All passing as of 2026-04-23.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "0f22b42c-4678-5e98-bd7b-f4afbeda4203",
+              "description": "Security testing is continuous. Pytest suite has 127 tests including 24 red team regression cases. All passing as of 2026-04-23.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "9b5837d5-f3b1-55e9-9b96-09f4f23295cf",
+          "control-id": "sa-15",
+          "remarks": "Development Process, Standards, and Tools. Development tooling is minimal: uv, ruff, mypy, pytest. No proprietary build server.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "17c54f4c-b443-50dc-9429-ba6ec7bfdc25",
+              "description": "Development tooling is minimal: uv, ruff, mypy, pytest. No proprietary build server.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "c8a072e7-385b-5d1f-a910-ea6ba5995298",
+          "control-id": "sc-7",
+          "remarks": "Boundary Protection. Only svc-squire receives external traffic through the Cloudflare tunnel. svc-nemo, Langfuse, and svc-db are on internal networks only.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "495411b4-f36e-5071-899c-956b28eea1aa",
+              "description": "Only svc-squire receives external traffic through the Cloudflare tunnel. svc-nemo, Langfuse, and svc-db are on internal networks only.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "605d0581-9d05-5f22-ac09-713cd736f7c0",
+          "control-id": "sc-8",
+          "remarks": "Transmission Confidentiality and Integrity. All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "c59363eb-c465-551c-9ca0-55715a54a0da",
+              "description": "All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "7d666e7a-7705-5361-91b9-b06de76b0a22",
+          "control-id": "sc-12",
+          "remarks": "Cryptographic Key Establishment and Management. Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on demand for the ingest token.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "bddc7cce-3b49-521e-887e-e63c4ba19ee4",
+              "description": "Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on demand for the ingest token.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "c8c8fa53-d4f4-5a8e-9aeb-508f2a73b6ba",
+          "control-id": "sc-28",
+          "remarks": "Protection of Information at Rest. Data at rest in the ir_* tables is encrypted at the volume layer. Langfuse trace data has the same treatment.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "a491d55f-f6cf-5dd0-90a6-2d89eea5a8eb",
+              "description": "Data at rest in the ir_* tables is encrypted at the volume layer. Langfuse trace data has the same treatment.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "9878058d-73ac-5b9e-b715-e0b893de036e",
+          "control-id": "si-4",
+          "remarks": "System Monitoring. Four independent integrity checks per /alert: pre-graph regex PII scanner, NeMo Colang input rail, NeMo Colang output rail, critique node citation validation.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "09db4bc1-4f73-5cf5-b294-d1ce76d979e9",
+              "description": "Four independent integrity checks per /alert: pre-graph regex PII scanner, NeMo Colang input rail, NeMo Colang output rail, critique node citation validation.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "2b2ec27e-be3a-5f62-b7a4-2e5a1c888909",
+          "control-id": "si-7",
+          "remarks": "Software, Firmware, and Information Integrity. Structured output validation: the graph returns a Pydantic model. Any schema deviation causes HTTP 500 with reason_code SCHEMA_VIOLATION.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "3eb37f64-f70c-5a69-9b14-142071e55442",
+              "description": "Structured output validation: the graph returns a Pydantic model. Any schema deviation causes HTTP 500 with reason_code SCHEMA_VIOLATION.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "ea3f972f-04eb-5292-a59c-61e5c9122c5b",
+          "control-id": "si-10",
+          "remarks": "Information Input Validation. Pydantic model on /alert with 64 KiB size cap, required fields, and the pre-graph PII scanner.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "5cbdd0d4-ed96-5100-bc08-214b72e4e98c",
+              "description": "Pydantic model on /alert with 64 KiB size cap, required fields, and the pre-graph PII scanner.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        },
+        {
+          "uuid": "abc7b017-8881-5e92-9617-e095695c384e",
+          "control-id": "si-12",
+          "remarks": "Information Management and Retention. Langfuse retains 30 days. Replay events retain indefinitely. PII blocks retain only the blocked reason code, never the raw input.",
+          "props": [
+            {
+              "name": "implementation-status",
+              "ns": "https://fedramp.gov/ns/oscal",
+              "value": "implemented"
+            }
+          ],
+          "by-components": [
+            {
+              "component-uuid": "8871b1f4-9276-59d7-b347-5cd1bc076e90",
+              "uuid": "cbe01a48-248d-52d2-b6e3-ac4345e06ef0",
+              "description": "Langfuse retains 30 days. Replay events retain indefinitely. PII blocks retain only the blocked reason code, never the raw input.",
+              "implementation-status": {
+                "state": "implemented"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "back-matter": {
+      "resources": [
+        {
+          "uuid": "b1b3d519-a816-5fe6-b180-e66d7f9f3348",
+          "title": "Squire SSP source markdown",
+          "rlinks": [
+            {
+              "href": "../../SQUIRE_SSP.md"
+            }
+          ]
+        },
+        {
+          "uuid": "54c789c7-13aa-5c20-8358-ddfde47439b4",
+          "title": "Platform SSP",
+          "rlinks": [
+            {
+              "href": "../../SSP_SYSTEM_SECURITY_PLAN.md"
+            }
+          ]
+        },
+        {
+          "uuid": "c7dab9c4-ffa1-5416-a977-0bbcaf77c78b",
+          "title": "Squire threat model",
+          "rlinks": [
+            {
+              "href": "../../SQUIRE_THREAT_MODEL.md"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
