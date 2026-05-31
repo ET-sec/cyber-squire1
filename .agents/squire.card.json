@@ -1,7 +1,7 @@
 {
   "name": "Squire",
   "description": "Triage agent for security alerts. Reads alert payloads, drafts runbooks, and classifies incidents against the GRC corpus. Medium sensitivity: reads internal telemetry and GRC docs, no production write paths.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "url": "http://localhost:8020/squire",
   "provider": {
     "organization": "CoreDirective"
@@ -11,26 +11,42 @@
     "pushNotifications": false,
     "stateTransitionHistory": false
   },
-  "defaultInputModes": ["text/plain", "application/json"],
-  "defaultOutputModes": ["text/plain", "application/json"],
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
   "skills": [
     {
       "id": "alert_triage",
       "name": "Alert Triage",
       "description": "Classifies inbound alert payloads by severity, asset, and likely false-positive rate.",
-      "tags": ["soc", "triage", "iam"]
+      "tags": [
+        "soc",
+        "triage",
+        "iam"
+      ]
     },
     {
       "id": "langgraph_invoke",
       "name": "LangGraph Invoke",
       "description": "Executes the squire LangGraph state machine over a triage payload and returns the final state.",
-      "tags": ["soc", "orchestration"]
+      "tags": [
+        "soc",
+        "orchestration"
+      ]
     },
     {
       "id": "slack_post",
       "name": "Slack Post",
       "description": "Posts triage summary to the SOC slack channel for analyst review.",
-      "tags": ["soc", "notification"]
+      "tags": [
+        "soc",
+        "notification"
+      ]
     }
   ]
 }
