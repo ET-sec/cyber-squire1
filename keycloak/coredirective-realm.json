@@ -217,8 +217,8 @@
         "roles"
       ],
       "attributes": {
-        "access.token.lifespan": "900",
-        "client.session.idle.timeout": "900",
+        "access.token.lifespan": "300",
+        "client.session.idle.timeout": "300",
         "use.refresh.tokens": "false"
       }
     },
@@ -243,8 +243,8 @@
         "roles"
       ],
       "attributes": {
-        "access.token.lifespan": "900",
-        "client.session.idle.timeout": "900",
+        "access.token.lifespan": "90",
+        "client.session.idle.timeout": "90",
         "use.refresh.tokens": "false"
       }
     },
@@ -267,8 +267,8 @@
         "roles"
       ],
       "attributes": {
-        "access.token.lifespan": "900",
-        "client.session.idle.timeout": "900",
+        "access.token.lifespan": "30",
+        "client.session.idle.timeout": "30",
         "use.refresh.tokens": "false"
       }
     },
@@ -291,8 +291,8 @@
         "roles"
       ],
       "attributes": {
-        "access.token.lifespan": "900",
-        "client.session.idle.timeout": "900",
+        "access.token.lifespan": "30",
+        "client.session.idle.timeout": "30",
         "use.refresh.tokens": "false"
       }
     },
@@ -316,8 +316,8 @@
         "roles"
       ],
       "attributes": {
-        "access.token.lifespan": "900",
-        "client.session.idle.timeout": "900",
+        "access.token.lifespan": "300",
+        "client.session.idle.timeout": "300",
         "use.refresh.tokens": "false"
       }
     },
@@ -342,8 +342,8 @@
         "roles"
       ],
       "attributes": {
-        "access.token.lifespan": "900",
-        "client.session.idle.timeout": "900",
+        "access.token.lifespan": "90",
+        "client.session.idle.timeout": "90",
         "use.refresh.tokens": "false"
       }
     }
