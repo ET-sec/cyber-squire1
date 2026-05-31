@@ -126,7 +126,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 - Network topology and security boundary diagrams ([diagrams/](diagrams/))
 - Risk heat map and summary dashboard ([diagrams/risk_heat_map.png](diagrams/risk_heat_map.png), [diagrams/risk_summary_dashboard.png](diagrams/risk_summary_dashboard.png))
-- Datadog SOC dashboard with 5 operational views ([diagrams/datadog_soc_dashboard_full.png](diagrams/datadog_soc_dashboard_full.png))
+- Datadog SOC dashboard with 5 operational views (screenshot withheld from public repo because it contains real hostnames; available on request)
 - GitHub Actions security pipeline visualization ([diagrams/github_actions_pipeline.png](diagrams/github_actions_pipeline.png))
 
 ---
