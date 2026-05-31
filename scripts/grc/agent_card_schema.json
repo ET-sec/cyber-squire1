@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example-ops.com/schemas/agent_card_schema.json",
+  "title": "A2A v1.0 Agent Card",
+  "description": "JSON Schema for A2A v1.0 Agent Cards published under .agents/<agent_id>.card.json. Enforces the 5 required A2A top-level fields, the skill item shape, and a closed set of optional capability/security/provider blocks. additionalProperties is false at the top level to prevent silent drift; skills[] items allow additionalProperties for forward compatibility with future A2A revisions.",
+  "type": "object",
+  "required": ["name", "description", "version", "url", "skills"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable agent name."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "description": "One paragraph (two to three sentences) explaining purpose, sensitivity, and trust boundary."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$",
+      "description": "Semver-shaped version string for the Agent Card itself."
+    },
+    "url": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Transport URI for the agent. A2A v1.0 permits non-HTTP schemes (stdio, tg, custom)."
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Declared agent skills. Each item is snake_case identified with human-friendly metadata.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "tags"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_:]{1,60}$",
+            "description": "Snake case identifier. Colon permitted to namespace per-account variants (gmail_read:main)."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tags": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "streaming": {"type": "boolean"},
+        "pushNotifications": {"type": "boolean"},
+        "stateTransitionHistory": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "securitySchemes": {
+      "type": "object",
+      "description": "Per A2A spec, the value shape is delegated to the agent; this schema enforces type=object only."
+    },
+    "defaultInputModes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "defaultOutputModes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "provider": {
+      "type": "object",
+      "required": ["organization"],
+      "properties": {
+        "organization": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
