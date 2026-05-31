@@ -1,0 +1,26 @@
+# Agents discovered by inventory_scan.py that are NOT real agents.
+# Documented to prevent CI noise. Each entry MUST have a reason.
+#
+# Entry shape:
+#   - agent_id: "<exact>" | "*"   # wildcard "*" matches every finding from
+#                                   the named source
+#     source:   "<source-name>"   # one of the keys in SOURCES
+#     reason:   "why this is not an agent"
+non_agents:
+  - agent_id: "*"
+    source: "claude_skills"
+    reason: "Claude skills are invokable tools, not LLM-calling agents in their own right."
+
+  # Runtime containers that host agents but do not themselves call LLMs. They
+  # are infrastructure (workflow engine, inference engine, guardrails layer);
+  # the agents that run inside them are tracked separately in the registry
+  # (master_orchestrator, the squire app, etc.).
+  - agent_id: "n8n_runtime"
+    source: "docker_compose"
+    reason: "cd-service-n8n is the workflow runtime; agents are the workflows themselves (see master_orchestrator, n8n_telegram_supervisor, n8n_content_research, n8n_gmail_readers registry rows)."
+  - agent_id: "ollama_runtime"
+    source: "docker_compose"
+    reason: "cd-service-ollama is the local inference engine; it does not initiate LLM calls, it serves them."
+  - agent_id: "nemo_guardrails"
+    source: "docker_compose"
+    reason: "cd-service-nemo is a guardrails proxy in front of the squire agent; not a separate LLM caller."
