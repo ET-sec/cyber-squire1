@@ -1,0 +1,36 @@
+{
+  "name": "CDirective Bot",
+  "description": "Telegram chat agent fronted by the OpenClaw gateway. Streams Claude responses back to the chat user and can invoke registered OpenClaw skills mid-turn. High sensitivity because it bridges a public messaging surface to the model gateway.",
+  "version": "1.0.0",
+  "url": "tg://@CDirective_bot",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": true,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [
+    {
+      "id": "chat_respond",
+      "name": "Chat Respond",
+      "description": "Generates a streaming chat response to an inbound telegram message.",
+      "tags": ["telegram", "llm"]
+    },
+    {
+      "id": "tool_invoke",
+      "name": "Tool Invoke",
+      "description": "Invokes a registered OpenClaw skill during a chat turn and returns the result inline.",
+      "tags": ["telegram", "tool_use"]
+    },
+    {
+      "id": "stream_response",
+      "name": "Stream Response",
+      "description": "Streams tokens back to the telegram channel as the model produces them.",
+      "tags": ["telegram", "streaming"]
+    }
+  ]
+}

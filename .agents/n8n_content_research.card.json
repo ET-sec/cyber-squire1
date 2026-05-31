@@ -1,0 +1,30 @@
+{
+  "name": "n8n Content Research",
+  "description": "Content research workflow inside n8n. Runs a Tavily web search and summarizes the results for downstream content drafting. Low sensitivity because the result set is public web content and no write paths are exposed.",
+  "version": "1.0.0",
+  "url": "https://n8n.example-ops.com/webhook/content-research",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "tavily_search",
+      "name": "Tavily Search",
+      "description": "Runs a Tavily web search with depth (basic or advanced) and returns scored results.",
+      "tags": ["search", "content"]
+    },
+    {
+      "id": "content_summarize",
+      "name": "Content Summarize",
+      "description": "Summarizes a result set into a paragraph suitable for downstream drafting.",
+      "tags": ["llm", "content"]
+    }
+  ]
+}

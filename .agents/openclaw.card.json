@@ -1,0 +1,30 @@
+{
+  "name": "OpenClaw Gateway",
+  "description": "Model routing gateway. Brokers chat and completion requests from internal callers to the registered Anthropic models and invokes installed skills. High sensitivity because it holds the upstream API key and is the single egress point for model traffic.",
+  "version": "1.0.0",
+  "url": "http://openclaw-gateway:18789",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "proxy_anthropic",
+      "name": "Proxy Anthropic",
+      "description": "Forwards a chat or completion call to api.anthropic.com using the gateway-held key and records spend.",
+      "tags": ["gateway", "egress"]
+    },
+    {
+      "id": "model_selector",
+      "name": "Model Selector",
+      "description": "Selects the appropriate Anthropic model (Haiku, Sonnet, Opus) based on caller hints and budget guardrails.",
+      "tags": ["gateway", "routing"]
+    }
+  ]
+}

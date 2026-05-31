@@ -1,0 +1,48 @@
+{
+  "name": "FastMCP GRC Corpus",
+  "description": "FastMCP server exposing the GRC corpus as MCP tools over stdio. Read-only access to docs/grc/ including POA&M and SSP excerpts. Low sensitivity because the served corpus is sanitized and the transport is local stdio with no network surface.",
+  "version": "1.0.0",
+  "url": "stdio:///scripts/grc/grc_mcp_server.py",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "grc_doc_search",
+      "name": "GRC Doc Search",
+      "description": "Searches the GRC corpus by natural language query and returns matching document paths and excerpts.",
+      "tags": ["grc", "search"]
+    },
+    {
+      "id": "grc_doc_read",
+      "name": "GRC Doc Read",
+      "description": "Returns the full body of a named GRC document keyed by path under docs/grc/.",
+      "tags": ["grc", "read"]
+    },
+    {
+      "id": "poam_query",
+      "name": "POA&M Query",
+      "description": "Looks up a POA&M item by id and returns its current state, owner, and citations.",
+      "tags": ["grc", "poam"]
+    },
+    {
+      "id": "ssp_query",
+      "name": "SSP Query",
+      "description": "Returns the SSP section that owns a given NIST control or control family.",
+      "tags": ["grc", "ssp"]
+    },
+    {
+      "id": "framework_lookup",
+      "name": "Framework Lookup",
+      "description": "Resolves a NIST 800-53 family or FedRAMP baseline against the crosswalk and returns the mapped controls.",
+      "tags": ["grc", "framework"]
+    }
+  ]
+}

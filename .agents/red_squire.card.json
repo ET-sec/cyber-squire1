@@ -1,0 +1,36 @@
+{
+  "name": "Red Squire",
+  "description": "Offensive validation agent. Runs scoped attack chains inside the sandbox, generates exploit payloads, and emits proof-of-concept artifacts back to the SOC. High sensitivity because the same capability that proves a control would harm production if pointed at the wrong target; runtime is restricted to the isolated sandbox.",
+  "version": "1.0.0",
+  "url": "http://localhost:8020/red_squire",
+  "provider": {
+    "organization": "CoreDirective"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": true
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "red_team_exec",
+      "name": "Red Team Execute",
+      "description": "Runs a registered attack chain against an in-scope sandbox target and captures the result trace.",
+      "tags": ["red_team", "sandbox", "validation"]
+    },
+    {
+      "id": "exploit_validate",
+      "name": "Exploit Validate",
+      "description": "Confirms a specific control gap is reachable end to end before escalation to the SOC.",
+      "tags": ["red_team", "validation"]
+    },
+    {
+      "id": "poc_emit",
+      "name": "PoC Emit",
+      "description": "Emits a structured proof-of-concept artifact (steps, payload, evidence) for SOC consumption.",
+      "tags": ["red_team", "evidence"]
+    }
+  ]
+}
