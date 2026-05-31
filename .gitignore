@@ -177,7 +177,8 @@ docs/grc/zap-report-*.html
 # ============================================
 # Staging and scratch directories (never commit)
 # ============================================
-.agents/
+# .agents/ promoted to canonical Phase 20 registry path (2026-05-31);
+# tracked. See .agents/README.md.
 .audits/
 .n8nac/
 .tmp-linkedin/

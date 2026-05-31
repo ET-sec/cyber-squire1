@@ -1,0 +1,249 @@
+# Agent Registry - CoreDirective Phase 20 (CoSAI Visibility)
+# Schema: scripts/grc/registry_schema.json
+# Validate: python3 -c "import json,yaml,jsonschema; jsonschema.validate(yaml.safe_load(open('.agents/registry.yaml')), json.load(open('scripts/grc/registry_schema.json')))"
+#
+# This file is the single source of truth for every LLM-calling agent in the
+# CoreDirective stack. Downstream artifacts in Phase 20 (Agent Cards, Cosign
+# signatures, inventory_scan diffs, Datadog agent_id tags, capability matrix)
+# all key off agent_id and sensitivity_tier defined here.
+#
+# Adding or modifying a row: see .agents/README.md "Adding a New Agent".
+# Tier semantics (low / medium / high / critical): see .agents/README.md.
+# Non-LLM tooling identities (drift observer, image scanners, etc.) are
+# intentionally absent; they belong in stack-facts.yaml, not here.
+
+agents:
+  - agent_id: squire
+    runtime_location: "Agent_Squire/langgraph/squire_graph.py"
+    owner: etigoue
+    sensitivity_tier: medium
+    capabilities:
+      - soc_triage
+      - langgraph_invoke
+      - read_alerts
+      - read_grc_corpus
+      - read_datadog
+      - draft_runbook
+      - classify_alert
+      - summarize_incident
+    data_access:
+      - "docs/grc/**"
+      - "datadog:read_only"
+      - "alert_payloads"
+    auth_method: keycloak_service_account
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: blue_squire
+    runtime_location: "Agent_Squire/langgraph/blue_squire_graph.py"
+    owner: etigoue
+    sensitivity_tier: high
+    capabilities:
+      - execute_runbook
+      - post_telegram
+      - write_notion
+      - read_vault
+      - page_oncall
+      - invoke_n8n_webhook
+    data_access:
+      - "n8n_webhooks"
+      - "telegram_channel:incident"
+      - "notion_db:incident_log"
+      - "vault:read_only"
+    auth_method: keycloak_service_account
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: red_squire
+    runtime_location: "Agent_Squire/langgraph/red_squire_graph.py"
+    owner: etigoue
+    sensitivity_tier: high
+    capabilities:
+      - run_attack_chain
+      - generate_payload
+      - read_drift_facts
+      - read_audit_logs
+      - simulate_breach
+    data_access:
+      - "sandbox:isolated_env"
+      - "audit_log:read_only"
+      - ".facts/stack-facts.yaml"
+    auth_method: keycloak_service_account
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: grc_librarian
+    runtime_location: "Agent_Squire/langgraph/grc_librarian_graph.py"
+    owner: etigoue
+    sensitivity_tier: low
+    capabilities:
+      - search_docs
+      - cite_control
+      - list_poam
+      - read_ssp
+      - lookup_framework
+    data_access:
+      - "docs/grc/**"
+    auth_method: keycloak_service_account
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: keeper_squire
+    runtime_location: "Agent_Squire/langgraph/keeper_squire_graph.py"
+    owner: etigoue
+    sensitivity_tier: low
+    capabilities:
+      - read_audit_logs
+      - read_grc_corpus
+      - report_compliance
+      - summarize_drift
+    data_access:
+      - "datadog:read_only"
+      - "audit_log:read_only"
+      - "docs/grc/**"
+    auth_method: keycloak_service_account
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: openclaw
+    runtime_location: "droplet:openclaw-gateway"
+    owner: etigoue
+    sensitivity_tier: high
+    capabilities:
+      - route_completion
+      - route_chat
+      - invoke_skill
+      - egress_anthropic
+    data_access:
+      - "egress:api.anthropic.com"
+      - "skills:registered_set"
+    auth_method: openclaw_api_key
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: master_orchestrator
+    runtime_location: "n8n:workflow:UIf3v1ZNN98OtUge"
+    owner: etigoue
+    sensitivity_tier: high
+    capabilities:
+      - dispatch_action
+      - invoke_postgres
+      - post_telegram
+      - invoke_github
+      - invoke_drive
+      - invoke_tasks
+      - invoke_sheets
+      - invoke_docs
+      - invoke_slides
+      - invoke_gumroad
+      - invoke_ollama
+      - invoke_cloudflare
+      - invoke_notion
+      - invoke_tavily
+      - invoke_gmail
+      - invoke_workspace_admin
+      - invoke_excel
+    data_access:
+      - "all_workspace_apis"
+      - "postgres:n8n_db"
+      - "telegram:bot_channels"
+      - "github:ET-sec"
+    auth_method: n8n_webhook+creds
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: n8n_telegram_supervisor
+    runtime_location: "n8n:workflow:iO6PfPdk0SSPBTWb"
+    owner: etigoue
+    sensitivity_tier: high
+    capabilities:
+      - classify_intent
+      - route_command
+      - post_telegram
+      - invoke_llm
+    data_access:
+      - "telegram:bot_channels"
+      - "egress:llm_provider"
+    auth_method: n8n_webhook+creds
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: n8n_content_research
+    runtime_location: "n8n:workflow:nhtwRpJATQoaZpxL"
+    owner: etigoue
+    sensitivity_tier: low
+    capabilities:
+      - search_web
+      - invoke_tavily
+      - summarize_results
+      - invoke_llm
+    data_access:
+      - "tavily:search_api"
+      - "egress:llm_provider"
+    auth_method: n8n_webhook+creds
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: n8n_gmail_readers
+    runtime_location: "n8n:workflows:2A0O7MzPvUCCYoLV,wTUraUYjsHXCGWgr,NxoxcIcYRo0XPkOz,yLA81NXy9LBvps8m"
+    owner: etigoue
+    sensitivity_tier: medium
+    capabilities:
+      - gmail_read:main
+      - gmail_read:brand
+      - gmail_read:personal
+      - gmail_read:business
+      - classify_email
+      - invoke_llm
+    data_access:
+      - "gmail_inbox:4_accounts"
+      - "egress:llm_provider"
+    auth_method: oauth2_user
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: cdirective_bot
+    runtime_location: "droplet:openclaw-gateway:telegram_bridge"
+    owner: etigoue
+    sensitivity_tier: high
+    capabilities:
+      - chat_completion
+      - post_telegram
+      - route_via_openclaw
+    data_access:
+      - "telegram:users"
+      - "egress:openclaw_gateway"
+    auth_method: telegram_token+openclaw
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: coredirective_bot
+    runtime_location: "n8n:bot_runtime"
+    owner: etigoue
+    sensitivity_tier: high
+    capabilities:
+      - dispatch_command
+      - post_telegram
+      - route_via_orchestrator
+    data_access:
+      - "telegram:users"
+      - "n8n:master_orchestrator_action_set"
+    auth_method: telegram_token+n8n
+    last_audited: "2026-05-31"
+    is_ai_agent: true
+
+  - agent_id: fastmcp_grc_corpus
+    runtime_location: "scripts/grc/grc_mcp_server.py"
+    owner: etigoue
+    sensitivity_tier: low
+    capabilities:
+      - grc_doc_search
+      - grc_doc_read
+      - poam_query
+      - ssp_query
+      - framework_lookup
+    data_access:
+      - "docs/grc/**"
+    auth_method: stdio_local
+    last_audited: "2026-05-31"
+    is_ai_agent: true
