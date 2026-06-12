@@ -44,7 +44,7 @@ Env:            NODE_ENV=production
   "gateway": {
     "mode": "local",
     "auth": {
-      "token": "SRky5hJjZk5g4GQJDtFSKQ__fn9bdKH-33EF4OSCrxU"
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
     "controlUi": {
       "dangerouslyAllowHostHeaderOriginFallback": true
@@ -160,7 +160,7 @@ cat > /tmp/openclaw-claude.json << 'EOF'
   "gateway": {
     "mode": "local",
     "auth": {
-      "token": "SRky5hJjZk5g4GQJDtFSKQ__fn9bdKH-33EF4OSCrxU"
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
     "controlUi": {
       "dangerouslyAllowHostHeaderOriginFallback": true
