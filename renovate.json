@@ -1,0 +1,138 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":automergeDisabled"
+  ],
+  "timezone": "America/New_York",
+  "schedule": [
+    "before 9am on monday"
+  ],
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "prHourlyLimit": 4,
+  "prConcurrentLimit": 8,
+  "rebaseWhen": "behind-base-branch",
+  "dockerfile": {
+    "enabled": true
+  },
+  "docker-compose": {
+    "enabled": true,
+    "fileMatch": [
+      "(^|/)docker-compose[^/]*\\.ya?ml$",
+      "COREDIRECTIVE_ENGINE/docker-compose\\.ya?ml$"
+    ]
+  },
+  "github-actions": {
+    "enabled": true
+  },
+  "terraform": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Tier 1 (security boundary) — digest pinned, no automerge, manual review every bump",
+      "matchPackageNames": [
+        "hashicorp/vault",
+        "quay.io/keycloak/keycloak",
+        "public.ecr.aws/gravitational/teleport-distroless",
+        "public.ecr.aws/gravitational/teleport-plugin-event-handler",
+        "cloudflare/cloudflared",
+        "ghcr.io/openclaw/openclaw"
+      ],
+      "labels": ["dependencies", "tier-1", "security-boundary", "needs-review"],
+      "automerge": false,
+      "groupName": "Tier 1 security boundary"
+    },
+    {
+      "description": "Tier 2 (state bearing) — patch auto-merge after CI green, manual on majors",
+      "matchPackageNames": [
+        "pgvector/pgvector",
+        "n8nio/n8n",
+        "langfuse/langfuse",
+        "langfuse/langfuse-worker",
+        "redis",
+        "clickhouse/clickhouse-server",
+        "datadog/agent",
+        "falcosecurity/falco",
+        "falcosecurity/falcosidekick"
+      ],
+      "labels": ["dependencies", "tier-2", "state-bearing"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": false,
+      "groupName": "Tier 2 patch bumps"
+    },
+    {
+      "description": "Tier 2 majors require manual review",
+      "matchPackageNames": [
+        "pgvector/pgvector",
+        "n8nio/n8n",
+        "langfuse/langfuse",
+        "langfuse/langfuse-worker",
+        "redis",
+        "clickhouse/clickhouse-server",
+        "datadog/agent",
+        "falcosecurity/falco",
+        "falcosecurity/falcosidekick"
+      ],
+      "matchUpdateTypes": ["major"],
+      "labels": ["dependencies", "tier-2", "major-bump", "needs-review"],
+      "automerge": false
+    },
+    {
+      "description": "Tier 3 (stateless inference) — Renovate ignores these, restart pulls latest",
+      "matchPackageNames": [
+        "ollama/ollama",
+        "fedirz/faster-whisper-server"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Group all Cloudflare image bumps into one PR",
+      "matchPackageNames": ["cloudflare/cloudflared"],
+      "groupName": "Cloudflare images"
+    },
+    {
+      "description": "Group all Langfuse image bumps",
+      "matchPackagePatterns": ["^langfuse/"],
+      "groupName": "Langfuse images"
+    },
+    {
+      "description": "Group all Falco-related image bumps",
+      "matchPackagePatterns": ["^falcosecurity/"],
+      "groupName": "Falco stack"
+    },
+    {
+      "description": "GitHub Action minor and patch bumps after CI passes",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": false
+    },
+    {
+      "description": "Pin major bumps to manual review only",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-bump", "needs-review"]
+    },
+    {
+      "description": "Security updates get a different label and higher priority",
+      "matchUpdateTypes": ["patch"],
+      "matchPackagePatterns": [".*"],
+      "vulnerabilityAlerts": {
+        "labels": ["security", "dependencies"],
+        "schedule": ["at any time"]
+      }
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on monday"]
+  }
+}

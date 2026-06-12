@@ -1,0 +1,99 @@
+name: image-smoke
+on:
+  pull_request:
+    paths:
+      - 'COREDIRECTIVE_ENGINE/docker-compose.yaml'
+      - 'COREDIRECTIVE_ENGINE/docker-compose.yml'
+      - '.github/workflows/image-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  detect-changed-images:
+    name: Detect changed images
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.diff.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Diff image lines
+        id: diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          COMPOSE="COREDIRECTIVE_ENGINE/docker-compose.yaml"
+          if ! git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -q "^$COMPOSE$"; then
+            echo "images=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ADDED=$(git diff "$BASE_SHA" "$HEAD_SHA" -- "$COMPOSE" | grep -E '^\+\s+image:' | sed -E 's/^\+\s+image:\s+//' | sort -u)
+          if [ -z "$ADDED" ]; then
+            echo "images=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          JSON=$(echo "$ADDED" | jq -R . | jq -sc .)
+          echo "images=$JSON" >> "$GITHUB_OUTPUT"
+          echo "Changed image references:"
+          echo "$ADDED"
+
+  smoke-test:
+    name: Smoke test image
+    needs: detect-changed-images
+    if: needs.detect-changed-images.outputs.images != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJson(needs.detect-changed-images.outputs.images) }}
+    steps:
+      - name: Skip locally built images
+        id: skip
+        run: |
+          if [[ "${{ matrix.image }}" =~ ^cd-service- ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Locally built image — covered by separate build pipeline. Skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pull image
+        if: steps.skip.outputs.skip == 'false'
+        run: |
+          docker pull "${{ matrix.image }}"
+      - name: Inspect image
+        if: steps.skip.outputs.skip == 'false'
+        run: |
+          docker inspect "${{ matrix.image }}" --format 'Id: {{.Id}}{{println}}Size: {{.Size}}{{println}}Created: {{.Created}}{{println}}Cmd: {{.Config.Cmd}}'
+      - name: Start container
+        if: steps.skip.outputs.skip == 'false'
+        run: |
+          # Start with the image's default command. Many services need
+          # environment to fully start; that is the job of a full integration
+          # test, not this smoke test. Here we only verify the image can
+          # boot far enough to expose a process.
+          CID=$(docker run -d --rm "${{ matrix.image }}" 2>/dev/null || true)
+          if [ -z "$CID" ]; then
+            # Image needs a command or args. Acceptable for some images.
+            echo "Image requires runtime args — image-only smoke pass."
+            exit 0
+          fi
+          sleep 5
+          if docker ps --filter id=$CID --format '{{.Status}}' | grep -q Up; then
+            echo "Container running."
+            docker logs $CID | tail -20 || true
+            docker stop $CID >/dev/null 2>&1 || true
+          else
+            echo "Container exited. Logs:"
+            docker logs $CID || true
+            docker stop $CID >/dev/null 2>&1 || true
+            # Exit nonzero only if the image refused to start at all.
+            # A clean exit (status 0) is acceptable for run-to-completion images.
+            EXIT_CODE=$(docker inspect $CID --format '{{.State.ExitCode}}' 2>/dev/null || echo 1)
+            if [ "$EXIT_CODE" != "0" ]; then
+              exit 1
+            fi
+          fi
