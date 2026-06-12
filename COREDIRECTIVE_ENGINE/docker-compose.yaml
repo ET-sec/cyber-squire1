@@ -1,0 +1,984 @@
+# ============================================================================
+# IMAGE VERSION POLICY (read before editing any `image:` line)
+# ============================================================================
+# Four tiers by criticality and update behavior.
+#
+# Tier 1 — security boundary and identity (digest pinned)
+#   Vault, Keycloak, Teleport, Teleport event handler, cloudflared.
+#   Format: image: name:semver@sha256:digest
+#   Update path: Renovate PR. Review every bump. No automerge.
+#
+# Tier 2 — state bearing or business critical (semver, optional digest)
+#   pgvector, n8n, langfuse, redis, clickhouse, datadog, falco, falcosidekick.
+#   Format: image: name:major.minor.patch (digest optional)
+#   Update path: Renovate PR. Patch bumps auto-merge after smoke test green.
+#   Major bumps require manual review.
+#
+# Tier 3 — stateless or signature-driven (latest acceptable)
+#   Ollama, Whisper.
+#   Format: image: name:latest (or pinned if already done)
+#   Update path: pulled on container restart. No PRs. Accepted drift.
+#
+# Tier 0 — locally built images (separate pipeline)
+#   cd-service-nemo, cd-service-squire, cd-service-fluentd.
+#   Format: image: name:tag with `build:` block above.
+#   Update path: Dockerfile change + rebuild + tag bump in this file.
+#   Tag convention going forward: name:YYYYMMDD-<short-sha> instead of :dev.
+#   Renovate cannot watch these. Manual versioning. See docs/runbook/image-rollback.md.
+#
+# ROLLBACK PROCEDURE
+# ------------------
+# Pre deploy: cp docker-compose.yaml docker-compose.yaml.pre-pin-$(date +%Y%m%d-%H%M%S)
+# Per service rollback: docker compose up -d --no-deps <service>
+# Full rollback: git revert <commit> && scp + docker compose up -d
+# Detailed runbook: docs/runbook/image-rollback.md
+# ============================================================================
+
+services:
+  cd-service-db:
+    # Tier 2 — data store. Pinned to pg16 base + digest.
+    image: pgvector/pgvector:pg16@sha256:7d400e340efb42f4d8c9c12c6427adb253f726881a9985d2a471bf0eed824dff
+    container_name: cd-service-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${CD_DB_USER}
+      POSTGRES_PASSWORD: ${CD_DB_PASS}
+      POSTGRES_DB: ${CD_DB_NAME}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - ./CD_VOL_POSTGRES:/var/lib/postgresql/data:z
+      - ./CD_BACKUPS:/backups:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CD_DB_USER} -d ${CD_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      com.datadoghq.ad.check_names: '["postgres"]'
+      com.datadoghq.ad.init_configs: '[{}]'
+      com.datadoghq.ad.instances: '[{"host": "%%host%%", "port": 5432, "username": "%%env_CD_DB_USER%%", "password": "%%env_CD_DB_PASS%%", "dbm": false}]'
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  cd-service-n8n:
+    # Pinned 2026-04-28 to current production digest. Renovate auto-bumps via PR.
+    image: n8nio/n8n:2.17.5@sha256:81dc967a062bf267d6aa827e5dfb492ce80e366e77f3b8051c07970a653fb69a
+    container_name: cd-service-n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=cd-service-db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${CD_DB_NAME}
+      - DB_POSTGRESDB_USER=${CD_DB_USER}
+      - DB_POSTGRESDB_PASSWORD=${CD_DB_PASS}
+      - N8N_ENCRYPTION_KEY=${CD_N8N_KEY}
+      - N8N_USER_MANAGEMENT_JWT_SECRET=${CD_N8N_JWT}
+      - N8N_DEFAULT_USER_EMAIL=${CD_N8N_USER}
+      - N8N_DEFAULT_USER_PASSWORD=${CD_N8N_PASS}
+      - N8N_HOST=${N8N_PUBLIC_URL}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=${N8N_PUBLIC_URL}/
+      - N8N_EDITOR_BASE_URL=${N8N_PUBLIC_URL}
+      - OLLAMA_HOST=http://cd-service-ollama:11434
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true
+    volumes:
+      - ./CD_VOL_N8N:/home/node/.n8n:z
+      - ${CD_STORAGE_PATH}:/data/media:z
+      - /usr/local/bin/ffmpeg:/usr/local/bin/ffmpeg:ro
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 2G
+          pids: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+      - net-ai
+
+  cd-service-ollama:
+    # Pinned 2026-04-28 to current production digest. Renovate auto-bumps via PR.
+    image: ollama/ollama@sha256:0ff452f6a4c3c5bb4ab063a1db190b261d5834741a519189ed5301d50e4434d1
+    container_name: cd-service-ollama
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ./CD_VOL_OLLAMA:/root/.ollama:z
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_KEEP_ALIVE=24h
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 3G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-ai
+
+  # ==========================================
+  # faster-whisper Service (Voice Transcription)
+  # ==========================================
+  # Purpose: Local voice-to-text transcription for Telegram voice notes
+  # - Processes voice notes sent to Cyber-Squire bot
+  # - Returns transcription for AI routing pipeline
+  # - Keeps voice data private (no external API)
+  #
+  cd-service-whisper:
+    # Tier 3 — stateless inference. :latest-cpu acceptable. Pulled on restart.
+    image: fedirz/faster-whisper-server:latest-cpu
+    container_name: cd-service-whisper
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./CD_VOL_WHISPER:/root/.cache/huggingface:z
+    environment:
+      - WHISPER_MODEL=base
+      - WHISPER_LANGUAGE=en
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-ai
+
+  # ==========================================
+  # OpenClaw Gateway (AI Agent - @CDirective_bot)
+  # ==========================================
+  # Status: RUNNING STANDALONE (not managed by compose)
+  # Container: openclaw-gateway (ports 18789, 18790)
+  #
+
+  # ==========================================
+  # HashiCorp Vault (Secrets Management)
+  # ==========================================
+  # Purpose: Centralized secrets management — eliminates hardcoded .env values
+  # - AppRole auth for n8n, Keycloak, and services to fetch creds at runtime
+  # - Short-lived leases (1hr TTL) for Postgres dynamic credentials
+  # - Full audit log of every secret access
+  # - Init/unseal MUST be done OFF-STREAM (root token exposed)
+  #
+  cd-service-vault:
+    # Tier 1 — secrets boundary. Digest pinned. NOTE: v1.15 reached EOL.
+    # Renovate will surface 1.18+ LTS upgrade as a major bump PR.
+    image: hashicorp/vault:1.15@sha256:0450896c43b13879b19442b204ce29dd19b5a10fce43d5cf38af17da20f56f4d
+    container_name: cd-service-vault
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8200:8200"
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_API_ADDR=http://127.0.0.1:8200
+      - VAULT_LOCAL_CONFIG={"storage":{"file":{"path":"/vault/data"}},"listener":[{"tcp":{"address":"0.0.0.0:8200","tls_disable":true}}],"disable_mlock":true,"ui":true}
+    volumes:
+      - ./CD_VOL_VAULT/config:/vault/config:z
+      - ./CD_VOL_VAULT/data:/vault/data:z
+      - ./CD_VOL_VAULT/logs:/vault/logs:z
+    command: server
+    healthcheck:
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  # ==========================================
+  # Keycloak v26 (Identity & SSO)
+  # ==========================================
+  # Purpose: Centralized identity — SSO for n8n, Vault UI, and future services
+  # - Realm: coredirective (imported from CD_VOL_KEYCLOAK_IMPORT)
+  # - Roles: cd-admin, cd-operator, cd-auditor
+  # - OIDC client for Teleport (Enterprise upgrade path)
+  # - Admin password stored in 1Password → Core Infra → "Keycloak Admin"
+  # - Upgraded v23 → v26.5.2 (2026-03-11, Phase 08-04)
+  # - In production: switch command to `start` (remove start-dev)
+  #
+  cd-service-keycloak:
+    # Tier 1 — identity provider. Digest pinned.
+    image: quay.io/keycloak/keycloak:26.5.2@sha256:fb31a59deb46f746f2aaa25adc5da39ceccac4fd22d36a519562b0bf02e8df20
+    container_name: cd-service-keycloak
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      - KEYCLOAK_ADMIN=${KC_ADMIN_USER}
+      - KEYCLOAK_ADMIN_PASSWORD=${KC_ADMIN_PASS}
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://cd-service-db:5432/${CD_DB_NAME}
+      - KC_DB_USERNAME=${CD_DB_USER}
+      - KC_DB_PASSWORD=${CD_DB_PASS}
+      - KC_HOSTNAME=${KC_HOSTNAME:-localhost}
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - JAVA_OPTS_APPEND=-Xms256m -Xmx512m
+    volumes:
+      - ./CD_VOL_KEYCLOAK_IMPORT:/opt/keycloak/data/import:ro
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    command: start-dev --import-realm
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"UP\"' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  # ==========================================
+  # Teleport v18 (SSH Access + Session Recording)
+  # ==========================================
+  # Purpose: Zero-trust SSH gateway with session recording
+  # - All-in-one: auth + proxy + SSH node
+  # - Session recording: node-sync (records at the node, syncs to auth)
+  # - MFA: TOTP second factor for all users
+  # - Foundation for JIT access (08-02) and audit log shipping (08-03)
+  # - Admin UI: https://teleport.tigouetheory.com:3080
+  #
+  cd-service-teleport:
+    # Tier 1 — PAM and audit. Digest pinned.
+    image: public.ecr.aws/gravitational/teleport-distroless:18.7.2@sha256:d66c30cae352a3a07d0207f42cb0e392f09e6cdc2a7e286875f9b76802d31eab
+    container_name: cd-service-teleport
+    hostname: teleport.tigouetheory.com
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3080:3080"
+      - "127.0.0.1:3023:3023"
+      - "127.0.0.1:3025:3025"
+    volumes:
+      - ./CD_VOL_TELEPORT/config:/etc/teleport:ro
+      - ./CD_VOL_TELEPORT/data:/var/lib/teleport
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/tctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 512M
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  # ==========================================
+  # Datadog Agent (Observability & Security Signals)
+  # ==========================================
+  # Purpose: Unified visibility across EC2 + DO K8s — security signals feed from GuardDuty
+  # - Collects container logs, process metrics, Docker stats
+  # - Security Signals: GuardDuty findings → Datadog (Episode 3 stream demo)
+  # - API key in 1Password → Core Infra → "Datadog Core_Automation API Key"
+  # Note: pid:host is required for process monitoring (CIS 5.15 accepted risk)
+  #
+  cd-service-datadog:
+    # Pinned 2026-04-28 to current production digest. Renovate auto-bumps via PR.
+    image: datadog/agent:7.78.0@sha256:506c580f21aa53830b47a7ea161760d9a088ed689d17a85521b4138695a9ee59
+    container_name: cd-service-datadog
+    restart: unless-stopped
+    pid: host
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=${DD_SITE}
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE_LOGS=name:cd-service-datadog
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_APM_ENABLED=false
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_HOSTNAME=cd-alpha-engine
+      - DD_CONTAINER_LABELS_AS_TAGS=true
+      - CD_DB_USER=${CD_DB_USER}
+      - CD_DB_PASS=${CD_DB_PASS}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - ./CD_VOL_DATADOG/conf.d:/etc/datadog-agent/conf.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "agent health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-monitoring
+
+  # ==========================================
+  # Falco (Runtime Threat Detection)
+  # ==========================================
+  # Purpose: Syscall-level monitoring across all containers via modern eBPF
+  # - Detects docker exec, privilege escalation, sensitive file reads
+  # - Custom per-container rules in CD_VOL_FALCO/rules/
+  # - Routes events to Falcosidekick → Datadog
+  # Note: Falco needs SYS_ADMIN + apparmor:unconfined, so no-new-privileges
+  # is NOT applied (CIS 5.25 accepted risk for this container only)
+  #
+  cd-service-falco:
+    # Tier 2 — runtime detection. Semver with digest.
+    image: falcosecurity/falco:0.43.0@sha256:88c01fa17bcc03c990a2691d08e7d43d746e32b07dbe9c6eb77bfdb3646cec41
+    container_name: cd-service-falco
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - SYS_PTRACE
+    volumes:
+      - /sys/kernel/tracing:/sys/kernel/tracing:ro
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /etc:/host/etc:ro
+      - ./CD_VOL_FALCO/config/falco.yaml:/etc/falco/config.d/falco_override.yaml:ro
+      - ./CD_VOL_FALCO/rules:/etc/falco/rules.d:ro
+      - ./CD_VOL_FALCO/logs:/var/log/falco
+    environment:
+      - HOST_ROOT=/host
+      - FALCO_BPF_PROBE=""
+    healthcheck:
+      test: ["CMD", "falco", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - apparmor:unconfined
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 128
+        reservations:
+          cpus: '0.10'
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - cd-service-falcosidekick
+    networks:
+      - net-monitoring
+
+  # ==========================================
+  # Falcosidekick (Event Router)
+  # ==========================================
+  # Purpose: Routes Falco events to Datadog Events + Logs API
+  # - Receives events from Falco via HTTP on port 2801
+  # - Forwards to Datadog us5 site
+  # - Minimum priority: notice
+  #
+  cd-service-falcosidekick:
+    # Tier 2 — alert router. Semver with digest.
+    image: falcosecurity/falcosidekick:2.32.0@sha256:1976da72151850aae4436f33a5ed94bdef469f42a9b61c182b4feeb5441fb081
+    container_name: cd-service-falcosidekick
+    restart: unless-stopped
+    environment:
+      - DATADOG_APIKEY=${DATADOG_API_KEY}
+      - DATADOG_HOST=${DATADOG_EVENTS_HOST}
+      - DATADOG_MINIMUMPRIORITY=notice
+      - DATADOGLOGS_APIKEY=${DATADOG_API_KEY}
+      - DATADOGLOGS_HOST=${DATADOG_LOGS_HOST}
+      - DATADOGLOGS_MINIMUMPRIORITY=notice
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:2801/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+          pids: 64
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-monitoring
+
+  # ==========================================
+  # Fluentd (Log Router for Teleport Events)
+  # ==========================================
+  # Purpose: Receives Teleport audit events from Event Handler via mTLS
+  # - Forwards to Datadog Logs API (us5 site)
+  # - fluent-plugin-datadog installed via custom Dockerfile
+  # - mTLS: client_cert_auth for Event Handler connections
+  #
+  cd-service-fluentd:
+    # Tier 0 — locally built (fluent-plugin-datadog wrapped). Renovate cannot watch.
+    # Rebuild: docker compose build cd-service-fluentd
+    # See docs/runbook/image-rollback.md for the versioning convention.
+    build: ./CD_VOL_FLUENTD
+    container_name: cd-service-fluentd
+    restart: unless-stopped
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+    volumes:
+      - ./CD_VOL_FLUENTD/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - ./CD_VOL_FLUENTD/certs:/etc/fluentd/certs:ro
+    healthcheck:
+      test: ["CMD-SHELL", "ruby -e \"require 'socket'; TCPSocket.new('127.0.0.1', 8888).close\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-monitoring
+
+  # ==========================================
+  # Teleport Event Handler (Audit Log Shipper)
+  # ==========================================
+  # Purpose: Streams Teleport audit events via gRPC to Fluentd
+  # - Connects to Teleport auth on port 3025
+  # - mTLS client certs for Fluentd connection
+  # - Identity file with 1-year TTL (event-handler user)
+  # - Events: session.start, session.end, user.login, access_request
+  #
+  cd-service-teleport-event-handler:
+    # Tier 1 — audit log shipper. Digest pinned.
+    image: public.ecr.aws/gravitational/teleport-plugin-event-handler:18.7.2@sha256:4887da85cc7dfa1065b5e599bbc33bed6ff064589113aef7d7d03e46f4d545a7
+    container_name: cd-service-teleport-event-handler
+    restart: unless-stopped
+    volumes:
+      - ./CD_VOL_TELEPORT_EVENTS/teleport-event-handler.toml:/etc/teleport-event-handler/teleport-event-handler.toml:ro
+      - ./CD_VOL_TELEPORT_EVENTS/identity:/etc/teleport-event-handler/identity:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs:/etc/teleport-event-handler/certs:ro
+      - ./CD_VOL_TELEPORT_EVENTS/storage:/var/lib/teleport-event-handler/storage
+    command: start --config /etc/teleport-event-handler/teleport-event-handler.toml
+    depends_on:
+      - cd-service-teleport
+      - cd-service-fluentd
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+      - net-monitoring
+
+  tunnel-cyber-squire:
+    # Pinned 2026-04-28 to current production digest. Renovate auto-bumps via PR.
+    image: cloudflare/cloudflared:2026.3.0@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0
+    container_name: tunnel-cyber-squire
+    network_mode: host
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CD_TUNNEL_TOKEN}
+    healthcheck:
+      test: ["CMD", "cloudflared", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /root/.cloudflared
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+          pids: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================================
+  # LANGFUSE v3 (Phase 17-04) — LLM tracing + observability for Squire agent
+  # 4 containers (~2.75 GiB cap). Shares cd-service-db (new `langfuse` database).
+  # Blob store: DO Spaces bucket cd-langfuse (nyc3, path-style, versioned).
+  # ============================================================================
+
+  cd-service-langfuse-clickhouse:
+    # Tier 2 — analytics store. Semver with digest for current pin.
+    image: clickhouse/clickhouse-server:24.11-alpine@sha256:3cc74316c30c18d8349f6b870e3eda96095e93a2abf035b0bb0439737370d9ee
+    container_name: cd-service-langfuse-clickhouse
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - ./CD_VOL_LANGFUSE_CLICKHOUSE:/var/lib/clickhouse:z
+      - ./CD_VOL_LANGFUSE_CLICKHOUSE_LOGS:/var/log/clickhouse-server:z
+      - ./CD_VOL_LANGFUSE_CLICKHOUSE_CONFIG/low-resources.xml:/etc/clickhouse-server/config.d/low-resources.xml:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8123/ping || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.50'
+          memory: 1G
+          pids: 2048
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  cd-service-langfuse-redis:
+    # Tier 2 — cache. Semver with digest for current pin.
+    image: redis:7-alpine@sha256:7aec734b2bb298a1d769fd8729f13b8514a41bf90fcdd1f38ec52267fbaa8ee6
+    container_name: cd-service-langfuse-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${LANGFUSE_REDIS_PASSWORD}", "--maxmemory", "200mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - ./CD_VOL_LANGFUSE_REDIS:/data:z
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $${LANGFUSE_REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    environment:
+      LANGFUSE_REDIS_PASSWORD: ${LANGFUSE_REDIS_PASSWORD}
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  cd-service-langfuse-worker:
+    # Tier 2 — worker. Was on floating :3 tag. Pinned to current digest.
+    image: langfuse/langfuse-worker:3@sha256:f8a9eb480b31cc513ad9ed9869eeb3416cb7bdf00c598665c008c460566115d1
+    container_name: cd-service-langfuse-worker
+    restart: unless-stopped
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+      cd-service-langfuse-clickhouse:
+        condition: service_healthy
+      cd-service-langfuse-redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${CD_DB_USER}:${CD_DB_PASS}@cd-service-db:5432/langfuse
+      SALT: ${LANGFUSE_SALT}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://cd-service-langfuse-clickhouse:9000
+      CLICKHOUSE_URL: http://cd-service-langfuse-clickhouse:8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      REDIS_HOST: cd-service-langfuse-redis
+      REDIS_PORT: 6379
+      REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD}
+      LANGFUSE_S3_EVENT_UPLOAD_ENABLED: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: nyc3
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_ENABLED: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: nyc3
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      TELEMETRY_ENABLED: "false"
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 512M
+          pids: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  cd-service-langfuse-web:
+    # Tier 2 — web UI. Was on floating :3 tag. Pinned to current digest.
+    image: langfuse/langfuse:3@sha256:cdfdca609912edffd616503e43427395fcf135423422440d74c89d9d552b74f9
+    container_name: cd-service-langfuse-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3000"
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+      cd-service-langfuse-clickhouse:
+        condition: service_healthy
+      cd-service-langfuse-redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${CD_DB_USER}:${CD_DB_PASS}@cd-service-db:5432/langfuse
+      NEXTAUTH_URL: https://langfuse.tigouetheory.com
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}
+      SALT: ${LANGFUSE_SALT}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://cd-service-langfuse-clickhouse:9000
+      CLICKHOUSE_URL: http://cd-service-langfuse-clickhouse:8123
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${LANGFUSE_CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      REDIS_HOST: cd-service-langfuse-redis
+      REDIS_PORT: 6379
+      REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD}
+      LANGFUSE_S3_EVENT_UPLOAD_ENABLED: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: nyc3
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_ENABLED: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: nyc3
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_INIT_ORG_NAME: CoreDirective
+      LANGFUSE_INIT_PROJECT_NAME: squire
+      TELEMETRY_ENABLED: "false"
+      HOSTNAME: "0.0.0.0"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/public/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.50'
+          memory: 1G
+          pids: 512
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  # NeMo Guardrails sidecar (Phase 17-10)
+  # PolicyAI (Anthropic direct) + GLiNER PII + PINT v2 injection scorer.
+  # Lakera intentionally skipped per 17-10 orchestrator decision -- built-ins
+  # cover the red-team surface 17-11 exercises. Image built locally, never
+  # pushed to GHCR (GLiNER + PINT baked in => ~2-3 GB). mem_limit 500M
+  # (temp-bump to 1G allowed during first model-load warmup, then drop back).
+  cd-service-nemo:
+    # Tier 0 — locally built. Renovate cannot watch this image.
+    # Rebuild: docker compose build cd-service-nemo
+    # Versioning: bump tag to YYYYMMDD-<short-sha> on each ship (currently :dev).
+    # Rollback: retag a prior image (`docker tag cd-service-nemo:<prev> cd-service-nemo:dev`)
+    # and `docker compose up -d --no-deps cd-service-nemo`. Keep last 3 builds.
+    build:
+      context: ../builds/squire/docker/nemo_config
+      dockerfile: Dockerfile
+    image: cd-service-nemo:dev
+    container_name: cd-service-nemo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      NEMO_CONFIG_KEY: ${NEMO_CONFIG_KEY:-}
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      # When clients pass `model` in /v1/chat/completions, NeMo's server
+      # rebuilds the main Model() with provider=MAIN_MODEL_ENGINE (default
+      # 'openai'). Pin to anthropic so the override matches our config.
+      MAIN_MODEL_ENGINE: anthropic
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          # 17-10 deviation (Rule 3 - blocking): hard 500M cap in the
+          # original plan is physically impossible with nemoguardrails[sdd]
+          # v0.21.0 because that extra pulls presidio-analyzer, which hard-
+          # codes spaCy en_core_web_lg (~560MB model + runtime buffers
+          # ~400MB = ~1GB steady-state RSS). Steady-state measured
+          # post-warmup: ~1018MiB / 1GiB = 99.4%. Smaller spacy model
+          # (en_core_web_sm, ~50MB) would fit in 500M but requires forking
+          # nemoguardrails.library.sensitive_data_detection.actions._get_
+          # analyzer which hard-codes `en_core_web_lg`. Option deferred to
+          # a follow-up after red-team coverage is validated in 17-11.
+          memory: 1G
+          pids: 512
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/v1/rails/configs"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+  # Squire Autonomous SOC Analyst (Phase 17-09)
+  cd-service-squire:
+    # Tier 0 — locally built. Renovate cannot watch this image.
+    # Rebuild from builds/squire/. Versioning: YYYYMMDD-<short-sha> on each ship.
+    # Rollback: retag prior cd-service-squire image and `docker compose up -d --no-deps cd-service-squire`.
+    # See docs/runbook/image-rollback.md for the full procedure.
+    image: cd-service-squire:dev
+    container_name: cd-service-squire
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8020:8020"
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+      cd-service-langfuse-redis:
+        condition: service_healthy
+    environment:
+      CD_DB_HOST: cd-service-db
+      CD_DB_PORT: "5432"
+      CD_DB_USER: ${CD_DB_USER}
+      CD_DB_PASS: ${CD_DB_PASS}
+      CD_DB_NAME: ${CD_DB_NAME}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY}
+      SQUIRE_EMBEDDING_PROVIDER: voyage
+      SQUIRE_EMBEDDING_MODEL: voyage-3-large
+      SQUIRE_EMBEDDING_DIM: "1024"
+      VOYAGE_MIN_INTERVAL_S: "0.2"
+      SQUIRE_LLM_BACKEND: ${SQUIRE_LLM_BACKEND:-api}
+      NEMO_ENABLED: ${NEMO_ENABLED:-true}
+      NEMO_BASE_URL: http://cd-service-nemo:8000/v1
+      NEMO_CONFIG_ID: default
+      NEMO_TIMEOUT_SECONDS: "60"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_HOST: https://langfuse.tigouetheory.com
+      LANGFUSE_REDIS_PASSWORD: ${LANGFUSE_REDIS_PASSWORD}
+      SQUIRE_DEDUP_REDIS_URL: redis://cd-service-langfuse-redis:6379/1
+      SQUIRE_WEBHOOK_TOKEN: ${SQUIRE_WEBHOOK_TOKEN}
+      ANTHROPIC_DAILY_CEILING_USD: ${ANTHROPIC_DAILY_CEILING_USD:-5.00}
+      SQUIRE_COST_BREACH_MODE: ${SQUIRE_COST_BREACH_MODE:-ollama}
+      SQUIRE_TELEGRAM_CHAT_ID: ${SQUIRE_TELEGRAM_CHAT_ID}
+      SQUIRE_TELEGRAM_WEBHOOK_URL: ${SQUIRE_TELEGRAM_WEBHOOK_URL}
+      SQUIRE_ACTIONS_ALLOWLIST_PATH: /app/config/actions.yml
+      SQUIRE_PORT: "8020"
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 300M
+          pids: 256
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8020/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - net-core
+
+networks:
+  net-core:
+    driver: bridge
+  net-ai:
+    driver: bridge
+    internal: true
+  net-monitoring:
+    driver: bridge
+
+volumes:
+  cd-vol-postgres:
+  cd-vol-n8n:
+  cd-vol-ollama:
+  cd-vol-vault:
+  cd-vol-keycloak:

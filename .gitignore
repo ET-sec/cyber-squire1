@@ -47,7 +47,22 @@ docs/PRIVATE_OPERATIONS_MANUAL.md
 # ============================================
 # SECURITY: Operational Infrastructure (NEVER commit)
 # ============================================
-COREDIRECTIVE_ENGINE/
+# COREDIRECTIVE_ENGINE: track infra source (compose, dockerfiles, scripts)
+# but ignore data volumes, secrets, and files with personal info or infra IDs.
+COREDIRECTIVE_ENGINE/.env
+COREDIRECTIVE_ENGINE/.env.*
+COREDIRECTIVE_ENGINE/CD_VOL_*/
+COREDIRECTIVE_ENGINE/CD_BACKUPS/
+COREDIRECTIVE_ENGINE/credentials_vault.json
+COREDIRECTIVE_ENGINE/workflow_*.json
+COREDIRECTIVE_ENGINE/tool_*.json
+COREDIRECTIVE_ENGINE/telegram_direct.json
+COREDIRECTIVE_ENGINE/SECURITY_PULSE_WORKFLOW.json
+COREDIRECTIVE_ENGINE/IMAGE_PINNING.md
+COREDIRECTIVE_ENGINE/MESSAGE_DEDUPLICATION_REFERENCE.md
+COREDIRECTIVE_ENGINE/*.bak
+COREDIRECTIVE_ENGINE/*.bak-*
+COREDIRECTIVE_ENGINE/docker-compose.yaml.pre-pin-*
 openclaw-workspace-staging/
 scripts/session-secrets.sh
 
