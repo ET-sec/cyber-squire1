@@ -1,0 +1,16 @@
+Subject: Thanks for today
+
+Paragi, Jason,
+
+Thanks for the time this morning. The conversation gave me a much clearer picture of what the team is building and where the gaps are.
+
+The role lines up with what I have been doing at CoreDirective for the past seven months. Building n8n SOAR workflows, hardening AI tool deployments, and putting human-in-the-loop gates on anything destructive. I could hit the ground running.
+
+I left wanting the job more than when I walked in. Preventing losses is a rare mission in this industry, and the technical work is where I want to be spending my time.
+
+If you need anything else from me, references, workflow samples, or a deeper look at anything we touched on, just say the word.
+
+Best,
+Emmanuel Tigoue
+AI Security Engineer | CoreDirective
+etigoue@tigouetheory.com

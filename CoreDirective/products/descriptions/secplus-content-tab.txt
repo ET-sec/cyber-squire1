@@ -1,0 +1,91 @@
+Sec+ Setup Guide
+
+Cyber-Squire OS | Security+ Edition
+
+I built this system to stop the information overload that happens when you study for the Security+. This is the exact workflow I used to manage my notes and pass my own exams.
+
+Follow these steps exactly to get your workspace ready.
+
+
+
+Step 1: Sign In to Notion
+
+You cannot use this tool without a Notion account.
+
+Go to notion.so
+
+Sign up: Use your student (.edu) email if you have one. Notion usually gives students a free "Plus plan" upgrade.
+
+Log in: Make sure you are logged in on your web browser before you click the template link.
+
+
+
+Step 2: Duplicate the System
+
+When you click the link on your receipt, you are viewing my Master Copy. You cannot edit this copy. You must "clone" it into your own account.
+
+1. Open the Security+ Template Link provided in your receipt.
+
+2. Look at the very top right corner of your screen.
+
+3. Click the button that says Duplicate.
+
+4. Select your "Private" workspace when prompted.
+
+5. Wait. It may take 10 to 30 seconds for the databases to copy over. Once the "Cyber-Squire" name appears in your left-hand sidebar, it is 100% yours and private.
+
+
+
+Step 3: Troubleshooting (Read this if you can't type)
+
+If you try to click a checkbox or type a note and nothing happens, you skipped Step 2.
+
+If you still see a button at the top that says "Duplicate," you are still looking at the public preview.
+
+You must click Duplicate to move the OS into your own account. Once you do that, all the buttons and text boxes will work perfectly.
+
+
+
+Step 4: Explore Your System
+
+The template comes loaded with the official Security+ SY0-701 objectives and example notes so you can see how everything connects. Here's what to do first:
+
+1. Review the Exam Objectives: Open the main Cyber-Squire OS page, scroll down to "Core Study System," and click into the Exam Readiness Tracker. All CompTIA SY0-701 objectives are already loaded. Browse through them to see how the system tracks your progress.
+
+2. Check the Example Notes: In the same "Core Study System" section, click into the Knowledge Base (Concepts) to see example study notes (CIA Triad, encryption concepts, TCP fundamentals). These show you the format and detail level to aim for when you start adding your own notes.
+
+3. Clear Demo Data When Ready: Once you're comfortable with the layout, delete the example entries to make room for your own study notes. Keep the objectives because they're the official exam map.
+
+4. Optional: Log a Lab: If you're already configuring firewalls or working through incident response scenarios, scroll to "Portfolio & Career" and click into Lab Environment Log to document your first hands-on work.
+
+
+
+Next Step: Read the Study Methods Guide
+
+Inside your workspace, open the Study Methods Guide page to learn:
+
+The 4 level study framework (Recall, Concept, Analysis, Application)
+
+How to run a 60 Minute Digital Recall Sprint
+
+When to use flashcards vs labs vs practice exams
+
+The complete 4 Week Roadmap to passing Security+
+
+Exam day tactics and PBQ strategies
+
+This guide contains the full study strategy.
+
+
+
+The Mission
+
+A Security+ voucher costs roughly $400. If you fail, you lose that money. Use the Lab Environment Log every single time you configure a firewall, run incident response drills, or practice PKI setups. If you can't explain the "How" and "Why" of a lab in your own words, you aren't ready for the exam.
+
+If you run into a technical glitch or have a suggestion, reach out via email below.
+
+Email: support@tigouetheory.com
+
+Emmanuel Tigoue
+CASP+, SSCP, Sec+, Net+, CCNA
+Built by Emmanuel Tigoue | CoreDirective

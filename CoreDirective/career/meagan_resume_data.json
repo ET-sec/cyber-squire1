@@ -1,0 +1,88 @@
+{
+  "name": "MEAGAN GILL",
+  "contact": {
+    "parts": [
+      "Atlanta, GA",
+      "[Phone]",
+      "[Email]",
+      "LinkedIn",
+      "GitHub"
+    ],
+    "links": {
+      "LinkedIn": "https://www.linkedin.com/in/meagan-gill/",
+      "GitHub": "https://github.com/[handle]"
+    }
+  },
+  "experience": [
+    {
+      "key": "current",
+      "job_title": "Senior QA Automation Engineer",
+      "company": "Federal AI Contractor",
+      "location": "Atlanta, GA (Remote)",
+      "dates": "Mar 2023 - Present",
+      "bullets": {
+        "regression_suite": "Own a **2,650+** case automated regression suite (Python, pytest, Selenium, Playwright/TypeScript) on every pull request, covering REST APIs, web UI, and OAuth/JWT auth flows. Reduced escaped production defects by **55%**.",
+        "load_harness": "Isolated a JWT session bug firing only above **250** concurrent requests using a Python load harness (pytest, requests). Drove from reproduction to regression coverage in **2** sprints on a system under active ATO.",
+        "coverage_expansion": "Expanded automated regression coverage **42%** by parametrizing pytest fixtures across API, UI, and abuse case paths (SQLi, XSS, command injection, broken auth), shifting defect discovery from quarterly assessment cycles into same sprint PR review.",
+        "test_libraries": "Designed reusable test data and payload libraries (pytest fixtures, Postman collections, Burp Intruder with SecLists corpora) so engineers without security backgrounds execute the same abuse case checks cold during sprint QA.",
+        "execution_speed": "Cut full regression execution time from **4 hours** to under **40 minutes** by containerizing test runners in Docker and sharding parallel execution across GitHub Actions matrix workers.",
+        "ai_evaluation": "Authored an evaluation harness for LLM-backed workflow features (prompt regression, hallucination checks, jailbreak abuse cases) integrated into the pytest CI pipeline and wired to GitHub Actions.",
+        "compliance_evidence": "Delivered automated test evidence supporting NIST **800-53** and CMMC **2.0** control validation on a FedRAMP moderate boundary, converting QA findings into Jira remediation tickets.",
+        "onboarding": "Stood up the QA onboarding track for new hires covering test automation, Selenium, CI/CD, and secure testing. Cut bug reproduction time from **40** to **12** minutes, dropped cannot reproduce closures from **24%** to **8%**."
+      },
+      "bullet_order": [
+        "regression_suite",
+        "load_harness",
+        "coverage_expansion",
+        "test_libraries",
+        "execution_speed",
+        "ai_evaluation",
+        "compliance_evidence",
+        "onboarding"
+      ]
+    },
+    {
+      "key": "take2",
+      "job_title": "Quality Assurance Analyst",
+      "company": "Take2 Consulting, LLC",
+      "location": "Vienna, VA (Remote)",
+      "dates": "Jul 2022 - Feb 2023",
+      "bullets": {
+        "core_module": "QA Analyst on a federal application within a SAFe Agile program of **70+** scrum teams, testing the rating module that evaluates submitted evidence, applies business rules, and generates outcome determinations. Held Public Trust with a federal PIV card.",
+        "test_authoring": "Authored test cases in Jira mapped to acceptance criteria across functional, smoke, and regression cycles. Ran Postman collections for API validation and SQL queries for database verification across dev and UAT environments.",
+        "defect_lifecycle": "Owned the full defect lifecycle from identification through reproduction, developer handoff, and UAT verification, keeping product stakeholders aligned on risk and remediation across a program of **70+** teams on biweekly sprints.",
+        "uat_coordination": "Coordinated UAT approval with federal customer stakeholders on a biweekly release cadence, gathering acceptance on functional scope before promotion to production.",
+        "status_reporting": "Produced weekly test status reports summarizing defect counts by severity, regression coverage, and release risk for program leadership and federal customer reviews.",
+        "accessibility": "Supported Section 508 accessibility testing against WCAG **2.1** criteria, documenting findings in Jira for same sprint remediation before release."
+      },
+      "bullet_order": [
+        "core_module",
+        "test_authoring",
+        "defect_lifecycle",
+        "uat_coordination",
+        "status_reporting",
+        "accessibility"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "label": "Technical Skills",
+      "items": "Python, TypeScript, pytest, Selenium, Playwright, Postman, Newman, Locust, REST APIs, SQL, Git, GitHub Actions, Jenkins, CI/CD, AWS, Docker, Datadog, Burp Suite, SAFe Agile, Jira, BDD/Cucumber, TDD, Shift-Left Testing, Test Automation, AI Testing"
+    }
+  ],
+  "projects": [
+    {
+      "name": "AI Test Case Generator",
+      "url": "",
+      "description": "Python CLI that uses the Claude API to convert user stories and OpenAPI specs into pytest test cases, Postman collections, and Selenium scripts. Covers happy path, error handling, and OWASP API Top 10 abuse cases. Containerized with Docker and runs in GitHub Actions matrix."
+    }
+  ],
+  "education": [
+    {
+      "school": "The University of Alabama",
+      "degrees": "Bachelor of Arts, Political Science and Government",
+      "honors": ""
+    }
+  ]
+}

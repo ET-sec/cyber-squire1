@@ -8,6 +8,38 @@ Twelve behavioral stories ordered by interview value. Voice is direct, numbers f
 
 ---
 
+## STAGE 3 (Eric Hammerle, Director of Engineering, May 7) — RANKED PICKS
+
+Eric is a Director of Engineering. Forty five minutes, one on one. He is screening for engineering judgment, not a SIEM resume. The signals he is paid to read: investigation quality, code level depth, leadership without title, startup execution under ambiguity, and how a senior engineer thinks when nobody is watching. Below is the order in which to deploy stories from the existing twelve.
+
+### Top 5 picks
+
+1. **Story 2. OpenClaw AI Gateway Red Team** — strongest single asset for this round. Use when Eric asks about quality of an AI system, hardest technical problem, how you set your own bar for done, or how you think about model upgrades. Maps directly to investigation quality on an AI SOC analyst.
+2. **Story 1. POS Skimmer Investigation at Texaco** — the human investigator anchor. Use when Eric asks about an incident you ran end to end, how you approach an ambiguous alert, or what investigation quality means to you. Lead with this if his first question is about investigation work.
+3. **Story 4. n8n SOAR From Zero** — the startup execution proof. Use when Eric asks about shipping under ambiguity, picking your own stack, building something solo, or moving at startup speed. Strongest signal for the early stage startup mindset requirement on the JD.
+4. **Story 3. Falco Alert Tuning 200 to 12** — detection engineering judgment. Use when Eric asks about signal to noise, false positives, analyst fatigue, or how you keep a feed trustworthy. Pairs cleanly with Dropzone's investigation quality thesis.
+5. **Story 12. n8n Credential Remapping DB Debug** — code level depth and persistence. Use when Eric asks about debugging something the docs do not cover, reading source you did not write, or a time you did not believe a system and went to the database. This is the story that says "I am a real engineer."
+
+### Held in reserve, deploy if asked
+
+6. **Story 10. NeMo Local Inference Architecture** — design under constraint, customer data residency. Pull this if Eric asks about architectural tradeoffs or sensitive data in AI pipelines.
+7. **Story 5. Splunk MTTD 48 Hours to Under 4** — measurable detection outcome. Pull this if he asks for a metric driven story or detection engineering specifically. Backup to story 3.
+8. **Story 13. Campbellton Plaza Gate Access Design** — strongest customer-facing story for "recent project," "AI judgment," "architectural tradeoffs," or "what excites you about Dropzone." Maps to the AI on the edges, deterministic critical path principle that Dropzone applies on AI SOC analysts. Use this in place of Story 6 unless and until the Accounting AI placeholders are filled.
+
+9. **Story 6. CoreDirective Accounting AI** — only deploy if every bracketed placeholder is filled with a real number before the interview. Otherwise hold and lead with Story 13 instead.
+9. **Story 9. Segmentation vs Wi-Fi Disagreement** — the disagreement story. Do not volunteer. Deploy only if explicitly asked about conflict, pushback, or influencing without authority.
+10. **Story 11. DigitalOcean Migration From AWS** — crisis and prioritization. Pull only if he asks about handling unplanned work or working under real resource constraints.
+11. **Story 8. PCI DSS Cross Functional at Texaco** — coordination across vendors. Useful if he probes GTM partnership or working with non technical stakeholders.
+12. **Story 7. 37 GRC Documents in Two Months** — writing and documentation as a system. Strong fallback for mentorship or "how do you set a standard." Lower priority for an engineering director than for a security leader.
+
+### What to skip unless directly asked
+
+- Story 7 leads with documentation, which is the wrong opening signal for a Director of Engineering. Use it as backup for mentorship questions only.
+- Story 8 reads as compliance work to an engineering audience. Translate to "cross team coordination" if asked.
+- Story 11 is a crisis story. Save for the "tell me about a crisis" prompt only, otherwise it sounds reactive.
+
+---
+
 ## 1. POS Skimmer Investigation at Texaco
 
 **Tag:** This is a story about running an investigation end to end when the alert was a customer complaint, not a SIEM hit.
@@ -363,6 +395,31 @@ Fifteen common behavioral questions mapped to which story to deploy. Primary sto
 - Lead with Story 2 (OpenClaw) if the interviewer is on the AI quality side.
 - Lead with Story 4 (n8n SOAR) if the interviewer is probing for ship velocity.
 - Save Story 9 (disagreement) for when they explicitly ask about conflict. Do not volunteer it.
-- Story 6 (Accounting AI) is your closer for "what excites you about Dropzone" because it maps directly to their value prop. Have specifics ready before the interview.
+- Story 13 (Campbellton plaza) is your closer for "what excites you about Dropzone" or "recent customer work." It demonstrates AI on the edges and a deterministic critical path, which is the same architectural principle Dropzone applies to AI SOC analysts.
+- Story 6 (Accounting AI) is the alternate closer ONLY if every bracketed placeholder is filled with real numbers. Otherwise lead with Story 13.
 
 **One rule above all.** Every story ends with a takeaway that sounds like something a senior engineer would say out loud, not a training slide. That's what tells them you have done the work, not just the resume.
+
+---
+
+## 13. Campbellton Plaza Gate Access Design
+
+**Tag:** This is a story about consultative security design where the senior call was to keep AI out of the critical path and use it only on the edges.
+
+**Questions this answers:**
+- Tell me about a recent customer-facing project.
+- How do you think about when to use AI versus when not to.
+- Describe a project where you balanced security, UX, and cost.
+- What is an example of an architectural tradeoff you made.
+- Tell me about a time you advised a non-technical stakeholder.
+- What excites you about Dropzone.
+
+**Situation (S).** Today, May 8, 2026. Campbellton Road in Atlanta. The owner of a small plaza of salon studios spent fifty thousand dollars on a security fence after dangerous foot traffic into the courtyard. He was about to deploy a key fob system for stylists and clients. He was worried about clients losing fobs, sharing them, and the lack of audit when an incident hit. The blocker was after-hours: clients arriving before opening or leaving past midnight had no safe entry path.
+
+**Task (T).** Advise on an access control approach that was secure enough for a real audit trail, simple enough that clients would not need to install anything, and scoped to a budget a four-tenant plaza could afford. The owner is non-technical. The clients are even less technical.
+
+**Action (A).** I split the system into critical path and edges. Critical path is the gate unlock decision. That stays deterministic. Valid time-bound code plus inside the appointment window equals unlock. No AI in that path because latency, failure modes, and security review all get harder when a probabilistic system gates a physical lock. The stylist is the authenticated party with an MFA app like Microsoft Authenticator or Duo. The client stays unauthenticated and only receives a one-time SMS code tied to a specific appointment window from a smart number that accepts that code only during that window. Backup PIN keypad on the gate as fallback. Audit log ties every entry to a stylist, an appointment, and a timestamp, scoped to the owner's account. I recommended Brivo or Kisi for hardware and positioned my work as vendor evaluation, specification, and policy. I priced it as a fixed-scope twenty five hundred to five thousand dollar engagement, not hourly, so the owner could approve in one decision. The AI work goes on the edges only: anomaly detection on the audit log, natural language queries for the owner over the entry history, and automated incident report drafting if a flagged pattern fires. On model choice I recommended Claude API over a self-hosted model because at this volume the math favors API, with Sonnet for reasoning and Haiku for routine automation. I produced a one-page DOCX deliverable while we talked.
+
+**Result (R).** The owner showed strong interest. The path forward is scope confirmation and then a fixed-scope vendor evaluation engagement. The architectural rule I led with, AI on the edges and a deterministic critical path, is the same rule I would apply to any AI SOC analyst design. You do not put a probabilistic system where the wrong answer is unrecoverable. You put it where it amplifies the deterministic system, in triage, in summarization, in pattern detection, and you keep the load-bearing decision deterministic.
+
+**Takeaway.** When you put AI in front of a customer, the senior call is often to take it out of the critical path. The leverage is on the edges. That is how you protect the customer, the audit, and the business case at the same time.

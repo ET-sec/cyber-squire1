@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: proposal-gen
+Version: 1.0.0
+Summary: Professional consulting proposal generator with Claude AI and branded PDF output
+Author: Emmanuel Tigoue
+Author-email: emmanueltigoue@gmail.com
+Classifier: Programming Language :: Python :: 3.11
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.11
+Requires-Dist: click>=8.1.0
+Requires-Dist: anthropic>=0.40.0
+Requires-Dist: reportlab>=4.0.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: rich>=13.0.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

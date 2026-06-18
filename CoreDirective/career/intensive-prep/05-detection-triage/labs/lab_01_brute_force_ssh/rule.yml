@@ -1,0 +1,44 @@
+title: SSH Brute Force Followed by Successful Auth
+id: 7b4d3f2a-1e0c-4f9a-bd11-9f0aab9d1a01
+status: experimental
+description: >
+  Detects 5+ SSH auth failures from a single source IP within 60 seconds,
+  followed by a successful auth from the same IP within 5 minutes. The success
+  after burst is the breach indicator. Burst alone is noise.
+references:
+  - https://attack.mitre.org/techniques/T1110/001/
+  - https://man.openbsd.org/sshd
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: linux
+  service: auth
+detection:
+  selection_failed:
+    Image|endswith: '/sshd'
+    Message|contains: 'Failed password'
+  selection_success:
+    Image|endswith: '/sshd'
+    Message|contains: 'Accepted'
+  condition: 1 of selection_*
+correlation:
+  type: temporal
+  rules:
+    - selection_failed
+    - selection_success
+  group-by:
+    - SourceIP
+  timespan: 5m
+  condition:
+    selection_failed:
+      gte: 5
+    selection_success:
+      gte: 1
+falsepositives:
+  - users mistyping passwords then succeeding
+  - automation accounts with stale cached credentials
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1110.001
+  - attack.initial_access

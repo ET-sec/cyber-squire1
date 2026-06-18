@@ -1,0 +1,49 @@
+==========================================
+DAY-TO-DAY MANAGEMENT — paste-ready
+==========================================
+
+DO YOU MANAGE OR SUPERVISE THE DAY-TO-DAY OPERATIONS?
+Yes
+
+PROVIDE DETAILS
+As the sole owner and CEO of Tigoue Theory LLC, hold full authority and responsibility for all day-to-day operations. Set strategic direction, manage all client engagements, and personally deliver every technical service the firm provides. Operate the entire AI security and SOAR consultancy without subordinate staff: source clients, write proposals, sign contracts, execute the work, and handle invoicing and collections. Own all infrastructure decisions across DigitalOcean and Cloudflare, manage the firm's CI/CD security pipeline, and maintain the n8n SOAR platform that supports client deliverables. Handle all back-office functions including bookkeeping, banking, tax filings, vendor management, regulatory compliance, and SBA, SAM.gov, and federal contracting administration. Make all hiring, firing, financial, and operational decisions independently. No outside party exercises control over the business.
+
+
+==========================================
+TEXACO ENTRY (already submitted)
+==========================================
+
+START DATE
+03/01/2022
+
+END DATE
+02/28/2026
+
+TITLE
+IT Security & Operations Manager
+
+BRIEF DESCRIPTION OF RESPONSIBILITIES
+Led security operations for three retail locations, owning incident response, network defense, and PCI DSS compliance for 45+ endpoints. Deployed Splunk as SIEM, built correlation rules, and cut detection time from 48 hours to under 4. Rebuilt a flat network into four VLANs (POS, back-office, guest Wi-Fi, management), eliminating lateral movement. Hardened Active Directory through GPO baselines, stale account cleanup, and credential rotation, reducing critical audit findings from 14 to 2. Wrote a six-step incident response runbook that dropped containment time from 8 hours to 90 minutes. Automated patch deployment, user provisioning, and compliance reporting using Python and PowerShell, freeing 12 hours per week. Drafted AI governance policies aligned to NIST AI RMF and rolled out LLM-based phishing detection across all sites.
+
+CURRENTLY HELD
+No
+
+
+==========================================
+OPTIONAL — COREDIRECTIVE ENTRY (skip unless form asks for current self-employment)
+==========================================
+
+START DATE
+09/01/2025
+
+END DATE
+(leave blank)
+
+TITLE
+AI Security Engineer
+
+BRIEF DESCRIPTION OF RESPONSIBILITIES
+Founded and operate Tigoue Theory LLC, an AI security and SOAR consultancy. Built a 14-workflow SOAR platform on n8n with master orchestrator integrating 16 services, cutting manual security operations by 80 percent. Hardened the OpenClaw LLM gateway against OWASP LLM Top 10 and MITRE ATLAS threats with zero successful prompt injections since deployment. Defined all infrastructure in Terraform across DigitalOcean and Cloudflare with eight OPA Rego policies gating every deployment. Stood up CI/CD security pipeline using Trivy, Semgrep, and Gitleaks with merge-blocking gates. Eliminated standing admin privileges through Teleport JIT access and Keycloak SSO. Routed all traffic through Cloudflare Zero Trust tunnels with mTLS, closing every exposed port.
+
+CURRENTLY HELD
+Yes

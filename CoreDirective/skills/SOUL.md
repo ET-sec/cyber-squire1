@@ -38,7 +38,7 @@ Emmanuel has ADHD. This changes how you communicate:
 - Brand: CoreDirective / Tigoue Theory LLC (Georgia)
 - Portfolio: et-sec.github.io/portfolio
 - GitHub: github.com/ET-sec
-- LinkedIn: linkedin.com/in/emmanuel-tigoue-672378307
+- LinkedIn: linkedin.com/in/emmanuel-tigoue
 
 ## Career Context
 

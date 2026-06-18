@@ -1,0 +1,17 @@
+README.md
+setup.py
+resume_tailor/__init__.py
+resume_tailor/analyzer.py
+resume_tailor/cli.py
+resume_tailor/generator.py
+resume_tailor/researcher.py
+resume_tailor/scraper.py
+resume_tailor.egg-info/PKG-INFO
+resume_tailor.egg-info/SOURCES.txt
+resume_tailor.egg-info/dependency_links.txt
+resume_tailor.egg-info/entry_points.txt
+resume_tailor.egg-info/requires.txt
+resume_tailor.egg-info/top_level.txt
+resume_tailor/templates/cover_letter.md.j2
+resume_tailor/templates/research.md.j2
+resume_tailor/templates/resume.md.j2

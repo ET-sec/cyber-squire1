@@ -1,0 +1,2 @@
+[console_scripts]
+resume-tailor = resume_tailor.cli:main

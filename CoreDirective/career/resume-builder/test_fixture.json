@@ -1,0 +1,51 @@
+{
+  "name": "Test User",
+  "contact": {
+    "parts": [
+      "City, ST",
+      "(555) 123-4567",
+      "test@test.com",
+      "LinkedIn",
+      "GitHub",
+      "Portfolio"
+    ],
+    "links": {
+      "LinkedIn": "https://linkedin.com/in/testuser",
+      "GitHub": "https://github.com/testuser",
+      "Portfolio": "https://testuser.github.io/portfolio"
+    }
+  },
+  "certifications": "CISSP | CISM | Security+",
+  "experience": [
+    {
+      "key": "testjob",
+      "job_title": "Security Engineer",
+      "company": "TestCorp Inc.",
+      "location": "Atlanta, GA",
+      "dates": "Jan 2023 - Present",
+      "bullets": {
+        "metric_bullet": "Reduced incident response time by 47% across 12 production systems, saving $150K annually in operational costs",
+        "narrative_bullet": "built custom threat detection pipeline processing 2.3M events daily using eBPF and Falco, catching 3 zero-day attempts in first quarter",
+        "context_bullet": "After inheriting a legacy SIEM with 89% false positive rate, redesigned alert correlation rules achieving 94% accuracy with Zero Trust architecture"
+      },
+      "bullet_order": ["metric_bullet", "narrative_bullet", "context_bullet"]
+    }
+  ],
+  "skills": [
+    {
+      "label": "Security & AI Operations",
+      "items": "OWASP Top 10 LLM (prompt injection, model security), MITRE ATLAS, SIEM/SOAR (Splunk, n8n), threat modeling (STRIDE, attack trees)"
+    },
+    {
+      "label": "Infrastructure & DevSecOps",
+      "items": "Terraform (IaC policy enforcement via OPA), Docker/Kubernetes (container security), mTLS, IAM/RBAC, PAM, JIT access"
+    }
+  ],
+  "education": [
+    {
+      "school": "Georgia State University",
+      "degrees": "B.S. Computer Science, B.S. Mathematics",
+      "honors": "GPA: 3.7 | Dean's List (6 semesters)"
+    }
+  ]
+}

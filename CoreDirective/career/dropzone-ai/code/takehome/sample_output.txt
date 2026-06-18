@@ -1,0 +1,54 @@
+======================================================================
+AWS Q&A Chatbot | Demo Run
+======================================================================
+
+Loading test AWS account...
+
+Test account:
+  - S3 buckets: cd-prod-logs (public), tigoue-customers, cd-runbooks
+  - IAM users:  et-admin (admin), et-analyst (readonly + inline)
+  - EC2:        brand-web (t3.micro) at 10.126.112.100
+  - EC2:        brand-analytics (m5.large) at 10.115.181.195
+
+----------------------------------------------------------------------
+Q1: How many S3 buckets are exposed to the public?
+A1: Here's what I found:
+
+- **Total buckets scanned:** 3
+- **Publicly accessible buckets:** 1
+- **Bucket name:** `cd-prod-logs`
+
+⚠️ **Action Recommended:** The bucket `cd-prod-logs` is publicly exposed, either via a bucket policy granting `Principal: *` with `Effect: Allow`, or an ACL granting access to `AllUsers`/`AuthenticatedUsers`. You should review and restrict its permissions immediately to prevent unauthorized access to its contents.
+
+Would you like me to list the contents of that bucket or investigate further?
+
+----------------------------------------------------------------------
+Q2: What data does the S3 bucket tigoue-customers hold?
+A2: The S3 bucket **tigoue-customers** contains **2 objects**:
+
+- **addresses.csv** — 33 bytes
+- **users.csv** — 47 bytes
+
+These appear to be CSV files likely holding customer address and user data. Note that since these files may contain sensitive personal information (PII), you should ensure the bucket has appropriate access controls in place. Would you like me to check whether this bucket is publicly accessible?
+
+----------------------------------------------------------------------
+Q3: What is the size of the EC2 instance with IP 10.126.112.100?
+A3: The EC2 instance with IP **10.126.112.100** has the following details:
+
+- **Name:** brand-web
+- **Instance Type (Size):** t3.micro
+- **State:** running
+- **Instance ID:** i-9185954dd28c7a012
+
+----------------------------------------------------------------------
+Q4: What permissions does the user et-analyst have?
+A4: Here are the permissions for the IAM user **et-analyst**:
+
+**Managed Policies (1):**
+- `CDReadOnlyAccess` — ARN: `arn:aws:iam::123456789012:policy/CDReadOnlyAccess`
+
+**Inline Policies (1):**
+- `RunbooksRead`
+
+This user appears to have read-only access, with one managed policy (`CDReadOnlyAccess`) and one inline policy (`RunbooksRead`). If you need details on what specific actions these policies allow, you would need to review the policy documents directly in the AWS Console or via the AWS CLI, as that level of detail is beyond what the available tools can retrieve.
+

@@ -1,0 +1,54 @@
+title: Kubernetes ServiceAccount Performing Privilege Escalation Sequence
+id: aabb1122-3344-5566-7788-99aabbccddee
+status: experimental
+description: >
+  ServiceAccount attempts to read kube-system secrets, exec into pods outside
+  its namespace, create cluster role bindings, or create privileged pods. Any
+  one of these is suspicious from a SA. Two together is hands-on-keyboard via a
+  compromised pod.
+references:
+  - https://attack.mitre.org/matrices/enterprise/containers/
+  - https://kubernetes.io/docs/concepts/security/rbac-good-practices/
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: kubernetes
+  service: audit
+detection:
+  selection_actor:
+    user.username|startswith: 'system:serviceaccount:'
+  selection_secrets_other_ns:
+    verb: 'list'
+    objectRef.resource: 'secrets'
+    objectRef.namespace:
+      - 'kube-system'
+      - 'kube-public'
+  selection_exec_kube_system:
+    verb: 'create'
+    objectRef.subresource:
+      - 'exec'
+      - 'attach'
+    objectRef.namespace:
+      - 'kube-system'
+      - 'kube-public'
+  selection_clusterrolebinding:
+    verb: 'create'
+    objectRef.resource: 'clusterrolebindings'
+  selection_privileged_pod:
+    verb: 'create'
+    objectRef.resource: 'pods'
+    requestObject.spec.containers.0.securityContext.privileged: true
+  selection_host_namespace:
+    verb: 'create'
+    objectRef.resource: 'pods'
+    requestObject.spec.hostNetwork: true
+  condition: selection_actor and 1 of (selection_secrets_other_ns, selection_exec_kube_system, selection_clusterrolebinding, selection_privileged_pod, selection_host_namespace)
+falsepositives:
+  - cluster operators (Kured, kube-bench, Falco) that create privileged pods by design — allowlist their SA names
+  - GitOps controllers (ArgoCD, Flux) creating cluster role bindings — allowlist their SAs
+level: high
+tags:
+  - attack.privilege_escalation
+  - attack.t1078.004
+  - attack.lateral_movement
+  - attack.t1610

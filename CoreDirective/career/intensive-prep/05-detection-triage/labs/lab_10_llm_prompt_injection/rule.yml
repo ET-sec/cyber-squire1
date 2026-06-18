@@ -1,0 +1,58 @@
+title: LLM Prompt Injection Indicators in Gateway Requests
+id: ff667788-8899-aabb-ccdd-eeff00112233
+status: experimental
+description: >
+  User-supplied prompt content matches OWASP LLM01 indicators or contains
+  embedded system role markers. Detection is pattern-based at the gateway.
+  Pair with the agent tool sequence rule for indirect injection coverage.
+references:
+  - https://owasp.org/www-project-top-10-for-large-language-model-applications/
+  - https://embracethered.com/blog/posts/2024/llm-agentic-injection/
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: openclaw
+  service: gateway
+detection:
+  selection_ignore_directive:
+    messages.role: 'user'
+    messages.content|contains:
+      - 'ignore previous instructions'
+      - 'ignore prior instructions'
+      - 'ignore all instructions'
+      - 'disregard the system prompt'
+      - 'disregard the system message'
+  selection_role_hijack:
+    messages.role: 'user'
+    messages.content|contains:
+      - 'you are now'
+      - 'pretend you are'
+      - 'pretend to be'
+      - 'developer mode'
+      - 'system override'
+      - 'admin mode'
+  selection_exfil:
+    messages.role: 'user'
+    messages.content|contains:
+      - 'print your instructions'
+      - 'print your system prompt'
+      - 'reveal your prompt'
+      - 'reveal your instructions'
+      - 'what is your system message'
+      - 'output your context'
+  selection_inject_markers:
+    messages.role: 'user'
+    messages.content|contains:
+      - '<|system|>'
+      - '[INST]'
+      - '### system'
+      - 'system: '
+  condition: 1 of selection_*
+falsepositives:
+  - red team or evaluation runs (allowlist by tenant or user_id)
+  - prompt engineering tutorials being processed legitimately
+  - quoting attacker prompts in customer support tickets
+level: medium
+tags:
+  - attack.initial_access
+  - attack.t1190

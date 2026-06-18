@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CoreDirective — Production AI Security Stack</title>
+<style>
+  :root {
+    --bg-deep: #010409;
+    --bg-void: #0d1117;
+    --bg-rise: #161b22;
+    --bg-hi:   #21262d;
+    --line:    #30363d;
+    --line-2:  #3d444d;
+
+    --ink:        #e6edf3;
+    --ink-mute:   #8b949e;
+    --ink-faint:  #6e7681;
+
+    --signal:        #3fb950;
+    --signal-bright: #56d364;
+    --signal-dim:    #238636;
+
+    --info:    #58a6ff;
+    --warn:    #d29922;
+    --danger:  #f85149;
+    --advanced:#a371f7;
+    --pink:    #ff7b72;
+    --teal:    #39c5bb;
+
+    --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-deep); }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  nav.toc {
+    position: sticky; top: 0;
+    height: 100vh; overflow-y: auto;
+    background: var(--bg-deep);
+    border-right: 1px solid var(--line);
+    padding: 28px 18px;
+  }
+  nav.toc .brand {
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 700;
+    color: var(--signal-bright);
+    margin-bottom: 6px;
+  }
+  nav.toc .brand .dot { color: var(--info); }
+  nav.toc .who {
+    font-family: var(--mono);
+    font-size: 11px; color: var(--ink-faint);
+    margin-bottom: 28px;
+  }
+  nav.toc h2 {
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 18px 0 8px 0;
+  }
+  nav.toc a {
+    display: block;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-mute);
+    text-decoration: none;
+    padding: 5px 10px;
+    border-left: 2px solid transparent;
+    margin-bottom: 1px;
+  }
+  nav.toc a:hover { color: var(--signal); border-left-color: var(--signal-dim); }
+
+  main { padding: 48px 56px 120px 56px; max-width: 1180px; }
+
+  /* hero */
+  .hero {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(88,166,255,0.08), transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(63,185,80,0.08), transparent 50%),
+      linear-gradient(135deg, var(--bg-void) 0%, var(--bg-rise) 100%);
+    padding: 48px 48px;
+    margin-bottom: 36px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--signal-bright), var(--info), var(--advanced), var(--pink));
+  }
+  .hero .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--signal-bright); margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: var(--mono); font-size: 36px; font-weight: 700;
+    color: var(--ink); margin: 0 0 16px 0; line-height: 1.15;
+  }
+  .hero h1 .accent { color: var(--signal-bright); }
+  .hero .sub { color: var(--ink-mute); font-size: 17px; max-width: 800px; margin-bottom: 28px; }
+  .hero .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .hero .stat {
+    background: var(--bg-deep); border: 1px solid var(--line);
+    padding: 16px 18px; border-radius: 8px;
+  }
+  .hero .stat .n {
+    font-family: var(--mono); font-size: 26px; font-weight: 700;
+    color: var(--signal-bright); display: block; line-height: 1;
+  }
+  .hero .stat .l {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.1em;
+    margin-top: 8px;
+  }
+
+  /* sections */
+  section.card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg-void);
+    padding: 32px 36px;
+    margin-bottom: 24px;
+    scroll-margin-top: 24px;
+  }
+  section.card h2 {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--ink);
+    margin: 0 0 6px 0;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  section.card h2 .num {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--signal-bright);
+    background: rgba(63,185,80,0.1);
+    padding: 4px 10px; border-radius: 6px;
+    border: 1px solid var(--signal-dim);
+  }
+  section.card h2 .tag {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-faint);
+    margin-left: auto;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  section.card h3 {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--info);
+    margin: 28px 0 12px 0;
+  }
+  section.card h4 {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--warn);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 20px 0 10px 0;
+  }
+
+  p { color: var(--ink); margin: 0 0 14px 0; }
+  p.lead { color: var(--ink-mute); font-size: 16px; }
+  strong { color: var(--signal-bright); font-weight: 600; }
+  em { color: var(--info); font-style: normal; font-weight: 500; }
+
+  code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: var(--bg-rise);
+    color: var(--signal);
+    padding: 2px 8px; border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+
+  /* container grid */
+  .container-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .ctn {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    border-left: 3px solid;
+    position: relative;
+  }
+  .ctn .name {
+    font-family: var(--mono); font-size: 13px; color: var(--ink); font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px;
+  }
+  .ctn .name .port {
+    font-size: 10px; color: var(--ink-faint); font-weight: 400;
+    background: var(--bg-rise); padding: 2px 6px; border-radius: 4px;
+  }
+  .ctn .role { color: var(--ink-mute); font-size: 12.5px; line-height: 1.45; }
+
+  .ctn.data    { border-left-color: var(--info); }
+  .ctn.runtime { border-left-color: var(--signal); }
+  .ctn.detect  { border-left-color: var(--danger); }
+  .ctn.iam     { border-left-color: var(--warn); }
+  .ctn.ai      { border-left-color: var(--advanced); }
+  .ctn.net     { border-left-color: var(--pink); }
+  .ctn.obs     { border-left-color: var(--teal); }
+
+  /* legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    background: var(--bg-deep); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 16px;
+    margin: 14px 0 18px 0;
+  }
+  .legend .item {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-mute);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* layered architecture */
+  .layers { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+  .layer {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 18px;
+    align-items: center;
+  }
+  .layer .label {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+    text-transform: uppercase; letter-spacing: 0.12em;
+    border-right: 1px solid var(--line);
+    padding-right: 18px;
+  }
+  .layer .label .num {
+    display: block; font-size: 22px; color: var(--signal-bright);
+    font-weight: 700; margin-bottom: 2px;
+  }
+  .layer .components {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .chip {
+    font-family: var(--mono); font-size: 11.5px;
+    background: var(--bg-rise); color: var(--ink);
+    padding: 4px 10px; border-radius: 4px;
+    border: 1px solid var(--line-2);
+  }
+  .chip.signal { color: var(--signal-bright); border-color: var(--signal-dim); background: rgba(63,185,80,0.08); }
+  .chip.info { color: var(--info); border-color: var(--info); background: rgba(88,166,255,0.06); }
+  .chip.warn { color: var(--warn); border-color: var(--warn); background: rgba(210,153,34,0.06); }
+  .chip.danger { color: var(--danger); border-color: var(--danger); background: rgba(248,81,73,0.06); }
+  .chip.advanced { color: var(--advanced); border-color: var(--advanced); background: rgba(163,113,247,0.06); }
+  .chip.pink { color: var(--pink); border-color: var(--pink); background: rgba(255,123,114,0.06); }
+  .chip.teal { color: var(--teal); border-color: var(--teal); background: rgba(57,197,187,0.06); }
+
+  /* agents */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .agent {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    border-top: 3px solid;
+  }
+  .agent.primary  { border-top-color: var(--advanced); }
+  .agent.orch     { border-top-color: var(--info); }
+  .agent.bot      { border-top-color: var(--pink); }
+  .agent.eval     { border-top-color: var(--signal); }
+
+  .agent .head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .agent .name { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink); }
+  .agent .role { font-family: var(--mono); font-size: 10px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.12em; }
+  .agent .desc { color: var(--ink-mute); font-size: 13.5px; margin-bottom: 12px; }
+  .agent .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .agent .specs .row { font-family: var(--mono); font-size: 11.5px; }
+  .agent .specs .row .k { color: var(--ink-faint); display: block; }
+  .agent .specs .row .v { color: var(--signal); }
+
+  /* alert flow */
+  .flow {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .flow svg { display: block; min-width: 720px; }
+
+  /* tables */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 14px 0 22px 0;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px; overflow: hidden;
+    font-family: var(--mono); font-size: 13px;
+  }
+  thead th {
+    background: var(--bg-rise);
+    color: var(--signal-bright);
+    text-align: left; padding: 11px 14px;
+    font-weight: 600; font-size: 11.5px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td {
+    padding: 10px 14px; color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  ul, ol { padding-left: 20px; margin: 0 0 14px 0; }
+  li { color: var(--ink); margin-bottom: 4px; }
+  li::marker { color: var(--signal-dim); }
+
+  /* tech matrix */
+  .matrix {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px; margin: 18px 0;
+  }
+  .col-tech {
+    background: var(--bg-deep); border: 1px solid var(--line);
+    border-radius: 8px; padding: 16px;
+  }
+  .col-tech .h {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--info); text-transform: uppercase; letter-spacing: 0.12em;
+    margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .col-tech ul { list-style: none; padding: 0; margin: 0; }
+  .col-tech li {
+    font-family: var(--mono); font-size: 12.5px; color: var(--ink);
+    padding: 4px 0;
+  }
+  .col-tech li::before { content: "▸ "; color: var(--signal-dim); }
+
+  /* callout */
+  .callout {
+    border-left: 3px solid;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .callout .label {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 6px; display: block;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.signal { border-color: var(--signal); background: rgba(63,185,80,0.05); }
+  .callout.signal .label { color: var(--signal-bright); }
+  .callout.info { border-color: var(--info); background: rgba(88,166,255,0.05); }
+  .callout.info .label { color: var(--info); }
+  .callout.warn { border-color: var(--warn); background: rgba(210,153,34,0.05); }
+  .callout.warn .label { color: var(--warn); }
+
+  ::selection { background: rgba(63,185,80,0.25); color: var(--ink); }
+
+  footer { padding: 36px 0 0 0; color: var(--ink-faint); font-size: 12px; text-align: center; font-family: var(--mono); }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.toc { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+    main { padding: 32px 24px 80px 24px; }
+    .hero .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="toc">
+  <div class="brand">CORE<span class="dot">·</span>DIRECTIVE</div>
+  <div class="who">Emmanuel Tigoue · AI Security Engineer</div>
+
+  <h2>Stack</h2>
+  <a href="#overview">01 Architecture</a>
+  <a href="#infra">02 Infrastructure</a>
+  <a href="#containers">03 Containers (14)</a>
+  <a href="#agents">04 AI Agents</a>
+  <a href="#alerts">05 Alert Pipeline</a>
+  <a href="#identity">06 Identity &amp; Access</a>
+  <a href="#network">07 Network Security</a>
+  <a href="#cicd">08 CI/CD Security</a>
+  <a href="#grc">09 GRC Engineering</a>
+  <a href="#tech">10 Technology Matrix</a>
+</nav>
+
+<main>
+
+<div class="hero">
+  <div class="eyebrow">Production AI Security Stack &middot; CoreDirective Engine</div>
+  <h1>Defense-in-depth for <span class="accent">agentic AI systems</span>, shipped on a single droplet.</h1>
+  <p class="sub">14 containers, 4 LLM-driven agents, eBPF runtime detection, Zero Trust mesh, signed supply chain, and a 51-document GRC corpus. Built and operated solo as the production AI security platform behind CoreDirective.</p>
+  <div class="stats">
+    <div class="stat"><span class="n">14</span><span class="l">Containers</span></div>
+    <div class="stat"><span class="n">4</span><span class="l">AI Agents</span></div>
+    <div class="stat"><span class="n">16</span><span class="l">Terraform Modules</span></div>
+    <div class="stat"><span class="n">51</span><span class="l">GRC Docs</span></div>
+  </div>
+</div>
+
+<!-- ============ 1. OVERVIEW ============ -->
+<section class="card" id="overview">
+  <h2><span class="num">01</span> Architecture at a glance <span class="tag">layered defense</span></h2>
+  <p class="lead">Eight layers, each with a single owner and a clear failure mode.</p>
+
+  <div class="legend">
+    <div class="item"><span class="swatch" style="background: var(--info);"></span>Data plane</div>
+    <div class="item"><span class="swatch" style="background: var(--signal);"></span>Runtime services</div>
+    <div class="item"><span class="swatch" style="background: var(--advanced);"></span>AI agents</div>
+    <div class="item"><span class="swatch" style="background: var(--danger);"></span>Detection</div>
+    <div class="item"><span class="swatch" style="background: var(--warn);"></span>Identity</div>
+    <div class="item"><span class="swatch" style="background: var(--pink);"></span>Network</div>
+    <div class="item"><span class="swatch" style="background: var(--teal);"></span>Observability</div>
+  </div>
+
+  <div class="layers">
+    <div class="layer">
+      <div class="label"><span class="num">L1</span>Edge</div>
+      <div class="components">
+        <span class="chip pink">Cloudflare WAF</span>
+        <span class="chip pink">Zero Trust mTLS</span>
+        <span class="chip pink">Rate Limiting</span>
+        <span class="chip pink">Bot Fight Mode</span>
+        <span class="chip pink">Cloudflare Tunnel</span>
+        <span class="chip pink">Cloudflare Access</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="label"><span class="num">L2</span>Identity</div>
+      <div class="components">
+        <span class="chip warn">Keycloak v26 SSO</span>
+        <span class="chip warn">Teleport v18 JIT PAM</span>
+        <span class="chip warn">HashiCorp Vault</span>
+        <span class="chip warn">SCIM provisioning</span>
+        <span class="chip warn">MFA enforcement</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="label"><span class="num">L3</span>Runtime</div>
+      <div class="components">
+        <span class="chip signal">PostgreSQL 16</span>
+        <span class="chip signal">n8n SOAR</span>
+        <span class="chip signal">Ollama</span>
+        <span class="chip signal">Whisper</span>
+        <span class="chip signal">Docker Compose</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="label"><span class="num">L4</span>AI Agents</div>
+      <div class="components">
+        <span class="chip advanced">Squire (LangGraph)</span>
+        <span class="chip advanced">OpenClaw Gateway</span>
+        <span class="chip advanced">Claude Opus 4.7</span>
+        <span class="chip advanced">@CDirective_bot</span>
+        <span class="chip advanced">@Coredirective_bot</span>
+        <span class="chip advanced">14 n8n LLM workflows</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="label"><span class="num">L5</span>Guardrails</div>
+      <div class="components">
+        <span class="chip advanced">NeMo Guardrails</span>
+        <span class="chip advanced">GLiNER PII redaction</span>
+        <span class="chip advanced">OPA Rego policy</span>
+        <span class="chip advanced">budget_guard.py</span>
+        <span class="chip advanced">sanitize_output.py</span>
+        <span class="chip advanced">Langfuse trace</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="label"><span class="num">L6</span>Detection</div>
+      <div class="components">
+        <span class="chip danger">Falco eBPF</span>
+        <span class="chip danger">Falcosidekick</span>
+        <span class="chip danger">CrowdStrike Falcon EDR</span>
+        <span class="chip danger">Datadog</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="label"><span class="num">L7</span>Observability</div>
+      <div class="components">
+        <span class="chip teal">Datadog Agent</span>
+        <span class="chip teal">Fluentd</span>
+        <span class="chip teal">Sentry</span>
+        <span class="chip teal">Teleport audit</span>
+        <span class="chip teal">Langfuse evals</span>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="label"><span class="num">L8</span>Supply Chain</div>
+      <div class="components">
+        <span class="chip info">Trivy</span>
+        <span class="chip info">Semgrep</span>
+        <span class="chip info">Gitleaks</span>
+        <span class="chip info">Cosign sign-blob</span>
+        <span class="chip info">Syft SBOM</span>
+        <span class="chip info">OPA admission</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. INFRASTRUCTURE ============ -->
+<section class="card" id="infra">
+  <h2><span class="num">02</span> Infrastructure backbone <span class="tag">single droplet</span></h2>
+  <p>Deliberately small footprint, deliberately heavy stack. One DigitalOcean droplet hosts the full production engine.</p>
+
+  <table>
+    <thead><tr><th>Component</th><th>Spec</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Compute</td><td>DigitalOcean s-4vcpu-8gb</td><td>4 vCPU, 8 GB RAM, 160 GB disk, NYC1 region</td></tr>
+      <tr><td>OS</td><td>Ubuntu 24.04 LTS</td><td>Hardened baseline, AppArmor enabled</td></tr>
+      <tr><td>Orchestrator</td><td>Docker Compose v2</td><td>13 services + 1 standalone (OpenClaw)</td></tr>
+      <tr><td>IaC</td><td>16 Terraform modules</td><td>30+ resources across AWS, DigitalOcean, Cloudflare</td></tr>
+      <tr><td>Policy gate</td><td>8 OPA Rego policies</td><td>Encryption, tagging, secrets handling, zero public ingress</td></tr>
+      <tr><td>Secrets</td><td>Doppler (workplace) + Vault (runtime)</td><td>44 secrets in Doppler, zero local file storage</td></tr>
+      <tr><td>Edge</td><td>Cloudflare Tunnel</td><td>Tunnel ID 4bcf8238... routes n8n + SSH zero-trust</td></tr>
+      <tr><td>Volumes</td><td>5 named volumes</td><td>PostgreSQL, n8n, Ollama, Whisper, Vault, Backups</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout signal">
+    <span class="label">Design principle</span>
+    <p>One operator, one droplet, one supply chain. Every container is signed. Every change passes through OPA before merge. Every secret comes from a single source. The architecture is small enough to fully reason about and large enough to behave like production.</p>
+  </div>
+</section>
+
+<!-- ============ 3. CONTAINERS ============ -->
+<section class="card" id="containers">
+  <h2><span class="num">03</span> Container topology <span class="tag">14 services</span></h2>
+  <p>Every container has a single role. Color = layer.</p>
+
+  <div class="container-grid">
+    <div class="ctn data">
+      <div class="name">cd-service-db <span class="port">:5432</span></div>
+      <div class="role">PostgreSQL 16. Workflow state, n8n persistence, Squire memory, GRC corpus index.</div>
+    </div>
+    <div class="ctn runtime">
+      <div class="name">cd-service-n8n <span class="port">:5678</span></div>
+      <div class="role">n8n SOAR orchestration. 14 active workflows including MASTER_ORCHESTRATOR_V1 hitting 16 services.</div>
+    </div>
+    <div class="ctn ai">
+      <div class="name">cd-service-ollama <span class="port">:11434</span></div>
+      <div class="role">Local LLM inference. On-prem inference path for Squire and OpenClaw fallback.</div>
+    </div>
+    <div class="ctn ai">
+      <div class="name">cd-service-whisper <span class="port">:8000</span></div>
+      <div class="role">Voice transcription for the content pipeline.</div>
+    </div>
+    <div class="ctn ai">
+      <div class="name">openclaw-gateway <span class="port">:18789-90</span></div>
+      <div class="role">OpenClaw v2026.3.8. Claude Opus 4.7 endpoint with 6 installed skills (Tavily, browser, python, notion, gemini, github).</div>
+    </div>
+    <div class="ctn iam">
+      <div class="name">cd-service-vault <span class="port">:8200</span></div>
+      <div class="role">HashiCorp Vault. Secrets engine, dynamic credential issuance, key rotation.</div>
+    </div>
+    <div class="ctn iam">
+      <div class="name">cd-service-keycloak <span class="port">:8080</span></div>
+      <div class="role">Keycloak v26 SSO, RBAC, SCIM provisioning, MFA enforcement on admin paths.</div>
+    </div>
+    <div class="ctn iam">
+      <div class="name">cd-service-teleport <span class="port">:3080</span></div>
+      <div class="role">Teleport v18 JIT PAM. Standing admin eliminated, every session recorded for audit.</div>
+    </div>
+    <div class="ctn iam">
+      <div class="name">cd-service-event-handler</div>
+      <div class="role">Teleport audit shipper. Forwards every PAM session event to Datadog and Fluentd.</div>
+    </div>
+    <div class="ctn detect">
+      <div class="name">cd-service-falco</div>
+      <div class="role">Falco eBPF runtime detection. Kernel-level syscall analysis on every container.</div>
+    </div>
+    <div class="ctn detect">
+      <div class="name">cd-service-falcosidekick</div>
+      <div class="role">Falco alert router. Falco events → Datadog, Slack, Telegram in parallel.</div>
+    </div>
+    <div class="ctn obs">
+      <div class="name">cd-service-datadog</div>
+      <div class="role">Datadog Agent (us5.datadoghq.com). Metrics, logs, traces, infra monitoring.</div>
+    </div>
+    <div class="ctn obs">
+      <div class="name">cd-service-fluentd</div>
+      <div class="role">Fluentd log shipper. Application + audit logs into Datadog log indexes.</div>
+    </div>
+    <div class="ctn net">
+      <div class="name">tunnel-cyber-squire</div>
+      <div class="role">Cloudflare Tunnel. n8n.tigouetheory.com + ssh.tigouetheory.com via host network.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. AI AGENTS ============ -->
+<section class="card" id="agents">
+  <h2><span class="num">04</span> AI agent layer <span class="tag">agentic systems</span></h2>
+  <p>Four production agents, three orchestration patterns, one shared guardrail stack.</p>
+
+  <div class="agent-grid">
+    <div class="agent primary">
+      <div class="head">
+        <div class="name">Squire</div>
+        <div class="role">SOC analyst</div>
+      </div>
+      <div class="desc">Autonomous AI SOC analyst on LangGraph. Cuts Datadog alert triage by 80% via pgvector retrieval, NeMo Guardrails (GLiNER PII redaction), and full Langfuse tracing.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Framework</span><span class="v">LangGraph</span></div>
+        <div class="row"><span class="k">Memory</span><span class="v">pgvector RAG</span></div>
+        <div class="row"><span class="k">Guardrails</span><span class="v">NeMo + GLiNER</span></div>
+        <div class="row"><span class="k">Trace</span><span class="v">Langfuse</span></div>
+      </div>
+    </div>
+
+    <div class="agent primary">
+      <div class="head">
+        <div class="name">OpenClaw</div>
+        <div class="role">AI gateway</div>
+      </div>
+      <div class="desc">Claude Opus 4.7 gateway exposing 6 skills (Tavily, browser, python, notion, gemini, github). Cosign-signed artifacts, mTLS via Cloudflare Zero Trust, OPA-gated tool surface.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Model</span><span class="v">Claude Opus 4.7</span></div>
+        <div class="row"><span class="k">Version</span><span class="v">v2026.3.8</span></div>
+        <div class="row"><span class="k">Endpoint</span><span class="v">/v1/chat/completions</span></div>
+        <div class="row"><span class="k">Trust</span><span class="v">Cosign + mTLS</span></div>
+      </div>
+    </div>
+
+    <div class="agent orch">
+      <div class="head">
+        <div class="name">MASTER_ORCHESTRATOR_V1</div>
+        <div class="role">n8n workflow</div>
+      </div>
+      <div class="desc">Single webhook fronting 16 actions: postgres, telegram, github, drive, tasks, sheets, docs, slides, gumroad, ollama, cloudflare, notion, tavily, gmail, workspace_admin, excel.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Webhook</span><span class="v">/webhook/master-cmd</span></div>
+        <div class="row"><span class="k">Workflow ID</span><span class="v">UIf3v1ZNN98OtUge</span></div>
+        <div class="row"><span class="k">Auth</span><span class="v">n8n API key</span></div>
+        <div class="row"><span class="k">Switch</span><span class="v">v2 (16 routes)</span></div>
+      </div>
+    </div>
+
+    <div class="agent orch">
+      <div class="head">
+        <div class="name">14 n8n LLM workflows</div>
+        <div class="role">automation fleet</div>
+      </div>
+      <div class="desc">Telegram Supervisor, Content Research Pipeline, Gmail Readers (4 accounts), API Health Check, Gumroad Solvency, Security and Status agents, Gmail Label Creator.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Active</span><span class="v">14 workflows</span></div>
+        <div class="row"><span class="k">Cron jobs</span><span class="v">3 scheduled</span></div>
+        <div class="row"><span class="k">Webhooks</span><span class="v">9 endpoints</span></div>
+        <div class="row"><span class="k">Reclaimed</span><span class="v">12+ hrs/wk</span></div>
+      </div>
+    </div>
+
+    <div class="agent bot">
+      <div class="head">
+        <div class="name">@CDirective_bot</div>
+        <div class="role">Telegram</div>
+      </div>
+      <div class="desc">OpenClaw → Claude Opus 4.7. Primary autonomous agent surface. Routed through OpenClaw with full skill catalog access.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Engine</span><span class="v">OpenClaw → Opus 4.7</span></div>
+        <div class="row"><span class="k">Skills</span><span class="v">6 enabled</span></div>
+        <div class="row"><span class="k">State</span><span class="v">Running on DO</span></div>
+        <div class="row"><span class="k">Auth</span><span class="v">Telegram Bot Token</span></div>
+      </div>
+    </div>
+
+    <div class="agent bot">
+      <div class="head">
+        <div class="name">@Coredirective_bot</div>
+        <div class="role">Telegram</div>
+      </div>
+      <div class="desc">n8n-driven assistant. Security Scan and System Status workflows wired through this bot.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Engine</span><span class="v">n8n workflows</span></div>
+        <div class="row"><span class="k">Workflows</span><span class="v">4 routed</span></div>
+        <div class="row"><span class="k">Cred ID</span><span class="v">kVdzT3vKPCZJvOrF</span></div>
+        <div class="row"><span class="k">Status</span><span class="v">Active</span></div>
+      </div>
+    </div>
+
+    <div class="agent eval">
+      <div class="head">
+        <div class="name">Langfuse Eval Harness</div>
+        <div class="role">AI assurance</div>
+      </div>
+      <div class="desc">4 evaluators (control_coverage, poam_id_accuracy, sanitization_catch_rate, hallucination_rate), 12 golden fixtures, curator checkpoint, corpus baseline gating CI promotion.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Evaluators</span><span class="v">4</span></div>
+        <div class="row"><span class="k">Fixtures</span><span class="v">12 golden</span></div>
+        <div class="row"><span class="k">Gate</span><span class="v">CI required</span></div>
+        <div class="row"><span class="k">Budget</span><span class="v">dual-source guard</span></div>
+      </div>
+    </div>
+
+    <div class="agent eval">
+      <div class="head">
+        <div class="name">FastMCP grc_corpus</div>
+        <div class="role">tool surface</div>
+      </div>
+      <div class="desc">Read-only MCP server exposing 5 tools to LLM agents: list_docs, read_doc, search_corpus, get_poam, get_threat_model_entry. Path-traversal + symlink guard, 100KB byte cap, sanitizer on every output.</div>
+      <div class="specs">
+        <div class="row"><span class="k">Tools</span><span class="v">5 read-only</span></div>
+        <div class="row"><span class="k">Transport</span><span class="v">stdio</span></div>
+        <div class="row"><span class="k">Guard</span><span class="v">Path + symlink</span></div>
+        <div class="row"><span class="k">Output</span><span class="v">10-pattern sanitizer</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. ALERT PIPELINE ============ -->
+<section class="card" id="alerts">
+  <h2><span class="num">05</span> Information &amp; alert pipeline <span class="tag">eBPF → router → fan-out</span></h2>
+  <p>Detection happens at the kernel via Falco eBPF. Routing happens at Falcosidekick. Fan-out lands in Datadog (long-term), Telegram (immediate), and Sentry (errors).</p>
+
+  <div class="flow">
+    <svg viewBox="0 0 880 380" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L9,3 L0,6 z" fill="#3fb950"/>
+        </marker>
+        <marker id="arrowinfo" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L9,3 L0,6 z" fill="#58a6ff"/>
+        </marker>
+      </defs>
+
+      <style>
+        .node { fill: #0d1117; stroke: #30363d; stroke-width: 1; }
+        .node-detect { stroke: #f85149; }
+        .node-route  { stroke: #d29922; }
+        .node-sink   { stroke: #39c5bb; }
+        .node-out    { stroke: #ff7b72; }
+        .label  { font-family: 'JetBrains Mono', monospace; font-size: 12px; fill: #e6edf3; font-weight: 600; }
+        .sub    { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #8b949e; }
+        .heading { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #6e7681; text-transform: uppercase; letter-spacing: 0.1em; }
+        .conn { stroke: #3fb950; stroke-width: 1.5; fill: none; }
+        .conn-info { stroke: #58a6ff; stroke-width: 1.5; fill: none; stroke-dasharray: 4 3; }
+      </style>
+
+      <!-- Layer headings -->
+      <text x="20" y="30" class="heading">Source</text>
+      <text x="220" y="30" class="heading">Detect</text>
+      <text x="420" y="30" class="heading">Route</text>
+      <text x="660" y="30" class="heading">Sink</text>
+
+      <!-- Sources column -->
+      <rect x="20" y="60"  width="160" height="48" rx="6" class="node" />
+      <text x="30" y="80" class="label">Containers</text>
+      <text x="30" y="96" class="sub">syscalls, exec, net</text>
+
+      <rect x="20" y="130" width="160" height="48" rx="6" class="node" />
+      <text x="30" y="150" class="label">App logs</text>
+      <text x="30" y="166" class="sub">stdout, JSON</text>
+
+      <rect x="20" y="200" width="160" height="48" rx="6" class="node" />
+      <text x="30" y="220" class="label">PAM sessions</text>
+      <text x="30" y="236" class="sub">Teleport audit</text>
+
+      <rect x="20" y="270" width="160" height="48" rx="6" class="node" />
+      <text x="30" y="290" class="label">AI agents</text>
+      <text x="30" y="306" class="sub">Squire, OpenClaw</text>
+
+      <!-- Detect column -->
+      <rect x="220" y="60"  width="160" height="48" rx="6" class="node node-detect" />
+      <text x="230" y="80" class="label">Falco eBPF</text>
+      <text x="230" y="96" class="sub">kernel-level rules</text>
+
+      <rect x="220" y="130" width="160" height="48" rx="6" class="node node-detect" />
+      <text x="230" y="150" class="label">Fluentd</text>
+      <text x="230" y="166" class="sub">parse + tag</text>
+
+      <rect x="220" y="200" width="160" height="48" rx="6" class="node node-detect" />
+      <text x="230" y="220" class="label">Event Handler</text>
+      <text x="230" y="236" class="sub">Teleport shipper</text>
+
+      <rect x="220" y="270" width="160" height="48" rx="6" class="node node-detect" />
+      <text x="230" y="290" class="label">Langfuse</text>
+      <text x="230" y="306" class="sub">trace + eval</text>
+
+      <!-- Route -->
+      <rect x="420" y="155" width="160" height="68" rx="8" class="node node-route" />
+      <text x="430" y="178" class="label">Falcosidekick</text>
+      <text x="430" y="195" class="sub">router + fan-out</text>
+      <text x="430" y="211" class="sub">priority filter</text>
+
+      <!-- Sinks -->
+      <rect x="660" y="60"  width="180" height="48" rx="6" class="node node-sink" />
+      <text x="670" y="80" class="label">Datadog (us5)</text>
+      <text x="670" y="96" class="sub">metrics + logs + APM</text>
+
+      <rect x="660" y="130" width="180" height="48" rx="6" class="node node-out" />
+      <text x="670" y="150" class="label">Telegram bots</text>
+      <text x="670" y="166" class="sub">@CDirective_bot</text>
+
+      <rect x="660" y="200" width="180" height="48" rx="6" class="node node-sink" />
+      <text x="670" y="220" class="label">Sentry</text>
+      <text x="670" y="236" class="sub">tigoue-theory.sentry.io</text>
+
+      <rect x="660" y="270" width="180" height="48" rx="6" class="node node-sink" />
+      <text x="670" y="290" class="label">PostgreSQL</text>
+      <text x="670" y="306" class="sub">incident table</text>
+
+      <!-- connections source → detect -->
+      <line x1="180" y1="84"  x2="220" y2="84"  class="conn" marker-end="url(#arrow)"/>
+      <line x1="180" y1="154" x2="220" y2="154" class="conn" marker-end="url(#arrow)"/>
+      <line x1="180" y1="224" x2="220" y2="224" class="conn" marker-end="url(#arrow)"/>
+      <line x1="180" y1="294" x2="220" y2="294" class="conn" marker-end="url(#arrow)"/>
+
+      <!-- detect → route (all converge) -->
+      <path d="M380,84  C405,84  410,189 420,189"  class="conn" marker-end="url(#arrow)"/>
+      <path d="M380,154 C405,154 410,189 420,189"  class="conn" marker-end="url(#arrow)"/>
+      <path d="M380,224 C405,224 410,189 420,189"  class="conn" marker-end="url(#arrow)"/>
+      <path d="M380,294 C405,294 410,189 420,189"  class="conn" marker-end="url(#arrow)"/>
+
+      <!-- route → sinks (all fan out) -->
+      <path d="M580,189 C620,189 625,84  660,84"  class="conn" marker-end="url(#arrow)"/>
+      <path d="M580,189 C620,189 625,154 660,154" class="conn-info" marker-end="url(#arrowinfo)"/>
+      <path d="M580,189 C620,189 625,224 660,224" class="conn" marker-end="url(#arrow)"/>
+      <path d="M580,189 C620,189 625,294 660,294" class="conn" marker-end="url(#arrow)"/>
+
+      <!-- legend -->
+      <text x="20" y="365" class="sub">— solid: persisted   ⋯ dashed: realtime push</text>
+    </svg>
+  </div>
+
+  <h3>Alert routing rules (Falcosidekick)</h3>
+  <table>
+    <thead><tr><th>Severity</th><th>Sinks</th><th>SLA</th></tr></thead>
+    <tbody>
+      <tr><td>Critical (containerd, CVE-bound)</td><td>Datadog + Telegram + Sentry + PG</td><td>&lt; 60 s</td></tr>
+      <tr><td>High (privilege escalation, unexpected exec)</td><td>Datadog + Telegram + PG</td><td>&lt; 5 min</td></tr>
+      <tr><td>Medium (policy drift, unexpected mount)</td><td>Datadog + PG</td><td>batched 5 min</td></tr>
+      <tr><td>Info (audit, baseline)</td><td>Datadog (logs only)</td><td>batched 15 min</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <span class="label">Squire ingestion</span>
+    <p>Squire pulls from the Datadog alert stream every 5 minutes, scores each alert with the eval harness, and either auto-closes (low risk + matching playbook), enriches with pgvector RAG (medium), or escalates to @CDirective_bot for human review (high). Cuts Datadog triage 80%.</p>
+  </div>
+</section>
+
+<!-- ============ 6. IDENTITY ============ -->
+<section class="card" id="identity">
+  <h2><span class="num">06</span> Identity &amp; access <span class="tag">no standing admin</span></h2>
+  <p>Standing admin eliminated. Every privileged action requires a JIT request, MFA confirmation, and full session recording.</p>
+
+  <table>
+    <thead><tr><th>System</th><th>Role</th><th>Enforcement</th></tr></thead>
+    <tbody>
+      <tr><td>Keycloak v26</td><td>SSO + RBAC + SCIM</td><td>Realm per environment, group-mapped roles, MFA required for admin realm</td></tr>
+      <tr><td>Teleport v18</td><td>JIT PAM</td><td>Approval workflow, max session 4h, every keystroke recorded, exported to Datadog audit log</td></tr>
+      <tr><td>HashiCorp Vault</td><td>Secrets + dynamic creds</td><td>KV v2 for static, dynamic DB credentials with 15 min TTL, AppRole for services</td></tr>
+      <tr><td>Cloudflare Access</td><td>Zero Trust on admin hostnames</td><td>SSO via Keycloak, device posture check, geo restrictions, mTLS for service-to-service</td></tr>
+      <tr><td>Doppler (workplace)</td><td>Source of truth for secrets</td><td>44 secrets in coredirective-engine/prd, zero local file storage, audit log on every read</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 7. NETWORK ============ -->
+<section class="card" id="network">
+  <h2><span class="num">07</span> Network security <span class="tag">edge to runtime</span></h2>
+  <table>
+    <thead><tr><th>Control</th><th>Where</th><th>What it stops</th></tr></thead>
+    <tbody>
+      <tr><td>Cloudflare WAF custom rules</td><td>Edge zone</td><td>OWASP Top 10 patterns, geo blocks, ASN denylist for hostile sources</td></tr>
+      <tr><td>Rate Limiting</td><td>Webhook endpoints</td><td>Brute force, credential stuffing, n8n webhook abuse</td></tr>
+      <tr><td>Bot Fight Mode</td><td>Public hostnames</td><td>Scraper bots, exposed surface enumeration</td></tr>
+      <tr><td>Cloudflare Tunnel</td><td>Origin reachability</td><td>Origin IP exposure, direct port access. Origin only reachable through tunnel.</td></tr>
+      <tr><td>Cloudflare Access</td><td>Admin hostnames</td><td>Unauthenticated admin reach, lateral movement from compromised laptops</td></tr>
+      <tr><td>Zero Trust mTLS</td><td>Service-to-service</td><td>Stolen tokens replayed from outside the mesh</td></tr>
+      <tr><td>Falco network rules</td><td>Container egress</td><td>Unexpected outbound from inference containers (model exfil), connect-back C2</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 8. CI/CD ============ -->
+<section class="card" id="cicd">
+  <h2><span class="num">08</span> CI/CD security pipeline <span class="tag">signed artifacts only</span></h2>
+  <p>Every merge passes seven gates. No artifact ships unsigned. No artifact ships unscanned. No infrastructure change ships unpolicy-checked.</p>
+
+  <h3>PR pipeline (per push)</h3>
+  <ol>
+    <li><strong>fmt</strong> — code style enforcement</li>
+    <li><strong>validate</strong> — Terraform validate, schema checks</li>
+    <li><strong>TFLint</strong> — Terraform best practices</li>
+    <li><strong>Checkov</strong> — IaC security scanning</li>
+    <li><strong>plan</strong> — Terraform plan, diff posted</li>
+    <li><strong>OPA</strong> — Rego policy gates (encryption, tagging, secrets, ingress)</li>
+    <li><strong>PR-agent comment</strong> — automated review with mutual path-filter</li>
+  </ol>
+
+  <h3>Merge pipeline (per main)</h3>
+  <ol>
+    <li><strong>Trivy</strong> — container vulnerability scan</li>
+    <li><strong>Semgrep</strong> — SAST across Python, Bash, HCL, Rego</li>
+    <li><strong>Gitleaks</strong> — secrets scan in commit history</li>
+    <li><strong>apply</strong> — Terraform apply on green</li>
+    <li><strong>Cosign sign-blob</strong> — keyless OIDC signing on every artifact</li>
+    <li><strong>Syft SBOM</strong> — software bill of materials per release</li>
+    <li><strong>Cosign verify-on-PR</strong> — downstream verification of signatures</li>
+  </ol>
+
+  <h3>AI-specific gates (Phase 19 GRC stack)</h3>
+  <ul>
+    <li>Langfuse eval harness with 4 evaluators + 12 golden fixtures, gates model promotion</li>
+    <li>OPA Rego policies + corpus baseline check on every GRC PR</li>
+    <li>budget_guard.py with dual-source spend tracking (provider API + SQLite ledger)</li>
+    <li>sanitize_output.py with 10 patterns (PII, secrets, internal hostnames, prompt-leak markers)</li>
+    <li>frontmatter_to_yaml preprocessor with 6 pytest cases for GRC doc validation</li>
+  </ul>
+</section>
+
+<!-- ============ 9. GRC ============ -->
+<section class="card" id="grc">
+  <h2><span class="num">09</span> GRC engineering <span class="tag">policy as code</span></h2>
+  <p>Governance is treated as a software product. Every policy is a file. Every control has a test. Every finding is a POAM row.</p>
+
+  <table>
+    <thead><tr><th>Artifact</th><th>Count</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>GRC documents</td><td><span class="chip signal">51</span></td><td>SSP, POAM, Risk Assessment, 10 policies, 5 IR playbooks, 6 threat modeling docs, IAM, executive summaries</td></tr>
+      <tr><td>NIST 800-53 controls mapped</td><td><span class="chip signal">169</span></td><td>Full coverage with implementation notes per control</td></tr>
+      <tr><td>POAM entries tracked</td><td><span class="chip signal">30</span></td><td>P17-11 through P17-15 from threat model MED residuals, plus historic items</td></tr>
+      <tr><td>IR playbooks</td><td><span class="chip signal">5</span></td><td>Includes AI Incident Response with 3 Squire agent incident classes</td></tr>
+      <tr><td>Threat model docs</td><td><span class="chip signal">6</span></td><td>OpenClaw gateway, Squire agent, n8n orchestration, Cloudflare edge, Vault, Keycloak</td></tr>
+      <tr><td>Total lines</td><td><span class="chip signal">25,458</span></td><td>Sanitized, public at github.com/ET-sec/cyber-squire1/docs/grc</td></tr>
+      <tr><td>Frameworks covered</td><td><span class="chip info">5+</span></td><td>NIST 800-53, NIST AI RMF, ISO 42001, CIS v8, PCI DSS, EU AI Act mapping in progress</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="label">Phase 19 closing</span>
+    <p>Current sprint: GRC Agent Stack. FastMCP grc_corpus server, grc_reviewer.py with caching + budget guard + sanitizer, Langfuse eval harness, OPA Rego policies + corpus baseline, PR-agent path-filter workflow, Cosign sign-on-merge + verify-on-PR. Phase 19 is GRC engineering treated as production software, not a documentation exercise.</p>
+  </div>
+</section>
+
+<!-- ============ 10. TECH MATRIX ============ -->
+<section class="card" id="tech">
+  <h2><span class="num">10</span> Technology matrix <span class="tag">full stack</span></h2>
+
+  <div class="matrix">
+    <div class="col-tech">
+      <div class="h">AI / LLM</div>
+      <ul>
+        <li>Claude Opus 4.7</li>
+        <li>Claude Sonnet 4.6</li>
+        <li>Ollama (local)</li>
+        <li>Whisper</li>
+        <li>LangGraph</li>
+        <li>LiteLLM</li>
+        <li>NeMo Guardrails</li>
+        <li>GLiNER</li>
+        <li>Langfuse</li>
+        <li>FastMCP</li>
+      </ul>
+    </div>
+    <div class="col-tech">
+      <div class="h">Cloud</div>
+      <ul>
+        <li>DigitalOcean</li>
+        <li>AWS Bedrock</li>
+        <li>Cloudflare</li>
+        <li>Vertex AI</li>
+        <li>Doppler</li>
+        <li>Sentry</li>
+        <li>Datadog (us5)</li>
+        <li>1Password</li>
+      </ul>
+    </div>
+    <div class="col-tech">
+      <div class="h">Identity</div>
+      <ul>
+        <li>Keycloak v26</li>
+        <li>Teleport v18</li>
+        <li>HashiCorp Vault</li>
+        <li>Cloudflare Access</li>
+        <li>SCIM</li>
+        <li>OIDC / OAuth 2</li>
+        <li>mTLS</li>
+      </ul>
+    </div>
+    <div class="col-tech">
+      <div class="h">Detection</div>
+      <ul>
+        <li>Falco (eBPF)</li>
+        <li>Falcosidekick</li>
+        <li>CrowdStrike Falcon EDR</li>
+        <li>Datadog Cloud SIEM</li>
+        <li>Splunk (prior)</li>
+        <li>Wireshark</li>
+        <li>Nmap</li>
+        <li>Nessus</li>
+      </ul>
+    </div>
+    <div class="col-tech">
+      <div class="h">Supply chain</div>
+      <ul>
+        <li>Trivy</li>
+        <li>Semgrep</li>
+        <li>Gitleaks</li>
+        <li>Checkov</li>
+        <li>OPA (Rego + Gatekeeper)</li>
+        <li>Cosign sign-blob</li>
+        <li>Syft (SBOM)</li>
+        <li>SLSA-style provenance</li>
+      </ul>
+    </div>
+    <div class="col-tech">
+      <div class="h">Infra as code</div>
+      <ul>
+        <li>Terraform (16 modules)</li>
+        <li>Docker Compose v2</li>
+        <li>HCL</li>
+        <li>Bash</li>
+        <li>GitHub Actions</li>
+        <li>conftest (Rego)</li>
+        <li>Helm (familiar)</li>
+        <li>Ansible (familiar)</li>
+      </ul>
+    </div>
+    <div class="col-tech">
+      <div class="h">Languages</div>
+      <ul>
+        <li>Python</li>
+        <li>Bash</li>
+        <li>HCL</li>
+        <li>Rego</li>
+        <li>JavaScript / Apps Script</li>
+        <li>SQL</li>
+        <li>Go (reading)</li>
+      </ul>
+    </div>
+    <div class="col-tech">
+      <div class="h">Frameworks</div>
+      <ul>
+        <li>OWASP LLM Top 10</li>
+        <li>OWASP API Security</li>
+        <li>NIST 800-53 / 800-61 / 800-207</li>
+        <li>NIST AI RMF</li>
+        <li>ISO 42001</li>
+        <li>EU AI Act</li>
+        <li>GDPR</li>
+        <li>PCI DSS</li>
+        <li>CIS v8</li>
+        <li>MITRE ATT&amp;CK</li>
+        <li>MITRE ATLAS</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  STACK.html · CoreDirective Production AI Security Engine · 2026-04-29 · github.com/ET-sec/cyber-squire1
+</footer>
+
+</main>
+</div>
+</body>
+</html>

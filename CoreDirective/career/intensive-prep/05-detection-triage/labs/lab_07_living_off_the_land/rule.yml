@@ -1,0 +1,60 @@
+title: LOLBin Recon Burst from Single Parent Process
+id: ee556677-7788-99aa-bbcc-ddeeff001122
+status: experimental
+description: >
+  Three or more recon LOLBins (whoami, net.exe, nltest, quser, hostname,
+  ipconfig, systeminfo) launched within 60 seconds from the same parent
+  process. The combination is a hands-on-keyboard recon burst typical of
+  post-exploitation. Individual commands are noisy. The burst is rare.
+references:
+  - https://lolbas-project.github.io/
+  - https://attack.mitre.org/techniques/T1033/
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_whoami:
+    Image|endswith: '\whoami.exe'
+  selection_net_user:
+    Image|endswith: '\net.exe'
+    CommandLine|contains: ' user'
+  selection_net_group:
+    Image|endswith: '\net.exe'
+    CommandLine|contains: ' group'
+  selection_nltest:
+    Image|endswith: '\nltest.exe'
+  selection_quser:
+    Image|endswith: '\quser.exe'
+  selection_systeminfo:
+    Image|endswith: '\systeminfo.exe'
+  selection_hostname:
+    Image|endswith: '\hostname.exe'
+  condition: 1 of selection_*
+correlation:
+  type: temporal
+  rules:
+    - selection_whoami
+    - selection_net_user
+    - selection_net_group
+    - selection_nltest
+    - selection_quser
+    - selection_systeminfo
+    - selection_hostname
+  group-by:
+    - ParentProcessId
+    - User
+  timespan: 60s
+  condition:
+    distinct: 3
+falsepositives:
+  - login scripts that run multiple recon LOLBins (allowlist by GPO origin)
+  - admin troubleshooting (allowlist by user role)
+level: high
+tags:
+  - attack.discovery
+  - attack.t1033
+  - attack.t1087.002
+  - attack.t1069.002
+  - attack.t1018

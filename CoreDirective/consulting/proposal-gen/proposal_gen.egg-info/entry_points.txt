@@ -1,0 +1,2 @@
+[console_scripts]
+proposal-gen = proposal_gen.cli:main

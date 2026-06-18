@@ -1,0 +1,58 @@
+search_terms:
+  - cybersecurity
+  - security analyst
+  - security engineer
+  - SOC analyst
+  - IAM engineer
+  - cloud security
+
+locations:
+  - Atlanta, GA
+  - Remote
+
+my_certs:
+  - CASP+
+  - SecurityX
+  - CCNA
+  - AWS Security Specialty
+  - Security+
+  - Network+
+  - SSCP
+  - "ISC2"
+  - CC
+
+company_pages:
+  - name: Truist
+    url: https://careers.truist.com
+    search_terms: [cybersecurity, security]
+  - name: Southern Company
+    url: https://careers.southerncompany.com
+    search_terms: [cybersecurity, security]
+  - name: EY
+    url: https://careers.ey.com
+    search_terms: [cybersecurity, Atlanta]
+  - name: Insight Global
+    url: https://www.insightglobal.com/jobs/
+    search_terms: [cybersecurity, Atlanta]
+
+webhook_url: "https://n8n.tigouetheory.com/webhook/job-digest"
+
+scoring:
+  cert_match_weight: 40
+  salary_weight: 20
+  location_weight: 15
+  experience_weight: 15
+  clearance_weight: 10
+  min_score: 50
+
+usajobs:
+  email: "your-email@example.com"
+  job_series: "2210"
+  min_grade: 9
+  max_grade: 13
+
+rate_limit:
+  min_delay: 1.0
+  max_delay: 3.0
+  max_retries: 3
+  backoff_factor: 2.0

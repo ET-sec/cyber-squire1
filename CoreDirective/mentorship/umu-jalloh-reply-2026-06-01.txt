@@ -1,0 +1,9 @@
+Caught up on v2. The 5/22 to 5/24 wave closed the v1 gaps. Q20 dedup on chrome#4 vs chrome#5 stood out, you found and documented your own miscount before anyone called it out, that's the move. Phase 7, with the decoded base64 postmortem from Q21, is the root cause that v1 didn't have. Threat intel update with CISA, the OpenMetadata CVEs, and the Krebs link on CoinHive's sunset takes it from a 2018 puzzle to something a 2026 SOC team would actually read.
+
+Repo's ready for interviews. Get that closure post up, tag the repo in it.
+
+Next thing. osTicket triage agent sketch. One page, no code yet.
+
+Show me the components and how a ticket flows through, what the agent classifies, what auto-responds, what escalates, and where a human still owns the call. Then a threat model on the agent itself. Prompt injection from ticket bodies is the obvious one, go further than that. Data exfil through agent replies, tool abuse, and role confusion. If someone uses a ticket body to impersonate a user that the agent already trusts. Last, trust boundaries. Where the agent's authority stops, what systems it can touch, and what it can't.
+
+Sketch first, not code. Diagram plus a page, post it, then start the SAA prep.

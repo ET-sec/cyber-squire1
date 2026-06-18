@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CoreDirective Job Pipeline Tracker — System Spec</title>
+<style>
+  :root {
+    --bg-deep: #010409;
+    --bg-void: #0d1117;
+    --bg-rise: #161b22;
+    --bg-hi:   #21262d;
+    --line:    #30363d;
+    --line-2:  #3d444d;
+
+    --ink:        #e6edf3;
+    --ink-mute:   #8b949e;
+    --ink-faint:  #6e7681;
+
+    --signal:        #3fb950;
+    --signal-bright: #56d364;
+    --signal-dim:    #238636;
+
+    --info:    #58a6ff;
+    --warn:    #d29922;
+    --danger:  #f85149;
+    --advanced:#a371f7;
+    --pink:    #ff7b72;
+
+    --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-deep); }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* layout */
+  .shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+  nav.toc {
+    position: sticky; top: 0;
+    height: 100vh; overflow-y: auto;
+    background: var(--bg-deep);
+    border-right: 1px solid var(--line);
+    padding: 28px 18px;
+  }
+  nav.toc h2 {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 12px 0;
+  }
+  nav.toc a {
+    display: block;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-mute);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-left: 2px solid transparent;
+    margin-bottom: 2px;
+  }
+  nav.toc a:hover { color: var(--signal); border-left-color: var(--signal-dim); }
+  nav.toc a.section { color: var(--ink); margin-top: 14px; font-weight: 600; }
+
+  main { padding: 48px 56px 120px 56px; max-width: 1100px; }
+
+  /* hero */
+  .hero {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--bg-void) 0%, var(--bg-rise) 100%);
+    padding: 36px 40px;
+    margin-bottom: 40px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--signal-bright), var(--info), var(--advanced));
+  }
+  .hero .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--signal-bright); margin-bottom: 10px;
+  }
+  .hero h1 {
+    font-family: var(--mono); font-size: 32px; font-weight: 700;
+    color: var(--ink); margin: 0 0 12px 0;
+  }
+  .hero .sub { color: var(--ink-mute); font-size: 16px; max-width: 720px; }
+  .hero .meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 24px; }
+  .hero .meta .pair {
+    background: var(--bg-deep); border: 1px solid var(--line);
+    padding: 8px 14px; border-radius: 6px;
+    font-family: var(--mono); font-size: 12px;
+  }
+  .hero .meta .pair .k { color: var(--ink-faint); margin-right: 8px; }
+  .hero .meta .pair .v { color: var(--signal); }
+
+  /* sections */
+  section.card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg-void);
+    padding: 32px 36px;
+    margin-bottom: 28px;
+  }
+  section.card h2 {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--ink);
+    margin: 0 0 6px 0;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  section.card h2 .num {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--signal-bright);
+    background: rgba(63,185,80,0.1);
+    padding: 4px 10px; border-radius: 6px;
+    border: 1px solid var(--signal-dim);
+  }
+  section.card h3 {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--info);
+    margin: 32px 0 12px 0;
+  }
+  section.card h4 {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--warn);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 22px 0 10px 0;
+  }
+
+  p { color: var(--ink); margin: 0 0 14px 0; }
+  p.lead { color: var(--ink-mute); font-size: 16px; }
+  strong { color: var(--signal-bright); font-weight: 600; }
+  em { color: var(--info); font-style: normal; }
+
+  /* tables */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 16px 0 24px 0;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px; overflow: hidden;
+    font-family: var(--mono); font-size: 13px;
+  }
+  thead th {
+    background: var(--bg-rise);
+    color: var(--signal-bright);
+    text-align: left; padding: 12px 14px;
+    font-weight: 600; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td {
+    padding: 11px 14px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(63,185,80,0.04); }
+  td .num { font-variant-numeric: tabular-nums; color: var(--signal); }
+  td .ink-mute { color: var(--ink-mute); }
+
+  /* inline elements */
+  code {
+    font-family: var(--mono); font-size: 13px;
+    background: var(--bg-rise);
+    color: var(--signal);
+    padding: 2px 8px; border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  pre {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 22px;
+    overflow-x: auto;
+    font-family: var(--mono); font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 16px 0;
+  }
+  pre .k { color: var(--pink); }
+  pre .s { color: var(--info); }
+  pre .n { color: var(--warn); }
+  pre .c { color: var(--ink-faint); font-style: italic; }
+  pre .fn { color: var(--signal-bright); }
+
+  ul, ol { padding-left: 22px; margin: 0 0 16px 0; }
+  ul li, ol li { color: var(--ink); margin-bottom: 6px; }
+  ul li::marker { color: var(--signal-dim); }
+  ol li::marker { color: var(--info); font-family: var(--mono); }
+
+  a { color: var(--info); text-decoration: none; border-bottom: 1px dotted var(--info); }
+  a:hover { color: var(--signal-bright); border-bottom-color: var(--signal-bright); }
+
+  /* pills / badges */
+  .pill {
+    display: inline-block;
+    font-family: var(--mono); font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    border: 1px solid;
+    margin-right: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .pill.signal { background: rgba(63,185,80,0.1); border-color: var(--signal-dim); color: var(--signal-bright); }
+  .pill.info { background: rgba(88,166,255,0.1); border-color: var(--info); color: var(--info); }
+  .pill.warn { background: rgba(210,153,34,0.12); border-color: var(--warn); color: var(--warn); }
+  .pill.danger { background: rgba(248,81,73,0.12); border-color: var(--danger); color: var(--danger); }
+  .pill.advanced { background: rgba(163,113,247,0.12); border-color: var(--advanced); color: var(--advanced); }
+  .pill.mute { background: var(--bg-rise); border-color: var(--line-2); color: var(--ink-mute); }
+
+  /* color swatches */
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+  .swatch {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--bg-deep);
+  }
+  .swatch .chip {
+    width: 100%; height: 44px; border-radius: 6px;
+    border: 1px solid var(--line); margin-bottom: 10px;
+  }
+  .swatch .name { font-family: var(--mono); font-size: 12px; color: var(--ink); }
+  .swatch .hex { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+
+  /* callouts */
+  .callout {
+    border-left: 3px solid;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 18px 0;
+    font-size: 14px;
+  }
+  .callout .label {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 6px; display: block;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.warn  { border-color: var(--warn);  background: rgba(210,153,34,0.06); }
+  .callout.warn .label { color: var(--warn); }
+  .callout.danger { border-color: var(--danger); background: rgba(248,81,73,0.06); }
+  .callout.danger .label { color: var(--danger); }
+  .callout.info  { border-color: var(--info); background: rgba(88,166,255,0.05); }
+  .callout.info .label { color: var(--info); }
+  .callout.signal { border-color: var(--signal); background: rgba(63,185,80,0.05); }
+  .callout.signal .label { color: var(--signal-bright); }
+
+  /* tab inventory cards */
+  .tab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 16px 0; }
+  .tab-card {
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+    border-left: 3px solid;
+  }
+  .tab-card.system { border-left-color: var(--info); }
+  .tab-card.calc   { border-left-color: var(--warn); }
+  .tab-card.perjob { border-left-color: var(--signal); }
+  .tab-card.ref    { border-left-color: var(--advanced); }
+  .tab-card.ops    { border-left-color: var(--pink); }
+  .tab-card .name {
+    font-family: var(--mono); font-size: 13px; color: var(--ink); font-weight: 600;
+    margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .tab-card .desc { color: var(--ink-mute); font-size: 13px; margin: 0; }
+
+  /* status row pills */
+  .status-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* footer */
+  footer { padding: 32px 0 0 0; color: var(--ink-faint); font-size: 12px; text-align: center; }
+  footer code { color: var(--ink-mute); background: transparent; border: none; padding: 0; }
+
+  /* selection */
+  ::selection { background: rgba(63,185,80,0.25); color: var(--ink); }
+
+  /* anchor offset */
+  section.card { scroll-margin-top: 24px; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.toc { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+    main { padding: 32px 24px 80px 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="toc">
+  <h2>Sections</h2>
+  <a href="#overview" class="section">1. Overview</a>
+  <a href="#tabs" class="section">2. Tab Inventory</a>
+  <a href="#per-tab" class="section">3. Per-Tab Spec</a>
+  <a href="#tab-master">3.1 Pipeline_Master</a>
+  <a href="#tab-comp">3.2 Comp_Analysis</a>
+  <a href="#tab-perjob">3.3 Per-Job Tabs</a>
+  <a href="#tab-jds">3.4 JDs_Full</a>
+  <a href="#tab-actions">3.5 Action_List</a>
+  <a href="#tab-recruiter">3.6 Recruiter_Log</a>
+  <a href="#tab-tax">3.7 Settings_Tax</a>
+  <a href="#tab-conv">3.8 Settings_Conventions</a>
+  <a href="#dataflow" class="section">4. Data Flow</a>
+  <a href="#apps-script" class="section">5. Apps Script</a>
+  <a href="#design" class="section">6. Design System</a>
+  <a href="#palette">6.1 Palette</a>
+  <a href="#typography">6.2 Typography</a>
+  <a href="#layout">6.3 Layout</a>
+  <a href="#status-styling">6.4 Status Styling</a>
+  <a href="#numformat">6.5 Number Formats</a>
+  <a href="#audit">6.6 Brand Audit</a>
+  <a href="#anti">6.7 Anti-Patterns</a>
+  <a href="#integrations" class="section">7. Integrations</a>
+  <a href="#questions" class="section">8. Open Questions</a>
+  <a href="#claude" class="section">9. Run Order</a>
+</nav>
+
+<main>
+
+<div class="hero">
+  <div class="eyebrow">CoreDirective &middot; Job Pipeline Tracker &middot; System Spec</div>
+  <h1>Pipeline of record. Comp calculator. Cross-sheet integrity layer.</h1>
+  <p class="sub">A multi-tab Google Sheet that tracks every active opportunity, auto-converts gross pay into Georgia 2026 net across hourly, weekly, monthly, and annual views, and cascades inserts and deletes across every dependent tab. Built so a single Claude Code CLI command can spawn or remove a full opportunity record.</p>
+  <div class="meta">
+    <div class="pair"><span class="k">Sheet ID</span><span class="v">10xUZ-hPxgEhMpY8Y37Z37yNcWeg9HuFlrJ2rs1jFEHE</span></div>
+    <div class="pair"><span class="k">Owner</span><span class="v">Emmanuel Tigoue</span></div>
+    <div class="pair"><span class="k">Tax basis</span><span class="v">Georgia 2026, single</span></div>
+    <div class="pair"><span class="k">Spec rev</span><span class="v">2026-04-29</span></div>
+  </div>
+</div>
+
+<!-- ============ 1. OVERVIEW ============ -->
+<section class="card" id="overview">
+  <h2><span class="num">01</span> System overview</h2>
+  <p class="lead">The tracker is one workbook doing three jobs at once.</p>
+
+  <div class="tab-grid">
+    <div class="tab-card system">
+      <div class="name">Pipeline of record <span class="pill signal">spine</span></div>
+      <p class="desc">Every active opportunity has a row in <code>Pipeline_Master</code> AND a dedicated tab. Master row = at-a-glance. Tab = deep record.</p>
+    </div>
+    <div class="tab-card calc">
+      <div class="name">Comp calculator <span class="pill warn">math</span></div>
+      <p class="desc">Anything entered as gross hourly or annual auto-converts to net via the Georgia 2026 <code>TaxRate</code> LAMBDA. Hourly, weekly, monthly, annual all derived from one source.</p>
+    </div>
+    <div class="tab-card ops">
+      <div class="name">Cross-sheet integrity <span class="pill danger">cascade</span></div>
+      <p class="desc">Insert or delete in Pipeline_Master cascades to per-job tab, comp row, recruiter log, action list, JD entry. One write, one delete, everywhere consistent.</p>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <span class="label">Design intent</span>
+    <p>A single Claude Code CLI command ("add Milestone Tech to the pipeline") triggers row insert, per-job tab spawn, recruiter log append, action list seed, and comp row insertion with formulas filled. A single delete cascades the removal. Apps Script bound to the workbook does the cascade work, not Claude.</p>
+  </div>
+</section>
+
+<!-- ============ 2. TAB INVENTORY ============ -->
+<section class="card" id="tabs">
+  <h2><span class="num">02</span> Tab inventory</h2>
+  <p>Visible on the bottom bar (left to right) plus the implied system tabs that should exist.</p>
+
+  <h3>Visible tabs</h3>
+  <div class="tab-grid">
+    <div class="tab-card perjob">
+      <div class="name">Amex_AppSec <span class="pill signal">per-job</span></div>
+      <p class="desc">Deep record for the Amex / Experis AppSec contract.</p>
+    </div>
+    <div class="tab-card perjob">
+      <div class="name">NICE_AIDataSpec <span class="pill signal">per-job</span></div>
+      <p class="desc">Deep record for the NICE Ltd AI Data Specialist req.</p>
+    </div>
+    <div class="tab-card perjob">
+      <div class="name">Brilliant_Cloudflare <span class="pill signal">per-job</span></div>
+      <p class="desc">Deep record for the Brilliant Cloudflare Application Engineer C2H.</p>
+    </div>
+    <div class="tab-card ref">
+      <div class="name">JDs_Full <span class="pill advanced">reference</span></div>
+      <p class="desc">Full JD text for every active req, indexed by company key.</p>
+    </div>
+    <div class="tab-card ops">
+      <div class="name">Action_List <span class="pill pink" style="background: rgba(255,123,114,0.1); border-color: var(--pink); color: var(--pink);">ops</span></div>
+      <p class="desc">Next-actions queue across all reqs, dated with owner and due.</p>
+    </div>
+    <div class="tab-card ops">
+      <div class="name">Recruiter_Log <span class="pill pink" style="background: rgba(255,123,114,0.1); border-color: var(--pink); color: var(--pink);">ops</span></div>
+      <p class="desc">Chronological log of every recruiter touch (email, call, LinkedIn DM).</p>
+    </div>
+    <div class="tab-card calc">
+      <div class="name">Comp_Analysis <span class="pill warn">calc</span></div>
+      <p class="desc">Master compensation comparison, one row per active opportunity.</p>
+    </div>
+  </div>
+
+  <h3>Implied system tabs (likely hidden or scrolled off)</h3>
+  <div class="tab-grid">
+    <div class="tab-card system">
+      <div class="name">Pipeline_Master <span class="pill info">system</span></div>
+      <p class="desc">The master row table. Source of truth for what is in play. Every other tab joins on its <code>company_key</code>.</p>
+    </div>
+    <div class="tab-card system">
+      <div class="name">Settings_Tax <span class="pill info">system</span></div>
+      <p class="desc">Georgia 2026 brackets, FICA rates, deduction constants. Single source for the <code>TaxRate</code> LAMBDA.</p>
+    </div>
+    <div class="tab-card system">
+      <div class="name">Settings_Conventions <span class="pill info">system</span></div>
+      <p class="desc">Status enums, role categories, source platforms, color tokens for conditional formatting.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. PER-TAB SPEC ============ -->
+<section class="card" id="per-tab">
+  <h2><span class="num">03</span> Per-tab spec</h2>
+  <p>Columns, formulas, and behaviors for every tab.</p>
+</section>
+
+<!-- 3.1 Pipeline_Master -->
+<section class="card" id="tab-master">
+  <h2><span class="num">3.1</span> Pipeline_Master <span class="pill info" style="margin-left: 12px;">spine</span></h2>
+  <p>The spine of the system. Every other tab cross-references this.</p>
+
+  <h4>Columns</h4>
+  <table>
+    <thead>
+      <tr><th>Col</th><th>Field</th><th>Type</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>A</td><td>row_id</td><td><span class="pill mute">auto</span></td><td>UUID or sequence, never reused</td></tr>
+      <tr><td>B</td><td>company_key</td><td><span class="pill info">text</span></td><td>UPPER_SNAKE_CASE used as tab name and join key (e.g., <code>MILESTONE_TECH</code>)</td></tr>
+      <tr><td>C</td><td>company_display</td><td><span class="pill info">text</span></td><td>Pretty name for UI ("Milestone Technologies")</td></tr>
+      <tr><td>D</td><td>end_client</td><td><span class="pill info">text</span></td><td>If staffing firm, who is the actual client</td></tr>
+      <tr><td>E</td><td>role</td><td><span class="pill info">text</span></td><td>Job title from JD</td></tr>
+      <tr><td>F</td><td>req_id</td><td><span class="pill info">text</span></td><td>Recruiter or ATS req number</td></tr>
+      <tr><td>G</td><td>type</td><td><span class="pill warn">enum</span></td><td>FT, Contract, C2H</td></tr>
+      <tr><td>H</td><td>duration</td><td><span class="pill info">text</span></td><td>"6+ months" if contract, blank if FT</td></tr>
+      <tr><td>I</td><td>location</td><td><span class="pill info">text</span></td><td>Remote / Hybrid / Onsite + city</td></tr>
+      <tr><td>J</td><td>pay_offered</td><td><span class="pill warn">currency</span></td><td>Recruiter's first number</td></tr>
+      <tr><td>K</td><td>pay_counter</td><td><span class="pill warn">currency</span></td><td>Counter target</td></tr>
+      <tr><td>L</td><td>pay_floor</td><td><span class="pill warn">currency</span></td><td>Walk-away</td></tr>
+      <tr><td>M</td><td>recruiter_name</td><td><span class="pill info">text</span></td><td></td></tr>
+      <tr><td>N</td><td>recruiter_contact</td><td><span class="pill info">text</span></td><td>Email + phone</td></tr>
+      <tr><td>O</td><td>source</td><td><span class="pill warn">enum</span></td><td>Indeed, LinkedIn, direct, referral</td></tr>
+      <tr><td>P</td><td>resume_used</td><td><span class="pill info">text</span></td><td>Foundation + tailored variant filename</td></tr>
+      <tr><td>Q</td><td>prep_folder</td><td><span class="pill mute">path</span></td><td><code>~/cyber-squire-ops/CoreDirective/career/&lt;key&gt;/</code></td></tr>
+      <tr><td>R</td><td>status</td><td><span class="pill warn">enum</span></td><td>Applied, Screen Scheduled, Screened, Tech Screen, Offer, Rejected, Ghosted</td></tr>
+      <tr><td>S</td><td>next_action</td><td><span class="pill info">text</span></td><td>What to do next</td></tr>
+      <tr><td>T</td><td>next_action_date</td><td><span class="pill advanced">date</span></td><td></td></tr>
+      <tr><td>U</td><td>created</td><td><span class="pill advanced">timestamp</span></td><td></td></tr>
+      <tr><td>V</td><td>updated</td><td><span class="pill advanced">timestamp</span></td><td>auto on any cell edit</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Formulas</h4>
+  <pre><span class="c">// Q (prep_folder)</span>
+<span class="fn">=</span>"~/cyber-squire-ops/CoreDirective/career/" <span class="fn">&amp;</span> <span class="k">LOWER</span>(B2) <span class="fn">&amp;</span> "/"
+
+<span class="c">// V (updated) — driven by Apps Script onEdit</span>
+V<span class="n">2</span> <span class="fn">=</span> <span class="k">NOW</span>()  <span class="c">// written by trigger, not by user</span></pre>
+
+  <h4>Behavior on row insert</h4>
+  <ol>
+    <li>Apps Script <code>onInsert(row)</code> fires.</li>
+    <li>Spawns a new tab from <code>Per_Job_Template</code> using <code>B</code> as the tab name.</li>
+    <li>Appends a row to <code>Comp_Analysis</code> with B as Pipeline display, G as Type, J/K/L feeding the comp formulas.</li>
+    <li>Appends a row to <code>Recruiter_Log</code> if N is non-empty.</li>
+    <li>Appends a row to <code>Action_List</code> from S+T.</li>
+    <li>Creates the prep folder on disk via <code>gws-cli</code> or <code>gcloud</code> (out-of-spreadsheet).</li>
+    <li>Appends an entry to <code>JDs_Full</code> keyed by B.</li>
+  </ol>
+
+  <h4>Behavior on row delete (the cascade)</h4>
+  <div class="callout danger">
+    <span class="label">Cascade contract</span>
+    <p>Deleting a Pipeline_Master row removes that opportunity from every place it exists. No orphan tabs, no orphan log rows, no orphan actions.</p>
+  </div>
+  <ol>
+    <li>Apps Script <code>onDelete(row)</code> fires.</li>
+    <li>Captures B (company_key) before the delete completes.</li>
+    <li>Removes the matching tab named B.</li>
+    <li>Removes the matching row from <code>Comp_Analysis</code>.</li>
+    <li>Removes any rows from <code>Recruiter_Log</code> where company_key = B.</li>
+    <li>Removes any rows from <code>Action_List</code> where company_key = B.</li>
+    <li>Removes the <code>JDs_Full</code> entry keyed by B.</li>
+    <li>Archives all of the above to a hidden <code>Archived_&lt;date&gt;</code> tab so it can be undone within 7 days.</li>
+  </ol>
+</section>
+
+<!-- 3.2 Comp_Analysis -->
+<section class="card" id="tab-comp">
+  <h2><span class="num">3.2</span> Comp_Analysis <span class="pill warn" style="margin-left: 12px;">calculator</span></h2>
+  <p>Master compensation calculator. One row per active opportunity. All values derive from the gross input via the <code>TaxRate</code> LAMBDA.</p>
+
+  <h4>Columns</h4>
+  <table>
+    <thead><tr><th>Col</th><th>Field</th><th>Source</th><th>Formula</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>Pipeline</td><td>Pipeline_Master.C</td><td><code>=VLOOKUP(...)</code></td></tr>
+      <tr><td>B</td><td>Type</td><td>Pipeline_Master.G</td><td><code>=VLOOKUP(...)</code></td></tr>
+      <tr><td>C</td><td>Hourly Gross</td><td>K (if hourly) or Annual/2080</td><td><code>=IF(G="FT", AnnualGross/2080, HourlyRate)</code></td></tr>
+      <tr><td>D</td><td>Hourly Net</td><td>C minus tax</td><td><code>=C * (1 - TaxRate(B, I))</code></td></tr>
+      <tr><td>E</td><td>Weekly Gross</td><td>C × 40</td><td><code>=C*40</code></td></tr>
+      <tr><td>F</td><td>Weekly Net</td><td>D × 40</td><td><code>=D*40</code></td></tr>
+      <tr><td>G</td><td>Monthly Gross</td><td>E × 52 / 12</td><td><code>=E*52/12</code></td></tr>
+      <tr><td>H</td><td>Monthly Net</td><td>F × 52 / 12</td><td><code>=F*52/12</code></td></tr>
+      <tr><td>I</td><td>Annual Gross</td><td>C × 2080</td><td><code>=C*2080</code></td></tr>
+      <tr><td>J</td><td>Annual Net</td><td>D × 2080</td><td><code>=D*2080</code></td></tr>
+      <tr><td>K</td><td>Effective Tax %</td><td>(Gross − Net) / Gross</td><td><code>=(I-J)/I</code></td></tr>
+      <tr><td>L</td><td>Δ vs Baseline</td><td>row − baseline</td><td><code>=H - $B$9</code></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Tax formula — named LAMBDA</h4>
+  <p>Georgia, single filer, 2026. Federal progressive + Georgia flat 5.39% + FICA + optional SE add-on for 1099.</p>
+  <pre><span class="k">TaxRate</span> <span class="fn">=</span> <span class="k">LAMBDA</span>(type, gross,
+  <span class="k">LET</span>(
+    federal_taxable, <span class="k">MAX</span>(<span class="n">0</span>, gross <span class="fn">-</span> <span class="n">15000</span>),
+    federal_tax,
+      <span class="k">IF</span>(federal_taxable <span class="fn">&lt;=</span> <span class="n">11925</span>, federal_taxable <span class="fn">*</span> <span class="n">0.10</span>,
+      <span class="k">IF</span>(federal_taxable <span class="fn">&lt;=</span> <span class="n">48475</span>, <span class="n">1192.50</span> <span class="fn">+</span> (federal_taxable <span class="fn">-</span> <span class="n">11925</span>) <span class="fn">*</span> <span class="n">0.12</span>,
+      <span class="k">IF</span>(federal_taxable <span class="fn">&lt;=</span> <span class="n">103350</span>, <span class="n">5578.50</span> <span class="fn">+</span> (federal_taxable <span class="fn">-</span> <span class="n">48475</span>) <span class="fn">*</span> <span class="n">0.22</span>,
+      <span class="k">IF</span>(federal_taxable <span class="fn">&lt;=</span> <span class="n">197300</span>, <span class="n">17651</span> <span class="fn">+</span> (federal_taxable <span class="fn">-</span> <span class="n">103350</span>) <span class="fn">*</span> <span class="n">0.24</span>,
+      <span class="k">IF</span>(federal_taxable <span class="fn">&lt;=</span> <span class="n">250525</span>, <span class="n">40199</span> <span class="fn">+</span> (federal_taxable <span class="fn">-</span> <span class="n">197300</span>) <span class="fn">*</span> <span class="n">0.32</span>,
+      <span class="k">IF</span>(federal_taxable <span class="fn">&lt;=</span> <span class="n">626350</span>, <span class="n">57231</span> <span class="fn">+</span> (federal_taxable <span class="fn">-</span> <span class="n">250525</span>) <span class="fn">*</span> <span class="n">0.35</span>,
+                                    <span class="n">188769.75</span> <span class="fn">+</span> (federal_taxable <span class="fn">-</span> <span class="n">626350</span>) <span class="fn">*</span> <span class="n">0.37</span>)))))),
+    ga_taxable,    <span class="k">MAX</span>(<span class="n">0</span>, gross <span class="fn">-</span> <span class="n">12000</span>),
+    ga_tax,        ga_taxable <span class="fn">*</span> <span class="n">0.0539</span>,
+    fica_ss,       <span class="k">MIN</span>(gross, <span class="n">176100</span>) <span class="fn">*</span> <span class="n">0.062</span>,
+    fica_medicare, gross <span class="fn">*</span> <span class="n">0.0145</span> <span class="fn">+</span> <span class="k">MAX</span>(<span class="n">0</span>, gross <span class="fn">-</span> <span class="n">200000</span>) <span class="fn">*</span> <span class="n">0.009</span>,
+    se_addon,      <span class="k">IF</span>(type <span class="fn">=</span> <span class="s">"1099"</span>, gross <span class="fn">*</span> <span class="n">0.0765</span>, <span class="n">0</span>),
+    total_tax,     federal_tax <span class="fn">+</span> ga_tax <span class="fn">+</span> fica_ss <span class="fn">+</span> fica_medicare <span class="fn">+</span> se_addon,
+    total_tax <span class="fn">/</span> gross
+  )
+)</pre>
+  <p>One function. Every row uses it. Update <code>Settings_Tax</code> when 2027 brackets drop, every row recalculates.</p>
+
+  <h4>Spot check against every visible row</h4>
+  <table>
+    <thead><tr><th>Pipeline</th><th>Gross</th><th>Sheet Net</th><th>Spec Net</th><th>Eff. Tax</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>Dropzone AI High ($217K FTE)</td><td>$104/hr</td><td>$72/hr</td><td>$71.50/hr</td><td>31.3%</td><td><span class="pill signal">OK</span></td></tr>
+      <tr><td>Dropzone AI Mid ($196K FTE)</td><td>$94/hr</td><td>$65/hr</td><td>$65.20/hr</td><td>30.6%</td><td><span class="pill signal">OK</span></td></tr>
+      <tr><td>OneDigital AI Sec ($125K FTE)</td><td>$60/hr</td><td>$43/hr</td><td>$44.10/hr</td><td>26.5%</td><td><span class="pill signal">OK</span></td></tr>
+      <tr><td>ETS / Repay ($110K Contract+Convert)</td><td>$53/hr</td><td>$39/hr</td><td>$39.30/hr</td><td>25.8%</td><td><span class="pill signal">OK</span></td></tr>
+      <tr><td><strong>Brilliant Cloudflare ($85/hr Contract C2H)</strong></td><td><strong>$85/hr</strong></td><td><strong>$74/hr</strong></td><td><strong>$59/hr</strong></td><td><strong>30.6%</strong></td><td><span class="pill danger">BROKEN</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <span class="label">Math error in row 7</span>
+    <p>The Cloudflare row implies a 12.9% effective tax rate, mathematically impossible at $176,800 gross W2 in Georgia. FICA alone is 7.65%; federal income pushes the floor above 25%. Likely cause: row 7 was overwritten with a stale rate or a different tax model. <strong>Do not use the $74 net in any negotiation.</strong></p>
+  </div>
+
+  <h4>Corrected row 7</h4>
+  <table>
+    <thead><tr><th>Field</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Hourly Gross (C7)</td><td><span class="pill signal">$85</span></td></tr>
+      <tr><td>Hourly Net (D7)</td><td><span class="pill signal">$59</span></td></tr>
+      <tr><td>Weekly Gross (E7)</td><td>$3,400</td></tr>
+      <tr><td>Weekly Net (F7)</td><td>$2,361</td></tr>
+      <tr><td>Monthly Gross (G7)</td><td>$14,733</td></tr>
+      <tr><td>Monthly Net (H7)</td><td>$10,233</td></tr>
+      <tr><td>Annual Gross (I7)</td><td>$176,800</td></tr>
+      <tr><td>Annual Net (J7)</td><td>$122,756</td></tr>
+      <tr><td>Effective Tax % (K7)</td><td>30.6%</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Fix in the live sheet</h4>
+  <p>Replace the static numbers in row 7 with the LAMBDA formula every other row uses.</p>
+  <pre>C<span class="n">7</span>: <span class="fn">=85</span>
+D<span class="n">7</span>: <span class="fn">=</span>C<span class="n">7</span> <span class="fn">*</span> (<span class="n">1</span> <span class="fn">-</span> <span class="k">TaxRate</span>(B<span class="n">7</span>, I<span class="n">7</span>))
+E<span class="n">7</span>: <span class="fn">=</span>C<span class="n">7</span> <span class="fn">*</span> <span class="n">40</span>
+F<span class="n">7</span>: <span class="fn">=</span>D<span class="n">7</span> <span class="fn">*</span> <span class="n">40</span>
+G<span class="n">7</span>: <span class="fn">=</span>E<span class="n">7</span> <span class="fn">*</span> <span class="n">52</span> <span class="fn">/</span> <span class="n">12</span>
+H<span class="n">7</span>: <span class="fn">=</span>F<span class="n">7</span> <span class="fn">*</span> <span class="n">52</span> <span class="fn">/</span> <span class="n">12</span>
+I<span class="n">7</span>: <span class="fn">=</span>C<span class="n">7</span> <span class="fn">*</span> <span class="n">2080</span>
+J<span class="n">7</span>: <span class="fn">=</span>D<span class="n">7</span> <span class="fn">*</span> <span class="n">2080</span>
+K<span class="n">7</span>: <span class="fn">=</span>(I<span class="n">7</span> <span class="fn">-</span> J<span class="n">7</span>) <span class="fn">/</span> I<span class="n">7</span></pre>
+
+  <div class="callout warn">
+    <span class="label">Sanity check after fix</span>
+    <p>Corrected $59/hr net at 40 hrs/wk = <strong>$10,233/mo net</strong>. Dropzone FTE at $72/hr net = <strong>$12,480/mo net</strong>. Dropzone is <strong>$2,247/mo better</strong> than Cloudflare at the listed rates. The broken $74 was hiding a $1,300/mo gap.</p>
+  </div>
+</section>
+
+<!-- 3.3 Per-job tabs -->
+<section class="card" id="tab-perjob">
+  <h2><span class="num">3.3</span> Per-job tabs <span class="pill signal" style="margin-left: 12px;">deep record</span></h2>
+  <p>One tab per active opportunity, spawned from <code>Per_Job_Template</code> when a row is inserted in Pipeline_Master.</p>
+
+  <h4>Section blocks (top to bottom)</h4>
+  <table>
+    <thead><tr><th>Rows</th><th>Block</th><th>Contents</th></tr></thead>
+    <tbody>
+      <tr><td>1-5</td><td><span class="pill info">Header</span></td><td>Company display, end client, role + req ID, type / duration / location, status (color-coded conditional formatting)</td></tr>
+      <tr><td>7-12</td><td><span class="pill info">Recruiter</span></td><td>Name, email, phone, LinkedIn, first contact date, source, last touch date (linked), next touch date</td></tr>
+      <tr><td>14-22</td><td><span class="pill warn">Pay</span></td><td>Offered / counter / floor (mirrored from Pipeline_Master). Hourly / weekly / monthly / annual gross + net (mirrored from Comp_Analysis via INDEX/MATCH). Δ vs baseline.</td></tr>
+      <tr><td>24-28</td><td><span class="pill advanced">Resume</span></td><td>Foundation used, tailored variant filename, paths in Documents/Downloads/iCloud, last updated, verify_resume QC pass status</td></tr>
+      <tr><td>30-50</td><td><span class="pill advanced">JD</span></td><td>Top 5 must-haves, required keywords with present/missing flag (cross-referenced via Apps Script reading the resume DOCX), stack list, salary range, link to JDs_Full</td></tr>
+      <tr><td>52-65</td><td><span class="pill warn">Process</span></td><td>Recruiter screen / tech screen / behavioral / final / offer dates, results, notes, rejection date+reason if applicable</td></tr>
+      <tr><td>67-90</td><td><span class="pill signal">Prep</span></td><td>Tier 1 / 2 / 3 study checklists, lab/POC checklist, mock screen done?, link to 02_CHEAT_CARD.md</td></tr>
+      <tr><td>92+</td><td><span class="pill mute">Notes</span></td><td>Free-text running journal, auto-stamped <code>[YYYY-MM-DD HH:MM]</code> on each new entry by Apps Script onEdit</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 3.4 JDs_Full -->
+<section class="card" id="tab-jds">
+  <h2><span class="num">3.4</span> JDs_Full <span class="pill advanced" style="margin-left: 12px;">reference</span></h2>
+  <table>
+    <thead><tr><th>Col</th><th>Field</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>company_key (join to everything)</td></tr>
+      <tr><td>B</td><td>role</td></tr>
+      <tr><td>C</td><td>date_posted</td></tr>
+      <tr><td>D</td><td>source_url</td></tr>
+      <tr><td>E</td><td>jd_text (full text, monospace, wrapped)</td></tr>
+      <tr><td>F</td><td>extracted_must_haves</td></tr>
+      <tr><td>G</td><td>extracted_keywords</td></tr>
+      <tr><td>H</td><td>extracted_stack</td></tr>
+      <tr><td>I</td><td>extracted_salary_range</td></tr>
+      <tr><td>J</td><td>last_synced</td></tr>
+    </tbody>
+  </table>
+  <p>Rows seeded by Claude Code <code>/job-research</code> skill, which scrapes the URL and writes A-J in one transaction. Cascade-deleted with the Pipeline_Master row.</p>
+</section>
+
+<!-- 3.5 Action_List -->
+<section class="card" id="tab-actions">
+  <h2><span class="num">3.5</span> Action_List <span class="pill" style="margin-left: 12px; background: rgba(255,123,114,0.1); border-color: var(--pink); color: var(--pink); border: 1px solid var(--pink);">ops</span></h2>
+  <table>
+    <thead><tr><th>Col</th><th>Field</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>company_key</td></tr>
+      <tr><td>B</td><td>action_text</td></tr>
+      <tr><td>C</td><td>due_date</td></tr>
+      <tr><td>D</td><td>priority (P0 / P1 / P2)</td></tr>
+      <tr><td>E</td><td>status (open / doing / done / blocked)</td></tr>
+      <tr><td>F</td><td>created</td></tr>
+      <tr><td>G</td><td>done_at</td></tr>
+      <tr><td>H</td><td>owner (Emmanuel / Claude / Recruiter)</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Auto-population rules</h4>
+  <ul>
+    <li>New row in Pipeline_Master inserts <code>"Send tailored resume to &lt;recruiter_name&gt;"</code> P0 action with due = today.</li>
+    <li>Status → "Screen Scheduled" inserts <code>"Tier 1 study (4 hrs) before &lt;screen_date&gt;"</code> P0 action.</li>
+    <li>Status → "Tech Screen" inserts <code>"Run Bedrock Guardrails lab + Databricks Community Edition walkthrough"</code> P0 action.</li>
+    <li>Cascade delete on company_key removes all matching rows here.</li>
+  </ul>
+
+  <p>Default view: filter <code>status != "done"</code> AND <code>due_date &lt;= TODAY() + 7</code>, sorted by priority then due_date.</p>
+</section>
+
+<!-- 3.6 Recruiter_Log -->
+<section class="card" id="tab-recruiter">
+  <h2><span class="num">3.6</span> Recruiter_Log <span class="pill" style="margin-left: 12px; background: rgba(255,123,114,0.1); border-color: var(--pink); color: var(--pink); border: 1px solid var(--pink);">ops</span></h2>
+  <table>
+    <thead><tr><th>Col</th><th>Field</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td>timestamp</td></tr>
+      <tr><td>B</td><td>company_key</td></tr>
+      <tr><td>C</td><td>recruiter_name</td></tr>
+      <tr><td>D</td><td>direction (in / out)</td></tr>
+      <tr><td>E</td><td>channel (email / call / sms / LinkedIn / Indeed)</td></tr>
+      <tr><td>F</td><td>summary (1-2 lines)</td></tr>
+      <tr><td>G</td><td>full_message (collapsed)</td></tr>
+      <tr><td>H</td><td>next_step</td></tr>
+      <tr><td>I</td><td>next_step_date</td></tr>
+    </tbody>
+  </table>
+  <p>Per-job tab Last Touch field: <code>=MAXIFS(Recruiter_Log.A, Recruiter_Log.B, ThisCompanyKey)</code>. Rows where B = deleted company_key are removed (or archived).</p>
+</section>
+
+<!-- 3.7 Settings_Tax -->
+<section class="card" id="tab-tax">
+  <h2><span class="num">3.7</span> Settings_Tax <span class="pill info" style="margin-left: 12px;">system</span></h2>
+  <p>Constants used by the <code>TaxRate</code> LAMBDA. Editing here updates every comp calc in the workbook.</p>
+  <table>
+    <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>federal_brackets_2026</td><td>array (see LAMBDA)</td></tr>
+      <tr><td>federal_standard_deduction_single_2026</td><td><span class="pill signal">$15,000</span></td></tr>
+      <tr><td>ga_flat_rate_2026</td><td><span class="pill signal">5.39%</span></td></tr>
+      <tr><td>ga_standard_deduction_single_2026</td><td><span class="pill signal">$12,000</span></td></tr>
+      <tr><td>fica_ss_rate</td><td>6.20%</td></tr>
+      <tr><td>fica_ss_wage_base_2026</td><td>$176,100</td></tr>
+      <tr><td>fica_medicare_rate</td><td>1.45%</td></tr>
+      <tr><td>fica_additional_medicare_rate</td><td>0.90%</td></tr>
+      <tr><td>fica_additional_medicare_threshold</td><td>$200,000</td></tr>
+      <tr><td>se_tax_rate</td><td>7.65%</td></tr>
+      <tr><td>hours_per_year_ft</td><td>2,080</td></tr>
+      <tr><td>hours_per_week_default</td><td>40</td></tr>
+      <tr><td>weeks_per_year</td><td>52</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 3.8 Settings_Conventions -->
+<section class="card" id="tab-conv">
+  <h2><span class="num">3.8</span> Settings_Conventions <span class="pill info" style="margin-left: 12px;">system</span></h2>
+  <table>
+    <thead><tr><th>Setting</th><th>Allowed values</th></tr></thead>
+    <tbody>
+      <tr><td>status_enum</td><td>
+        <div class="status-row">
+          <span class="pill mute">Applied</span>
+          <span class="pill info">Screen Scheduled</span>
+          <span class="pill signal">Screened</span>
+          <span class="pill advanced">Tech Screen</span>
+          <span class="pill advanced">Behavioral</span>
+          <span class="pill warn">Final</span>
+          <span class="pill signal">Offer</span>
+          <span class="pill signal">Accepted</span>
+          <span class="pill danger">Rejected</span>
+          <span class="pill mute">Ghosted</span>
+          <span class="pill mute">Withdrawn</span>
+        </div>
+      </td></tr>
+      <tr><td>type_enum</td><td>FT Remote, FT Hybrid, FT Onsite, Contract Remote, Contract Hybrid, Contract Onsite, Contract C2H</td></tr>
+      <tr><td>source_enum</td><td>Indeed, LinkedIn, Direct, Referral, Recruiter Outbound, HiringCafe, Greenhouse, Workday, ATS Other</td></tr>
+      <tr><td>priority_enum</td><td>P0, P1, P2</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 4. DATA FLOW ============ -->
+<section class="card" id="dataflow">
+  <h2><span class="num">04</span> Data flow</h2>
+
+  <h3>When Claude Code adds a new opportunity</h3>
+  <ol>
+    <li>Claude Code parses the JD (URL, paste, screenshot).</li>
+    <li>POSTs to n8n master-cmd webhook with action <code>sheets</code>, payload includes sheet_id, target_tab <code>Pipeline_Master</code>, row payload (22 columns), JD text for <code>JDs_Full</code>, recruiter touch for <code>Recruiter_Log</code>.</li>
+    <li>n8n writes the row to Pipeline_Master.</li>
+    <li>Apps Script onInsert fires the cascade: spawns per-job tab, inserts Comp_Analysis row, JDs_Full row, default Action_List rows, Recruiter_Log row.</li>
+    <li>Apps Script returns success/error to n8n which logs to Datadog.</li>
+    <li>Claude Code receives the response and creates the local prep folder on disk.</li>
+  </ol>
+
+  <h3>When Emmanuel manually edits a cell</h3>
+  <ol>
+    <li>Apps Script onEdit fires.</li>
+    <li>If the edited cell is in Pipeline_Master, propagates the change to the per-job tab and Comp_Analysis row via INDEX/MATCH dependents.</li>
+    <li>Updates <code>updated</code> timestamp on the affected row.</li>
+  </ol>
+
+  <h3>When a row is deleted</h3>
+  <p>See section 3.1 cascade behavior. Apps Script captures the company_key before the delete completes, then sweeps every dependent tab.</p>
+</section>
+
+<!-- ============ 5. APPS SCRIPT ============ -->
+<section class="card" id="apps-script">
+  <h2><span class="num">05</span> Apps Script triggers</h2>
+  <pre><span class="k">function</span> <span class="fn">onEdit</span>(e) {
+  <span class="k">const</span> sheet <span class="fn">=</span> e.range.getSheet().getName();
+  <span class="k">if</span> (sheet <span class="fn">===</span> <span class="s">"Pipeline_Master"</span>) {
+    <span class="fn">propagateMasterEdit</span>(e);
+    <span class="fn">stampUpdated</span>(e);
+  } <span class="k">else if</span> (<span class="fn">isPerJobTab</span>(sheet)) {
+    <span class="fn">stampJournalIfNotesEdit</span>(e);
+  }
+}
+
+<span class="k">function</span> <span class="fn">onChange</span>(e) {
+  <span class="c">// captures structural changes including row inserts and deletes</span>
+  <span class="k">if</span> (e.changeType <span class="fn">===</span> <span class="s">"INSERT_ROW"</span>) {
+    <span class="fn">spawnDependents</span>(e);
+  } <span class="k">else if</span> (e.changeType <span class="fn">===</span> <span class="s">"REMOVE_ROW"</span>) {
+    <span class="fn">cascadeDelete</span>(e);
+  }
+}</pre>
+  <p>Triggers are bound to the spreadsheet, not specific user actions. They fire whether Claude Code wrote the row or Emmanuel typed it.</p>
+</section>
+
+<!-- ============ 6. DESIGN SYSTEM ============ -->
+<section class="card" id="design">
+  <h2><span class="num">06</span> Design system</h2>
+  <p class="lead">CoreDirective brand: black void + electric green. Tactical, restraint reads as intelligence. <strong>But one shade of green flat across every cell is unreadable.</strong> The system below uses layered tones, secondary accents, and clear hierarchy so glanceability stays fast.</p>
+
+  <div class="callout signal">
+    <span class="label">Why differentiation matters</span>
+    <p>Emmanuel reads this sheet 5+ times a day during a job hunt. If every cell is the same green on the same black, the eye cannot find the offer row vs the rejected row, the warning vs the data, the title vs the body. Differentiation is not decoration. It is signal.</p>
+  </div>
+</section>
+
+<!-- 6.1 Palette -->
+<section class="card" id="palette">
+  <h2><span class="num">6.1</span> Color palette</h2>
+  <p>Layered tones for hierarchy, secondary accents for state. Used together they create five distinct visual roles: surface, primary signal, secondary info, warning, danger.</p>
+
+  <h4>Surface tones (background)</h4>
+  <div class="swatch-grid">
+    <div class="swatch"><div class="chip" style="background:#010409"></div><div class="name">bg.deep</div><div class="hex">#010409</div></div>
+    <div class="swatch"><div class="chip" style="background:#0d1117"></div><div class="name">bg.void</div><div class="hex">#0d1117</div></div>
+    <div class="swatch"><div class="chip" style="background:#161b22"></div><div class="name">bg.rise</div><div class="hex">#161b22</div></div>
+    <div class="swatch"><div class="chip" style="background:#21262d"></div><div class="name">bg.hi</div><div class="hex">#21262d</div></div>
+  </div>
+
+  <h4>Ink (text)</h4>
+  <div class="swatch-grid">
+    <div class="swatch"><div class="chip" style="background:#e6edf3"></div><div class="name">ink (body)</div><div class="hex">#e6edf3</div></div>
+    <div class="swatch"><div class="chip" style="background:#8b949e"></div><div class="name">ink.mute</div><div class="hex">#8b949e</div></div>
+    <div class="swatch"><div class="chip" style="background:#6e7681"></div><div class="name">ink.faint</div><div class="hex">#6e7681</div></div>
+  </div>
+
+  <h4>Signal greens (primary brand)</h4>
+  <div class="swatch-grid">
+    <div class="swatch"><div class="chip" style="background:#56d364"></div><div class="name">signal.bright</div><div class="hex">#56d364</div></div>
+    <div class="swatch"><div class="chip" style="background:#3fb950"></div><div class="name">signal</div><div class="hex">#3fb950</div></div>
+    <div class="swatch"><div class="chip" style="background:#238636"></div><div class="name">signal.dim</div><div class="hex">#238636</div></div>
+  </div>
+
+  <h4>Secondary accents (used sparingly, tied to meaning)</h4>
+  <div class="swatch-grid">
+    <div class="swatch"><div class="chip" style="background:#58a6ff"></div><div class="name">info (links, refs)</div><div class="hex">#58a6ff</div></div>
+    <div class="swatch"><div class="chip" style="background:#d29922"></div><div class="name">warn (watch states)</div><div class="hex">#d29922</div></div>
+    <div class="swatch"><div class="chip" style="background:#f85149"></div><div class="name">danger (rejected, error)</div><div class="hex">#f85149</div></div>
+    <div class="swatch"><div class="chip" style="background:#a371f7"></div><div class="name">advanced (tech depth)</div><div class="hex">#a371f7</div></div>
+    <div class="swatch"><div class="chip" style="background:#ff7b72"></div><div class="name">pink (ops accent)</div><div class="hex">#ff7b72</div></div>
+  </div>
+
+  <div class="callout warn">
+    <span class="label">Rule</span>
+    <p>Body text is <code>#e6edf3</code> (near-white), not green. Green is reserved for <strong>signal</strong>: data values, key headings, hyperlinks, status that matters. If everything is green, nothing is.</p>
+  </div>
+</section>
+
+<!-- 6.2 Typography -->
+<section class="card" id="typography">
+  <h2><span class="num">6.2</span> Typography</h2>
+  <table>
+    <thead><tr><th>Element</th><th>Font</th><th>Size</th><th>Weight</th><th>Color</th></tr></thead>
+    <tbody>
+      <tr><td>Tab title banner</td><td>JetBrains Mono</td><td>14pt</td><td>Bold</td><td><span class="pill signal">signal.bright on bg.deep</span></td></tr>
+      <tr><td>Section header within tab</td><td>JetBrains Mono</td><td>12pt</td><td>Bold</td><td><span class="pill info">info on bg.rise</span></td></tr>
+      <tr><td>Column header</td><td>JetBrains Mono</td><td>10pt</td><td>Bold</td><td><span class="pill signal">signal on bg.rise</span></td></tr>
+      <tr><td>Data: numeric / currency / date / enum</td><td>JetBrains Mono</td><td>10pt</td><td>Regular</td><td><span class="pill signal">signal on bg.void</span></td></tr>
+      <tr><td>Data: long-form text / notes / JD</td><td>Inter</td><td>10pt</td><td>Regular</td><td><span class="pill mute">ink (body) on bg.void</span></td></tr>
+      <tr><td>Helper / metadata</td><td>Inter</td><td>9pt</td><td>Regular</td><td><span class="pill mute">ink.mute</span></td></tr>
+      <tr><td>Hyperlinks</td><td>JetBrains Mono</td><td>10pt</td><td>Regular</td><td><span class="pill info">info, underlined</span></td></tr>
+    </tbody>
+  </table>
+  <p><strong>Two fonts only.</strong> JetBrains Mono is the workhorse (data, headers, tables, code). Inter is the long-form body font (notes, JD text, descriptions). No Arial, no Calibri, no defaults.</p>
+</section>
+
+<!-- 6.3 Layout -->
+<section class="card" id="layout">
+  <h2><span class="num">6.3</span> Layout and spacing</h2>
+  <ul>
+    <li><strong>Row height:</strong> 28px data rows, 36px section headers, 48px tab title banner.</li>
+    <li><strong>Padding:</strong> 4px left/right indent on every cell. No values flush against borders.</li>
+    <li><strong>Borders:</strong> No gridlines visible. Section headers carry a 1px bottom border in <code>signal.dim</code>. Data tables carry no borders, separation comes from row banding.</li>
+    <li><strong>Row banding:</strong> Alternating <code>bg.void</code> and <code>#0f141b</code> (one shade lighter). Banding starts under the column header, not from row 1.</li>
+    <li><strong>Frozen rows:</strong> Tab title banner (row 1) and column header row (row 2) frozen on every tab.</li>
+    <li><strong>Frozen columns:</strong> Pipeline_Master freezes A-C. Per-job tabs freeze A-B.</li>
+    <li><strong>Merged cells:</strong> Only for tab title banners and section dividers. Data cells never merge.</li>
+  </ul>
+</section>
+
+<!-- 6.4 Status styling -->
+<section class="card" id="status-styling">
+  <h2><span class="num">6.4</span> Status styling (workbook-wide conditional formatting)</h2>
+  <table>
+    <thead><tr><th>Status</th><th>Background</th><th>Text</th><th>Visual</th></tr></thead>
+    <tbody>
+      <tr><td>Applied</td><td>bg.rise</td><td>ink.mute</td><td><span class="pill mute">Applied</span></td></tr>
+      <tr><td>Screen Scheduled</td><td>info @ 20%</td><td>signal</td><td><span class="pill info">Screen Scheduled</span></td></tr>
+      <tr><td>Screened</td><td>signal.dim @ 20%</td><td>signal</td><td><span class="pill signal">Screened</span></td></tr>
+      <tr><td>Tech Screen</td><td>advanced @ 20%</td><td>signal.bright</td><td><span class="pill advanced">Tech Screen</span></td></tr>
+      <tr><td>Behavioral</td><td>advanced @ 20%</td><td>signal.bright</td><td><span class="pill advanced">Behavioral</span></td></tr>
+      <tr><td>Final</td><td>warn @ 20%</td><td>warn</td><td><span class="pill warn">Final</span></td></tr>
+      <tr><td>Offer</td><td>signal @ 30%</td><td>signal.bright Bold</td><td><span class="pill signal">Offer</span></td></tr>
+      <tr><td>Accepted</td><td>signal @ 60%</td><td>bg.void Bold (inverted)</td><td><span class="pill signal" style="background: var(--signal); color: var(--bg-void);">Accepted</span></td></tr>
+      <tr><td>Rejected</td><td>danger @ 15%</td><td>danger</td><td><span class="pill danger">Rejected</span></td></tr>
+      <tr><td>Ghosted</td><td>ink.faint @ 15%</td><td>ink.faint strikethrough</td><td><span class="pill mute" style="text-decoration: line-through;">Ghosted</span></td></tr>
+      <tr><td>Withdrawn</td><td>ink.faint @ 15%</td><td>ink.mute</td><td><span class="pill mute">Withdrawn</span></td></tr>
+    </tbody>
+  </table>
+  <p>Apply via Conditional Formatting → Custom formula on the status column of every tab.</p>
+</section>
+
+<!-- 6.5 Number formats -->
+<section class="card" id="numformat">
+  <h2><span class="num">6.5</span> Number / date / currency format</h2>
+  <table>
+    <thead><tr><th>Type</th><th>Format string</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Currency USD</td><td><code>[Green]$#,##0;[Red]-$#,##0</code></td><td><span class="pill signal">$1,234</span> / <span class="pill danger">-$56</span></td></tr>
+      <tr><td>Hourly rate</td><td><code>[Green]$#,##0/"hr"</code></td><td><span class="pill signal">$85/hr</span></td></tr>
+      <tr><td>Percent</td><td><code>[Green]0.0%</code></td><td><span class="pill signal">30.6%</span></td></tr>
+      <tr><td>Date</td><td><code>yyyy-mm-dd</code></td><td>2026-04-29</td></tr>
+      <tr><td>Timestamp</td><td><code>yyyy-mm-dd hh:mm</code></td><td>2026-04-29 12:00</td></tr>
+      <tr><td>Integer count</td><td><code>[Green]#,##0</code></td><td>1,234</td></tr>
+    </tbody>
+  </table>
+  <p>Every numeric cell uses one of these formats. Default General is a violation.</p>
+</section>
+
+<!-- 6.6 Audit checklist -->
+<section class="card" id="audit">
+  <h2><span class="num">6.6</span> Brand audit checklist (per tab)</h2>
+  <ol>
+    <li><strong>Background:</strong> Cell A1:Z1000 default fill is <code>bg.void</code>, not white.</li>
+    <li><strong>Font:</strong> Default cell font is JetBrains Mono 10pt for data, Inter 10pt for long text. No Arial, no Calibri.</li>
+    <li><strong>Title banner:</strong> Row 1 merged, height 48px, fill <code>bg.deep</code>, text <code>signal.bright</code> 14pt Bold all caps.</li>
+    <li><strong>Column headers:</strong> Row 2 fill <code>bg.rise</code>, text <code>signal</code> 10pt Bold.</li>
+    <li><strong>Frozen rows:</strong> Rows 1-2 frozen.</li>
+    <li><strong>Number formats:</strong> Currency, percent, date, hourly all match section 6.5.</li>
+    <li><strong>Status conditional formatting:</strong> Applied to status column with rules in section 6.4.</li>
+    <li><strong>Row banding:</strong> Alternating <code>bg.void</code> and <code>#0f141b</code> from row 3 down.</li>
+    <li><strong>No defaults:</strong> No cell uses default Sheets styling.</li>
+    <li><strong>Empty cells:</strong> Empty cells carry <code>bg.void</code> fill, not default white.</li>
+    <li><strong>Body text not all green:</strong> Long-form notes and descriptions use <code>ink</code> (#e6edf3), not signal green. Green is reserved for data.</li>
+    <li><strong>Hyperlinks:</strong> Override default blue to <code>info</code> (#58a6ff) underlined.</li>
+  </ol>
+  <p>Every tab clears all 12 checks before it counts as compliant.</p>
+</section>
+
+<!-- 6.7 Anti-patterns -->
+<section class="card" id="anti">
+  <h2><span class="num">6.7</span> Anti-patterns to fix on sight</h2>
+  <table>
+    <thead><tr><th>Anti-pattern</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Plain white background in any cell</td><td>Repaint to <code>bg.void</code></td></tr>
+      <tr><td>Black text on white background</td><td>Repaint to <code>signal</code> on <code>bg.void</code> (or <code>ink</code> if long text)</td></tr>
+      <tr><td><strong>Everything in one shade of green</strong></td><td>Apply layered hierarchy: bright for titles, signal for data, ink for body, secondary accents for state</td></tr>
+      <tr><td>Default Arial</td><td>JetBrains Mono (data) or Inter (long text)</td></tr>
+      <tr><td>Mixed font sizes within one column</td><td>Standardize to 10pt</td></tr>
+      <tr><td><code>#REF!</code> or <code>#NA</code> showing in default red</td><td>Wrap in <code>IFERROR</code> to show empty <code>bg.void</code></td></tr>
+      <tr><td>Currency without green color override</td><td>Re-apply format from section 6.5</td></tr>
+      <tr><td>Status text without conditional formatting</td><td>Apply rules from section 6.4</td></tr>
+      <tr><td>Hyperlinks in default blue</td><td>Override to <code>info</code> underlined</td></tr>
+      <tr><td>Title banners not merged or missing contrast</td><td>Merge, set <code>bg.deep</code>, set <code>signal.bright</code> 14pt Bold</td></tr>
+      <tr><td>Notes wrapping into giant unreadable block</td><td>Set max row height 6 lines, then click-to-expand</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 7. INTEGRATIONS ============ -->
+<section class="card" id="integrations">
+  <h2><span class="num">07</span> Integrations</h2>
+  <table>
+    <thead><tr><th>System</th><th>Direction</th><th>Method</th><th>Auth</th></tr></thead>
+    <tbody>
+      <tr><td>Claude Code CLI</td><td><span class="pill warn">write</span></td><td>n8n master-cmd webhook, action: <code>sheets</code></td><td>n8n API key</td></tr>
+      <tr><td>Local markdown tracker</td><td><span class="pill warn">mirror write</span></td><td>gws CLI / rclone</td><td>Google OAuth (etigoue@tigouetheory.com)</td></tr>
+      <tr><td>Telegram (@CDirective_bot)</td><td><span class="pill info">read alerts</span></td><td>Apps Script daily digest at 7 AM ET</td><td>Telegram Bot Token</td></tr>
+      <tr><td>Datadog</td><td><span class="pill info">observability</span></td><td>Apps Script error log POST</td><td>Datadog API key</td></tr>
+      <tr><td>Resume DOCX files</td><td><span class="pill info">read for ATS gap</span></td><td>Apps Script Drive read</td><td>Google Drive scope</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 8. OPEN QUESTIONS ============ -->
+<section class="card" id="questions">
+  <h2><span class="num">08</span> Open questions</h2>
+  <ol>
+    <li><strong>Tax baseline:</strong> Single, married, or HoH? Spec assumes single. Adjust standard deduction and brackets if married/HoH.</li>
+    <li><strong>Pre-tax deductions:</strong> Comp_Analysis showed $74/hr net on $85/hr Contract C2H, implying ~13% effective tax. Real math gives ~30%. Is the formula assuming health + 401k pre-tax subtraction, or is row 7 just broken? <span class="pill warn">Most likely broken</span>.</li>
+    <li><strong>CURRENT BASELINE:</strong> Currently $0/mo because between roles. Default to last role's monthly net so deltas are meaningful, or stay at $0?</li>
+    <li><strong>Cascade timing:</strong> Hard delete vs archive-on-delete? Recommend archive-on-delete with 7-day undo window.</li>
+    <li><strong>Per-job tab template:</strong> Does <code>Per_Job_Template</code> already exist or do I draft it from section 3.3?</li>
+    <li><strong>Hidden tabs:</strong> Are <code>Pipeline_Master</code>, <code>Settings_Tax</code>, <code>Settings_Conventions</code> actually present, or do I spec them as new tabs?</li>
+  </ol>
+</section>
+
+<!-- ============ 9. CLAUDE FOR SHEETS RUN ORDER ============ -->
+<section class="card" id="claude">
+  <h2><span class="num">09</span> What Claude for Sheets should do</h2>
+  <ol>
+    <li>Read this spec and treat it as the system contract.</li>
+    <li>Audit the live sheet against section 3 — flag any tab that does not match.</li>
+    <li><strong>Run the brand audit checklist (section 6.6) on every tab.</strong> Repaint anti-patterns from section 6.7 in the same pass. Brand consistency is non-negotiable.</li>
+    <li>Verify formulas in Comp_Analysis against the LAMBDA in section 3.2. Replace the broken Brilliant_Cloudflare row 7 with the formula chain.</li>
+    <li>Build the missing pieces: <code>Pipeline_Master</code>, <code>Settings_Tax</code>, <code>Settings_Conventions</code>, <code>Per_Job_Template</code>, and the cascade Apps Script triggers.</li>
+    <li>Run a dry-run cascade test: insert <code>TEST_DELETE_ME</code> in Pipeline_Master, verify dependent tabs and rows spawn, then delete and verify cascade removal.</li>
+    <li>Backfill: every existing per-job tab needs a matching row in Pipeline_Master.</li>
+    <li>Wire the integrations in section 7 so Claude Code CLI can write to the sheet via n8n. Every Claude Code write must arrive brand-compliant on creation.</li>
+  </ol>
+
+  <h4>Status report format</h4>
+  <pre>SPEC COMPLIANCE:        <span class="n">&lt;pct&gt;</span>%
+TABS PRESENT:           <span class="n">&lt;count&gt;</span> / <span class="n">&lt;count&gt;</span>
+TABS BRAND-COMPLIANT:   <span class="n">&lt;count&gt;</span> / <span class="n">&lt;count&gt;</span>
+FORMULAS VALIDATED:     <span class="n">&lt;count&gt;</span> / <span class="n">&lt;count&gt;</span>
+CASCADE TESTED:         <span class="fn">PASS</span> / <span class="fn">FAIL</span>
+INTEGRATIONS WIRED:     <span class="s">&lt;list&gt;</span>
+ANTI-PATTERNS REMOVED:  <span class="s">&lt;list with cell refs&gt;</span>
+GAPS:                   <span class="s">&lt;list of missing pieces&gt;</span>
+NEXT ACTIONS:           <span class="s">&lt;list&gt;</span></pre>
+
+  <div class="callout signal">
+    <span class="label">Standing rule</span>
+    <p>Any new row, tab, or cell added by Claude Code, Claude for Sheets, or Emmanuel must arrive brand-compliant on creation. Brand is a system contract, not a polish step. If the writer cannot apply the brand inline, it does not write.</p>
+  </div>
+</section>
+
+<footer>
+  <code>SHEET_SPEC.html · CoreDirective Job Pipeline Tracker · 2026-04-29</code>
+</footer>
+
+</main>
+</div>
+</body>
+</html>

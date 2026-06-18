@@ -1,0 +1,175 @@
+%%{init: {'theme':'base', 'themeVariables': {
+  'primaryColor':'#0d1117',
+  'primaryTextColor':'#7CFFB2',
+  'primaryBorderColor':'#39d98a',
+  'lineColor':'#39d98a',
+  'secondaryColor':'#161b22',
+  'tertiaryColor':'#1f2933',
+  'fontFamily':'JetBrains Mono, Menlo, monospace',
+  'fontSize':'13px'
+}}}%%
+flowchart TB
+
+  classDef user fill:#1f2933,stroke:#7CFFB2,color:#7CFFB2,stroke-width:2px
+  classDef local fill:#161b22,stroke:#39d98a,color:#cdd9e5
+  classDef edge fill:#1c2c3a,stroke:#58a6ff,color:#cdd9e5
+  classDef app fill:#1f2933,stroke:#39d98a,color:#cdd9e5
+  classDef plat fill:#1f2933,stroke:#a371f7,color:#cdd9e5
+  classDef data fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
+  classDef obs fill:#1f2933,stroke:#f97583,color:#cdd9e5
+  classDef ext fill:#0d1117,stroke:#8b949e,color:#cdd9e5,stroke-dasharray:4 3
+  classDef model fill:#1c2c3a,stroke:#7CFFB2,color:#7CFFB2,stroke-width:2px
+
+  %% =========================================================
+  USER["**EMMANUEL** (operator)"]:::user
+  TGUSER["Telegram chat<br/>@CDirective_bot · @Coredirective_bot"]:::user
+  PRAUTH["GitHub PR authors<br/>(self · agents)"]:::user
+  EVTSRC["Security signals<br/>Falco eBPF · Datadog · webhooks"]:::user
+
+  %% =========================================================
+  subgraph LOCAL["**LOCAL** — Mac · ET-MacBook-Air"]
+    direction TB
+    CCODE["**Claude Code CLI**<br/>Opus 4.7 · 1M context<br/>~150 memory files · 40+ skills"]:::local
+    HOOKS["Stop hooks · CARL rules<br/>AI-pattern check · permission allowlists"]:::local
+    GSD["**GSD planning system**<br/>ROADMAP · STATE · phases/<br/>17 squire · 18 opus-sync · 19 grc"]:::local
+    BUILDS["builds/ trees<br/>squire · ir-assistant · resume-rebuild<br/>grc_librarian · grc_reviewer"]:::local
+    DOPP["Doppler CLI<br/>44 secrets · prd config"]:::local
+    OPN["OpenClaw node agent"]:::local
+    MTUN["cloudflared mac-ssh-tunnel<br/>(LaunchAgent)"]:::local
+  end
+
+  %% =========================================================
+  subgraph EDGE["**EDGE** — Cloudflare"]
+    direction TB
+    DNS["DNS · tigouetheory.com<br/>squire / langfuse / n8n / ssh / mac-ssh"]:::edge
+    CFTUN["Cloudflare Tunnel<br/>4bcf8238-...<br/>3 named routes"]:::edge
+    ZTA["Zero Trust Access<br/>SSO · session policy"]:::edge
+  end
+
+  %% =========================================================
+  subgraph DROPLET["**DROPLET** — DigitalOcean cd-alpha · 8 GB · Ubuntu 24.04 · 161.35.0.184"]
+    direction TB
+
+    subgraph APP["L4 Application services"]
+      direction LR
+      N8N["**n8n SOAR**<br/>14 active workflows<br/>master orchestrator · 16 actions"]:::app
+      SQUIRE["**Squire FastAPI**<br/>7-node LangGraph<br/>recommend-only mode"]:::app
+      OPGW["OpenClaw gateway<br/>v2026.3.8 · 18789-90"]:::app
+      LF["**Langfuse v3**<br/>web · worker · ClickHouse · Redis"]:::app
+    end
+
+    subgraph PLAT["L3 Platform services"]
+      direction LR
+      VAULT["HashiCorp Vault"]:::plat
+      KCLOAK["Keycloak v26<br/>RBAC + SSO"]:::plat
+      TELE["Teleport v18<br/>JIT + session record"]:::plat
+      NEMO["**NeMo Guardrails 0.21.0**<br/>presidio PII rails<br/>Colang BLOCKED_BY_RAIL"]:::plat
+      OLLAMA["Ollama<br/>local LLM fallback"]:::plat
+      WHISP["Whisper<br/>transcription"]:::plat
+    end
+
+    subgraph DATA["L2 Data layer"]
+      direction LR
+      PG[("PostgreSQL 16<br/>+ pgvector 0.8.2<br/>1,564 ir_chunks · n8n state")]:::data
+      VOLS["CD_VOL_*<br/>persistent docker volumes"]:::data
+      BAK["CD_BACKUPS<br/>nightly cron"]:::data
+    end
+
+    subgraph SECOBS["L1 Detection · Observability"]
+      direction LR
+      FALCO["Falco<br/>eBPF kernel events"]:::obs
+      FSIDE["Falcosidekick<br/>alert router"]:::obs
+      DDAG["Datadog Agent"]:::obs
+      FLUENT["Fluentd"]:::obs
+      ETH["Teleport event handler<br/>audit shipper"]:::obs
+    end
+
+    CFTUNINGRESS["Cloudflare Tunnel sidecar<br/>tunnel-cyber-squire"]:::edge
+  end
+
+  %% =========================================================
+  subgraph EXT["**EXTERNAL** — third-party APIs and SaaS"]
+    direction TB
+
+    subgraph MODELS["Models · embeddings"]
+      direction LR
+      ANTH["**Anthropic API**<br/>Opus 4.7 · Sonnet 4.6 · Haiku 4.5"]:::model
+      VOY["**Voyage AI**<br/>voyage-3-large · 1024-dim"]:::model
+    end
+
+    subgraph DEVOPS["Code · supply chain"]
+      direction LR
+      GH["GitHub<br/>cyber-squire1 · portfolio · ET-sec"]:::ext
+      SIG["Sigstore + Rekor<br/>keyless OIDC · public log"]:::ext
+      OP["1Password<br/>rotation source-of-truth"]:::ext
+    end
+
+    subgraph SAAS["Observability · comms · search"]
+      direction LR
+      DD["Datadog SaaS<br/>us5.datadoghq.com"]:::ext
+      SENT["Sentry<br/>tigoue-theory org"]:::ext
+      DOSP["DO Spaces<br/>backups · Langfuse blob"]:::ext
+      NTN["Notion"]:::ext
+      TAV["Tavily search"]:::ext
+      GML["Gmail x4 inboxes"]:::ext
+      TG["Telegram"]:::ext
+    end
+  end
+
+  %% =========================================================
+  %% Relationships
+  USER --> CCODE
+  CCODE --> HOOKS
+  CCODE --> GSD
+  CCODE --> BUILDS
+  CCODE --> DOPP
+  DOPP -->|read 44 secrets| OP
+  OPN -->|ws| OPGW
+  MTUN -->|outbound| CFTUN
+
+  TGUSER --> TG
+  PRAUTH --> GH
+  EVTSRC --> FALCO
+
+  USER -->|ssh cd-alpha direct| DROPLET
+  USER -->|ssh.tigouetheory.com| ZTA
+  ZTA --> CFTUN
+  DNS --> CFTUN
+  CFTUN --> CFTUNINGRESS
+  CFTUNINGRESS --> N8N
+  CFTUNINGRESS --> LF
+  CFTUNINGRESS --> SQUIRE
+
+  SQUIRE --> NEMO
+  SQUIRE --> PG
+  SQUIRE --> ANTH
+  SQUIRE --> VOY
+  SQUIRE --> OLLAMA
+  SQUIRE --> LF
+  N8N --> PG
+  N8N --> ANTH
+  N8N --> OLLAMA
+  N8N --> NTN
+  N8N --> TAV
+  N8N --> GML
+  N8N --> TG
+  N8N --> GH
+  OPGW --> ANTH
+
+  TELE -->|audit events| ETH
+  ETH --> DD
+  FALCO --> FSIDE
+  FSIDE --> DD
+  FSIDE --> N8N
+  DDAG --> DD
+  FLUENT --> DD
+
+  PG --> BAK
+  BAK --> DOSP
+  LF --> DOSP
+
+  GH --> SIG
+  GH --> ANTH
+
+  KCLOAK -->|SSO| APP
+  VAULT -->|future| APP

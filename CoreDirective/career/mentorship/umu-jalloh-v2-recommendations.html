@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Emmanuel Tigoue" />
+  <meta name="dcterms.date" content="2026-05-19" />
+  <title>Splunk-SIEM-Lab-v2 Production Grade Review</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="/dev/stdin" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Splunk-SIEM-Lab-v2 Production Grade Review</h1>
+<p class="subtitle">Repository review and how to ship the fixes</p>
+<p class="author">Emmanuel Tigoue</p>
+<p class="date">May 19, 2026</p>
+</header>
+<h1 id="splunk-siem-lab-v2-production-grade-review">Splunk-SIEM-Lab-v2
+Production Grade Review</h1>
+<p><strong>Repository:</strong> github.com/umujalloh/Splunk-SIEM-Lab-v2
+<strong>Reviewer:</strong> Emmanuel Tigoue <strong>Date:</strong> May
+19, 2026</p>
+<hr />
+<h2 id="verdict">Verdict</h2>
+<p>Top decile student work. Better than most working SOC analysts
+produce in their first two years. Structure, framework mapping, and
+honest documentation of dead ends signal senior level thinking.</p>
+<p>The notes below are the difference between strong student work and
+production grade detection engineering. The fixes are about packaging
+the reasoning for production reviewers, not changing the reasoning
+itself.</p>
+<hr />
+<h2 id="what-you-nailed">What You Nailed</h2>
+<ol type="1">
+<li><p><strong>Hypothesis driven structure.</strong> Investigative
+question before every query, then SPL, then findings. Most students dump
+queries with no reasoning.</p></li>
+<li><p><strong>Dead end documentation.</strong> The
+<code>splunk.froth.ly</code> false lead and the pivot to
+<code>PerfmonMk</code> is in the README, not hidden. Single most senior
+move in the repo.</p></li>
+<li><p><strong>Two host comparison.</strong> BSTOLL-L mined for 26
+minutes, BTUN-L blocked 46 attempts. Same vector, different outcome,
+framed as a detection coverage gap. Detection engineering thinking, not
+just IR.</p></li>
+<li><p><strong>Honest epistemics on T1071.001.</strong> WebSocket
+inferred from activity pattern, not directly observed. That confidence
+labeling passes senior interviews.</p></li>
+<li><p><strong>Visibility gap callouts.</strong> Explicit notes when
+data is missing. Turning a gap into a recommendation instead of stopping
+at “I cannot tell.”</p></li>
+<li><p><strong>Framework mapping density.</strong> Four frameworks
+(MITRE ATT&amp;CK, NIST CSF, 800-53, CIS Controls v8) all tied to
+specific queries. Not slapped on.</p></li>
+<li><p><strong>IOCs.md as a real artifact.</strong> Hashes, signature
+IDs (30356, 30358), sub-IDs, behavioral patterns, three packaged
+detection queries. Useful to a downstream analyst.</p></li>
+</ol>
+<hr />
+<h2 id="production-grade-gaps">Production Grade Gaps</h2>
+<h3 id="query-traceability-and-double-counting">1. Query Traceability
+and Double Counting</h3>
+<p><code>PerfmonMk:Process</code> samples fire every second per process.
+“131 events at 99 to 100% CPU sustained over 26 minutes” might be double
+counting the same <code>chrome.exe</code> instance, or counting child
+Chrome processes separately. In production this miscounts severity and
+triggers wrong escalation.</p>
+<p><strong>Fix.</strong> Add deduplication or instance level
+aggregation.</p>
+<pre class="spl"><code>index=botsv3 sourcetype=&quot;PerfmonMk:Process&quot;
+host=&quot;BSTOLL-L&quot; instance=*chrome*
+%_Processor_Time&gt;=99
+| dedup _time, instance
+| stats min(_time) as first_seen,
+        max(_time) as last_seen,
+        count by instance</code></pre>
+<p>Re-state the finding with the dedup count as a range (e.g. “X
+distinct sample windows across Y chrome process instances over 26
+minutes”).</p>
+<h3 id="no-false-positive-profile-on-the-cpu-rule">2. No False Positive
+Profile on the CPU Rule</h3>
+<p>Your proposed rule:</p>
+<pre class="spl"><code>sourcetype=&quot;PerfmonMk:Process&quot; instance=&quot;*chrome*&quot; %_Processor_Time&gt;=90
+| stats count by host, instance
+| where count &gt; 100</code></pre>
+<p>Will fire on every Zoom screenshare, Webex meeting, video encode,
+Adobe Lightroom export, Chrome with 15 tabs, Slack call, Teams call.</p>
+<p><strong>Fix.</strong> Pair the rule with four controls.</p>
+<ul>
+<li><strong>Process allowlist.</strong> Exempt known high CPU processes
+during business hours.</li>
+<li><strong>Multi signal requirement.</strong> CPU spike AND DNS to a
+known mining or C2 indicator within 10 minutes. CPU alone is not
+enough.</li>
+<li><strong>Baseline window.</strong> Compute the user’s normal Chrome
+CPU over a 14 day window. Alert only when current usage exceeds baseline
+plus N standard deviations.</li>
+<li><strong>Time of day weighting.</strong> 3am 100% CPU is more
+suspicious than 2pm.</li>
+</ul>
+<p>Add a “False Positive Analysis” section to the README listing these
+for each detection rule.</p>
+<h3 id="least-privilege-analysis-missing">3. Least Privilege Analysis
+Missing</h3>
+<p>Critical for the osTicket build. The agent will hold three
+credentials at minimum. Each needs a documented scope <strong>before
+code</strong>.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Credential</th>
+<th>Minimum Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Splunk service account</td>
+<td>Read only on specific indexes (<code>index=tickets</code>,
+<code>index=auth</code>). No write. No admin. No deploy.</td>
+</tr>
+<tr>
+<td>osTicket admin API key</td>
+<td>Comment and priority update only. No delete. No ticket creation. No
+user management.</td>
+</tr>
+<tr>
+<td>Claude API key</td>
+<td>Daily token budget cap. Rate limit (e.g. 60 RPM). Audit log every
+call.</td>
+</tr>
+</tbody>
+</table>
+<p>Containerize the agent with no network egress except to allowlisted
+endpoints (Splunk URL, osTicket URL, api.anthropic.com). All credentials
+rotatable, all audit logged on use.</p>
+<h3 id="no-detections-as-code">4. No Detections as Code</h3>
+<p>Your three detection SPL queries live at the bottom of IOCs.md. In
+production they live in a <code>detections/</code> folder, one file per
+rule, version controlled, with unit tests against synthetic events.</p>
+<pre><code>repo/
+  detections/
+    coinhive-dns.spl
+    chrome-sustained-cpu.spl
+    jscoinminer-symantec-baseline.spl
+    README.md
+  tests/
+    test_coinhive_dns.py
+    test_chrome_cpu.py</code></pre>
+<p>Hiring managers grep for <code>detections/</code> when reviewing
+portfolios.</p>
+<h3 id="no-d3fend-mapping">5. No D3FEND Mapping</h3>
+<p>You mapped MITRE ATT&amp;CK (attacker side) but not MITRE D3FEND
+(defender side). D3FEND is the defensive counterpart and is increasingly
+required for federal and DFARS work, with growing adoption in
+commercial.</p>
+<p><strong>Fix.</strong> Add a “Defender Mapping (D3FEND)” subsection
+under MITRE.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>ATT&amp;CK</th>
+<th>D3FEND Countermeasure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1189 Drive-by Compromise</td>
+<td>D3-WHL Web Header Logging, D3-NTA Network Traffic Analysis</td>
+</tr>
+<tr>
+<td>T1059.007 JavaScript</td>
+<td>D3-PSEP Process Self-Modification Detection</td>
+</tr>
+<tr>
+<td>T1071.001 Application Layer Protocol: Web</td>
+<td>D3-DNSAL DNS Allowlisting, D3-DNSDL DNS Denylisting</td>
+</tr>
+<tr>
+<td>T1496 Resource Hijacking</td>
+<td>D3-PR Process Restriction, D3-RAPA Resource Access Pattern
+Analysis</td>
+</tr>
+</tbody>
+</table>
+<h3 id="no-cve-traceback">6. No CVE Traceback</h3>
+<p><code>brewertalk.com</code> was compromised through outdated forum
+software (likely MyBB or vBulletin). Without identifying the CVE, the
+detection does not feed vulnerability management.</p>
+<p><strong>Fix.</strong> Research the CVE behind the 2018 brewertalk
+compromise and add a “Root Cause” section tying exploit chain to
+vulnerability.</p>
+<h3 id="no-business-impact-statement">7. No Business Impact
+Statement</h3>
+<p>“26 minutes of mining” is technical. A CISO reads:</p>
+<ul>
+<li><strong>Direct cost.</strong> Estimated kilowatt hours of
+electricity translated to operational cost.</li>
+<li><strong>Productivity impact.</strong> 26 minutes of degraded
+performance times affected users.</li>
+<li><strong>Compliance impact.</strong> PCI DSS 5.1 (anti-malware),
+HIPAA 164.308(a)(6) (security incident procedures), SOX implications if
+BSTOLL-L touched financial data.</li>
+<li><strong>Reputational risk.</strong> Notification obligations if
+customer data was processed on the affected host.</li>
+</ul>
+<p>Add a “Business Impact” section. This is how analysts communicate up
+the chain.</p>
+<h3 id="no-purple-team-closing-loop">8. No Purple Team Closing Loop</h3>
+<p>You wrote detection rules but did not prove they fire. A production
+detection engineer writes the rule, then writes a test that simulates
+the attack and validates the rule catches it.</p>
+<p><strong>Fix.</strong> Use Atomic Red Team or Caldera to simulate
+JSCoinminer behavior. Document that the test fires the detection.
+Without a closing loop, the detection is unproven.</p>
+<h3 id="no-threat-intel-currency-check">9. No Threat Intel Currency
+Check</h3>
+<p>CoinHive infrastructure was sunsetted in March 2019. The exact IOCs
+you found are no longer relevant. A production analyst notes this and
+proposes current Monero pool patterns.</p>
+<p><strong>Fix.</strong> Add a “Threat Intel Update” section. Reference
+current cryptomining campaigns (XMRig, 8220 gang, Outlaw, TeamTNT).
+Propose updated detection patterns for 2026 threats.</p>
+<h3 id="detection-latency-analysis-missed">10. Detection Latency
+Analysis Missed</h3>
+<p>Symantec blocked BTUN-L at 09:37:40. BSTOLL-L started mining 10
+seconds later at 09:37:50. Defenders had a 10 second early warning
+signal on an adjacent host that did nothing to protect BSTOLL-L.</p>
+<p><strong>Fix.</strong> Propose a correlation rule that, when one EDR
+signal fires, automatically elevates monitoring on adjacent hosts within
+the same subnet for the next 60 minutes. The data is in the dataset. You
+did not pull on the thread.</p>
+<h3 id="no-loom-or-youtube-walkthrough">11. No Loom or YouTube
+Walkthrough</h3>
+<p>Hiring managers do not finish READMEs. A 5 to 7 minute video walking
+the hunt end to end (screen recording in Splunk, narrating the
+hypothesis pivots) would 10x the impact of this work.</p>
+<p><strong>Fix.</strong> Record a Loom. Link it at the top of the README
+under “Walkthrough Video.”</p>
+<hr />
+<h2 id="where-this-work-lives">Where This Work Lives</h2>
+<p>The work in v2 is core threat hunting and detection engineering.
+Companies doing this:</p>
+<ul>
+<li><strong>MSSPs:</strong> Binary Defense, Arctic Wolf, Expel,
+GuidePoint, eSentire, Trustwave</li>
+<li><strong>In-house SOCs:</strong> Huntington Bank, Nationwide, Target,
+large healthcare and finance</li>
+<li><strong>Threat hunting specialists:</strong> Mandiant, CrowdStrike
+Falcon OverWatch, Red Canary</li>
+</ul>
+<p>The osTicket triage agent maps directly to the hottest space in
+security right now. Tines, Torq, Dropzone AI, Anvilogic, and Hunters are
+all building SOAR plus LLM products. Polishing v2 and shipping the
+osTicket build is the difference between landing a Tier 1 SOC seat and
+landing a detection engineering or security automation role.</p>
+<hr />
+<h2 id="recommended-claude-code-skills">Recommended Claude Code
+Skills</h2>
+<p>Install these into your Claude Code setup. They cover the gaps the
+fixes above will surface.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Skill</th>
+<th>What it gives you</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>owasp-security</strong></td>
+<td>OWASP Top 10:2025, ASVS 5.0, <strong>LLM Top 10 (2025)</strong>, and
+<strong>Agentic AI security (2026)</strong>. The LLM and Agentic AI
+sections are exactly what you need for the osTicket agent threat
+model.</td>
+<td>Claude Code skills marketplace</td>
+</tr>
+<tr>
+<td><strong>cybersecurity-pack</strong></td>
+<td>ATT&amp;CK Navigator layers, threat hunting workflows, detection
+content patterns. Built for security work in Claude Code.</td>
+<td>github.com/mukul975/Anthropic-Cybersecurity-Skills</td>
+</tr>
+<tr>
+<td><strong>grc-pack</strong></td>
+<td>Per-framework skills (NIST CSF, PCI DSS, HIPAA, ISO 27001, SOC 2,
+FedRAMP, ISO 42001 AI). Use for your framework mapping and business
+impact section.</td>
+<td>github.com/Sushegaad/Claude-Skills-Governance-Risk-and-Compliance</td>
+</tr>
+<tr>
+<td><strong>GSD (Get Shit Done)</strong></td>
+<td>Project execution methodology described below.</td>
+<td>github.com/glittercowboy/get-shit-done</td>
+</tr>
+</tbody>
+</table>
+<p>For owasp-security specifically: when you sit down to write the seven
+attack threat model for the osTicket agent, load that skill first. The
+Agentic AI 2026 section covers prompt injection, confused deputy, and
+indirect exfil with current language and current mitigations. Saves you
+4 hours of research.</p>
+<hr />
+<h2 id="gsd-get-shit-done">GSD (Get Shit Done)</h2>
+<p>GSD is a set of Claude Code commands that wrap your work in atomic
+commits, phase planning, verification gates, and wave-based execution.
+The output is a clean git history with one atomic commit per task and an
+audit trail of decisions a hiring manager can scan.</p>
+<ul>
+<li><strong>GitHub:</strong>
+https://github.com/glittercowboy/get-shit-done</li>
+<li><strong>Install:</strong> <code>npx get-shit-done-cc</code> inside
+Claude Code</li>
+<li><strong>Discord:</strong> https://discord.gg/5JJgD5svVS</li>
+</ul>
+<p>Commands relevant to this build:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/gsd:new-project</code></td>
+<td>Starting the osTicket build. Generates a structured roadmap before
+code.</td>
+</tr>
+<tr>
+<td><code>/gsd:plan-phase</code></td>
+<td>Planning a phase with task breakdown and verification loop.</td>
+</tr>
+<tr>
+<td><code>/gsd:execute-phase</code></td>
+<td>Executing the plan with wave-based parallelization. Multiple agents
+on independent tasks.</td>
+</tr>
+<tr>
+<td><code>/gsd:quick</code></td>
+<td>Small atomic tasks (the v2 polish fixes). Skips heavy planning,
+keeps atomic commits.</td>
+</tr>
+<tr>
+<td><code>/gsd:progress</code></td>
+<td>Check where you are and route to next action.</td>
+</tr>
+<tr>
+<td><code>/gsd:debug</code></td>
+<td>Systematic debugging with state preserved across sessions.</td>
+</tr>
+<tr>
+<td><code>/gsd:resume-work</code></td>
+<td>Resume a previous session with full context restored.</td>
+</tr>
+<tr>
+<td><code>/gsd:add-todo</code></td>
+<td>Capture an idea or task without breaking your current flow.</td>
+</tr>
+</tbody>
+</table>
+<p>How to apply it:</p>
+<ol type="1">
+<li>For the v2 polish wave, use <code>/gsd:quick</code> per fix. Each
+fix is a short atomic task.</li>
+<li>For the osTicket architecture doc, use <code>/gsd:plan-phase</code>.
+The threat model is the deliverable.</li>
+<li>For the osTicket build, run <code>/gsd:new-project</code> first to
+scaffold the roadmap. Then <code>/gsd:plan-phase</code> per sub-phase.
+Then <code>/gsd:execute-phase</code> to ship.</li>
+<li>When you hit a bug you cannot solve in 15 minutes, hit
+<code>/gsd:debug</code>. The investigation persists across
+sessions.</li>
+</ol>
+<hr />
+<h2 id="path-forward">Path Forward</h2>
+<p>Four waves. Run them in order. Use the GSD commands above to manage
+each.</p>
+<h3 id="wave-1-v2-polish">Wave 1: v2 Polish</h3>
+<p>Touch only the existing repo. No new code.</p>
+<ul>
+<li>Add <code>/queries</code> folder, one .spl file per query</li>
+<li>Add a False Positive Analysis section under each detection rule</li>
+<li>Add D3FEND mapping subsection under the existing MITRE mapping</li>
+<li>Add a CVE root cause section</li>
+<li>Add a Business Impact section</li>
+<li>Add a Threat Intel currency update note (CoinHive sunsetted 2019,
+list current threats)</li>
+<li>Re-run the “131 events” finding with <code>| dedup</code> and
+re-state with the corrected count</li>
+<li>Record a 5 to 7 minute Loom walkthrough, link it at the top of the
+README</li>
+</ul>
+<p><strong>Scope:</strong> Small. Use <code>/gsd:quick</code> per
+item.</p>
+<h3 id="wave-2-osticket-architecture-doc">Wave 2: osTicket Architecture
+Doc</h3>
+<p>Ship as a PR to a new repo <strong>before any code</strong>. The doc
+is the interview artifact.</p>
+<ul>
+<li>One page components and data flow diagram</li>
+<li>Seven attack threat model (below)</li>
+<li>Phasing plan (read only first, write second)</li>
+<li>Least privilege spec for all three credentials</li>
+<li>Idempotency strategy (ticket ID tracking, webhook retry safety)</li>
+<li>Observability plan (audit logs to Splunk)</li>
+<li>Kill switch design (one env var disables all writes)</li>
+</ul>
+<p>Seven attacks to threat model:</p>
+<ol type="1">
+<li>Prompt injection from ticket bodies</li>
+<li>Confused deputy (agent modifying tickets it was not asked
+about)</li>
+<li>Indirect data exfil via internal notes</li>
+<li>False negative on severity (real incident marked low)</li>
+<li>False positive on severity (helpdesk ticket pages analyst at
+3am)</li>
+<li>API key compromise</li>
+<li>Replay or duplicate processing</li>
+</ol>
+<p><strong>Scope:</strong> Medium. Use <code>/gsd:plan-phase</code>.
+Load the owasp-security skill first.</p>
+<h3 id="wave-3-build-osticket-phase-1-through-3">Wave 3: Build osTicket
+Phase 1 through 3</h3>
+<p>Use <code>/gsd:new-project</code> to scaffold the roadmap, then
+<code>/gsd:plan-phase</code> per sub-phase, then
+<code>/gsd:execute-phase</code>.</p>
+<ul>
+<li><strong>Phase 1.</strong> Webhook receiver (FastAPI) plus Claude
+classifier with forced JSON schema output. No writes.</li>
+<li><strong>Phase 2.</strong> Add Splunk enrichment, read only, named
+indexes. Still no writes.</li>
+<li><strong>Phase 3.</strong> osTicket internal note updates only. Audit
+log every classification to Splunk from day one.</li>
+</ul>
+<p><strong>Scope:</strong> Largest. Use
+<code>/gsd:execute-phase</code>.</p>
+<h3 id="wave-4-public-artifacts">Wave 4: Public Artifacts</h3>
+<ul>
+<li>Three LinkedIn posts: v2 polish writeup, threat model walkthrough,
+agent demo</li>
+<li>One YouTube or Loom: full end to end demo with narration</li>
+<li>Public GitHub repo with the agent code, sanitized</li>
+</ul>
+<p><strong>Scope:</strong> Small. Use <code>/gsd:quick</code> per
+artifact.</p>
+<hr />
+<h2 id="bottom-line">Bottom Line</h2>
+<p>The bones of this work are senior level already. The eleven fixes
+package the reasoning for production reviewers. Every one can land in a
+focused session with <code>/gsd:quick</code>. After that, the osTicket
+build is the differentiator that takes you from “I documented a hunt” to
+“I built detections and the agent that triages them.”</p>
+</body>
+</html>

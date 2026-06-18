@@ -1,0 +1,48 @@
+title: DNS Tunneling via Long High-Entropy Subdomain Bursts
+id: ccdd3344-5566-7788-99aa-bbccddeeff00
+status: experimental
+description: >
+  DNS queries with subdomain length >= 40 chars and Shannon entropy >= 4.0,
+  bursting at 5+ queries per minute from the same source to the same parent
+  domain. Fingerprint of DNS exfiltration tools (dnscat2, Iodine, custom
+  C2) and some forms of DNS-based C2 beacons.
+references:
+  - https://attack.mitre.org/techniques/T1048/003/
+  - https://attack.mitre.org/techniques/T1071/004/
+  - https://www.sans.org/white-papers/34152/
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: zeek
+  service: dns
+detection:
+  selection:
+    subdomain_length|gte: 40
+    subdomain_entropy|gte: 4.0
+  filter_known_cdns:
+    query|endswith:
+      - '.cloudfront.net'
+      - '.akamaiedge.net'
+      - '.fastly.net'
+      - '.azureedge.net'
+      - '.amazonaws.com'
+  condition: selection and not filter_known_cdns
+correlation:
+  type: event_count
+  rules:
+    - selection
+  group-by:
+    - src_ip
+    - parent_domain
+  timespan: 1m
+  condition:
+    gte: 5
+falsepositives:
+  - antivirus and EDR cloud lookups (allowlist by parent)
+  - Datadog, Sentry, Snowflake telemetry endpoints with long subdomain identifiers
+level: high
+tags:
+  - attack.exfiltration
+  - attack.t1048.003
+  - attack.command_and_control
+  - attack.t1071.004

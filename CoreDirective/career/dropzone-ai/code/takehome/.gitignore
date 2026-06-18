@@ -1,0 +1,8 @@
+.env
+.venv/
+.vscode/
+__pycache__/
+*.pyc
+*.egg-info/
+.DS_Store
+takehome.zip

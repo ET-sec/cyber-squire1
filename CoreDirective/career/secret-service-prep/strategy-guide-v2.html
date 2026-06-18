@@ -1,0 +1,384 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>USSS Exam Strategy Guide v2 — with Examples</title><style>
+body{font-family:Arial,sans-serif;max-width:860px;margin:0 auto;padding:24px;color:#111;line-height:1.55;}
+h1{color:#0a5a2a;margin:0 0 4px;font-size:24px;}
+h2{color:#fff;background:#0a5a2a;padding:8px 14px;border-radius:4px;margin-top:40px;font-size:17px;}
+h3{font-size:15px;margin-top:28px;color:#0a5a2a;border-bottom:1px solid #ccc;padding-bottom:4px;}
+h4{font-size:13px;margin-top:14px;margin-bottom:4px;color:#333;}
+.meta{color:#666;font-size:12px;margin-bottom:22px;}
+.rule{background:#f4faf6;border-left:5px solid #0a5a2a;padding:10px 14px;margin:10px 0;font-size:13px;}
+.rule b{color:#0a5a2a;}
+.good{background:#e8f7ed;border:1px solid #0a5a2a;border-radius:4px;padding:10px 14px;margin:8px 0;font-size:13px;}
+.good:before{content:"✓ CORRECT ";color:#0a5a2a;font-weight:bold;font-size:11px;}
+.bad{background:#fdecec;border:1px solid #cc2222;border-radius:4px;padding:10px 14px;margin:8px 0;font-size:13px;color:#661a1a;}
+.bad:before{content:"✗ TRAP ";color:#cc2222;font-weight:bold;font-size:11px;}
+.example{background:#fff8e0;border:1px solid #cc8800;border-radius:4px;padding:12px 16px;margin:12px 0;font-size:13px;}
+.example .label{color:#884400;font-weight:bold;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
+.step{background:#f4f4f4;border-left:3px solid #666;padding:8px 12px;margin:6px 0;font-size:13px;font-family:Consolas,monospace;}
+.step b{color:#0a5a2a;}
+code{background:#eee;padding:1px 6px;border-radius:3px;font-family:Consolas,monospace;font-size:12px;}
+.cheat{background:#1a1a1a;color:#3bff8a;padding:18px 20px;border-radius:6px;font-family:Consolas,monospace;font-size:13px;margin:16px 0;line-height:1.8;}
+.cheat b{color:#ffd700;}
+table.t{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;}
+table.t th{background:#0a5a2a;color:#fff;padding:6px 10px;text-align:left;}
+table.t td{border:1px solid #ccc;padding:6px 10px;vertical-align:top;}
+ul,ol{margin:6px 0;padding-left:24px;}
+li{margin:3px 0;font-size:13px;}
+svg{background:#fff;border:1px solid #ddd;border-radius:4px;display:block;margin:8px auto;}
+.big{font-size:18px;font-weight:bold;color:#0a5a2a;text-align:center;padding:12px;background:#f4faf6;border-radius:4px;margin:10px 0;}
+</style></head><body>
+
+<h1>USSS Exam &mdash; The Mythology with Examples</h1>
+<div class="meta">Read this through once. Every concept has a real example. Tuesday 2026-04-22.</div>
+
+<div class="big">The secret: this exam tests if you can FOLLOW RULES like a robot. Not reason like a human.</div>
+
+<h2>PART 1 &mdash; Logic-Based Reasoning (LBR)</h2>
+<p>LBR is ~30% of the exam and where most people bomb. Learn this one mental tool and you'll clear 80% of LBR questions cold.</p>
+
+<h3>The Core Tool: If P, Then Q</h3>
+
+<div class="rule"><b>Every LBR question contains one or more "if-then" rules.</b> Your job: translate the English rule into <code>P &rarr; Q</code> and keep track of which way the arrow points.</div>
+
+<div class="example"><span class="label">Example rule</span>
+"If an agent carries a weapon, they must have passed qualification."
+<div class="step"><b>P</b> = agent carries a weapon<br><b>Q</b> = passed qualification<br>Rule: <b>P &rarr; Q</b></div>
+The arrow only goes one direction. P forces Q. But Q does NOT force P.
+</div>
+
+<h3>Move #1: MODUS PONENS (the obvious one)</h3>
+
+<div class="rule">Rule: <b>P &rarr; Q</b>. Given: <b>P is true</b>. Conclusion: <b>Q is true</b>.</div>
+
+<div class="example"><span class="label">Worked example</span>
+<b>Rule:</b> "If an agent carries a weapon, they passed qualification."<br>
+<b>Given:</b> "Agent Reyes is carrying a weapon."<br>
+<b>Conclusion:</b> Agent Reyes passed qualification. ✓<br><br>
+This one is easy. You see P, you claim Q. Done.
+</div>
+
+<h3>Move #2: MODUS TOLLENS (the contrapositive &mdash; this is THE most tested pattern)</h3>
+
+<div class="rule">Rule: <b>P &rarr; Q</b>. Given: <b>Q is NOT true</b>. Conclusion: <b>P is NOT true</b>.</div>
+
+<div class="example"><span class="label">Worked example</span>
+<b>Rule:</b> "If an agent carries a weapon, they passed qualification."<br>
+<b>Given:</b> "Agent Kim did NOT pass qualification."<br>
+<b>Conclusion:</b> Agent Kim is NOT carrying a weapon. ✓<br><br>
+<b>Why it works:</b> If P always forces Q, then seeing "no Q" proves "no P" &mdash; because if P were true, Q would have to be true too. It isn't, so P can't be.<br><br>
+<b>This is the backbone of most "hard" LBR questions.</b> When you see a question where a rule is given and then you're told the CONSEQUENT is false, you negate the ANTECEDENT.
+</div>
+
+<h3>TRAP #1: Affirming the Consequent (wrong direction)</h3>
+
+<div class="bad"><b>Rule:</b> P &rarr; Q. <b>Given:</b> Q is true. <b>WRONG conclusion:</b> "Therefore P is true."<br><br>
+<b>Example:</b> "If it rains, the street is wet. The street IS wet. Therefore it rained." &mdash; WRONG. A sprinkler could have wet the street. A water main break. A spilled drink.<br><br>
+The arrow only points one way. Q being true does NOT mean P was the cause.</div>
+
+<h3>TRAP #2: Denying the Antecedent (also wrong direction)</h3>
+
+<div class="bad"><b>Rule:</b> P &rarr; Q. <b>Given:</b> P is NOT true. <b>WRONG conclusion:</b> "Therefore Q is NOT true."<br><br>
+<b>Example:</b> "If it rains, the street is wet. It did NOT rain. Therefore the street is NOT wet." &mdash; WRONG. The street could still be wet from any other cause.<br><br>
+Same lesson: P not happening doesn't stop Q from happening from some other route.</div>
+
+<h3>The LBR Translation Table (the language they use)</h3>
+
+<p>The test doesn't say "If P, then Q." It uses English phrasing. You need to translate.</p>
+
+<table class="t">
+<tr><th>English phrase</th><th>Means</th><th>Direction of arrow</th></tr>
+<tr><td>"If A, then B"</td><td>A &rarr; B</td><td>A forces B</td></tr>
+<tr><td>"All A are B"</td><td>A &rarr; B</td><td>A forces B</td></tr>
+<tr><td>"Every A is B"</td><td>A &rarr; B</td><td>A forces B</td></tr>
+<tr><td>"A requires B"</td><td>A &rarr; B</td><td>A forces B</td></tr>
+<tr><td>"Only B can do A"</td><td>A &rarr; B  (B is necessary)</td><td>A forces B</td></tr>
+<tr><td>"A only if B"</td><td>A &rarr; B</td><td>A forces B</td></tr>
+<tr><td>"No A is B"</td><td>A &rarr; NOT B</td><td>A forces "not B"</td></tr>
+<tr><td>"A if and only if B"</td><td>A &harr; B</td><td>Works both ways</td></tr>
+<tr><td>"A unless B"</td><td>NOT B &rarr; A</td><td>"No B" forces A</td></tr>
+</table>
+
+<h3>"Only" Is The Word That Flips You Up</h3>
+
+<div class="example"><span class="label">The "only" trick</span>
+<b>English:</b> "Only vehicles with a red placard may park in the VIP lot."<br>
+<b>Common mistake:</b> reading this as "red placard &rarr; VIP lot." WRONG.<br>
+<b>Correct:</b> "parked in VIP lot &rarr; has red placard." The red placard is NECESSARY.<br><br>
+<b>Rule of thumb:</b> Whatever comes AFTER "only" is the necessary condition. It goes on the RIGHT side of the arrow.<br><br>
+<b>Question:</b> "Vehicle X was parked in the VIP lot at 9:30. What can you conclude?"<br>
+<b>Answer:</b> Vehicle X must have a red placard. (Modus ponens: in VIP lot &rarr; has red placard. X is in VIP lot. Therefore X has placard.)
+</div>
+
+<h3>"If and only if" &mdash; Both Directions</h3>
+
+<div class="example"><span class="label">Biconditional example</span>
+<b>English:</b> "The vault unlocks if and only if both biometric and keycard verification pass."<br>
+<b>Translation:</b> Unlock &harr; (Biometric AND Keycard). Both sides force each other.<br><br>
+<b>Given:</b> "The vault did NOT unlock Monday."<br>
+<b>Conclusion:</b> At least ONE of the two checks failed. (Not necessarily both &mdash; just at least one.)<br><br>
+<b>Watch out:</b> The trap answer says "both failed." You can't conclude that. Either failing one is enough to block unlock.
+</div>
+
+<h3>"Unless" &mdash; The Weirdest One</h3>
+
+<div class="example"><span class="label">Unless example</span>
+<b>English:</b> "You can't enter the secure area unless you have a badge."<br>
+<b>Translation:</b> NOT badge &rarr; NOT enter.  OR equivalently:  Enter &rarr; has badge.<br><br>
+<b>Given:</b> "Marcus entered the secure area."<br>
+<b>Conclusion:</b> Marcus has a badge.
+</div>
+
+<h3>Chain Conditionals (advanced trick)</h3>
+
+<div class="example"><span class="label">Chain example</span>
+<b>Rule 1:</b> "If Torres is on motorcade, then Yu is on site advance."  (Torres &rarr; Yu)<br>
+<b>Rule 2:</b> "If Yu is on site advance, then Kim is at command post."  (Yu &rarr; Kim)<br>
+<b>Given:</b> "Kim is NOT at command post."  (NOT Kim)<br><br>
+<b>Walkthrough:</b>
+<div class="step"><b>Step 1.</b> Chain: Torres &rarr; Yu &rarr; Kim  (so Torres &rarr; Kim)<br>
+<b>Step 2.</b> Contrapositive of the whole chain: NOT Kim &rarr; NOT Torres<br>
+<b>Step 3.</b> We're told NOT Kim, so: NOT Torres. Torres is NOT on motorcade.</div>
+<b>This is modus tollens across a chain.</b> When you see a chain and the END is negated, the BEGINNING is negated too.
+</div>
+
+<h3>The Quantifier Trap: "Most" and "Some" Tell You NOTHING About Individuals</h3>
+
+<div class="example"><span class="label">Quantifier example</span>
+<b>Rule:</b> "Most field agents have completed language training."<br>
+<b>Given:</b> "Agent Bell has completed language training."<br>
+<b>Question:</b> Is Bell a field agent?<br><br>
+<b>Answer:</b> Cannot determine. ✗<br><br>
+<b>Why:</b> "Most field agents are trained" does NOT mean "most trained people are field agents." Bell might be a field agent, or might not. The rule talks about the group, not individuals going the other direction.<br><br>
+<b>Quick mental check:</b> if you see "most" or "some" or "a few" in a premise and then a question about a SPECIFIC named person, the answer is almost always "cannot determine."
+</div>
+
+<h3>The 4-Step LBR Algorithm (use this on every question)</h3>
+
+<div class="cheat">
+<b>STEP 1.</b> Read the rule. Turn it into P &rarr; Q on scratch paper.<br>
+<b>STEP 2.</b> Write the CONTRAPOSITIVE: NOT Q &rarr; NOT P.<br>
+<b>STEP 3.</b> Look at what the question GIVES you as fact.<br>
+<b>STEP 4.</b> Match against your P or NOT Q. Apply modus ponens<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or modus tollens. Nothing else is valid.
+</div>
+
+<h2>PART 2 &mdash; Detail Observation</h2>
+<p>They show you a picture for ~90 seconds. Then questions with the picture hidden.</p>
+
+<h3>The 90-Second Scan Pattern</h3>
+
+<table class="t">
+<tr><th>Seconds</th><th>What to scan</th></tr>
+<tr><td>0&ndash;15</td><td>Count PEOPLE (include uniformed staff and kids). Count vehicles. Note setting (lobby/street/etc).</td></tr>
+<tr><td>15&ndash;45</td><td>Read EVERY number and word. Signs, plates, clocks, addresses. <b>Read plates TWICE.</b></td></tr>
+<tr><td>45&ndash;70</td><td>Per person: clothing COLOR, distinctive ITEM, direction of MOVEMENT, position.</td></tr>
+<tr><td>70&ndash;90</td><td>Odd objects, unattended bags, red/bright items, cameras, exits.</td></tr>
+</table>
+
+<h3>Trap Examples</h3>
+
+<div class="bad"><b>Trap 1 &mdash; Letter transposition on plates.</b><br>
+Scene shows plate GTV-419.<br>
+Answer choices: (A) GVT-419 &nbsp;(B) GTV-419 &nbsp;(C) GTV-491<br>
+Options A and C each swap one detail. Option A flips the middle letters (T&V). Option C flips the last digits (91 vs 19).<br>
+<b>Fix:</b> Read plate TWICE during scan, say it out loud in your head.</div>
+
+<div class="bad"><b>Trap 2 &mdash; Object-color swap.</b><br>
+Scene shows a woman in a GREEN dress carrying a RED purse.<br>
+Question asks: "What color was the woman's dress?"<br>
+Wrong answer: "Red" (you remember red but forget which object). Correct: "Green."<br>
+<b>Fix:</b> Always tag COLOR + OBJECT together, not color alone.</div>
+
+<div class="bad"><b>Trap 3 &mdash; "No X was visible" option.</b><br>
+If you clearly remember X was there, never pick "X was not visible." The option exists to exploit doubt.</div>
+
+<h3>Two Scenes Back-to-Back (Interference)</h3>
+
+<div class="rule"><b>When you study scene 2, your brain starts overwriting scene 1.</b> Counter-move: between scenes, spend 10 seconds mentally reciting scene 1's key facts (plate, count, colors) before starting scene 2.</div>
+
+<h2>PART 3 &mdash; Figural Reasoning (Shape Puzzles)</h2>
+
+<h3>Rotation: The Direction Map</h3>
+
+<svg viewBox="0 0 400 120" width="400" height="120">
+<g stroke="#111" stroke-width="2" fill="none">
+<rect x="20" y="20" width="60" height="60"/>
+<circle cx="30" cy="30" r="4" fill="#cc2222"/>
+<text x="20" y="100" font-size="11" fill="#111">Original (dot top-left)</text>
+<text x="105" y="55" font-size="20" fill="#111" stroke="none">&rarr;</text>
+<rect x="140" y="20" width="60" height="60"/>
+<circle cx="190" cy="30" r="4" fill="#cc2222"/>
+<text x="125" y="100" font-size="11" fill="#111">90&deg; CW (dot top-right)</text>
+<text x="225" y="55" font-size="20" fill="#111" stroke="none">&rarr;</text>
+<rect x="260" y="20" width="60" height="60"/>
+<circle cx="310" cy="70" r="4" fill="#cc2222"/>
+<text x="250" y="100" font-size="11" fill="#111">180&deg; (dot bottom-right)</text>
+</g></svg>
+
+<div class="rule"><b>90&deg; clockwise:</b> top-left &rarr; top-right &rarr; bottom-right &rarr; bottom-left &rarr; back to top-left.<br>
+<b>180&deg;:</b> flips BOTH axes. Upside-down AND backward. The letter F becomes backwards and upside-down at the same time.<br>
+<b>270&deg; CW</b> is the same as <b>90&deg; counter-clockwise</b>.</div>
+
+<h3>Rotation vs Mirror (the big one)</h3>
+
+<svg viewBox="0 0 400 120" width="400" height="120">
+<g stroke="#111" stroke-width="2" fill="none">
+<rect x="20" y="20" width="60" height="60"/>
+<text x="35" y="65" font-size="30" fill="#cc2222" stroke="none" font-weight="bold">R</text>
+<text x="20" y="100" font-size="10" fill="#111">Original</text>
+<rect x="140" y="20" width="60" height="60"/>
+<text x="155" y="65" font-size="30" fill="#cc2222" stroke="none" font-weight="bold" transform="scale(-1 1) translate(-370 0)">R</text>
+<text x="130" y="100" font-size="10" fill="#111">MIRROR (flipped)</text>
+<rect x="260" y="20" width="60" height="60"/>
+<text x="262" y="50" font-size="30" fill="#cc2222" stroke="none" font-weight="bold" transform="rotate(90 295 45)">R</text>
+<text x="250" y="100" font-size="10" fill="#111">Rotated 90&deg; (still readable if you tilt head)</text>
+</g></svg>
+
+<div class="rule"><b>Rotation keeps the shape facing the same way &mdash; it just tilts it.</b> A right-facing R stays right-facing (you just tilt your head to read it).<br>
+<b>Mirror flips it.</b> A right-facing R becomes backward.<br><br>
+<b>Quick test:</b> Could you get from the original to the answer by turning the paper? If yes = rotation. If you'd need to flip the paper over = mirror.</div>
+
+<h3>Paper Folding Math</h3>
+
+<svg viewBox="0 0 420 100" width="420" height="100">
+<g stroke="#111" stroke-width="2" fill="none">
+<rect x="10" y="20" width="60" height="60"/>
+<text x="20" y="95" font-size="10" fill="#111">No fold = 1 layer</text>
+<text x="75" y="55" font-size="14" fill="#111" stroke="none">&rarr;</text>
+<rect x="100" y="20" width="30" height="60"/>
+<line x1="130" y1="20" x2="130" y2="80" stroke-dasharray="3,3"/>
+<text x="95" y="95" font-size="10" fill="#111">1 fold = 2 layers</text>
+<text x="145" y="55" font-size="14" fill="#111" stroke="none">&rarr;</text>
+<rect x="170" y="20" width="30" height="30"/>
+<text x="168" y="95" font-size="10" fill="#111">2 folds = 4 layers</text>
+<text x="215" y="55" font-size="14" fill="#111" stroke="none">&rarr;</text>
+<rect x="240" y="20" width="15" height="30"/>
+<text x="230" y="95" font-size="10" fill="#111">3 folds = 8 layers</text>
+<text x="270" y="55" font-size="14" fill="#111" stroke="none">&rarr;</text>
+<text x="300" y="60" font-size="14" fill="#cc2222" stroke="none" font-weight="bold">N folds = 2^N holes</text>
+</g></svg>
+
+<div class="rule"><b>Simple formula:</b> each fold doubles the layers. One hole punched through all layers makes one hole per layer when unfolded.<br><br>
+1 fold = 2 holes &middot; 2 folds = 4 holes &middot; 3 folds = 8 holes &middot; 4 folds = 16 holes<br><br>
+<b>Where are the holes?</b> Holes are MIRROR-SYMMETRIC across every fold line. One hole near a fold gives two holes side-by-side when unfolded.</div>
+
+<h3>Cube Nets (flat shapes folded into cubes)</h3>
+
+<svg viewBox="0 0 240 180" width="240" height="180">
+<g stroke="#111" stroke-width="2" fill="none">
+<rect x="80" y="0" width="40" height="40"/><text x="93" y="28" font-size="18" fill="#cc2222" stroke="none" font-weight="bold">1</text>
+<rect x="0" y="40" width="40" height="40"/><text x="13" y="68" font-size="18" fill="#111" stroke="none" font-weight="bold">2</text>
+<rect x="40" y="40" width="40" height="40"/><text x="53" y="68" font-size="18" fill="#111" stroke="none" font-weight="bold">3</text>
+<rect x="80" y="40" width="40" height="40"/><text x="93" y="68" font-size="18" fill="#111" stroke="none" font-weight="bold">4</text>
+<rect x="120" y="40" width="40" height="40"/><text x="133" y="68" font-size="18" fill="#111" stroke="none" font-weight="bold">5</text>
+<rect x="80" y="80" width="40" height="40"/><text x="93" y="108" font-size="18" fill="#cc2222" stroke="none" font-weight="bold">6</text>
+</g></svg>
+
+<div class="rule"><b>Two rules for opposites on a cross-shaped net:</b><br>
+&nbsp;&nbsp;&middot; The top flap (1) is opposite the bottom flap (6).<br>
+&nbsp;&nbsp;&middot; The two OUTER side flaps (2 and 5) are opposite each other.<br>
+&nbsp;&nbsp;&middot; The CENTER face (3 or 4) is between them.<br><br>
+<b>Shortcut:</b> faces that touch along an edge on the flat net will NOT be opposite on the cube. Faces separated by exactly ONE face in a straight line ARE opposite.</div>
+
+<h3>Matrix Patterns (3&times;3 grid with a missing cell)</h3>
+
+<div class="rule"><b>Always look for TWO rules:</b>
+<ul>
+<li>A ROW rule: what changes from left to right across each row? (shapes get more lines, dots increase, etc.)</li>
+<li>A COLUMN rule: what changes top to bottom in each column? (shape stays the same, rotation adds, etc.)</li>
+</ul>
+The missing cell combines BOTH rules. If you find only one rule, you're missing half the pattern.</div>
+
+<h3>Counting Shapes (like "how many triangles?")</h3>
+
+<div class="rule"><b>Systematic count &mdash; not eyeball:</b>
+<ol>
+<li>Count the smallest units first.</li>
+<li>Count medium combinations (2 or 4 small units combined).</li>
+<li>Count the biggest outer shape.</li>
+<li>Add them up.</li>
+</ol>
+<b>Example:</b> A 3&times;3 grid has 14 squares total &mdash; 9 small (1&times;1) + 4 medium (2&times;2 overlapping) + 1 large (3&times;3).</div>
+
+<h2>PART 4 &mdash; Exam-Day Playbook</h2>
+
+<h3>Night Before (Monday)</h3>
+<div class="rule">
+&middot; Review this guide &mdash; 20 minutes max, NO new material<br>
+&middot; Re-read the LBR translation table<br>
+&middot; Lay out clothes, ID, pencils, water<br>
+&middot; Bed EARLY. Sleep is the single biggest score multiplier
+</div>
+
+<h3>Tuesday Morning</h3>
+<div class="rule">
+&middot; Breakfast: protein + complex carbs (eggs + oatmeal is ideal)<br>
+&middot; Arrive 45 minutes early<br>
+&middot; 5-minute walk before sitting down &mdash; oxygenates the brain<br>
+&middot; Water, but not too much right before the exam starts
+</div>
+
+<h3>First 30 Seconds At Your Station</h3>
+<div class="rule">
+&middot; Three slow breaths (4 in, 6 out)<br>
+&middot; Read instructions FULLY &mdash; note timing per section<br>
+&middot; If scratch paper is allowed, write the LBR translation table down IMMEDIATELY
+</div>
+
+<h3>Pacing Rules (stick to them)</h3>
+<div class="rule">
+<b>LBR:</b> 90 seconds per question MAXIMUM. Stuck? Eliminate obvious wrongs, guess, flag, move on.<br>
+<b>Observation:</b> 15 seconds per question. You either remember or you don't. Staring does not help.<br>
+<b>Figural:</b> 45 seconds per question (60 for counting questions).<br>
+<b>NEVER leave a blank answer unless the exam confirms there's a guessing penalty</b> (most civil-service exams don't have one).
+</div>
+
+<h3>If You Panic</h3>
+<div class="rule">
+&middot; Skip brutal early questions &mdash; come back after easier wins<br>
+&middot; Between sections: close eyes for 10 seconds, breathe, reset<br>
+&middot; Feeling panic rise: press palms together HARD for 3 seconds (calms the vagus nerve)<br>
+&middot; The clever-looking answer is usually the trap. The boring-looking answer is usually right.
+</div>
+
+<h2>PART 5 &mdash; Stare-At-This Cheat Card</h2>
+
+<div class="cheat">
+<b>LBR:</b><br>
+&nbsp;&nbsp;Translate rule to P &rarr; Q. Write the contrapositive NOT Q &rarr; NOT P.<br>
+&nbsp;&nbsp;Only legal moves: modus ponens (P &rarr; Q) and modus tollens (NOT Q &rarr; NOT P).<br>
+&nbsp;&nbsp;"Most / some / a few" = NO conclusion about individuals.<br>
+&nbsp;&nbsp;"Only" flips the arrow. "Only X can Y" means Y &rarr; X.<br>
+<br>
+<b>OBSERVATION:</b><br>
+&nbsp;&nbsp;Count people. Read plates TWICE. Tag color + object (not just color).<br>
+&nbsp;&nbsp;Between scenes: rehearse scene 1 for 10 seconds before studying scene 2.<br>
+<br>
+<b>FIGURAL:</b><br>
+&nbsp;&nbsp;Rotation keeps handedness. Mirror flips it.<br>
+&nbsp;&nbsp;N folds = 2^N holes.<br>
+&nbsp;&nbsp;Cube net: shared-edge faces are NEVER opposite.<br>
+&nbsp;&nbsp;Matrix: find TWO rules (row + column).<br>
+<br>
+<b>META:</b><br>
+&nbsp;&nbsp;Premises = absolute truth. Use only given info.<br>
+&nbsp;&nbsp;Pick the WEAKEST true answer, not the strongest plausible.<br>
+&nbsp;&nbsp;Contradictory premises = the answer IS "premises are inconsistent."
+</div>
+
+<h3>Top 10 Mistakes to Avoid</h3>
+<ol>
+<li>Affirming the consequent (P&rarr;Q, Q given, "so P" &mdash; wrong)</li>
+<li>Denying the antecedent (P&rarr;Q, NOT P given, "so NOT Q" &mdash; wrong)</li>
+<li>Using real-world logic instead of stated premises</li>
+<li>Picking "strongest plausible" instead of "weakest true"</li>
+<li>Treating "most" like "all"</li>
+<li>Confusing rotation with mirror</li>
+<li>Misreading a plate by one letter (GTV vs GVT)</li>
+<li>Undercounting people (forgetting uniformed staff)</li>
+<li>Burning too much time on one hard question</li>
+<li>Trying to resolve a contradictory premise instead of naming it</li>
+</ol>
+
+<div class="big" style="margin-top:28px;">You already nailed 90 practice questions. Tuesday is execution, not learning.<br>Run the algorithms. Trust the process. You've got this.</div>
+
+</body></html>

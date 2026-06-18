@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>USSS Uniformed Division Entrance Exam: Practice Test 06</title>
+<style>
+  :root { --bg:#0a0e14; --panel:#11161f; --ink:#e6edf3; --mute:#8b949e; --line:#1f2630; --accent:#3bff8a; --warn:#ffb547; --red:#ff5a5a; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { font-family: 'JetBrains Mono','SF Mono',Consolas,monospace; max-width: 880px; margin: 0 auto; padding: 32px 24px 96px; line-height: 1.55; }
+  h1 { color: var(--accent); margin: 0 0 4px; font-size: 26px; }
+  h2 { color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-top: 48px; font-size: 18px; }
+  h3 { margin-top: 28px; font-size: 15px; }
+  .meta { color: var(--mute); font-size: 12px; margin-bottom: 28px; }
+  .rules { background: var(--panel); border-left: 3px solid var(--accent); padding: 14px 18px; margin: 16px 0 28px; font-size: 13px; color: var(--mute); }
+  .rules b { color: var(--ink); }
+  .q { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 18px 20px; margin: 18px 0; }
+  .qnum { color: var(--accent); font-weight: bold; margin-right: 8px; }
+  .qtext { margin: 0 0 14px; font-size: 14px; }
+  .opts { list-style: none; padding: 0; margin: 0; }
+  .opts li { padding: 6px 10px; margin: 4px 0; border: 1px solid var(--line); border-radius: 3px; font-size: 13px; }
+  .opts li b { color: var(--accent); margin-right: 8px; }
+  svg { background: #f7f7f5; border-radius: 4px; display: block; margin: 8px 0 14px; }
+  .scene { background: #f7f7f5; padding: 6px; border-radius: 4px; margin: 8px 0 14px; }
+  .timer-note { background: #1a1208; border-left: 3px solid var(--warn); padding: 10px 14px; color: var(--warn); font-size: 12px; margin: 12px 0; }
+  .key-note { background: var(--panel); border: 1px dashed var(--line); border-radius: 4px; padding: 14px 18px; margin-top: 48px; color: var(--mute); font-size: 13px; }
+  .key-note b { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>USSS Uniformed Division Entrance Exam: Practice Test 06</h1>
+<div class="meta">30 questions &middot; Maximum difficulty &middot; 3D figural &middot; Motorcade + event observation &middot; Multi-premise LBR &middot; 2026 UDEE format</div>
+
+<div class="rules">
+  <b>Instructions.</b> Test 06 covers different question patterns than Test 05. Target: 65 minutes total. Pacing:
+  <ul style="margin: 8px 0 0; padding-left: 20px;">
+    <li><b>Section A (Figural):</b> 10 questions in 15 minutes. Expect dice/orientation reasoning, triangle counting, matrix patterns, and water-reflection tests.</li>
+    <li><b>Section B (Observation):</b> Study Scene 11 for 90 seconds, then Scene 12 for 90 seconds. THEN answer all 10 questions without scrolling back. Both scenes are high-stakes detail scenarios.</li>
+    <li><b>Section C (LBR):</b> 10 questions in 30 minutes. Expect disjunction contrapositives, XOR reasoning, pigeonhole, and at least one self-referential puzzle.</li>
+  </ul>
+  <b>Answer key:</b> Separate file: <code>answer-key-test-06.html</code>. Do not peek until you finish.
+</div>
+
+<h2>SECTION A: Figural Reasoning (1 through 10)</h2>
+
+<!-- Q1: L-shape rotation 180 -->
+<div class="q">
+  <p class="qtext"><span class="qnum">1.</span> The L-shaped figure on the left is rotated 180&deg; about its center. Which option (A through E) shows the correct result?</p>
+  <svg viewBox="0 0 120 120" width="120" height="120">
+    <g stroke="#0a0e14" stroke-width="2" fill="#3bff8a">
+      <polygon points="25,20 55,20 55,80 95,80 95,100 25,100"/>
+    </g>
+  </svg>
+  <svg viewBox="0 0 600 130" width="100%" height="130">
+    <g stroke="#0a0e14" stroke-width="2" fill="#d0d4d8">
+      <!-- A: identical to original (vertical bar on left going from top, horizontal foot at bottom going right) -->
+      <polygon points="10,20 40,20 40,80 80,80 80,100 10,100"/>
+      <text x="40" y="118" font-size="12" fill="#0a0e14" stroke="none">A</text>
+      <!-- B: flipped top-to-bottom (vertical bar at bottom-left going down, horizontal at top going right) -->
+      <polygon points="130,20 200,20 200,40 160,40 160,100 130,100"/>
+      <text x="160" y="118" font-size="12" fill="#0a0e14" stroke="none">B</text>
+      <!-- C: rotated 90 CW (horizontal bar now vertical on right, vertical bar now horizontal on top) -->
+      <polygon points="260,20 340,20 340,40 280,40 280,100 260,100"/>
+      <text x="295" y="118" font-size="12" fill="#0a0e14" stroke="none">C</text>
+      <!-- D: rotated 180 (horizontal bar on top going full width, vertical extension on RIGHT going down) -->
+      <polygon points="380,20 450,20 450,100 420,100 420,40 380,40"/>
+      <text x="410" y="118" font-size="12" fill="#0a0e14" stroke="none">D</text>
+      <!-- E: mirror across vertical axis (vertical bar on RIGHT, horizontal foot at bottom going LEFT) -->
+      <polygon points="540,20 570,20 570,100 490,100 490,80 540,80"/>
+      <text x="525" y="118" font-size="12" fill="#0a0e14" stroke="none">E</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: identical to the original</li>
+    <li><b>B.</b> B: flipped top-to-bottom only</li>
+    <li><b>C.</b> C: rotated 90&deg; clockwise</li>
+    <li><b>D.</b> D: rotated 180&deg;</li>
+    <li><b>E.</b> E: mirror image across the vertical axis</li>
+  </ul>
+</div>
+
+<!-- Q2: Count triangles in square with diagonals -->
+<div class="q">
+  <p class="qtext"><span class="qnum">2.</span> How many TRIANGLES (of any size) can be traced on the figure below: a square with both diagonals drawn?</p>
+  <svg viewBox="0 0 160 160" width="160" height="160">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <rect x="20" y="20" width="120" height="120"/>
+      <line x1="20" y1="20" x2="140" y2="140"/>
+      <line x1="140" y1="20" x2="20" y2="140"/>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 4</li>
+    <li><b>B.</b> 6</li>
+    <li><b>C.</b> 7</li>
+    <li><b>D.</b> 8</li>
+    <li><b>E.</b> 10</li>
+  </ul>
+</div>
+
+<!-- Q3: 3x3 matrix shape x color -->
+<div class="q">
+  <p class="qtext"><span class="qnum">3.</span> The 3&times;3 matrix obeys TWO rules. Rows change shape. Columns change fill color (white, gray, black). Which figure fills the missing cell in row 3, column 3?</p>
+  <svg viewBox="0 0 300 300" width="300" height="300">
+    <g stroke="#0a0e14" stroke-width="2">
+      <rect x="0" y="0" width="300" height="300" fill="none"/>
+      <line x1="100" y1="0" x2="100" y2="300" fill="none"/>
+      <line x1="200" y1="0" x2="200" y2="300" fill="none"/>
+      <line x1="0" y1="100" x2="300" y2="100" fill="none"/>
+      <line x1="0" y1="200" x2="300" y2="200" fill="none"/>
+      <!-- Row 1 triangles (white, gray, black) -->
+      <polygon points="50,30 75,75 25,75" fill="#ffffff"/>
+      <polygon points="150,30 175,75 125,75" fill="#a8afb6"/>
+      <polygon points="250,30 275,75 225,75" fill="#0a0e14"/>
+      <!-- Row 2 squares (white, gray, black) -->
+      <rect x="30" y="130" width="40" height="45" fill="#ffffff"/>
+      <rect x="130" y="130" width="40" height="45" fill="#a8afb6"/>
+      <rect x="230" y="130" width="40" height="45" fill="#0a0e14"/>
+      <!-- Row 3 pentagons: white, gray, ? -->
+      <polygon points="50,230 75,250 65,280 35,280 25,250" fill="#ffffff"/>
+      <polygon points="150,230 175,250 165,280 135,280 125,250" fill="#a8afb6"/>
+      <text x="240" y="270" font-size="40" fill="#0a0e14" stroke="none">?</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> Gray pentagon</li>
+    <li><b>B.</b> Black pentagon</li>
+    <li><b>C.</b> Black hexagon</li>
+    <li><b>D.</b> White pentagon</li>
+    <li><b>E.</b> Black square</li>
+  </ul>
+</div>
+
+<!-- Q4: Die / cube opposite faces -->
+<div class="q">
+  <p class="qtext"><span class="qnum">4.</span> A standard die has opposite faces that sum to 7. A die is placed with the number 2 on TOP, 1 on the FRONT, and 3 on the RIGHT side. What number appears on the BOTTOM face?</p>
+  <svg viewBox="0 0 200 180" width="200" height="180">
+    <g stroke="#0a0e14" stroke-width="2" fill="#eaeaea">
+      <!-- isometric cube -->
+      <polygon points="50,60 110,30 170,60 110,90"/>
+      <polygon points="50,60 50,140 110,170 110,90"/>
+      <polygon points="170,60 170,140 110,170 110,90"/>
+      <!-- top face label 2 -->
+      <text x="100" y="65" font-size="22" fill="#0a0e14" stroke="none" font-family="Arial" font-weight="bold">2</text>
+      <!-- front (left visible face) label 1 -->
+      <text x="70" y="120" font-size="22" fill="#0a0e14" stroke="none" font-family="Arial" font-weight="bold">1</text>
+      <!-- right face label 3 -->
+      <text x="130" y="120" font-size="22" fill="#0a0e14" stroke="none" font-family="Arial" font-weight="bold">3</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 3</li>
+    <li><b>B.</b> 4</li>
+    <li><b>C.</b> 5</li>
+    <li><b>D.</b> 6</li>
+    <li><b>E.</b> Cannot determine without seeing all faces</li>
+  </ul>
+</div>
+
+<!-- Q5: Factorial sequence -->
+<div class="q">
+  <p class="qtext"><span class="qnum">5.</span> Find the rule and the missing value.</p>
+  <svg viewBox="0 0 560 90" width="100%" height="90">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <circle cx="50" cy="45" r="26"/><text x="42" y="53" font-size="20" fill="#0a0e14" stroke="none">1</text>
+      <circle cx="140" cy="45" r="26"/><text x="132" y="53" font-size="20" fill="#0a0e14" stroke="none">2</text>
+      <circle cx="230" cy="45" r="26"/><text x="222" y="53" font-size="20" fill="#0a0e14" stroke="none">6</text>
+      <circle cx="320" cy="45" r="26"/><text x="306" y="53" font-size="20" fill="#0a0e14" stroke="none">24</text>
+      <circle cx="410" cy="45" r="26"/><text x="390" y="53" font-size="20" fill="#0a0e14" stroke="none">120</text>
+      <circle cx="510" cy="45" r="26"/><text x="502" y="55" font-size="22" fill="#0a0e14" stroke="none">?</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 240</li>
+    <li><b>B.</b> 360</li>
+    <li><b>C.</b> 480</li>
+    <li><b>D.</b> 600</li>
+    <li><b>E.</b> 720</li>
+  </ul>
+</div>
+
+<!-- Q6: Pentomino odd one out -->
+<div class="q">
+  <p class="qtext"><span class="qnum">6.</span> Four of these five 5-cell figures are the SAME pentomino piece rotated in the plane (no reflection allowed). Which figure CANNOT be produced by rotating the others?</p>
+  <svg viewBox="0 0 560 120" width="100%" height="120">
+    <g stroke="#0a0e14" stroke-width="2" fill="#d0d4d8">
+      <!-- A: L-pentomino standing up (vertical 4 + 1 foot right) -->
+      <rect x="30" y="20" width="20" height="20"/>
+      <rect x="30" y="40" width="20" height="20"/>
+      <rect x="30" y="60" width="20" height="20"/>
+      <rect x="30" y="80" width="20" height="20"/>
+      <rect x="50" y="80" width="20" height="20"/>
+      <!-- B: L-pentomino rotated 90 CW (horizontal 4 on top + foot-bottom-LEFT) -->
+      <rect x="130" y="30" width="20" height="20"/>
+      <rect x="150" y="30" width="20" height="20"/>
+      <rect x="170" y="30" width="20" height="20"/>
+      <rect x="190" y="30" width="20" height="20"/>
+      <rect x="130" y="50" width="20" height="20"/>
+      <!-- C: L-pentomino rotated 180 (vertical 4 on right + foot-top-LEFT) -->
+      <rect x="250" y="20" width="20" height="20"/>
+      <rect x="270" y="20" width="20" height="20"/>
+      <rect x="270" y="40" width="20" height="20"/>
+      <rect x="270" y="60" width="20" height="20"/>
+      <rect x="270" y="80" width="20" height="20"/>
+      <!-- D: L-pentomino rotated 270 CW (horizontal 4 on bottom + foot-top-RIGHT) -->
+      <rect x="340" y="70" width="20" height="20"/>
+      <rect x="360" y="70" width="20" height="20"/>
+      <rect x="380" y="70" width="20" height="20"/>
+      <rect x="400" y="70" width="20" height="20"/>
+      <rect x="400" y="50" width="20" height="20"/>
+      <!-- E: J-pentomino (mirror of L, cannot rotate to produce L) -->
+      <rect x="490" y="20" width="20" height="20"/>
+      <rect x="490" y="40" width="20" height="20"/>
+      <rect x="490" y="60" width="20" height="20"/>
+      <rect x="490" y="80" width="20" height="20"/>
+      <rect x="470" y="80" width="20" height="20"/>
+    </g>
+    <text x="35" y="115" font-size="12" fill="#0a0e14">A</text>
+    <text x="165" y="115" font-size="12" fill="#0a0e14">B</text>
+    <text x="265" y="115" font-size="12" fill="#0a0e14">C</text>
+    <text x="375" y="115" font-size="12" fill="#0a0e14">D</text>
+    <text x="485" y="115" font-size="12" fill="#0a0e14">E</text>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A</li><li><b>B.</b> B</li><li><b>C.</b> C</li><li><b>D.</b> D</li><li><b>E.</b> E</li>
+  </ul>
+</div>
+
+<!-- Q7: Paper folding -->
+<div class="q">
+  <p class="qtext"><span class="qnum">7.</span> A square sheet of paper is folded in HALF three consecutive times (each fold doubles the layer count). A single hole is then punched through the exact center of the final folded piece. When fully unfolded, how many holes are visible?</p>
+  <ul class="opts">
+    <li><b>A.</b> 3</li>
+    <li><b>B.</b> 4</li>
+    <li><b>C.</b> 8</li>
+    <li><b>D.</b> 12</li>
+    <li><b>E.</b> 16</li>
+  </ul>
+</div>
+
+<!-- Q8: Triple circle triple overlap -->
+<div class="q">
+  <p class="qtext"><span class="qnum">8.</span> Three circles overlap as shown on the left, with all three sharing a common center region. Which option correctly shades ONLY the region that is inside ALL THREE circles?</p>
+  <svg viewBox="0 0 180 140" width="180" height="140">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <circle cx="60" cy="60" r="38"/>
+      <circle cx="120" cy="60" r="38"/>
+      <circle cx="90" cy="100" r="38"/>
+    </g>
+  </svg>
+  <svg viewBox="0 0 720 160" width="100%" height="160">
+    <g stroke="#0a0e14" stroke-width="2">
+      <!-- A: center triple-overlap only shaded -->
+      <g transform="translate(10,10)">
+        <circle cx="60" cy="60" r="38" fill="none"/>
+        <circle cx="120" cy="60" r="38" fill="none"/>
+        <circle cx="90" cy="100" r="38" fill="none"/>
+        <path d="M 90,68 Q 105,80 95,96 Q 85,96 75,80 Q 85,68 90,68 Z" fill="#d0d4d8"/>
+      </g>
+      <text x="85" y="155" font-size="12" fill="#0a0e14" stroke="none">A</text>
+      <!-- B: only outer three crescents (union minus interior) shaded - approximation -->
+      <g transform="translate(190,10)">
+        <circle cx="60" cy="60" r="38" fill="#d0d4d8"/>
+        <circle cx="120" cy="60" r="38" fill="#d0d4d8"/>
+        <circle cx="90" cy="100" r="38" fill="#d0d4d8"/>
+      </g>
+      <text x="265" y="155" font-size="12" fill="#0a0e14" stroke="none">B</text>
+      <!-- C: one pairwise intersection shaded (left two circles overlap only) -->
+      <g transform="translate(370,10)">
+        <circle cx="60" cy="60" r="38" fill="none"/>
+        <circle cx="120" cy="60" r="38" fill="none"/>
+        <circle cx="90" cy="100" r="38" fill="none"/>
+        <path d="M 90,30 A 38,38 0 0,1 90,90 A 38,38 0 0,1 90,30 Z" fill="#d0d4d8"/>
+      </g>
+      <text x="445" y="155" font-size="12" fill="#0a0e14" stroke="none">C</text>
+      <!-- D: entire union -->
+      <g transform="translate(550,10)">
+        <circle cx="60" cy="60" r="38" fill="#d0d4d8"/>
+        <circle cx="120" cy="60" r="38" fill="#d0d4d8"/>
+        <circle cx="90" cy="100" r="38" fill="#d0d4d8"/>
+      </g>
+      <text x="625" y="155" font-size="12" fill="#0a0e14" stroke="none">D</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: only the small central region is shaded</li>
+    <li><b>B.</b> B: the three outer crescents are shaded</li>
+    <li><b>C.</b> C: only one pairwise intersection is shaded</li>
+    <li><b>D.</b> D: the entire three-circle union is shaded</li>
+    <li><b>E.</b> None of the options depicts the triple-overlap region</li>
+  </ul>
+</div>
+
+<!-- Q9: Rotation - pointer -->
+<div class="q">
+  <p class="qtext"><span class="qnum">9.</span> A compass pointer begins pointing NORTH. Each step, it rotates 90&deg; CLOCKWISE. After exactly 7 steps, in which cardinal direction does the pointer face?</p>
+  <ul class="opts">
+    <li><b>A.</b> North</li>
+    <li><b>B.</b> East</li>
+    <li><b>C.</b> South</li>
+    <li><b>D.</b> West</li>
+    <li><b>E.</b> Northeast</li>
+  </ul>
+</div>
+
+<!-- Q10: Water reflection -->
+<div class="q">
+  <p class="qtext"><span class="qnum">10.</span> The figure on the left is reflected as if in still water (reflection across a horizontal axis). Which option correctly shows the reflected image?</p>
+  <svg viewBox="0 0 140 120" width="140" height="120">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <polygon points="70,20 110,80 30,80" fill="#3bff8a"/>
+      <circle cx="70" cy="40" r="5" fill="#0a0e14"/>
+    </g>
+  </svg>
+  <svg viewBox="0 0 560 130" width="100%" height="130">
+    <g stroke="#0a0e14" stroke-width="2">
+      <!-- A: triangle pointing down with dot at top (wrong - dot should be at bottom) -->
+      <polygon points="55,100 95,40 15,40" fill="#d0d4d8"/>
+      <circle cx="55" cy="55" r="5" fill="#0a0e14"/>
+      <text x="45" y="120" font-size="12" fill="#0a0e14">A</text>
+      <!-- B: triangle pointing down with dot near bottom apex (correct reflection) -->
+      <polygon points="165,100 205,40 125,40" fill="#d0d4d8"/>
+      <circle cx="165" cy="85" r="5" fill="#0a0e14"/>
+      <text x="160" y="120" font-size="12" fill="#0a0e14">B</text>
+      <!-- C: triangle pointing up (unchanged) -->
+      <polygon points="275,40 315,100 235,100" fill="#d0d4d8"/>
+      <circle cx="275" cy="55" r="5" fill="#0a0e14"/>
+      <text x="270" y="120" font-size="12" fill="#0a0e14">C</text>
+      <!-- D: triangle pointing right -->
+      <polygon points="410,40 410,100 350,70" fill="#d0d4d8"/>
+      <circle cx="380" cy="70" r="5" fill="#0a0e14"/>
+      <text x="380" y="120" font-size="12" fill="#0a0e14">D</text>
+      <!-- E: triangle pointing left -->
+      <polygon points="470,40 470,100 530,70" fill="#d0d4d8"/>
+      <circle cx="500" cy="70" r="5" fill="#0a0e14"/>
+      <text x="495" y="120" font-size="12" fill="#0a0e14">E</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: triangle inverted, dot near top</li>
+    <li><b>B.</b> B: triangle inverted, dot near bottom apex</li>
+    <li><b>C.</b> C: triangle unchanged (same as original)</li>
+    <li><b>D.</b> D: triangle pointing left</li>
+    <li><b>E.</b> E: triangle pointing right</li>
+  </ul>
+</div>
+
+<h2>SECTION B: Detail Observation with Interference (11 through 20)</h2>
+<p style="color:var(--mute); font-size:13px;">Study Scene 11 for 90 seconds, then Scene 12 for 90 seconds back-to-back. THEN answer all 10 questions with both scenes scrolled off-screen.</p>
+
+<h3>Scene 11: Embassy Motorcade Arrival (study 90 seconds)</h3>
+<div class="timer-note">&#9201; First 90 seconds. Memorize every detail.</div>
+<div class="scene">
+<svg viewBox="0 0 720 380" width="100%" height="380">
+  <!-- sky -->
+  <rect x="0" y="0" width="720" height="180" fill="#b8c8d8"/>
+  <!-- ground (street) -->
+  <rect x="0" y="180" width="720" height="200" fill="#3a3a40"/>
+  <!-- curb line -->
+  <rect x="0" y="260" width="720" height="8" fill="#e8e0c4"/>
+  <!-- sidewalk -->
+  <rect x="0" y="268" width="720" height="40" fill="#a89c80"/>
+  <!-- embassy building -->
+  <rect x="400" y="40" width="280" height="140" fill="#d4c8a8" stroke="#6a5010" stroke-width="2"/>
+  <rect x="430" y="80" width="30" height="70" fill="#1a2030"/>
+  <rect x="480" y="80" width="30" height="70" fill="#1a2030"/>
+  <rect x="530" y="80" width="30" height="70" fill="#1a2030"/>
+  <rect x="580" y="80" width="30" height="70" fill="#1a2030"/>
+  <rect x="630" y="80" width="30" height="70" fill="#1a2030"/>
+  <!-- embassy sign -->
+  <rect x="440" y="50" width="220" height="26" fill="#1a3a6a"/>
+  <text x="450" y="68" font-size="13" fill="#ffd700" font-family="Arial" font-weight="bold">EMBASSY OF TEVERA</text>
+  <!-- flagpole + flag -->
+  <line x1="130" y1="30" x2="130" y2="260" stroke="#666" stroke-width="3"/>
+  <rect x="130" y="30" width="80" height="48" fill="#ee2233"/>
+  <rect x="130" y="40" width="80" height="14" fill="#ffffff"/>
+  <circle cx="170" cy="47" r="5" fill="#ffd700"/>
+  <text x="135" y="88" font-size="9" fill="#0a0e14" font-family="Arial">REPUBLIC OF TEVERA</text>
+  <!-- 3 black SUVs in motorcade -->
+  <rect x="30" y="200" width="130" height="50" fill="#0a0a0a" stroke="#333"/>
+  <rect x="40" y="210" width="40" height="24" fill="#2a3a5a" opacity="0.7"/>
+  <rect x="95" y="210" width="55" height="24" fill="#2a3a5a" opacity="0.7"/>
+  <circle cx="55" cy="255" r="10" fill="#1a1a1a"/>
+  <circle cx="140" cy="255" r="10" fill="#1a1a1a"/>
+  <text x="65" y="242" font-size="9" fill="#ffffff" font-family="monospace">SUV-1</text>
+  <!-- SUV 2 (the limo with VIP exiting) -->
+  <rect x="200" y="195" width="160" height="55" fill="#0a0a0a" stroke="#ffd700" stroke-width="2"/>
+  <rect x="215" y="205" width="45" height="28" fill="#2a3a5a" opacity="0.7"/>
+  <rect x="275" y="205" width="70" height="28" fill="#2a3a5a" opacity="0.7"/>
+  <circle cx="230" cy="255" r="10" fill="#1a1a1a"/>
+  <circle cx="335" cy="255" r="10" fill="#1a1a1a"/>
+  <!-- limo plate -->
+  <rect x="265" y="236" width="50" height="14" fill="#ffffff"/>
+  <text x="270" y="247" font-size="9" fill="#0a0e14" font-family="monospace" font-weight="bold">DPL-7419</text>
+  <!-- SUV 3 follow -->
+  <rect x="400" y="200" width="130" height="50" fill="#0a0a0a" stroke="#333"/>
+  <rect x="410" y="210" width="40" height="24" fill="#2a3a5a" opacity="0.7"/>
+  <rect x="465" y="210" width="55" height="24" fill="#2a3a5a" opacity="0.7"/>
+  <circle cx="425" cy="255" r="10" fill="#1a1a1a"/>
+  <circle cx="510" cy="255" r="10" fill="#1a1a1a"/>
+  <text x="435" y="242" font-size="9" fill="#ffffff" font-family="monospace">SUV-3</text>
+  <!-- VIP stepping out - tall figure in dark suit -->
+  <circle cx="280" cy="270" r="10" fill="#d4a784"/>
+  <rect x="270" y="280" width="20" height="38" fill="#0a0a0a"/>
+  <rect x="268" y="318" width="8" height="20" fill="#0a0a0a"/>
+  <rect x="284" y="318" width="8" height="20" fill="#0a0a0a"/>
+  <rect x="290" y="290" width="8" height="12" fill="#cc2222"/>
+  <!-- Agent 1: on curbside, dark suit, earpiece -->
+  <circle cx="250" cy="275" r="10" fill="#c89a78"/>
+  <rect x="240" y="285" width="20" height="38" fill="#0a0a0a"/>
+  <rect x="238" y="323" width="8" height="15" fill="#0a0a0a"/>
+  <rect x="254" y="323" width="8" height="15" fill="#0a0a0a"/>
+  <line x1="260" y1="276" x2="264" y2="281" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Agent 2: door side -->
+  <circle cx="200" cy="275" r="10" fill="#e0b090"/>
+  <rect x="190" y="285" width="20" height="38" fill="#0a0a0a"/>
+  <rect x="188" y="323" width="8" height="15" fill="#0a0a0a"/>
+  <rect x="204" y="323" width="8" height="15" fill="#0a0a0a"/>
+  <line x1="210" y1="276" x2="214" y2="281" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Agent 3: rear of limo -->
+  <circle cx="380" cy="275" r="10" fill="#d4a784"/>
+  <rect x="370" y="285" width="20" height="38" fill="#0a0a0a"/>
+  <rect x="368" y="323" width="8" height="15" fill="#0a0a0a"/>
+  <rect x="384" y="323" width="8" height="15" fill="#0a0a0a"/>
+  <line x1="390" y1="276" x2="394" y2="281" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- K-9 handler + dog far left -->
+  <circle cx="60" cy="290" r="9" fill="#c89a78"/>
+  <rect x="52" y="298" width="16" height="30" fill="#224466"/>
+  <ellipse cx="100" cy="340" rx="16" ry="8" fill="#8b6914"/>
+  <rect x="98" y="328" width="10" height="13" fill="#8b6914"/>
+  <circle cx="112" cy="330" r="4" fill="#8b6914"/>
+  <line x1="70" y1="310" x2="100" y2="335" stroke="#333" stroke-width="1.5"/>
+  <!-- press pool: 2 cameras -->
+  <circle cx="560" cy="290" r="9" fill="#d4a784"/>
+  <rect x="552" y="298" width="16" height="28" fill="#664433"/>
+  <rect x="540" y="305" width="16" height="10" fill="#0a0a0a"/>
+  <circle cx="543" cy="310" r="2.5" fill="#eeeeee"/>
+  <circle cx="620" cy="290" r="9" fill="#e0b090"/>
+  <rect x="612" y="298" width="16" height="28" fill="#442266"/>
+  <rect x="600" y="305" width="16" height="10" fill="#0a0a0a"/>
+  <circle cx="603" cy="310" r="2.5" fill="#eeeeee"/>
+  <!-- digital wall clock on building -->
+  <rect x="450" y="155" width="70" height="22" fill="#000"/>
+  <text x="460" y="172" font-size="14" fill="#ff5a5a" font-family="monospace" font-weight="bold">14:23</text>
+  <!-- rope line barrier -->
+  <circle cx="580" cy="270" r="3" fill="#666"/>
+  <circle cx="640" cy="270" r="3" fill="#666"/>
+  <line x1="580" y1="270" x2="640" y2="270" stroke="#ffd700" stroke-width="2"/>
+  <!-- security camera top-left -->
+  <rect x="10" y="10" width="20" height="12" fill="#222"/>
+  <circle cx="14" cy="22" r="3" fill="#44ee66"/>
+</svg>
+</div>
+
+<h3>Scene 12: Private Dining Room Protective Detail (study 90 seconds)</h3>
+<div class="timer-note">&#9201; Second 90 seconds. Memorize. Do NOT return to Scene 11.</div>
+<div class="scene">
+<svg viewBox="0 0 720 380" width="100%" height="380">
+  <!-- room interior: warm wood paneling -->
+  <rect x="0" y="0" width="720" height="220" fill="#4a2a14"/>
+  <rect x="0" y="220" width="720" height="160" fill="#6a4a2a"/>
+  <line x1="0" y1="220" x2="720" y2="220" stroke="#2a1a0a" stroke-width="2"/>
+  <!-- wood panel lines -->
+  <line x1="120" y1="0" x2="120" y2="220" stroke="#3a1a04" stroke-width="1"/>
+  <line x1="300" y1="0" x2="300" y2="220" stroke="#3a1a04" stroke-width="1"/>
+  <line x1="480" y1="0" x2="480" y2="220" stroke="#3a1a04" stroke-width="1"/>
+  <line x1="600" y1="0" x2="600" y2="220" stroke="#3a1a04" stroke-width="1"/>
+  <!-- dining table -->
+  <rect x="150" y="210" width="420" height="100" fill="#ffffff" stroke="#2a1a0a" stroke-width="2"/>
+  <!-- VIP at head of table (top) with blue suit + gold pin -->
+  <circle cx="360" cy="200" r="11" fill="#e0b090"/>
+  <rect x="350" y="207" width="20" height="14" fill="#f4e4c0"/>
+  <!-- VIP body: dark blue suit -->
+  <rect x="348" y="180" width="24" height="26" fill="#1a3a8a"/>
+  <circle cx="370" cy="188" r="2.5" fill="#ffd700"/>
+  <!-- guests on sides (4 total) -->
+  <circle cx="220" cy="230" r="9" fill="#d4a784"/>
+  <rect x="212" y="238" width="16" height="22" fill="#554433"/>
+  <circle cx="290" cy="230" r="9" fill="#f4d4b8"/>
+  <rect x="282" y="238" width="16" height="22" fill="#880022"/>
+  <circle cx="430" cy="230" r="9" fill="#c89a78"/>
+  <rect x="422" y="238" width="16" height="22" fill="#222244"/>
+  <circle cx="500" cy="230" r="9" fill="#e0b090"/>
+  <rect x="492" y="238" width="16" height="22" fill="#554433"/>
+  <!-- plates + wine glasses on table -->
+  <ellipse cx="220" cy="260" rx="14" ry="5" fill="#eeeeee"/>
+  <ellipse cx="290" cy="260" rx="14" ry="5" fill="#eeeeee"/>
+  <ellipse cx="360" cy="255" rx="14" ry="5" fill="#ffd700" opacity="0.7"/>
+  <ellipse cx="430" cy="260" rx="14" ry="5" fill="#eeeeee"/>
+  <ellipse cx="500" cy="260" rx="14" ry="5" fill="#eeeeee"/>
+  <!-- wine bottle on table with label -->
+  <rect x="340" y="232" width="10" height="28" fill="#1a1a1a"/>
+  <rect x="340" y="240" width="10" height="14" fill="#eeddaa"/>
+  <text x="341" y="250" font-size="6" fill="#0a0e14" font-family="Arial">MERLOT</text>
+  <!-- Agent 1: standing behind VIP, dark suit, earpiece -->
+  <circle cx="360" cy="140" r="10" fill="#c89a78"/>
+  <rect x="350" y="150" width="20" height="36" fill="#0a0a0a"/>
+  <line x1="370" y1="142" x2="374" y2="147" stroke="#0a0a0a" stroke-width="1.5"/>
+  <circle cx="357" cy="158" r="1.5" fill="#ff5a5a"/>
+  <!-- Agent 2: far left wall -->
+  <circle cx="60" cy="230" r="10" fill="#d4a784"/>
+  <rect x="50" y="240" width="20" height="40" fill="#0a0a0a"/>
+  <rect x="48" y="280" width="8" height="20" fill="#0a0a0a"/>
+  <rect x="64" y="280" width="8" height="20" fill="#0a0a0a"/>
+  <line x1="70" y1="232" x2="74" y2="237" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Agent 3: far right wall -->
+  <circle cx="660" cy="230" r="10" fill="#e0b090"/>
+  <rect x="650" y="240" width="20" height="40" fill="#0a0a0a"/>
+  <rect x="648" y="280" width="8" height="20" fill="#0a0a0a"/>
+  <rect x="664" y="280" width="8" height="20" fill="#0a0a0a"/>
+  <line x1="670" y1="232" x2="674" y2="237" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- server with tray coming from right -->
+  <circle cx="600" cy="290" r="9" fill="#f4d4b8"/>
+  <rect x="592" y="298" width="16" height="30" fill="#ffffff"/>
+  <rect x="588" y="320" width="8" height="15" fill="#1a1a1a"/>
+  <rect x="604" y="320" width="8" height="15" fill="#1a1a1a"/>
+  <rect x="575" y="295" width="34" height="6" fill="#c0c0c0" stroke="#888"/>
+  <rect x="580" y="288" width="6" height="7" fill="#ffd700"/>
+  <rect x="590" y="288" width="6" height="7" fill="#ffd700"/>
+  <rect x="600" y="288" width="6" height="7" fill="#ffd700"/>
+  <!-- chandelier -->
+  <ellipse cx="360" cy="20" rx="50" ry="10" fill="#ffd700" opacity="0.8"/>
+  <line x1="360" y1="0" x2="360" y2="20" stroke="#888" stroke-width="2"/>
+  <circle cx="340" cy="28" r="4" fill="#fff8a0" opacity="0.9"/>
+  <circle cx="360" cy="32" r="4" fill="#fff8a0" opacity="0.9"/>
+  <circle cx="380" cy="28" r="4" fill="#fff8a0" opacity="0.9"/>
+  <!-- wall clock analog showing 8:15 (hour hand to 8, minute hand to 3) -->
+  <circle cx="120" cy="80" r="24" fill="#ffffff" stroke="#0a0e14" stroke-width="2"/>
+  <line x1="120" y1="80" x2="107" y2="85" stroke="#0a0e14" stroke-width="2.5"/>
+  <line x1="120" y1="80" x2="140" y2="80" stroke="#0a0e14" stroke-width="1.5"/>
+  <text x="108" y="118" font-size="10" fill="#ffffff" font-family="Arial">8:15 PM</text>
+  <!-- exit sign -->
+  <rect x="620" y="30" width="80" height="20" fill="#226633"/>
+  <text x="640" y="45" font-size="12" fill="#ffffff" font-family="Arial">EXIT &#8594;</text>
+</svg>
+</div>
+
+<div class="timer-note">&#9201; Both scenes studied. Scroll down and answer ALL 10 questions WITHOUT scrolling back up.</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">11.</span> (Scene 11) What country did the embassy represent, according to the sign?</p>
+  <ul class="opts">
+    <li><b>A.</b> Republic of Teranova</li>
+    <li><b>B.</b> Embassy of Tevera</li>
+    <li><b>C.</b> Kingdom of Savonia</li>
+    <li><b>D.</b> Federal Republic of Teviot</li>
+    <li><b>E.</b> No country name appeared on the sign</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">12.</span> (Scene 11) What time did the digital building clock display?</p>
+  <ul class="opts">
+    <li><b>A.</b> 12:04</li>
+    <li><b>B.</b> 13:47</li>
+    <li><b>C.</b> 14:23</li>
+    <li><b>D.</b> 15:32</li>
+    <li><b>E.</b> 16:08</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">13.</span> (Scene 11) What was the license plate on the middle vehicle (the limousine)?</p>
+  <ul class="opts">
+    <li><b>A.</b> DPL-4719</li>
+    <li><b>B.</b> DPL-7419</li>
+    <li><b>C.</b> GOV-7914</li>
+    <li><b>D.</b> USA-1974</li>
+    <li><b>E.</b> No plate was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">14.</span> (Scene 11) How many Secret Service agents (dark suits with earpieces) were clearly visible around the motorcade?</p>
+  <ul class="opts">
+    <li><b>A.</b> 1</li>
+    <li><b>B.</b> 2</li>
+    <li><b>C.</b> 3</li>
+    <li><b>D.</b> 4</li>
+    <li><b>E.</b> 5 or more</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">15.</span> (Scene 11) What support unit was present near the motorcade?</p>
+  <ul class="opts">
+    <li><b>A.</b> A bomb-disposal robot</li>
+    <li><b>B.</b> A K-9 unit (working dog) with a handler</li>
+    <li><b>C.</b> A mounted police unit</li>
+    <li><b>D.</b> A SWAT tactical team</li>
+    <li><b>E.</b> No support unit was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">16.</span> (Scene 12) What time did the wall clock display?</p>
+  <ul class="opts">
+    <li><b>A.</b> 6:30 PM</li>
+    <li><b>B.</b> 7:45 PM</li>
+    <li><b>C.</b> 8:15 PM</li>
+    <li><b>D.</b> 9:50 PM</li>
+    <li><b>E.</b> No wall clock was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">17.</span> (Scene 12) What was the VIP (seated at the head of the table) wearing?</p>
+  <ul class="opts">
+    <li><b>A.</b> A black tuxedo with a red bow tie</li>
+    <li><b>B.</b> A dark blue suit with a gold lapel pin</li>
+    <li><b>C.</b> A charcoal gray suit with a silver watch</li>
+    <li><b>D.</b> A tan sport coat and white shirt</li>
+    <li><b>E.</b> A ceremonial military uniform</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">18.</span> (Scene 12) How many guests (not counting the VIP or the agents) were seated at the table?</p>
+  <ul class="opts">
+    <li><b>A.</b> 2</li>
+    <li><b>B.</b> 3</li>
+    <li><b>C.</b> 4</li>
+    <li><b>D.</b> 5</li>
+    <li><b>E.</b> 6</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">19.</span> (Scene 12) What was the server approaching the table carrying?</p>
+  <ul class="opts">
+    <li><b>A.</b> A silver tray with three glasses</li>
+    <li><b>B.</b> A covered dish and a carafe</li>
+    <li><b>C.</b> A stack of menus</li>
+    <li><b>D.</b> A bottle of wine only</li>
+    <li><b>E.</b> Nothing; the server was empty-handed</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">20.</span> (Cross-scene) In WHICH scene did an analog clock appear, and approximately what time did it show?</p>
+  <ul class="opts">
+    <li><b>A.</b> Scene 11 only, showing 2:23</li>
+    <li><b>B.</b> Scene 12 only, showing 8:15</li>
+    <li><b>C.</b> Both scenes had analog clocks</li>
+    <li><b>D.</b> Neither scene had an analog clock; both were digital</li>
+    <li><b>E.</b> Scene 11 only, showing 14:23 in analog format</li>
+  </ul>
+</div>
+
+<h2>SECTION C: Logic-Based Reasoning (21 through 30)</h2>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">21.</span> A flight DEPARTS ON TIME IF AND ONLY IF the flight crew is ready AND the runway is clear. Flight 227 DID depart on time this morning. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> The crew was ready, but runway status cannot be determined.</li>
+    <li><b>B.</b> The runway was clear, but crew status cannot be determined.</li>
+    <li><b>C.</b> The crew was ready AND the runway was clear.</li>
+    <li><b>D.</b> At least one of the two conditions was satisfied.</li>
+    <li><b>E.</b> Departure happened as an exception; neither condition was required.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">22.</span> Six items (A, B, C, D, E, F) are placed in six positions numbered 1 through 6. Constraints: (1) B is in position 2; (2) D is in position 5; (3) E and F must occupy adjacent positions; (4) C must come somewhere before D; (5) A is NOT in position 1. Which order is consistent with ALL constraints?</p>
+  <ul class="opts">
+    <li><b>A.</b> C, B, E, F, D, A</li>
+    <li><b>B.</b> A, B, E, F, D, C</li>
+    <li><b>C.</b> C, B, F, D, E, A</li>
+    <li><b>D.</b> B, C, E, F, D, A</li>
+    <li><b>E.</b> C, B, F, E, A, D</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">23.</span> Forty-five incoming calls are distributed among exactly seven dispatch operators. Every call is handled by exactly one operator. What is the MINIMUM number of calls that the busiest operator must handle?</p>
+  <ul class="opts">
+    <li><b>A.</b> 6</li>
+    <li><b>B.</b> 7</li>
+    <li><b>C.</b> 8</li>
+    <li><b>D.</b> 9</li>
+    <li><b>E.</b> Cannot determine without more information</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">24.</span> Three suspects are interviewed: Adams, Brooks, and Carr. EXACTLY TWO are telling the truth. Their statements:
+  <br>&bull; Adams: "Brooks is lying."
+  <br>&bull; Brooks: "Carr is lying."
+  <br>&bull; Carr: "Adams is telling the truth."
+  <br>Which pair is telling the truth?</p>
+  <ul class="opts">
+    <li><b>A.</b> Adams and Brooks</li>
+    <li><b>B.</b> Adams and Carr</li>
+    <li><b>C.</b> Brooks and Carr</li>
+    <li><b>D.</b> Each of the three possibilities is consistent</li>
+    <li><b>E.</b> No pair satisfies the constraint</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">25.</span> "If Gate A is open OR Gate B is open, then the perimeter alarm sounds." On the night of incident #88, the perimeter alarm did NOT sound. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> Gate A alone is closed.</li>
+    <li><b>B.</b> Gate B alone is closed.</li>
+    <li><b>C.</b> Both Gate A and Gate B are closed.</li>
+    <li><b>D.</b> At least one of the gates is closed.</li>
+    <li><b>E.</b> Nothing specific about the gates can be concluded.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">26.</span> "At exactly ONE of two outposts (North OR South) is a red alert active at any given time; never both simultaneously, never neither." Central confirms that the North outpost IS currently on red alert. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> South is also on red alert.</li>
+    <li><b>B.</b> South is NOT on red alert.</li>
+    <li><b>C.</b> South's status cannot be determined without more information.</li>
+    <li><b>D.</b> Exactly one outpost is always on red alert, but which is ambiguous.</li>
+    <li><b>E.</b> The constraint produces a contradiction.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">27.</span> In a field office, 80% of agents are on duty at any given time. Of those on duty, 25% carry full tactical gear. What percentage of ALL agents (on or off duty) are BOTH on duty AND carrying tactical gear right now?</p>
+  <ul class="opts">
+    <li><b>A.</b> 5%</li>
+    <li><b>B.</b> 15%</li>
+    <li><b>C.</b> 20%</li>
+    <li><b>D.</b> 25%</li>
+    <li><b>E.</b> 80%</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">28.</span> Premises:
+  <br>&bull; All Level A clearance agents are briefed weekly.
+  <br>&bull; Every weekly-briefed agent must sign the attendance log.
+  <br>&bull; Agent Nolan holds Level A clearance.
+  <br>Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> Agent Nolan was briefed this week AND signed the attendance log.</li>
+    <li><b>B.</b> Agent Nolan was briefed but may not have signed.</li>
+    <li><b>C.</b> Agent Nolan signed the log but was not necessarily briefed.</li>
+    <li><b>D.</b> Nothing about Agent Nolan's briefing can be determined.</li>
+    <li><b>E.</b> Only Level A agents are required to sign the log.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">29.</span> A perimeter sweep consists of FIVE inspection points (X1, X2, X3, X4, X5) completed in numerical order. Facts:
+  <br>&bull; Total sweep time is exactly 150 minutes.
+  <br>&bull; X2 takes 15 minutes.
+  <br>&bull; X3 takes 30 minutes.
+  <br>&bull; X4 and X5 together take 60 minutes.
+  <br>How many minutes does X1 take?</p>
+  <ul class="opts">
+    <li><b>A.</b> 15</li>
+    <li><b>B.</b> 30</li>
+    <li><b>C.</b> 45</li>
+    <li><b>D.</b> 60</li>
+    <li><b>E.</b> Cannot determine without knowing X4 and X5 individually.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">30.</span> Consider three statements that refer to each other:
+  <br>&bull; S1: "Exactly one of S2 or S3 is true."
+  <br>&bull; S2: "S3 is true."
+  <br>&bull; S3: "S1 is false."
+  <br>Which assignment of truth values is CONSISTENT?</p>
+  <ul class="opts">
+    <li><b>A.</b> S1 = true, S2 = true, S3 = false</li>
+    <li><b>B.</b> S1 = true, S2 = false, S3 = true</li>
+    <li><b>C.</b> S1 = false, S2 = true, S3 = true</li>
+    <li><b>D.</b> S1 = false, S2 = false, S3 = true</li>
+    <li><b>E.</b> No assignment of truth values is consistent</li>
+  </ul>
+</div>
+
+<div class="key-note">
+  <b>Finished?</b> The answer key and explanations live in a separate document: <code>answer-key-test-06.html</code>. Review every miss AND every correct guess. Score 23 or higher and you are ready for Pearson VUE.
+</div>
+
+</body>
+</html>

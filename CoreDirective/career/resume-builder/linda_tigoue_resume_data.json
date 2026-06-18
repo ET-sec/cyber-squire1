@@ -1,0 +1,110 @@
+{
+  "name": "LINDA TIGOUE",
+  "contact": {
+    "parts": [
+      "Fairburn, GA 30213",
+      "404-645-8968",
+      "Lindatigoue@gmail.com"
+    ],
+    "links": {}
+  },
+  "experience": [
+    {
+      "key": "amazon_2025",
+      "job_title": "Distribution Center Associate",
+      "company": "Amazon",
+      "location": "Union City, GA  |  40 hours/week",
+      "dates": "January 2025 - Present",
+      "bullets": {
+        "badge": "Verified employee badge credentials at secure entry and exit points for every shift, ensuring only authorized personnel accessed restricted warehouse zones.",
+        "sop": "Followed strict standard operating procedures for package sorting, hazardous material handling, and inventory control across a facility processing **50,000+** units daily.",
+        "physical": "Maintained physical readiness by standing, lifting up to **49 lbs**, and moving continuously for **10+ hour** shifts in a high tempo warehouse environment.",
+        "safety": "Completed mandatory safety and compliance training including lockout/tagout, fire evacuation, active threat awareness, and PPE protocols.",
+        "team": "Coordinated with teams of **20+** associates and shift leads to meet tight operational deadlines, adjusting workflow in real time based on volume surges.",
+        "accountability": "Tracked and accounted for inventory across multiple staging areas, flagging discrepancies and damaged goods to prevent losses and maintain chain of custody.",
+        "adapt": "Adapted to rotating shift schedules including nights and weekends, demonstrating reliability and flexibility required for 24/7 operational coverage."
+      },
+      "bullet_order": [
+        "badge",
+        "sop",
+        "physical",
+        "safety",
+        "team",
+        "accountability",
+        "adapt"
+      ]
+    },
+    {
+      "key": "amazon_2023",
+      "job_title": "Sortation Center Associate",
+      "company": "Amazon",
+      "location": "Union City, GA  |  40 hours/week",
+      "dates": "January 2023 - December 2023",
+      "bullets": {
+        "scan": "Scanned, sorted, and routed **1,000+** packages per shift using handheld RF devices, maintaining accuracy under constant time pressure.",
+        "secure": "Operated within a secure facility requiring badge access, metal detector screening, and compliance with Amazon's workplace security policies at all times.",
+        "situational": "Monitored conveyor lines and staging areas for jams, safety hazards, and mislabeled packages, reporting anomalies to supervisors immediately.",
+        "endurance": "Sustained high physical output for **10+ hour** shifts involving repetitive lifting, bending, and walking across a **100,000+ sq ft** facility.",
+        "pressure": "Performed consistently during peak season surges, maintaining quality standards while processing volumes that increased by **200%** over baseline."
+      },
+      "bullet_order": [
+        "scan",
+        "secure",
+        "situational",
+        "endurance",
+        "pressure"
+      ]
+    },
+    {
+      "key": "braiding_amina",
+      "job_title": "Braiding Specialist",
+      "company": "Amina Hair Braiding",
+      "location": "Fayetteville, GA  |  30 hours/week",
+      "dates": "December 2021 - Present",
+      "bullets": {
+        "deescalation": "Resolved client complaints and scheduling conflicts calmly and professionally, de-escalating frustrated customers and retaining repeat business.",
+        "observation": "Applied detailed pattern recognition and fine motor precision across **6+ hour** braiding sessions, maintaining focus and consistency on intricate designs.",
+        "mentoring": "Trained **3** new braiders on technique, client communication, and shop protocols, reducing onboarding time and improving service quality.",
+        "scheduling": "Managed appointment scheduling for a client base of **50+** recurring customers, minimizing wait times and optimizing daily throughput."
+      },
+      "bullet_order": [
+        "deescalation",
+        "observation",
+        "mentoring",
+        "scheduling"
+      ]
+    },
+    {
+      "key": "braiding_freelance",
+      "job_title": "Freelance Braider and Small Business Operator",
+      "company": "Self-Employed",
+      "location": "Metro Atlanta, GA  |  20 hours/week",
+      "dates": "January 2013 - Present",
+      "bullets": {
+        "business": "Built and sustained an independent braiding business for **13+ years**, managing all client acquisition, scheduling, service delivery, and follow-up.",
+        "cash": "Handled all cash and digital payment transactions, tracked daily revenue, and maintained accurate financial records for tax reporting.",
+        "conflict": "Navigated difficult client interactions involving pricing disputes, last minute cancellations, and service expectations, maintaining composure and professionalism throughout.",
+        "composure": "Worked long hours in close physical proximity to clients, developing strong interpersonal skills, patience, and the ability to read body language and mood shifts."
+      },
+      "bullet_order": [
+        "business",
+        "cash",
+        "conflict",
+        "composure"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "label": "Core Competencies",
+      "items": "Physical Fitness, Situational Awareness, Conflict Resolution, Detail Orientation, Team Coordination, Time Management, Cash Handling, Training and Mentoring, SOP Compliance, Customer Service, Adaptability, Composure Under Pressure"
+    }
+  ],
+  "education": [
+    {
+      "school": "Columbus State University",
+      "degrees": "Bachelor of Science in Sports Science  |  Expected May 2027",
+      "honors": "Relevant coursework: Human Performance, Exercise Physiology, Kinesiology, Nutrition Science"
+    }
+  ]
+}

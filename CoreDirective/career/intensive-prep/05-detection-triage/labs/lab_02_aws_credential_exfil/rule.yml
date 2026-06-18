@@ -1,0 +1,34 @@
+title: AWS Role Session Used From Non-Expected IP
+id: 9c3d2e4f-5a66-4b2c-8d33-0987654321cd
+status: experimental
+description: >
+  An IAM role tied to a specific EC2 instance is used from a source IP outside
+  the corporate or AWS service IP space. Indicates SSRF-to-IMDS credential theft
+  (Capital One pattern) or stolen instance role keys exfiltrated by an attacker.
+references:
+  - https://attack.mitre.org/techniques/T1552/005/
+  - https://aws.amazon.com/blogs/security/how-to-investigate-and-take-action-on-security-issues-in-amazon-eks-clusters-with-amazon-detective/
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: aws
+  service: cloudtrail
+detection:
+  selection_assumed_role:
+    userIdentity.type: 'AssumedRole'
+  filter_corporate_cidr:
+    sourceIPAddress|startswith:
+      - '10.'
+      - '172.16.'
+      - '192.168.'
+  filter_aws_internal:
+    sourceIPAddress|endswith: '.amazonaws.com'
+  condition: selection_assumed_role and not (filter_corporate_cidr or filter_aws_internal)
+falsepositives:
+  - sanctioned third-party SaaS integrations using cross-account roles
+  - admin emergency access from non-corporate networks (allowlist by ARN)
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1552.005
+  - attack.defense_evasion

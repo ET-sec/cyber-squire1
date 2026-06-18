@@ -1,0 +1,14 @@
+SUBJECT:
+Thanks for the time today
+
+
+BODY:
+Pavel,
+
+I appreciated the conversation. Good to hear Ken has the team moving on CISSP by year's end. That's where I'm already headed, and it's the kind of team direction I was hoping to find.
+
+Documenting AI controls so they hold up in an audit is where I've done the most work. Happy to go deeper on that in a panel round, along with threat modeling and governance for AI pipelines.
+
+Enjoy Florida. Looking forward to the next step.
+
+Emmanuel Tigoue

@@ -1,0 +1,35 @@
+# DNSSEC verification - tigouetheory.com
+Date: Wed Apr 29 13:10:10 EDT 2026
+
+## Cloudflare API
+{
+    "result": {
+        "algorithm": "13",
+        "digest": "C12A154AC4C16A55B06230EB5EC57734DC476665074D963350F7DB053F6C9643",
+        "digest_algorithm": "SHA256",
+        "digest_type": "2",
+        "ds": "tigouetheory.com. 3600 IN DS 2371 13 2 C12A154AC4C16A55B06230EB5EC57734DC476665074D963350F7DB053F6C9643",
+        "flags": 257,
+        "key_tag": 2371,
+        "key_type": "ECDSAP256SHA256",
+        "modified_on": "2026-04-29T16:59:32.367386+00:00",
+        "public_key": "mdsswUyr3DPW132mOi8V9xESWE8jTo0dxCjjnopKl+GqJxpVXckHAeF+KkxLbxILfDLUT0rAK9iUzy1L53eKGQ==",
+        "status": "active"
+    },
+    "success": true,
+    "errors": [],
+    "messages": []
+}
+
+## Public resolver (Google 8.8.8.8)
+2371 13 2 C12A154AC4C16A55B06230EB5EC57734DC476665074D963350F7DB05 3F6C9643
+
+## Public resolver (Cloudflare 1.1.1.1)
+2371 13 2 C12A154AC4C16A55B06230EB5EC57734DC476665074D963350F7DB05 3F6C9643
+
+## RRSIG records
+104.21.59.158
+172.67.180.139
+A 13 2 300 20260430180853 20260428160853 34505 tigouetheory.com. FHzvYesWTvijU8GH0qG28TTcC1PXo72DvCQbCAodYArVJ19yUUD1aozl 2OaZWYr9hV7tUv8+rrHycJSXD4nGng==
+
+## DNSKEY records

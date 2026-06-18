@@ -1,0 +1,63 @@
+{
+  "title": "AI Security Engineer",
+  "certifications": "CISSP  |  SecurityX (CASP+) DoD 8140  |  SSCP  |  CCNA  |  Security+  |  Network+  |  Eligible for Top Secret Security Clearance",
+  "skills_override": [
+    {
+      "label": "Technical Skills",
+      "items": "Python, Bash, PowerShell, Linux, AWS, Docker, Terraform, OPA/Rego, Burp Suite, OWASP ZAP, Semgrep"
+    }
+  ],
+  "job_overrides": {
+    "coredirective": {
+      "dates": "09/2025 - Present, 60 hrs/week"
+    },
+    "texaco": {
+      "dates": "03/2022 - 03/2026, 65 hrs/week"
+    }
+  },
+  "contact_override": {
+    "parts": [
+      "Atlanta, GA",
+      "4048392214",
+      "EmmanuelTigoue@gmail.com",
+      "LinkedIn",
+      "GitHub",
+      "Portfolio"
+    ],
+    "links": {
+      "EmmanuelTigoue@gmail.com": "mailto:EmmanuelTigoue@gmail.com",
+      "LinkedIn": "https://www.linkedin.com/in/emmanuel-tigoue/",
+      "GitHub": "https://github.com/ET-sec",
+      "Portfolio": "https://et-sec.github.io/portfolio"
+    }
+  },
+  "education_override": [
+    {
+      "school": "Georgia State University, J. Mack Robinson College of Business",
+      "degrees": "B.B.A. in Business Economics  |  2026",
+      "additional": "A.S. in Business Administration  |  2025"
+    }
+  ],
+  "bullet_overrides": {
+    "texaco": {
+      "endpoint_pci": "Managed PCI DSS audits and vulnerability management for **45+** endpoints. Ran quarterly Nessus authenticated scans, drove risk based remediation, and kept SAQ docs current with the payment processor."
+    }
+  },
+  "bullet_order": {
+    "coredirective": [
+      "red_team",
+      "grc_program",
+      "squire_soc_agent",
+      "soar_platform",
+      "iam"
+    ],
+    "texaco": [
+      "incident_response",
+      "ir_runbook",
+      "siem_monitoring",
+      "ad_hardening",
+      "network_segmentation",
+      "endpoint_pci"
+    ]
+  }
+}

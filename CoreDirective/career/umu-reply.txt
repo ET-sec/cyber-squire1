@@ -1,0 +1,17 @@
+Hey Umu, accepted. Since you're still early in the process, here's what I'd focus on:
+
+1. Post on LinkedIn weekly. Zero posts means recruiters cannot find you on search. Lab walkthroughs, cert wins, forensics casework on public CTF samples. Consistency over polish.
+
+2. Next cert is cloud depth. Azure AZ 500 or AWS Solutions Architect Associate. Skip more CompTIA for now at least.
+
+3. Build ONE major project, not ten scattered labs. Pick a real problem for a small business or nonprofit. Build the full security stack around it: SIEM, log pipeline, vuln scanning, hardening, IR plan. Integrate the tools like a system design. That project becomes your portfolio anchor, and start in small steps.
+
+4. Use AI inside the project. A local LLM like ollama or claude (paid though) summarizing alerts or flagging suspicious log patterns shows you think in 2026, not 2018. AI fluency is table stakes in security work now.
+
+5. Shift the framing of yourself as a student. Hiring managers trust people who ship work. Lead your resume and LinkedIn with project experience over coursework. Swap your headline from "Cybersecurity Student seeking internship" to something like "Cybersecurity Engineer or which ever niche you want to focus in | Security+ Network+ | DFIR and SOC Focus."
+
+6. Summer 2026 targets: Target, Binary Defense (Stow OH), Arctic Wolf, Rapid7, Huntington Bank, Nationwide. MSSPs especially, they put interns in live SOCs fast.
+
+Keep at it.
+
+Emmanuel

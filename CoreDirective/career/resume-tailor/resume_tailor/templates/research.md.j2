@@ -1,0 +1,71 @@
+# Company Research Brief
+
+**Target Role:** {{ job_title }}
+**Company:** {{ company_name }}
+**Location:** {{ location }}{% if remote_status %} ({{ remote_status }}){% endif %}
+
+**Salary Range:** {{ salary_range }}
+**Job Posting:** [Link]({{ job_url }})
+**Match Score:** {{ relevance_score }}%
+
+---
+
+## Your Matching Qualifications
+
+**Certifications:** {{ matching_certs | join(', ') or 'None identified' }}
+
+**Skills:** {{ matching_skills | join(', ') or 'None identified' }}
+
+---
+
+## Company Overview
+
+{{ company_overview }}
+
+---
+
+## Why This Role Exists
+
+{{ why_role_exists }}
+
+---
+
+## Team and Reporting Structure
+
+{{ team_structure }}
+
+---
+
+## Technology Stack
+
+{{ tech_stack }}
+
+---
+
+## Culture Signals
+
+{{ culture_signals }}
+
+---
+
+## Interview Talking Points
+
+{{ talking_points }}
+
+---
+
+## Questions to Ask
+
+{{ questions_to_ask }}
+
+---
+
+## Red Flags to Watch
+
+{{ red_flags }}
+
+---
+
+## Preparation Checklist
+
+{{ preparation_checklist }}

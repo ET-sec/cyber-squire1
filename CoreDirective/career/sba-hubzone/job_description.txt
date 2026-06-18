@@ -1,0 +1,59 @@
+==========================================
+JOB DESCRIPTION — Owner / CEO / AI Security Engineer
+Tigoue Theory LLC
+==========================================
+
+POSITION TITLE
+Chief Executive Officer and Principal AI Security Engineer
+
+REPORTS TO
+Self (sole owner and member of Tigoue Theory LLC)
+
+LOCATION
+Principal office: 6132 Red Top Loop, Fairburn, GA 30213 (HUBZone Qualified Census Tract)
+
+EMPLOYMENT TYPE
+Full-time, 40+ hours per week
+
+POSITION SUMMARY
+Owner-operator of Tigoue Theory LLC, a single-member LLC providing AI security, cloud security, SOAR engineering, and GRC consulting services to commercial and government clients. Holds full strategic, technical, financial, and operational authority over the firm. Personally executes all client work, manages all infrastructure, and handles all back-office administration without subordinate staff.
+
+PRIMARY RESPONSIBILITIES
+
+Strategic Leadership
+- Set company vision, service offerings, target markets, and growth strategy
+- Identify and qualify federal, state, and commercial business opportunities
+- Manage all federal contracting registrations including SAM.gov, CAGE, NAICS, PSC, and SBA certifications
+
+Technical Service Delivery
+- Architect and deploy AI security controls including LLM gateway hardening, prompt injection defense, and MITRE ATLAS threat modeling
+- Build and maintain SOAR platforms on n8n with sub-workflow architecture and master orchestrator integrations
+- Design infrastructure-as-code in Terraform across DigitalOcean, AWS, and Cloudflare with OPA Rego policy gates
+- Operate CI/CD security pipelines using Trivy, Semgrep, Gitleaks, and supply chain attestation tools
+- Conduct vulnerability assessments, red team exercises, and incident response engagements
+- Author GRC documentation aligned to NIST SP 800-53, NIST AI RMF, ISO 27001, and PCI DSS
+
+Business Operations
+- Source clients through outbound prospecting, content marketing, and federal contracting channels
+- Draft proposals, statements of work, master service agreements, and pricing structures
+- Negotiate and execute client contracts with full signing authority
+- Manage all invoicing, accounts receivable, vendor payments, and bookkeeping
+- Oversee tax compliance, regulatory filings, and corporate recordkeeping
+- Make all hiring, financial, infrastructure, and operational decisions independently
+
+REQUIRED QUALIFICATIONS
+- Active or in-progress security certifications: CISSP, SecurityX (CASP+), SSCP, CCNA, Security+
+- Demonstrated experience designing and operating production security infrastructure
+- Proficiency in Python, PowerShell, JavaScript, Terraform, Docker, and Kubernetes
+- Working knowledge of NIST, ISO, and SOC compliance frameworks
+- Prior incident response, SIEM operations, and DevSecOps experience
+
+CURRENT QUALIFICATIONS HELD BY EMMANUEL TIGOUE
+- SecurityX (CASP+), SSCP, CCNA, Security+ certified
+- CISSP in progress (April 2026)
+- DoD 8140 qualified
+- Eligible for U.S. Security Clearance
+- Must hold a bachelor's or associate's degree in technology or a related field
+
+AUTHORITY
+Sole signing authority for all contracts, financial obligations, hiring, infrastructure provisioning, and regulatory filings. No outside party exercises control over business operations.

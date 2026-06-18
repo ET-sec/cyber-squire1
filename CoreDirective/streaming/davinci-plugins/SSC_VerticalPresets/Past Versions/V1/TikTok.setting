@@ -1,0 +1,213 @@
+{
+	Tools = ordered() {
+		TikTok = GroupOperator {
+			Inputs = ordered() {
+				Input1 = InstanceInput {
+					SourceOp = "Transform4",
+					Source = "Center",
+					Name = "MoveToCamera",
+				},
+				MainInput1 = InstanceInput {
+					SourceOp = "PipeRouter1",
+					Source = "Input",
+				},
+				Input2 = InstanceInput {
+					SourceOp = "Rectangle1",
+					Source = "Width",
+					Name = "Camera Width",
+					Default = 0.1963084,
+				},
+				Input3 = InstanceInput {
+					SourceOp = "Rectangle1",
+					Source = "Height",
+					Name = "Camera Height",
+					Default = 0.2157724177466,
+				},
+				Input4 = InstanceInput {
+					SourceOp = "Rectangle1",
+					Source = "CornerRadius",
+					Name = "Camera Corner Radius",
+					Default = 0,
+				},
+				Input5 = InstanceInput {
+					SourceOp = "Transform3",
+					Source = "Center",
+					Name = "Camera Position",
+				},
+				Input6 = InstanceInput {
+					SourceOp = "Transform3",
+					Source = "Size",
+					Name = "Camera Size",
+					Default = 2.14,
+				},
+				Input7 = InstanceInput {
+					SourceOp = "Transform2",
+					Source = "Center",
+					Name = "Clip Center",
+				},
+				Input8 = InstanceInput {
+					SourceOp = "Transform2",
+					Source = "Size",
+					Name = "Clip Size",
+					Default = 1.111,
+				},
+			},
+			Outputs = {
+				MainOutput1 = InstanceOutput {
+					SourceOp = "Merge3",
+					Source = "Output",
+				}
+			},
+			ViewInfo = GroupInfo { Pos = { 0, 0 } },
+			Tools = ordered() {
+				Transform4 = Transform {
+					Inputs = {
+						Center = Input { Value = { 0.5, 0.518 }, },
+						Input = Input {
+							SourceOp = "PipeRouter1",
+							Source = "Output",
+						},
+					},
+					ViewInfo = OperatorInfo { Pos = { 284.617, -48.0141 } },
+				},
+				PipeRouter1 = PipeRouter {
+					ViewInfo = PipeRouterInfo { Pos = { 198.282, 2.66809 } },
+				},
+				MatteControl1 = MatteControl {
+					Inputs = {
+						Filter = Input { Value = FuID { "Fast Gaussian" }, },
+						["Garbage.Matte"] = Input {
+							SourceOp = "Rectangle1",
+							Source = "Mask",
+						},
+						["Garbage.MaskNest"] = Input { Value = 1, },
+						["Garbage.MaskInverted"] = Input { Value = 1, },
+						Background = Input {
+							SourceOp = "Transform4",
+							Source = "Output",
+						},
+					},
+					ViewInfo = OperatorInfo { Pos = { 401.699, -50.3191 } },
+				},
+				Rectangle1 = RectangleMask {
+					Inputs = {
+						Filter = Input { Value = FuID { "Fast Gaussian" }, },
+						MaskWidth = Input { Value = 1920, },
+						MaskHeight = Input { Value = 1080, },
+						PixelAspect = Input { Value = { 1, 1 }, },
+						UseFrameFormatSettings = Input { Value = 1, },
+						ClippingMode = Input { Value = FuID { "None" }, },
+						Center = Input { Value = { 0.871257, 0.3894833782486 }, },
+						Width = Input { Value = 0.1963084, },
+						Height = Input { Value = 0.2157724177466, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 422.483, -90.2106 } },
+				},
+				Merge1 = Merge {
+					Inputs = {
+						Background = Input {
+							SourceOp = "Background1",
+							Source = "Output",
+						},
+						Foreground = Input {
+							SourceOp = "PipeRouter1",
+							Source = "Output",
+						},
+						PerformDepthMerge = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 262.434, 75.2542 } },
+				},
+				Background1 = Background {
+					Inputs = {
+						Width = Input { Value = 1080, },
+						Height = Input { Value = 1920, },
+						["Gamut.SLogVersion"] = Input { Value = FuID { "SLog2" }, },
+						TopLeftAlpha = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 150.541, 76.9743 } },
+				},
+				Transform3 = Transform {
+					Inputs = {
+						Center = Input { Value = { 0.116, 1.127 }, },
+						Pivot = Input { Value = { 0.875, 0.401 }, },
+						Size = Input { Value = 2.14, },
+						Input = Input {
+							SourceOp = "MatteControl1",
+							Source = "Output",
+						},
+					},
+					ViewInfo = OperatorInfo { Pos = { 524.257, -0.714572 } },
+				},
+				Transform2 = Transform {
+					Inputs = {
+						Size = Input { Value = 1.111, },
+						Input = Input {
+							SourceOp = "Merge1",
+							Source = "Output",
+						},
+					},
+					ViewInfo = OperatorInfo { Pos = { 520.932, 63.6952 } },
+				},
+				Merge2 = Merge {
+					Inputs = {
+						Background = Input {
+							SourceOp = "GaussianBlur1",
+							Source = "Output",
+						},
+						Foreground = Input {
+							SourceOp = "Transform2",
+							Source = "Output",
+						},
+						PerformDepthMerge = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 656.258, 133.739 } },
+				},
+				Transform1 = Transform {
+					Inputs = {
+						Size = Input { Value = 1.83, },
+						Input = Input {
+							SourceOp = "Merge1",
+							Source = "Output",
+						},
+					},
+					ViewInfo = OperatorInfo { Pos = { 415.444, 175.023 } },
+				},
+				GaussianBlur1 = ofx.com.blackmagicdesign.resolvefx.gaussianblur {
+					Inputs = {
+						Source = Input {
+							SourceOp = "Transform1",
+							Source = "Output",
+						},
+						HStrength = Input { Value = 0.441, },
+						VStrength = Input { Value = 0.441, },
+						Gang = Input { Value = 1, },
+						BorderType = Input { Value = FuID { "BORDER_TYPE_REPLICATE" }, },
+						BlendAmount = Input { Value = 0, },
+						blendGroup = Input { Value = 1, },
+						blend = Input { Value = 0, },
+						ignoreContentShape = Input { Value = 0, },
+						legacyIsProcessRGBOnly = Input { Value = 0, },
+						resolvefxVersion = Input { Value = "2.2", },
+					},
+					ViewInfo = OperatorInfo { Pos = { 525.444, 175.023 } },
+				},
+				Merge3 = Merge {
+					CtrlWZoom = false,
+					Inputs = {
+						Background = Input {
+							SourceOp = "Merge2",
+							Source = "Output",
+						},
+						Foreground = Input {
+							SourceOp = "Transform3",
+							Source = "Output",
+						},
+						PerformDepthMerge = Input { Value = 0, },
+					},
+					ViewInfo = OperatorInfo { Pos = { 766.258, 133.739 } },
+				}
+			},
+		}
+	},
+	ActiveTool = "TikTok"
+}

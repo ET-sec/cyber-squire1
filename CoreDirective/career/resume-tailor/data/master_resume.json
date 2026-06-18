@@ -1,0 +1,94 @@
+{
+  "_synced_from": "CoreDirective/career/resume-builder/resume_data.json",
+  "_sync_note": "Source of truth for the locked 18-bullet master set (10 CoreDirective + 8 Texaco). Do not edit bullets here; edit resume_data.json and re-sync.",
+  "name": "EMMANUEL TIGOUE",
+  "contact": {
+    "parts": [
+      "Atlanta, GA",
+      "4048392214",
+      "etigoue@tigouetheory.com",
+      "LinkedIn",
+      "GitHub",
+      "Portfolio"
+    ],
+    "links": {
+      "LinkedIn": "https://www.linkedin.com/in/emmanuel-tigoue/",
+      "GitHub": "https://github.com/ET-sec",
+      "Portfolio": "https://et-sec.github.io/portfolio"
+    }
+  },
+  "certifications": "CISSP  |  SecurityX, DoD 8140  |  CCNA  |  Security+  |  Eligible for Security Clearance",
+  "experience": [
+    {
+      "key": "coredirective",
+      "job_title": "AI Security Engineer",
+      "company": "CoreDirective",
+      "location": "Atlanta, GA",
+      "dates": "Sep 2025 - Present",
+      "bullets": {
+        "n8n_platform": "Built the SOAR platform on n8n: **14** production workflows with sub-workflow architecture, a master orchestrator integrating **16** services, and **20+** managed credential sets. Cut manual security operations by about **80%**.",
+        "n8n_webhooks": "Set up **10+** webhook endpoints in n8n to catch security events in real time. The system watches **4** Gmail inboxes for phishing, runs health checks on a daily cron, and pushes any workflow failure straight to Telegram.",
+        "n8n_detection": "Cut alert noise from **200+** daily events to **12** that mattered by tuning Falco eBPF rules and routing critical alerts through n8n orchestration workflows to Datadog via Falcosidekick.",
+        "n8n_ai_triage": "Plugged Claude API and a local Ollama instance into n8n using custom Code nodes for alert triage and classification. Anything touching sensitive data stays on the sandboxed Ollama box; the rest goes through Claude.",
+        "ai_gateway": "Locked down the OpenClaw gateway (Claude Opus) against OWASP LLM Top 10 and MITRE ATLAS. Zero successful prompt injections or data exfiltration attempts since hardening.",
+        "red_team": "Red teamed every deployed skill for prompt injection, jailbreaks, prompt leakage, and data exfiltration. Fixed everything before it hit production.",
+        "zero_trust": "Closed every exposed port by routing all traffic through Cloudflare Zero Trust tunnels with mTLS.",
+        "cicd_supply_chain": "Stood up the CI/CD security pipeline from zero. Trivy, Semgrep, and Gitleaks run on every PR, and OPA gates block the merge if anything fails. Caught leaked secrets and critical CVEs before they ever reached production.",
+        "iac_compliance": "Defined all infrastructure in Terraform: **16** files, **30+** resources on DigitalOcean and Cloudflare. **8** OPA/Rego policies gate every deployment, zero policy violations have made it to production.",
+        "iam": "Eliminated all standing admin privileges by deploying Teleport for JIT access with session recording and Keycloak SSO for least-privilege roles. Zero unauthorized access incidents since rollout."
+      },
+      "bullet_order": [
+        "n8n_platform",
+        "n8n_webhooks",
+        "n8n_detection",
+        "n8n_ai_triage",
+        "ai_gateway",
+        "red_team",
+        "zero_trust",
+        "cicd_supply_chain",
+        "iac_compliance",
+        "iam"
+      ]
+    },
+    {
+      "key": "texaco",
+      "job_title": "IT Security & Operations Manager",
+      "company": "Texaco",
+      "location": "Atlanta, GA",
+      "dates": "Mar 2022 - Feb 2026",
+      "bullets": {
+        "incident_response": "Ran incident response for **3** retail locations. Investigated POS skimmer attempts using Wireshark, tracked down credential compromises, and dealt with unauthorized vendor access.",
+        "ir_runbook": "Wrote a **6**-step IR runbook that dropped containment time from **8** hours to **90** minutes.",
+        "network_segmentation": "Tore apart a flat network and rebuilt it as **4** VLANs: POS traffic, back-office, guest Wi-Fi, and management. Validated with Nmap. Lateral movement dropped to zero.",
+        "siem_monitoring": "Deployed Splunk as the SIEM, pulling logs from every endpoint and network device on site. Built correlation rules and response automations that got detection time from **48** hours down to under **4**.",
+        "ad_hardening": "Hardened Active Directory: enforced GPO baselines, cleared stale accounts, and stripped admin rights that shouldn't have been there. Automated credential rotation. Went from **14** critical audit findings to **2**.",
+        "endpoint_pci": "Owned PCI DSS compliance for **45+** devices. Ran quarterly Nessus scans, validated network segmentation, kept SAQ docs current, and coordinated with the payment processor.",
+        "automation_scripting": "Scripted patch deployment, user provisioning, and compliance reporting in Python and PowerShell using REST API calls. Freed up roughly **12** hours a week.",
+        "ai_governance": "Drafted AI governance policies using NIST AI RMF as the framework. Rolled out LLM-based phishing detection and incident triage tools to all **3** locations."
+      },
+      "bullet_order": [
+        "incident_response",
+        "ir_runbook",
+        "network_segmentation",
+        "siem_monitoring",
+        "ad_hardening",
+        "endpoint_pci",
+        "automation_scripting",
+        "ai_governance"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "label": "Technical Skills",
+      "items": "n8n, SOAR, Security Automation, REST APIs, Webhook Architecture, JavaScript, Python, PowerShell, PostgreSQL, Splunk, SIEM, Docker, Terraform, AWS, Kubernetes, OPA/Rego, Incident Response, Vulnerability Management, API Security, LLM Security, DevSecOps"
+    }
+  ],
+  "education": [
+    {
+      "school": "Georgia State University, J. Mack Robinson College of Business",
+      "degrees": "B.B.A. in Computer Information Systems (Cybersecurity)  |  BBA in Business Economics",
+      "honors": "May 2026  |  GPA: 3.7  |  Dean's List  |  A.S. in Business Administration, May 2025"
+    }
+  ]
+}

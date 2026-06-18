@@ -169,7 +169,7 @@ Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security
 ## Contact
 
 **Portfolio:** [et-sec.github.io/portfolio](https://et-sec.github.io/portfolio/)
-**LinkedIn:** [linkedin.com/in/emmanuel-tigoue-672378307](https://www.linkedin.com/in/emmanuel-tigoue-672378307)
+**LinkedIn:** [linkedin.com/in/emmanuel-tigoue](https://www.linkedin.com/in/emmanuel-tigoue)
 **GitHub:** [github.com/ET-sec](https://github.com/ET-sec)
 
 ---

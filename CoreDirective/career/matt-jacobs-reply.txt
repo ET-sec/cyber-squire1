@@ -1,0 +1,8 @@
+Hi Matt,
+
+Wednesday at 12 PM ET works for me.
+
+One quick question for the call: is the role scoped more toward data engineering on the CX pipelines, or does it include the security posture of those AI data flows? Want to make sure I come in focused on the right angle.
+
+Best,
+Emmanuel

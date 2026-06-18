@@ -1,0 +1,187 @@
+===============================================
+NICE LTD — AI DATA SPECIALIST INTERVIEW PREP
+Tomorrow Wed 4/22, 12 PM ET via Teams
+Recruiter: Matt Jacobs, NinjaJobs Chief Delivery Officer
+Downstream rounds: HM (VP Solution Sales) -> Tech (SQL/data modeling) -> Panel -> Final
+Public Req: 10296 on Built In, JD language verbatim match to Matt's description
+===============================================
+
+
+-----------------------------------------------
+1. TOMORROW'S CALL WITH MATT (15 to 30 min)
+-----------------------------------------------
+
+This is a RECRUITER screen, not the hiring manager. Matt's job is to decide whether to submit you to NICE. He is not going to grill you on Python one-liners. He WILL evaluate:
+
+- Do you understand what the role actually does
+- Can you carry a tech screen later
+- Are you realistic about comp and location
+- Do you have any blockers he needs to know about
+
+You are going in WITH information advantage: you already know it is NICE, you have the Req ID, you have the JD verbatim. Do not reveal you figured out the client unless he names it first. Play along until he does.
+
+WHAT TO EXPECT MATT ASKS YOU
+- Walk me through your background briefly
+- Why are you interested in this role
+- What is your current comp / what are you looking for
+- Are you OK with 2 days onsite in Sandy Springs
+- When can you start if hired
+- Anything in your pipeline competing for your attention
+- Any visa or work auth considerations
+
+YOUR OPENING PITCH (60 seconds max)
+"I'm a Security Engineer at CoreDirective with a focus on AI Security, AppSec, and Cloud. Over the last year I've built production AI gateways running Claude Opus against OWASP LLM Top 10 and MITRE ATLAS threat models, cut SOAR triage overhead by 80 percent with Python automation, and authored 37 GRC documents including AI governance. For this role, the data structure validation work and precision-recall evaluation on CX interaction data maps directly to the AI model evaluation I already do. Atlanta based, 2 days in Sandy Springs works."
+
+FIRST QUESTION YOU ASK MATT (load before call)
+"Before we dive in, can you tell me more about the scope? Is this role defining the security posture of the AI data pipelines, or is it primarily schema and pipeline engineering around the CX analytics?"
+
+This clarifier is the single most important thing to learn tomorrow. His answer decides how hard you prep for the downstream rounds.
+
+SECOND TIER QUESTIONS FOR MATT
+1. Can you share the client name at this stage
+2. Is this a new headcount or backfill
+3. What does the 90 day mandate look like
+4. Who does this role report to (you know VP Solution Sales, but let him confirm)
+5. What is the 150k breakdown: base, bonus, equity, other
+6. Benefits: 401k match percentage, health plan, PTO structure
+7. Timeline for hire, when does the team need someone in seat
+8. How many candidates are currently in play for the role
+9. What does a strong hire look like to the hiring manager
+
+HOW TO HANDLE COMP
+If Matt asks your target, say "I'm aligned on the 150k total comp range you mentioned. I'd want to understand the base versus variable split to confirm, but the top line works." Do not anchor low. Do not negotiate this call.
+
+IF MATT MENTIONS "CONSULTANTS" OR "DATA ENGINEERING" HEAVILY
+That is the signal the scope is more data engineering than security. Do not panic. Say "I've done data pipeline work in my security context: data classification, PII scrubbing, log pipeline engineering, and AI model evaluation with precision and recall. Happy to walk through specific projects if useful."
+
+
+-----------------------------------------------
+2. THE ROLE: WHAT IT ACTUALLY DOES
+-----------------------------------------------
+
+From the Built In public posting (Req 10296):
+- Focal point for developing pre-defined data structures for automated analysis of large sets of CX interactions across all channels (audio, chat, email, social)
+- Supports validations of completed and evolving data structures to ensure high precision and recall
+- Reports to VP of Solution Sales (NOT pure R&D)
+- Works cross-functionally with Research and Product teams building Enlighten AI tooling
+
+Plain English: you define the schemas, taxonomies, and evaluation frameworks that NICE's AI uses to extract signals from customer conversations. You validate that the AI is actually accurate at doing what it claims. You support pre-sales and solution teams when enterprise customers want to know "will this work for our data."
+
+The VP Solution Sales reporting line means this role has a customer-facing dimension. Expect to present your data model decisions to enterprise prospects. Communication polish matters.
+
+
+-----------------------------------------------
+3. TOOLS AND TECHNOLOGY TO KNOW
+-----------------------------------------------
+
+NICE'S OWN STACK (public intel)
+- Enlighten AI: NICE's CX AI suite. Built on LLMs plus their proprietary interaction analytics models
+- CXone: cloud contact center platform (CCaaS). Multi-channel: voice, chat, email, social
+- NICE Actimize: financial crime, AML, fraud detection (same parent company, separate product line)
+- AWS heavy stack. NICE is a public AWS partner
+- Python, Java, Scala likely for data engineering
+- Snowflake or similar cloud data warehouse
+- Kafka or Kinesis for streaming interaction data
+
+ROLE-ADJACENT TECH YOU NEED FLUENT
+- SQL (will come up in the tech round, guaranteed)
+- Python data stack: pandas, numpy, scikit-learn, spaCy, NLTK
+- ML evaluation: precision, recall, F1, confusion matrix, AUC-ROC
+- LLM evaluation frameworks: perplexity, BLEU, ROUGE, exact match, semantic similarity
+- Data labeling: Label Studio, Prodigy, Snorkel
+- ML lifecycle: MLflow, Weights & Biases, DVC
+- Unstructured data pipelines: transcription (Whisper) -> NLP -> intent classification -> analytics
+- Data warehousing: Snowflake, BigQuery, Redshift
+- Streaming: Kafka, Kinesis
+
+COMPLIANCE AND GOVERNANCE TECH (your edge)
+- PII detection and scrubbing in CX data (Presidio, AWS Macie)
+- TCPA for call recordings, GDPR for EU data, state privacy laws
+- PCI DSS if card data appears in CX transcripts (likely)
+- NIST AI RMF for AI governance (your GRC library already covers this)
+- ISO 42001 AI management (your GRC library covers this)
+- MITRE ATLAS for adversarial ML threats (you have this)
+
+
+-----------------------------------------------
+4. STORY FRAMING (STAR READY)
+-----------------------------------------------
+
+STORY 1: AI GATEWAY WITH PRECISION-RECALL EVALUATION
+Situation: CoreDirective needed to run Claude Opus against sensitive internal queries without prompt injection or data leakage.
+Task: Build guardrails, evaluate the model's responses, and validate accuracy against known-good ground truth.
+Action: Implemented OWASP LLM Top 10 controls, MITRE ATLAS threat model, input validation, output filtering, and a precision-recall evaluation harness for response quality and policy compliance.
+Result: Deployed production gateway with documented evaluation metrics. Maps directly to what NICE does at scale: validate AI output against ground truth for CX interactions.
+
+STORY 2: SOAR ORCHESTRATION AT 80 PERCENT REDUCTION
+Situation: Triage workload on security events was drowning the team.
+Task: Automate event classification, enrichment, and routing.
+Action: Built Python + n8n automation with AI classification layer. Integrated data from multiple sources, structured the schemas, and validated decisions against a feedback loop.
+Result: 80 percent reduction in manual triage time. Direct parallel: automated analysis of large interaction sets is the NICE job description.
+
+STORY 3: GRC LIBRARY WITH DATA GOVERNANCE
+Situation: Needed organization wide governance for AI systems and sensitive data.
+Task: Author policies, SSPs, IR playbooks covering AI governance, data classification, privacy.
+Action: Produced 37 GRC documents including AI governance policy aligned to NIST AI RMF and ISO 42001, data classification schema, and incident response playbooks for AI-specific scenarios.
+Result: Full governance coverage. Maps to the compliance side of CX data validation at NICE, especially with Actimize adjacent.
+
+STORY 4: SHIFT-LEFT SECURITY PIPELINES
+Situation: Code was shipping without security review.
+Task: Automate security checks into CI/CD.
+Action: Integrated Trivy, Semgrep, Gitleaks, and OPA policy gates into GitHub Actions pipelines. Defined pass/fail thresholds, triage queues, developer feedback loops.
+Result: Every PR now runs security and policy checks. Analog at NICE: data quality gates in an analytics pipeline.
+
+
+-----------------------------------------------
+5. BRIDGE FROM AI SECURITY INTO AI DATA (positioning)
+-----------------------------------------------
+
+You are not pivoting. You are applying the same skills to a different data surface.
+
+AI Security skill                      ->  NICE AI Data Specialist equivalent
+----------------------------------        -----------------------------------
+LLM evaluation harness                 ->  Precision/recall validation on CX data
+OWASP LLM Top 10 threat modeling       ->  Adversarial testing of AI analytics
+Data classification for sensitive logs ->  Data structures for CX interactions
+GRC / AI governance library            ->  Data pipeline governance and policy
+Python SOAR orchestration              ->  Automated analysis of unstructured data
+MITRE ATLAS model threats              ->  Validating AI output quality at scale
+PII detection and handling             ->  Compliance boundaries in CX recordings
+
+You can say: "My AI Security work has been about validating AI systems under adversarial conditions. This role is validating AI systems under production load. Same toolkit, different threat model."
+
+
+-----------------------------------------------
+6. PITFALLS TO AVOID
+-----------------------------------------------
+
+1. Do not claim deep contact center or CCaaS domain expertise. You do not have 5 years running a SOC for a call center. You have applied analytics skills that transfer.
+
+2. Do not frame yourself as "pivoting from security to data." You are not pivoting. Your work already includes data pipeline design, model evaluation, and governance. Lead with that.
+
+3. Do not talk salary numbers first. Let Matt anchor. When he says 150, confirm "works for me, assuming the breakdown makes sense."
+
+4. Do not reveal you identified NICE from the JD unless he names it. If he does name it, say "Nice, I know their Enlighten AI product and the Actimize side. Strong fit on the AI evaluation angle."
+
+5. Do not ramble. 20 seconds of dead air is worse than 10 seconds of "that is a good question, let me think." Pause, answer, move on.
+
+6. Do not read from notes on camera. Have them off screen. Eye contact with the lens wins the call.
+
+7. Do not mention you are applying directly on Built In. He will feel undercut. If it comes up later in the process, it can be handled. Today is not the day.
+
+
+-----------------------------------------------
+7. DAY OF CHECKLIST (5 min before noon)
+-----------------------------------------------
+
+- Teams link tested in a separate tab 10 minutes before
+- Camera at eye level (stack books under laptop if needed)
+- Hard light in front, not behind
+- Water, not coffee
+- Resume in front of you (AI Security Engineer flagship, the one Matt already has)
+- JD from Built In open in second tab for reference if needed
+- Close Slack, email, every notification
+- Phone on do not disturb
+- Read your 60 second opener out loud once
+
+Go get it.

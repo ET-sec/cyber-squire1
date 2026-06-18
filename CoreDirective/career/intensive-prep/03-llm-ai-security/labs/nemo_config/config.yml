@@ -1,0 +1,13 @@
+models:
+  - type: main
+    engine: anthropic
+    model: claude-opus-4-7
+
+rails:
+  input:
+    flows:
+      - handle jailbreak
+      - off topic
+  output:
+    flows:
+      - check exfil

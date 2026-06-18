@@ -1,0 +1,7 @@
+/*
+ * Font imports for CoreDirective video templates.
+ * JetBrains Mono: monospace for terminal/code elements
+ * Inter: clean body font for readable text
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");

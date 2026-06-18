@@ -1,0 +1,70 @@
+title: n8n Agent Untrusted Fetch Followed by Sensitive Write
+id: 00778899-99aa-bbcc-ddee-ff0011223344
+status: experimental
+description: >
+  An n8n workflow performs an untrusted external fetch (HTTP request, web
+  search, email read, document fetch) and within 30 seconds invokes a
+  sensitive write action (gmail send, github issue/PR, drive share, command
+  execution). Anchor for indirect prompt injection in agentic systems.
+references:
+  - https://embracethered.com/blog/posts/2024/llm-agentic-injection/
+  - https://atlas.mitre.org/techniques/AML.T0051.001
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: n8n
+  service: execution_log
+detection:
+  selection_untrusted_fetch:
+    node_type:
+      - 'n8n-nodes-base.httpRequest'
+      - 'tavily.search'
+      - 'n8n-nodes-base.googleDriveTrigger'
+    status: 'success'
+  selection_gmail_read:
+    node_type: 'n8n-nodes-base.gmail'
+    operation:
+      - 'messages.get'
+      - 'messages.list'
+      - 'getAll'
+  selection_sensitive_write:
+    node_type:
+      - 'n8n-nodes-base.gmail'
+      - 'n8n-nodes-base.github'
+      - 'n8n-nodes-base.googleDrive'
+      - 'n8n-nodes-base.slack'
+      - 'n8n-nodes-base.executeCommand'
+    operation:
+      - 'send'
+      - 'createIssue'
+      - 'createPullRequest'
+      - 'shareFile'
+      - 'uploadFile'
+      - 'postMessage'
+      - 'execute'
+  condition: 1 of selection_*
+correlation:
+  type: temporal
+  rules:
+    - selection_untrusted_fetch
+    - selection_gmail_read
+    - selection_sensitive_write
+  group-by:
+    - execution_id
+    - workflow_id
+  timespan: 30s
+  condition:
+    selection_sensitive_write:
+      gte: 1
+    any_fetch:
+      gte: 1
+falsepositives:
+  - sanctioned workflows that follow research with publishing (allowlist by workflow_id)
+  - automated email reply workflows
+level: high
+tags:
+  - attack.initial_access
+  - attack.t1190
+  - attack.execution
+  - attack.exfiltration
+  - attack.t1041

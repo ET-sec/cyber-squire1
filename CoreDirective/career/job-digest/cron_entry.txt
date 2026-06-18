@@ -1,0 +1,14 @@
+# Daily job digest at 8:00 AM Eastern Time
+# Add to crontab with: crontab -e
+# Assumes system timezone is UTC (8 AM ET = 13:00 UTC during EST, 12:00 UTC during EDT)
+# Adjust for DST as needed, or set TZ in the cron environment
+
+# EST (November - March):
+0 13 * * * cd /Users/et/cyber-squire-ops/builds/job-digest && /usr/bin/python3 -m job_digest --send --webhook "https://n8n.tigouetheory.com/webhook/job-digest" >> /var/log/job-digest.log 2>&1
+
+# EDT (March - November):
+# 0 12 * * * cd /Users/et/cyber-squire-ops/builds/job-digest && /usr/bin/python3 -m job_digest --send --webhook "https://n8n.tigouetheory.com/webhook/job-digest" >> /var/log/job-digest.log 2>&1
+
+# Alternative: use TZ environment variable (works on most Linux cron implementations)
+# TZ=America/New_York
+# 0 8 * * * cd /Users/et/cyber-squire-ops/builds/job-digest && /usr/bin/python3 -m job_digest --send --webhook "https://n8n.tigouetheory.com/webhook/job-digest" >> /var/log/job-digest.log 2>&1

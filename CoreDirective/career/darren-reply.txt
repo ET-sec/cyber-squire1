@@ -1,0 +1,10 @@
+Hi Darren,
+
+Thanks for reaching out. The role lines up well with my current work: DevSecOps and CI/CD security integration, Python tooling, Docker, and architecture review alongside engineering teams.
+
+One clarification: the header says Atlanta but the role overview mentions Phoenix. Can you confirm the actual work location and onsite cadence?
+
+Happy to send my updated resume and hop on a call. Let me know a good time.
+
+Best,
+Emmanuel Tigoue

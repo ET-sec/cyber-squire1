@@ -1,0 +1,33 @@
+# content-repurpose configuration
+brand: "CoreDirective"
+cta: "Follow for more cybersecurity content"
+tone: "direct, confident, slightly irreverent, no corporate speak"
+model: "claude-sonnet-4-5-20250929"
+output_dir: "./output"
+
+# Platform toggles (set to false to skip)
+platforms:
+  tiktok: true
+  linkedin: true
+  twitter: true
+  reddit: true
+  youtube: true
+  shorts: true
+
+# Brand voice keywords (injected into prompts)
+brand_keywords:
+  - cybersecurity
+  - career growth
+  - certifications
+  - real talk
+  - practical advice
+
+# Subreddit defaults for Reddit posts
+reddit_subreddits:
+  - r/cybersecurity
+  - r/CompTIA
+  - r/ccna
+  - r/ITCareerQuestions
+  - r/netsec
+  - r/learnprogramming
+  - r/careerguidance

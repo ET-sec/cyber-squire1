@@ -1,0 +1,52 @@
+title: Webshell Activity Indicators in Web Access Logs
+id: dd445566-6677-8899-aabb-ccddeeff0011
+status: experimental
+description: >
+  GET requests to .php, .jsp, .aspx, or .asp files within an upload or writable
+  directory, carrying suspicious query parameters (cmd, c, exec, shell, pwd,
+  passwd) and high-frequency from one source. Composite signal of a dropped
+  webshell being interacted with.
+references:
+  - https://attack.mitre.org/techniques/T1505/003/
+  - https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-302a
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: nginx
+  service: access
+detection:
+  selection_uri:
+    request_path|contains:
+      - '/uploads/'
+      - '/upload/'
+      - '/files/'
+      - '/tmp/'
+      - '/cache/'
+      - '/wp-content/uploads/'
+    request_path|endswith:
+      - '.php'
+      - '.jsp'
+      - '.aspx'
+      - '.asp'
+      - '.phtml'
+      - '.jspx'
+  selection_params:
+    query_string|contains:
+      - 'cmd='
+      - 'c='
+      - 'exec='
+      - 'shell='
+      - 'pwd='
+      - 'passwd='
+      - 'system='
+      - 'eval='
+  condition: selection_uri and selection_params
+falsepositives:
+  - admin tools or web-based diagnostic shells (rare; allowlist by IP)
+  - WordPress AJAX endpoints with cmd parameters in plugins (allowlist by plugin)
+level: critical
+tags:
+  - attack.persistence
+  - attack.t1505.003
+  - attack.execution
+  - attack.t1059.004

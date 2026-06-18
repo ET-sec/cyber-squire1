@@ -1,0 +1,52 @@
+title: Suspicious npm Package Install Script Behavior
+id: 11778899-99aa-bbcc-ddee-ff0011223345
+status: experimental
+description: >
+  npm postinstall, preinstall, or install lifecycle script invoking network
+  primitives (curl, wget, child_process exec to http URLs) or reading secret
+  environment variables. Composite with new-package age and single-maintainer
+  signals to find supply chain attacks like event-stream/flatmap-stream (2018)
+  and ua-parser-js (2021).
+references:
+  - https://blog.npmjs.org/post/180565383195/details-about-the-event-stream-incident
+  - https://github.com/advisories/GHSA-pjwm-rvh2-c87w
+author: Emmanuel Tigoue
+date: 2026/05/08
+logsource:
+  product: ci
+  service: npm
+detection:
+  selection_install_script:
+    action: 'script_run'
+    script:
+      - 'preinstall'
+      - 'install'
+      - 'postinstall'
+  selection_network_primitive:
+    cmd|contains:
+      - 'curl '
+      - 'wget '
+      - 'child_process'
+      - 'http://'
+      - 'https://'
+      - 'eval('
+      - 'base64'
+  selection_secret_env_read:
+    action: 'env_read'
+    var:
+      - 'NPM_TOKEN'
+      - 'AWS_ACCESS_KEY_ID'
+      - 'AWS_SECRET_ACCESS_KEY'
+      - 'GITHUB_TOKEN'
+      - 'VAULT_TOKEN'
+      - 'STRIPE_SECRET_KEY'
+  condition: (selection_install_script and selection_network_primitive) or selection_secret_env_read
+falsepositives:
+  - legitimate native bindings that fetch prebuilt binaries during postinstall (node-gyp, node-pre-gyp)
+  - corporate analytics packages that read env vars by design (allowlist by package name)
+level: high
+tags:
+  - attack.initial_access
+  - attack.t1195.002
+  - attack.execution
+  - attack.t1059.007

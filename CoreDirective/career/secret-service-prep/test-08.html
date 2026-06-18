@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>USSS Uniformed Division Entrance Exam: Practice Test 08</title>
+<style>
+  :root { --bg:#0a0e14; --panel:#11161f; --ink:#e6edf3; --mute:#8b949e; --line:#1f2630; --accent:#3bff8a; --warn:#ffb547; --red:#ff5a5a; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { font-family: 'JetBrains Mono','SF Mono',Consolas,monospace; max-width: 880px; margin: 0 auto; padding: 32px 24px 96px; line-height: 1.55; }
+  h1 { color: var(--accent); margin: 0 0 4px; font-size: 26px; }
+  h2 { color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-top: 48px; font-size: 18px; }
+  h3 { margin-top: 28px; font-size: 15px; }
+  .meta { color: var(--mute); font-size: 12px; margin-bottom: 28px; }
+  .rules { background: var(--panel); border-left: 3px solid var(--accent); padding: 14px 18px; margin: 16px 0 28px; font-size: 13px; color: var(--mute); }
+  .rules b { color: var(--ink); }
+  .q { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 18px 20px; margin: 18px 0; }
+  .qnum { color: var(--accent); font-weight: bold; margin-right: 8px; }
+  .qtext { margin: 0 0 14px; font-size: 14px; }
+  .opts { list-style: none; padding: 0; margin: 0; }
+  .opts li { padding: 6px 10px; margin: 4px 0; border: 1px solid var(--line); border-radius: 3px; font-size: 13px; }
+  .opts li b { color: var(--accent); margin-right: 8px; }
+  svg { background: #f7f7f5; border-radius: 4px; display: block; margin: 8px 0 14px; }
+  .scene { background: #f7f7f5; padding: 6px; border-radius: 4px; margin: 8px 0 14px; }
+  .timer-note { background: #1a1208; border-left: 3px solid var(--warn); padding: 10px 14px; color: var(--warn); font-size: 12px; margin: 12px 0; }
+  .key-note { background: var(--panel); border: 1px dashed var(--line); border-radius: 4px; padding: 14px 18px; margin-top: 48px; color: var(--mute); font-size: 13px; }
+  .key-note b { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>USSS Uniformed Division Entrance Exam: Practice Test 08</h1>
+<div class="meta">30 questions &middot; Maximum difficulty &middot; Painted-cube figural &middot; Rally + monument observation &middot; Permutation, quantifier, and calendar LBR &middot; 2026 UDEE format</div>
+
+<div class="rules">
+  <b>Instructions.</b> Test 08 covers different question patterns than Tests 05, 06, and 07. Target: 65 minutes total.
+  <ul style="margin: 8px 0 0; padding-left: 20px;">
+    <li><b>Section A (Figural):</b> 10 questions in 15 minutes. Expect painted-cube counting, cross-sections, geometric sequences, clock-angle geometry, and rotational symmetry.</li>
+    <li><b>Section B (Observation):</b> Study Scene 15 for 90 seconds, then Scene 16 for 90 seconds. Answer all 10 questions without scrolling back.</li>
+    <li><b>Section C (LBR):</b> 10 questions in 30 minutes. Expect necessary-vs-sufficient parsing, permutation counting, quantifier syllogisms, calendar puzzles, and a 4-statement self-referential puzzle (new).</li>
+  </ul>
+  <b>Answer key:</b> Separate file: <code>answer-key-test-08.html</code>. Do not peek until you finish.
+</div>
+
+<h2>SECTION A: Figural Reasoning (1 through 10)</h2>
+
+<!-- Q1: Pentagon rotated 270 CW -->
+<div class="q">
+  <p class="qtext"><span class="qnum">1.</span> The pentagon with a small notch on its right side is rotated 270&deg; CLOCKWISE. Which option (A through E) correctly shows the result?</p>
+  <svg viewBox="0 0 140 140" width="140" height="140">
+    <g stroke="#0a0e14" stroke-width="2" fill="#3bff8a">
+      <polygon points="70,20 115,55 95,110 45,110 25,55"/>
+      <rect x="110" y="58" width="10" height="14" fill="#0a0e14"/>
+    </g>
+  </svg>
+  <svg viewBox="0 0 600 130" width="100%" height="130">
+    <g stroke="#0a0e14" stroke-width="2" fill="#d0d4d8">
+      <!-- A: pentagon with notch on BOTTOM (90 CW rotation) -->
+      <polygon points="60,15 105,50 85,105 35,105 15,50" transform="translate(0,0)"/>
+      <rect x="53" y="100" width="14" height="10" fill="#0a0e14"/>
+      <text x="55" y="125" font-size="12" fill="#0a0e14" stroke="none">A</text>
+      <!-- B: pentagon with notch on LEFT (180 rotation) -->
+      <polygon points="175,15 220,50 200,105 150,105 130,50" transform="translate(0,0)"/>
+      <rect x="125" y="58" width="10" height="14" fill="#0a0e14"/>
+      <text x="170" y="125" font-size="12" fill="#0a0e14" stroke="none">B</text>
+      <!-- C: pentagon with notch on TOP (270 CW = correct) -->
+      <polygon points="295,15 340,50 320,105 270,105 250,50"/>
+      <rect x="287" y="5" width="14" height="10" fill="#0a0e14"/>
+      <text x="285" y="125" font-size="12" fill="#0a0e14" stroke="none">C</text>
+      <!-- D: pentagon with notch on RIGHT (unchanged) -->
+      <polygon points="415,15 460,50 440,105 390,105 370,50"/>
+      <rect x="455" y="58" width="10" height="14" fill="#0a0e14"/>
+      <text x="415" y="125" font-size="12" fill="#0a0e14" stroke="none">D</text>
+      <!-- E: pentagon mirrored (notch on upper right, inverted) -->
+      <polygon points="535,15 580,50 560,105 510,105 490,50"/>
+      <rect x="565" y="25" width="10" height="14" fill="#0a0e14"/>
+      <text x="535" y="125" font-size="12" fill="#0a0e14" stroke="none">E</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: notch now on the BOTTOM</li>
+    <li><b>B.</b> B: notch now on the LEFT</li>
+    <li><b>C.</b> C: notch now on the TOP</li>
+    <li><b>D.</b> D: notch still on the RIGHT (unchanged)</li>
+    <li><b>E.</b> E: notch on the upper-right (diagonal)</li>
+  </ul>
+</div>
+
+<!-- Q2: 4x4x4 painted cube, exactly 1 face -->
+<div class="q">
+  <p class="qtext"><span class="qnum">2.</span> A large cube is made of 64 smaller unit cubes arranged 4&times;4&times;4. The OUTSIDE of the large cube is painted red. The large cube is then disassembled. How many of the 64 unit cubes have EXACTLY ONE face painted red?</p>
+  <svg viewBox="0 0 200 180" width="200" height="180">
+    <g stroke="#0a0e14" stroke-width="1.5" fill="none">
+      <rect x="30" y="50" width="120" height="120" stroke="#0a0e14"/>
+      <line x1="60" y1="50" x2="60" y2="170" stroke="#0a0e14"/>
+      <line x1="90" y1="50" x2="90" y2="170" stroke="#0a0e14"/>
+      <line x1="120" y1="50" x2="120" y2="170" stroke="#0a0e14"/>
+      <line x1="30" y1="80" x2="150" y2="80" stroke="#0a0e14"/>
+      <line x1="30" y1="110" x2="150" y2="110" stroke="#0a0e14"/>
+      <line x1="30" y1="140" x2="150" y2="140" stroke="#0a0e14"/>
+      <polygon points="30,50 60,30 180,30 150,50" fill="#d0d4d8"/>
+      <polygon points="150,50 180,30 180,150 150,170" fill="#a8afb6"/>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 8</li>
+    <li><b>B.</b> 16</li>
+    <li><b>C.</b> 24</li>
+    <li><b>D.</b> 36</li>
+    <li><b>E.</b> 48</li>
+  </ul>
+</div>
+
+<!-- Q3: 3x3 matrix with size+fill rules -->
+<div class="q">
+  <p class="qtext"><span class="qnum">3.</span> The 3&times;3 matrix obeys TWO rules. Rows change shape. Columns change size AND fill together (small white, medium gray, large black). Which figure fills the missing cell at row 3, column 3?</p>
+  <svg viewBox="0 0 300 300" width="300" height="300">
+    <g stroke="#0a0e14" stroke-width="2">
+      <rect x="0" y="0" width="300" height="300" fill="none"/>
+      <line x1="100" y1="0" x2="100" y2="300" fill="none"/>
+      <line x1="200" y1="0" x2="200" y2="300" fill="none"/>
+      <line x1="0" y1="100" x2="300" y2="100" fill="none"/>
+      <line x1="0" y1="200" x2="300" y2="200" fill="none"/>
+      <!-- Row 1: triangles small white, medium gray, large black -->
+      <polygon points="50,40 62,65 38,65" fill="#ffffff"/>
+      <polygon points="150,35 170,75 130,75" fill="#a8afb6"/>
+      <polygon points="250,25 280,80 220,80" fill="#0a0e14"/>
+      <!-- Row 2: squares -->
+      <rect x="42" y="140" width="16" height="20" fill="#ffffff"/>
+      <rect x="130" y="135" width="40" height="35" fill="#a8afb6"/>
+      <rect x="218" y="125" width="64" height="55" fill="#0a0e14"/>
+      <!-- Row 3: pentagons small white, medium gray, ? -->
+      <polygon points="50,240 62,252 58,267 42,267 38,252" fill="#ffffff"/>
+      <polygon points="150,230 172,248 164,275 136,275 128,248" fill="#a8afb6"/>
+      <text x="240" y="270" font-size="40" fill="#0a0e14" stroke="none">?</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A small white pentagon</li>
+    <li><b>B.</b> A medium gray pentagon</li>
+    <li><b>C.</b> A large black pentagon</li>
+    <li><b>D.</b> A large black hexagon</li>
+    <li><b>E.</b> A medium black pentagon</li>
+  </ul>
+</div>
+
+<!-- Q4: 3x3x3 painted cube, exactly 2 faces -->
+<div class="q">
+  <p class="qtext"><span class="qnum">4.</span> A cube with all 6 outer faces painted red is cut into 3&times;3&times;3 = 27 smaller unit cubes. How many of the 27 unit cubes have EXACTLY TWO faces painted red?</p>
+  <ul class="opts">
+    <li><b>A.</b> 6</li>
+    <li><b>B.</b> 8</li>
+    <li><b>C.</b> 12</li>
+    <li><b>D.</b> 18</li>
+    <li><b>E.</b> 20</li>
+  </ul>
+</div>
+
+<!-- Q5: Geometric sequence -->
+<div class="q">
+  <p class="qtext"><span class="qnum">5.</span> Find the rule and the missing value.</p>
+  <svg viewBox="0 0 560 90" width="100%" height="90">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <circle cx="50" cy="45" r="26"/><text x="42" y="53" font-size="20" fill="#0a0e14" stroke="none">2</text>
+      <circle cx="140" cy="45" r="26"/><text x="132" y="53" font-size="20" fill="#0a0e14" stroke="none">6</text>
+      <circle cx="230" cy="45" r="26"/><text x="218" y="53" font-size="20" fill="#0a0e14" stroke="none">18</text>
+      <circle cx="320" cy="45" r="26"/><text x="308" y="53" font-size="20" fill="#0a0e14" stroke="none">54</text>
+      <circle cx="410" cy="45" r="26"/><text x="394" y="53" font-size="20" fill="#0a0e14" stroke="none">162</text>
+      <circle cx="510" cy="45" r="26"/><text x="502" y="55" font-size="22" fill="#0a0e14" stroke="none">?</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 216</li>
+    <li><b>B.</b> 324</li>
+    <li><b>C.</b> 486</li>
+    <li><b>D.</b> 540</li>
+    <li><b>E.</b> 648</li>
+  </ul>
+</div>
+
+<!-- Q6: Cross-section of a cone -->
+<div class="q">
+  <p class="qtext"><span class="qnum">6.</span> A right circular cone is sliced by a flat plane PARALLEL to its circular base. What is the shape of the resulting cross-section?</p>
+  <svg viewBox="0 0 200 160" width="200" height="160">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <polygon points="100,20 160,130 40,130" fill="#eaeaea"/>
+      <ellipse cx="100" cy="130" rx="60" ry="10" fill="#c8c8c8"/>
+      <line x1="40" y1="80" x2="160" y2="80" stroke="#aa1a1a" stroke-width="2" stroke-dasharray="6,4"/>
+      <ellipse cx="100" cy="80" rx="33" ry="6" fill="#f4d4b8" opacity="0.6"/>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> Triangle</li>
+    <li><b>B.</b> Circle</li>
+    <li><b>C.</b> Ellipse</li>
+    <li><b>D.</b> Parabola</li>
+    <li><b>E.</b> Rectangle</li>
+  </ul>
+</div>
+
+<!-- Q7: Paper fold with off-center punch -->
+<div class="q">
+  <p class="qtext"><span class="qnum">7.</span> A square sheet is folded in HALF (2 layers). A single hole is punched NEAR ONE CORNER of the folded piece (not at the center). When unfolded, where do the holes appear?</p>
+  <svg viewBox="0 0 300 140" width="300" height="140">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <rect x="20" y="20" width="80" height="100"/>
+      <text x="45" y="70" font-size="10" fill="#0a0e14">FOLDED</text>
+      <circle cx="30" cy="30" r="4" fill="#aa1a1a"/>
+      <text x="150" y="70" font-size="22" fill="#0a0e14">&rarr;</text>
+      <rect x="190" y="20" width="90" height="100"/>
+      <line x1="235" y1="20" x2="235" y2="120" stroke="#888" stroke-dasharray="3,3"/>
+      <text x="205" y="138" font-size="9" fill="#0a0e14">UNFOLDED</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 1 hole, at the upper-left corner only</li>
+    <li><b>B.</b> 2 holes, both near the upper-left corner</li>
+    <li><b>C.</b> 2 holes, MIRRORED across the fold line (one upper-left, one upper-right)</li>
+    <li><b>D.</b> 4 holes, one in each corner</li>
+    <li><b>E.</b> 2 holes, stacked vertically in the middle</li>
+  </ul>
+</div>
+
+<!-- Q8: Overlap of two squares -->
+<div class="q">
+  <p class="qtext"><span class="qnum">8.</span> Two squares are drawn overlapping as shown on the left. Which option correctly shades the UNION MINUS the INTERSECTION (the region inside either square but NOT inside both)?</p>
+  <svg viewBox="0 0 160 120" width="160" height="120">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <rect x="20" y="20" width="70" height="70"/>
+      <rect x="70" y="40" width="70" height="70"/>
+    </g>
+  </svg>
+  <svg viewBox="0 0 600 130" width="100%" height="130">
+    <g stroke="#0a0e14" stroke-width="2">
+      <!-- A: union minus intersection (two L-shaped regions shaded, overlap empty) -->
+      <g transform="translate(10,10)">
+        <path d="M 20,20 L 90,20 L 90,40 L 70,40 L 70,90 L 20,90 Z" fill="#d0d4d8"/>
+        <path d="M 70,40 L 140,40 L 140,110 L 90,110 L 90,90 L 70,90 Z" fill="#d0d4d8" opacity="0"/>
+        <path d="M 90,40 L 140,40 L 140,110 L 70,110 L 70,90 L 90,90 Z" fill="#d0d4d8"/>
+        <rect x="20" y="20" width="70" height="70" fill="none"/>
+        <rect x="70" y="40" width="70" height="70" fill="none"/>
+      </g>
+      <text x="80" y="125" font-size="12" fill="#0a0e14" stroke="none">A</text>
+      <!-- B: only the small overlap rectangle shaded -->
+      <g transform="translate(170,10)">
+        <rect x="20" y="20" width="70" height="70" fill="none"/>
+        <rect x="70" y="40" width="70" height="70" fill="none"/>
+        <rect x="70" y="40" width="20" height="50" fill="#d0d4d8"/>
+      </g>
+      <text x="240" y="125" font-size="12" fill="#0a0e14" stroke="none">B</text>
+      <!-- C: full union shaded -->
+      <g transform="translate(330,10)">
+        <rect x="20" y="20" width="70" height="70" fill="#d0d4d8"/>
+        <rect x="70" y="40" width="70" height="70" fill="#d0d4d8"/>
+      </g>
+      <text x="400" y="125" font-size="12" fill="#0a0e14" stroke="none">C</text>
+      <!-- D: only left square shaded -->
+      <g transform="translate(490,10)">
+        <rect x="20" y="20" width="70" height="70" fill="#d0d4d8"/>
+        <rect x="70" y="40" width="70" height="70" fill="none"/>
+      </g>
+      <text x="550" y="125" font-size="12" fill="#0a0e14" stroke="none">D</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: both squares shaded, overlap rectangle empty</li>
+    <li><b>B.</b> B: only the overlap rectangle shaded</li>
+    <li><b>C.</b> C: full union (both squares) shaded</li>
+    <li><b>D.</b> D: only the left square shaded</li>
+    <li><b>E.</b> None of the options depicts the requested region correctly</li>
+  </ul>
+</div>
+
+<!-- Q9: Clock angle at 3:15 -->
+<div class="q">
+  <p class="qtext"><span class="qnum">9.</span> What is the acute angle between the HOUR HAND and the MINUTE HAND of a standard analog clock at exactly 3:15?</p>
+  <svg viewBox="0 0 140 140" width="140" height="140">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <circle cx="70" cy="70" r="50" fill="#ffffff"/>
+      <text x="66" y="28" font-size="10" fill="#0a0e14">12</text>
+      <text x="118" y="75" font-size="10" fill="#0a0e14">3</text>
+      <text x="66" y="120" font-size="10" fill="#0a0e14">6</text>
+      <text x="18" y="75" font-size="10" fill="#0a0e14">9</text>
+      <!-- hour hand at 3.25 = 97.5 deg from 12 -->
+      <line x1="70" y1="70" x2="100" y2="74" stroke="#0a0e14" stroke-width="3"/>
+      <!-- minute hand at 3 = 90 deg from 12 -->
+      <line x1="70" y1="70" x2="115" y2="70" stroke="#0a0e14" stroke-width="1.5"/>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 0&deg;</li>
+    <li><b>B.</b> 7.5&deg;</li>
+    <li><b>C.</b> 15&deg;</li>
+    <li><b>D.</b> 22.5&deg;</li>
+    <li><b>E.</b> 30&deg;</li>
+  </ul>
+</div>
+
+<!-- Q10: Rotational symmetry -->
+<div class="q">
+  <p class="qtext"><span class="qnum">10.</span> Which of the following figures has 180&deg; ROTATIONAL SYMMETRY (looks identical after a half-turn) but does NOT have 90&deg; rotational symmetry (does NOT look identical after a quarter-turn)?</p>
+  <svg viewBox="0 0 600 130" width="100%" height="130">
+    <g stroke="#0a0e14" stroke-width="2" fill="#d0d4d8">
+      <!-- A: square (has both 90 and 180) -->
+      <rect x="30" y="30" width="70" height="70"/>
+      <text x="55" y="125" font-size="12" fill="#0a0e14" stroke="none">A</text>
+      <!-- B: rectangle (180 only) -->
+      <rect x="130" y="40" width="100" height="50"/>
+      <text x="175" y="125" font-size="12" fill="#0a0e14" stroke="none">B</text>
+      <!-- C: equilateral triangle (120 only, no 180) -->
+      <polygon points="310,30 345,95 275,95"/>
+      <text x="305" y="125" font-size="12" fill="#0a0e14" stroke="none">C</text>
+      <!-- D: irregular L-shape (no rotational symmetry) -->
+      <polygon points="390,30 420,30 420,70 460,70 460,95 390,95"/>
+      <text x="420" y="125" font-size="12" fill="#0a0e14" stroke="none">D</text>
+      <!-- E: circle (infinite rotational symmetry) -->
+      <circle cx="540" cy="65" r="35"/>
+      <text x="535" y="125" font-size="12" fill="#0a0e14" stroke="none">E</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: the square</li>
+    <li><b>B.</b> B: the rectangle (non-square)</li>
+    <li><b>C.</b> C: the equilateral triangle</li>
+    <li><b>D.</b> D: the L-shape</li>
+    <li><b>E.</b> E: the circle</li>
+  </ul>
+</div>
+
+<h2>SECTION B: Detail Observation with Interference (11 through 20)</h2>
+<p style="color:var(--mute); font-size:13px;">Study Scene 15 for 90 seconds, then Scene 16 for 90 seconds. Answer all 10 questions with both scenes off-screen.</p>
+
+<h3>Scene 15: Political Rally Press Conference (study 90 seconds)</h3>
+<div class="timer-note">&#9201; First 90 seconds. Memorize every detail.</div>
+<div class="scene">
+<svg viewBox="0 0 720 380" width="100%" height="380">
+  <!-- sky backdrop -->
+  <rect x="0" y="0" width="720" height="200" fill="#b0c0d0"/>
+  <rect x="0" y="200" width="720" height="180" fill="#5a5a60"/>
+  <!-- large backdrop banner -->
+  <rect x="100" y="40" width="520" height="100" fill="#1a3a6a"/>
+  <text x="180" y="90" font-size="28" fill="#ffffff" font-family="Arial" font-weight="bold">VOTE FORWARD 2028</text>
+  <text x="240" y="118" font-size="14" fill="#ffd700" font-family="Arial">Senator J. Alvarez</text>
+  <!-- podium center -->
+  <rect x="320" y="160" width="80" height="100" fill="#c8c0a0" stroke="#6a5010" stroke-width="2"/>
+  <rect x="325" y="160" width="70" height="12" fill="#1a3a6a"/>
+  <text x="335" y="170" font-size="9" fill="#ffffff" font-family="Arial">J. ALVAREZ</text>
+  <rect x="348" y="175" width="24" height="8" fill="#2a2a2a"/>
+  <!-- speaker (Senator) at podium -->
+  <circle cx="360" cy="145" r="11" fill="#e0b090"/>
+  <rect x="350" y="155" width="20" height="18" fill="#aa1a1a"/>
+  <!-- 2 agents flanking stage -->
+  <circle cx="280" cy="195" r="10" fill="#d4a784"/>
+  <rect x="270" y="205" width="20" height="40" fill="#0a0a0a"/>
+  <rect x="268" y="245" width="8" height="20" fill="#0a0a0a"/>
+  <rect x="284" y="245" width="8" height="20" fill="#0a0a0a"/>
+  <line x1="290" y1="196" x2="294" y2="201" stroke="#0a0a0a" stroke-width="1.5"/>
+  <circle cx="440" cy="195" r="10" fill="#c89a78"/>
+  <rect x="430" y="205" width="20" height="40" fill="#0a0a0a"/>
+  <rect x="428" y="245" width="8" height="20" fill="#0a0a0a"/>
+  <rect x="444" y="245" width="8" height="20" fill="#0a0a0a"/>
+  <line x1="430" y1="196" x2="426" y2="201" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- crowd (press pool with cameras at front) -->
+  <circle cx="100" cy="280" r="8" fill="#d4a784"/>
+  <rect x="93" y="287" width="14" height="22" fill="#664433"/>
+  <rect x="80" y="295" width="18" height="12" fill="#0a0a0a"/>
+  <circle cx="83" cy="301" r="3" fill="#eeeeee"/>
+  <circle cx="160" cy="285" r="8" fill="#e0b090"/>
+  <rect x="153" y="292" width="14" height="22" fill="#442266"/>
+  <rect x="140" y="300" width="18" height="12" fill="#0a0a0a"/>
+  <circle cx="143" cy="306" r="3" fill="#eeeeee"/>
+  <circle cx="220" cy="290" r="8" fill="#f4d4b8"/>
+  <rect x="213" y="297" width="14" height="22" fill="#1a5a2a"/>
+  <rect x="200" y="305" width="18" height="12" fill="#0a0a0a"/>
+  <circle cx="203" cy="311" r="3" fill="#eeeeee"/>
+  <!-- supporters with signs on right -->
+  <circle cx="560" cy="290" r="8" fill="#d4a784"/>
+  <rect x="553" y="297" width="14" height="22" fill="#1f6fd6"/>
+  <rect x="565" y="270" width="30" height="20" fill="#ffffff" stroke="#0a0e14"/>
+  <text x="568" y="284" font-size="8" fill="#0a0e14" font-family="Arial" font-weight="bold">VOTE J.A.</text>
+  <circle cx="620" cy="295" r="8" fill="#e0b090"/>
+  <rect x="613" y="302" width="14" height="22" fill="#cc2222"/>
+  <rect x="625" y="275" width="30" height="20" fill="#ffffff" stroke="#0a0e14"/>
+  <text x="628" y="289" font-size="8" fill="#0a0e14" font-family="Arial" font-weight="bold">FORWARD</text>
+  <!-- digital clock on backdrop -->
+  <rect x="60" y="45" width="50" height="20" fill="#000"/>
+  <text x="66" y="60" font-size="12" fill="#ff5a5a" font-family="monospace" font-weight="bold">11:08</text>
+  <!-- microphone stand between -->
+  <line x1="370" y1="175" x2="370" y2="185" stroke="#333" stroke-width="2"/>
+  <circle cx="370" cy="173" r="3" fill="#333"/>
+  <!-- security camera top-left -->
+  <rect x="10" y="10" width="20" height="12" fill="#222"/>
+  <circle cx="14" cy="22" r="3" fill="#44ee66"/>
+  <!-- stage edge line -->
+  <line x1="0" y1="265" x2="720" y2="265" stroke="#333" stroke-width="2"/>
+  <!-- security sign -->
+  <rect x="480" y="210" width="130" height="20" fill="#aa2222"/>
+  <text x="487" y="224" font-size="10" fill="#ffffff" font-family="Arial" font-weight="bold">SECURITY PERIMETER</text>
+</svg>
+</div>
+
+<h3>Scene 16: Washington Monument Observation Post (study 90 seconds)</h3>
+<div class="timer-note">&#9201; Second 90 seconds. Memorize. DO NOT return to Scene 15.</div>
+<div class="scene">
+<svg viewBox="0 0 720 380" width="100%" height="380">
+  <!-- sky -->
+  <rect x="0" y="0" width="720" height="240" fill="#aec9e6"/>
+  <!-- grass -->
+  <rect x="0" y="240" width="720" height="140" fill="#3a7a3a"/>
+  <!-- monument (obelisk shape) -->
+  <polygon points="330,40 390,40 395,260 325,260" fill="#e8e4d4" stroke="#888" stroke-width="1"/>
+  <polygon points="360,20 395,40 325,40" fill="#c8c4b4" stroke="#555"/>
+  <!-- base -->
+  <rect x="310" y="260" width="100" height="20" fill="#a09880" stroke="#555"/>
+  <!-- sign WASHINGTON MONUMENT -->
+  <rect x="280" y="285" width="170" height="20" fill="#1a3a6a"/>
+  <text x="293" y="300" font-size="11" fill="#ffd700" font-family="Arial" font-weight="bold">WASHINGTON MONUMENT</text>
+  <!-- USSS Uniformed Division officer (distinctive uniform) -->
+  <circle cx="180" cy="255" r="11" fill="#d4a784"/>
+  <!-- officer cap -->
+  <rect x="171" y="242" width="18" height="7" fill="#0a0a0a"/>
+  <rect x="168" y="247" width="24" height="3" fill="#ffd700"/>
+  <!-- white shirt + black vest -->
+  <rect x="169" y="266" width="22" height="40" fill="#eeeeee"/>
+  <rect x="172" y="270" width="16" height="30" fill="#0a0a0a"/>
+  <rect x="167" y="306" width="10" height="22" fill="#0a2a5a"/>
+  <rect x="183" y="306" width="10" height="22" fill="#0a2a5a"/>
+  <!-- badge + patch -->
+  <rect x="178" y="278" width="8" height="8" fill="#ffd700"/>
+  <!-- tourists -->
+  <circle cx="500" cy="275" r="9" fill="#f4d4b8"/>
+  <rect x="492" y="283" width="16" height="24" fill="#eecc22"/>
+  <rect x="491" y="307" width="8" height="20" fill="#1a1a1a"/>
+  <rect x="503" y="307" width="8" height="20" fill="#1a1a1a"/>
+  <!-- tourist kid -->
+  <circle cx="535" cy="285" r="7" fill="#e0b090"/>
+  <rect x="528" y="291" width="14" height="18" fill="#cc2222"/>
+  <rect x="527" y="309" width="6" height="15" fill="#1a1a1a"/>
+  <rect x="538" y="309" width="6" height="15" fill="#1a1a1a"/>
+  <!-- mounted officer on horse far right -->
+  <ellipse cx="640" cy="310" rx="40" ry="15" fill="#6a4020"/>
+  <rect x="625" y="285" width="8" height="28" fill="#6a4020"/>
+  <rect x="658" y="285" width="8" height="28" fill="#6a4020"/>
+  <ellipse cx="670" cy="280" rx="14" ry="10" fill="#6a4020"/>
+  <circle cx="645" cy="258" r="10" fill="#d4a784"/>
+  <rect x="637" y="268" width="16" height="4" fill="#0a0a0a"/>
+  <rect x="638" y="272" width="14" height="20" fill="#0a2a5a"/>
+  <!-- reflecting pool in foreground bottom -->
+  <rect x="260" y="340" width="200" height="30" fill="#5a8ac0" stroke="#333"/>
+  <!-- analog wall clock on guard post at left -->
+  <rect x="30" y="250" width="40" height="50" fill="#444" stroke="#111"/>
+  <circle cx="50" cy="275" r="14" fill="#ffffff"/>
+  <!-- hour hand at 9 (9 o'clock = straight left), minute hand at 12 (up) -->
+  <line x1="50" y1="275" x2="38" y2="275" stroke="#0a0e14" stroke-width="2"/>
+  <line x1="50" y1="275" x2="50" y2="265" stroke="#0a0e14" stroke-width="1"/>
+  <text x="36" y="320" font-size="9" fill="#ffffff">9:00 AM</text>
+  <!-- rally barrier -->
+  <line x1="230" y1="320" x2="280" y2="320" stroke="#ffd700" stroke-width="3"/>
+  <circle cx="230" cy="320" r="3" fill="#666"/>
+  <circle cx="280" cy="320" r="3" fill="#666"/>
+  <!-- security bollards -->
+  <rect x="100" y="310" width="8" height="20" fill="#888"/>
+  <rect x="130" y="310" width="8" height="20" fill="#888"/>
+  <rect x="580" y="330" width="8" height="18" fill="#888"/>
+  <!-- directional sign VISITOR ENTRANCE -->
+  <rect x="10" y="40" width="100" height="22" fill="#226633"/>
+  <text x="20" y="55" font-size="10" fill="#ffffff" font-family="Arial" font-weight="bold">VISITOR ENTRANCE</text>
+</svg>
+</div>
+
+<div class="timer-note">&#9201; Both scenes studied. Scroll down and answer ALL 10 questions WITHOUT scrolling back up.</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">11.</span> (Scene 15) What was the slogan on the blue backdrop banner?</p>
+  <ul class="opts">
+    <li><b>A.</b> Alvarez for America 2028</li>
+    <li><b>B.</b> Vote Forward 2028</li>
+    <li><b>C.</b> Forward Together 2028</li>
+    <li><b>D.</b> Senator Alvarez 2028</li>
+    <li><b>E.</b> Move Forward 2026</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">12.</span> (Scene 15) What time did the digital clock display?</p>
+  <ul class="opts">
+    <li><b>A.</b> 10:05</li>
+    <li><b>B.</b> 10:48</li>
+    <li><b>C.</b> 11:08</li>
+    <li><b>D.</b> 11:38</li>
+    <li><b>E.</b> 12:15</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">13.</span> (Scene 15) How many press photographers (with cameras at chest level) were visible in the front row of the crowd?</p>
+  <ul class="opts">
+    <li><b>A.</b> 1</li>
+    <li><b>B.</b> 2</li>
+    <li><b>C.</b> 3</li>
+    <li><b>D.</b> 4</li>
+    <li><b>E.</b> No photographers were visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">14.</span> (Scene 15) What did the two supporter signs on the right side of the crowd read?</p>
+  <ul class="opts">
+    <li><b>A.</b> "VOTE 2028" and "ALVAREZ"</li>
+    <li><b>B.</b> "VOTE J.A." and "FORWARD"</li>
+    <li><b>C.</b> "WE STAND" and "VOTE NOW"</li>
+    <li><b>D.</b> "SENATOR" and "J. ALVAREZ"</li>
+    <li><b>E.</b> No signs were visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">15.</span> (Scene 15) What name was printed on the small plate attached to the front of the podium?</p>
+  <ul class="opts">
+    <li><b>A.</b> J. ANDERSON</li>
+    <li><b>B.</b> SENATOR ALVAREZ</li>
+    <li><b>C.</b> J. ALVAREZ</li>
+    <li><b>D.</b> VOTE FORWARD</li>
+    <li><b>E.</b> No name plate was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">16.</span> (Scene 16) What name was on the gold-lettered sign at the base of the monument?</p>
+  <ul class="opts">
+    <li><b>A.</b> Lincoln Memorial</li>
+    <li><b>B.</b> Jefferson Memorial</li>
+    <li><b>C.</b> Washington Monument</li>
+    <li><b>D.</b> Capitol Rotunda</li>
+    <li><b>E.</b> No sign was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">17.</span> (Scene 16) What did the green sign in the upper-left corner of the scene read?</p>
+  <ul class="opts">
+    <li><b>A.</b> NO ENTRY</li>
+    <li><b>B.</b> VISITOR ENTRANCE</li>
+    <li><b>C.</b> EMERGENCY EXIT</li>
+    <li><b>D.</b> STAFF ONLY</li>
+    <li><b>E.</b> No green sign was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">18.</span> (Scene 16) What distinguishing element of the Uniformed Division officer's uniform was most visible?</p>
+  <ul class="opts">
+    <li><b>A.</b> A brown trench coat</li>
+    <li><b>B.</b> A white shirt with a black vest and gold badge</li>
+    <li><b>C.</b> A green camouflage jacket</li>
+    <li><b>D.</b> A plainclothes dark suit</li>
+    <li><b>E.</b> The officer wore no distinguishing uniform</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">19.</span> (Scene 16) What mounted support unit was visible on the far right of the scene?</p>
+  <ul class="opts">
+    <li><b>A.</b> A bicycle patrol</li>
+    <li><b>B.</b> A K-9 handler</li>
+    <li><b>C.</b> A mounted officer on horseback</li>
+    <li><b>D.</b> A golf-cart patrol</li>
+    <li><b>E.</b> No mounted unit was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">20.</span> (Cross-scene) In WHICH scene did the foreground feature a reflecting pool, and what color was it?</p>
+  <ul class="opts">
+    <li><b>A.</b> Scene 15, light blue</li>
+    <li><b>B.</b> Scene 16, blue</li>
+    <li><b>C.</b> Both scenes had reflecting pools</li>
+    <li><b>D.</b> Neither scene had water features</li>
+    <li><b>E.</b> Scene 15, dark gray</li>
+  </ul>
+</div>
+
+<h2>SECTION C: Logic-Based Reasoning (21 through 30)</h2>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">21.</span> Department regulation: "Holding a valid TS/SCI clearance is a NECESSARY condition for working in the Secure Operations Center (SOC)." Officer Park works in the SOC. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> Officer Park holds a valid TS/SCI clearance.</li>
+    <li><b>B.</b> Every agent with TS/SCI clearance works in the SOC.</li>
+    <li><b>C.</b> Officer Park is the only person in the SOC.</li>
+    <li><b>D.</b> TS/SCI clearance is sufficient to work in the SOC.</li>
+    <li><b>E.</b> Nothing about Officer Park's clearance can be concluded.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">22.</span> Five officers (P, Q, R, S, T) are assigned to exactly three fixed posts: NORTH, EAST, SOUTH. Each post must have AT LEAST ONE officer. Constraints: (1) P and Q cannot be at the same post; (2) R and S MUST be at the same post; (3) T is assigned to NORTH alone (no one else is at NORTH). Which assignment is consistent with ALL constraints?</p>
+  <ul class="opts">
+    <li><b>A.</b> NORTH: T. EAST: P, R, S. SOUTH: Q.</li>
+    <li><b>B.</b> NORTH: T, P. EAST: R, S. SOUTH: Q.</li>
+    <li><b>C.</b> NORTH: T. EAST: R. SOUTH: P, Q, S.</li>
+    <li><b>D.</b> NORTH: P. EAST: T, R, S. SOUTH: Q.</li>
+    <li><b>E.</b> NORTH: T. EAST: P, Q. SOUTH: R, S.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">23.</span> Four officers (A, B, C, D) are to be assigned to four DIFFERENT posts (1, 2, 3, 4), one officer per post. How many DIFFERENT assignments are possible?</p>
+  <ul class="opts">
+    <li><b>A.</b> 4</li>
+    <li><b>B.</b> 12</li>
+    <li><b>C.</b> 16</li>
+    <li><b>D.</b> 24</li>
+    <li><b>E.</b> 256</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">24.</span> Four witnesses (Nelson, Owens, Park, Quinn) give statements. AT LEAST ONE is lying (possibly more).
+  <br>&bull; Nelson: "Quinn is telling the truth."
+  <br>&bull; Owens: "Park is lying."
+  <br>&bull; Park: "Owens is lying."
+  <br>&bull; Quinn: "Nelson is telling the truth."
+  <br>Which statement MUST be true?</p>
+  <ul class="opts">
+    <li><b>A.</b> Exactly one of Owens or Park is lying.</li>
+    <li><b>B.</b> Exactly one of Nelson or Quinn is lying.</li>
+    <li><b>C.</b> Both Nelson and Quinn are telling the truth.</li>
+    <li><b>D.</b> All four witnesses are lying.</li>
+    <li><b>E.</b> No one is lying.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">25.</span> "If an officer completes the annual marksmanship course, THEN the officer is certified for carry duty." Officer Lane completed the annual marksmanship course. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> Officer Lane is certified for carry duty.</li>
+    <li><b>B.</b> Officer Lane is NOT certified for carry duty.</li>
+    <li><b>C.</b> Officer Lane must also pass a physical fitness test.</li>
+    <li><b>D.</b> Only officers who completed the course are certified.</li>
+    <li><b>E.</b> Nothing about certification can be concluded.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">26.</span> "If the intrusion sensor fires AND the response team acknowledges, THEN the incident is logged." During event #501, the intrusion sensor fired, but the incident was NOT logged. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> The response team acknowledged.</li>
+    <li><b>B.</b> The response team did NOT acknowledge.</li>
+    <li><b>C.</b> The intrusion sensor malfunctioned.</li>
+    <li><b>D.</b> Both the sensor and the team failed.</li>
+    <li><b>E.</b> Nothing specific can be concluded.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">27.</span> A Uniformed Division post receives an average of 12 visitor inquiries per hour during daylight shifts. What is the EXPECTED number of inquiries over a standard 8-hour daylight shift?</p>
+  <ul class="opts">
+    <li><b>A.</b> 24</li>
+    <li><b>B.</b> 48</li>
+    <li><b>C.</b> 72</li>
+    <li><b>D.</b> 96</li>
+    <li><b>E.</b> 120</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">28.</span> Premises:
+  <br>&bull; All trained K-9 handlers are Uniformed Division officers.
+  <br>&bull; Some Uniformed Division officers serve on the Counter-Sniper Team.
+  <br>Which conclusion is MOST STRONGLY supported?</p>
+  <ul class="opts">
+    <li><b>A.</b> All K-9 handlers serve on the Counter-Sniper Team.</li>
+    <li><b>B.</b> Some K-9 handlers serve on the Counter-Sniper Team.</li>
+    <li><b>C.</b> No K-9 handlers serve on the Counter-Sniper Team.</li>
+    <li><b>D.</b> It cannot be determined whether any K-9 handler also serves on the Counter-Sniper Team.</li>
+    <li><b>E.</b> Every Counter-Sniper Team member is a K-9 handler.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">29.</span> A Uniformed Division officer works a four-day-on, two-day-off rotating schedule starting on a MONDAY. If today is DAY 1 (Monday, on duty), which day of the week is DAY 20?</p>
+  <ul class="opts">
+    <li><b>A.</b> Monday</li>
+    <li><b>B.</b> Tuesday</li>
+    <li><b>C.</b> Wednesday</li>
+    <li><b>D.</b> Friday</li>
+    <li><b>E.</b> Saturday</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">30.</span> Consider FOUR self-referential statements:
+  <br>&bull; S1: "S2 is true."
+  <br>&bull; S2: "S1 is true."
+  <br>&bull; S3: "Exactly two of the four statements are true."
+  <br>&bull; S4: "S1 is true."
+  <br>Which assignment of truth values is CONSISTENT?</p>
+  <ul class="opts">
+    <li><b>A.</b> S1 = T, S2 = T, S3 = T, S4 = F</li>
+    <li><b>B.</b> S1 = T, S2 = T, S3 = F, S4 = T</li>
+    <li><b>C.</b> S1 = F, S2 = F, S3 = F, S4 = T</li>
+    <li><b>D.</b> S1 = F, S2 = F, S3 = T, S4 = F</li>
+    <li><b>E.</b> No assignment is consistent</li>
+  </ul>
+</div>
+
+<div class="key-note">
+  <b>Finished?</b> Answer key and explanations: <code>answer-key-test-08.html</code>. Score 23 or higher and you are ready for Pearson VUE.
+</div>
+
+</body>
+</html>

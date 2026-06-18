@@ -1,0 +1,28 @@
+Saman,
+
+Appreciate the thoughtful message. I will give it to you straight since you asked.
+
+1. Realistic entry roles. Help desk, IT support, cloud support engineer, NOC analyst. SOC analyst day one is saturated, and most of the NOVA SOC jobs need a clearance anyway. Get your foot in the door, build one to two years of real IT experience, then pivot into security from inside the company.
+
+2. What to apply for without clearance. Commercial only. SaaS, fintech, healthcare, retail, MSPs, regional banks, cloud providers. Avoid Booz, Leidos, CACI, SAIC, Northrop, ManTech, Peraton, anything sitting on a DoD contract vehicle. They will ghost once the clearance question lands.
+
+3. Certs that actually move the needle. Security+ first because it clears HR filters fast. After that, pick a cloud track. AWS Solutions Architect Associate or Azure AZ 500 are both strong. Cloud security is the cleanest path for uncleared candidates because the roles are commercial by default.
+
+4. Skip A+. You already have an IT degree. A+ signals the wrong level for you.
+
+5. Experience over master's. A master's right now might put you in the same spot a year or two from today, just with debt. Work first. Let the next employer pay for the master's if you still want one.
+
+6. If you do pursue a master's, Georgia Tech OMS Cybersecurity is around 10k total and respected. WGU also has a solid online cybersecurity master's at a very fair price, self paced, and you can knock it out while working full time. Both are good bets.
+
+A few things beyond your questions that will matter more than you think:
+
+Move if you can. NOVA is rough for your situation. Cleared candidates get the cream of the crop there. Texas, South Carolina, North Carolina, Georgia, and Florida all have growing commercial tech markets and lower cost of living. Do not move to New York or California. The math does not work for an entry level salary.
+
+Take a professional photo for your LinkedIn. It sounds small but recruiters filter on it in the first half second. That alone changes how seriously people take you.
+
+Start documenting publicly. You have Premium already, so use the visibility. Make small posts about what you are studying. A lab walkthrough, a cert you just passed, a Wireshark capture you analyzed, a new tool you learned. Consistency over volume. At the entry level, the difference between chasing jobs and having recruiters reach out to you is the single biggest lever, and it comes from being visible.
+
+Keep moving. You have more going for you than you think.
+
+Best,
+Emmanuel

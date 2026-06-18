@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: resume-tailor
+Version: 1.0.0
+Summary: CLI tool to tailor resumes, cover letters, and research briefs from job postings
+Author: Emmanuel Tigoue
+Author-email: emmanueltigoue@gmail.com
+Requires-Python: >=3.11
+Requires-Dist: requests>=2.31.0
+Requires-Dist: beautifulsoup4>=4.12.0
+Requires-Dist: click>=8.1.0
+Requires-Dist: jinja2>=3.1.0
+Requires-Dist: anthropic>=0.40.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: lxml>=4.9.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

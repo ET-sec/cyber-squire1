@@ -1,0 +1,23 @@
+TO: solutions@addsource.space
+CC: rahil@addsource.ca
+SUBJECT: RE: We're Hiring: Cloud Identity and Access Management Specialist
+
+Hi Rahil,
+
+Thanks for reaching out. The scope lines up with work I do day to day. Keycloak in production, OIDC and SAML federation, OAuth 2.0 flows, and API security through IAM policies.
+
+Before we set up a call, could you share a few details in writing:
+
+1. End client name (or at minimum industry and location)
+2. Rate range and whether this is W2 or C2C
+3. Interview process and expected start date
+4. Remote only, or any onsite expectation
+
+Happy to schedule a call once those are clear.
+
+Thanks,
+
+Emmanuel Tigoue
+AI Security Engineer, CoreDirective
+etigoue@tigouetheory.com
+linkedin.com/in/emmanuel-tigoue

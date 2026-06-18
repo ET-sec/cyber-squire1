@@ -1,0 +1,92 @@
+<!-- Tailored for: {{ job_title }} at {{ company_name }} | Relevance: {{ relevance_score }}% -->
+
+# {{ name }}
+
+{{ location }} | {{ phone }} | {{ email }}
+[LinkedIn](https://{{ linkedin }}) | [GitHub](https://{{ github }})
+
+---
+
+## Summary
+
+{{ summary }}
+
+---
+
+{% for section in section_order %}
+{% if section == "certifications" %}
+## Certifications
+
+{% for cert in certifications %}
+- **{{ cert.name }}** ({{ cert.issuer }}){% if cert.note %} | {{ cert.note }}{% endif %}
+
+{% endfor %}
+
+---
+
+{% elif section == "technical_skills" %}
+## Technical Skills
+
+{% for category, skills in skills_by_category.items() %}
+**{{ category | replace('_', ' ') | title }}:** {{ skills | join(', ') }}
+{% endfor %}
+
+---
+
+{% elif section == "experience_primary" %}
+## Professional Experience
+
+### {{ primary_title }} | {{ primary_company }}
+
+{% for bullet in primary_bullets %}
+- {{ bullet }}
+{% endfor %}
+
+---
+
+{% elif section == "experience_texaco" %}
+### {{ texaco_title }} | Texaco | {{ texaco_location }} | {{ texaco_dates }}
+
+{% for bullet in texaco_bullets %}
+- {{ bullet }}
+{% endfor %}
+
+---
+
+{% elif section == "education" %}
+## Education
+
+**{{ education.school }}** | {{ education.college }} | {{ education.location }}
+{% for degree in education.degrees %}
+- {{ degree }}
+{% endfor %}
+- {{ education.associate }}
+- Expected Graduation: {{ education.graduation }}
+
+---
+
+{% elif section == "project" %}
+## Projects
+
+**{{ project.name }}**
+{{ project.description }}
+
+---
+
+{% elif section == "dod_compliance" %}
+{% if dod %}
+## DoD 8140 Compliance
+
+| Level | Certification |
+|-------|---------------|
+| IAT Level III | {{ dod.IAT_Level_III }} |
+| IAT Level II | {{ dod.IAT_Level_II }} |
+| IAM Level III | {{ dod.IAM_Level_III }} |
+
+{{ dod.note }}
+
+---
+
+{% endif %}
+{% endif %}
+{% endfor %}

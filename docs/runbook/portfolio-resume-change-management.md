@@ -2,7 +2,7 @@
 
 Operational procedures for updating, rolling back, and verifying changes to the public portfolio (`ET-sec/portfolio`) and the four resume variants generated from the manifest (`CoreDirective/career/resume-builder/`).
 
-Created 2026-06-12 after the v30 portfolio rebuild. Update this doc when the procedure changes, not when content changes.
+Created 2026-06-12 after the portfolio + resume rebuild. The flagship and 3 variants use canonical names (no `v30`, no `FINAL`, no version suffix) on every surface. Update this doc when the procedure changes, not when content changes.
 
 ---
 
@@ -26,7 +26,7 @@ Created 2026-06-12 after the v30 portfolio rebuild. Update this doc when the pro
 1. Edit `resume_data.json` (or a variant overlay if the change is variant-specific).
 2. Run from `CoreDirective/career/resume-builder/`:
    ```
-   python3 resume_generator.py --base resume_data.json --output output/Emmanuel_Tigoue_AI_Security_Engineer.docx
+   python3 resume_generator.py --base resume_data.json --output output/Emmanuel_Tigoue_AISecurity_Engineer.docx
    python3 resume_generator.py --base resume_data.json --variant variants/cloud_security_engineer.json --output output/Emmanuel_Tigoue_Cloud_Security_Engineer.docx
    python3 resume_generator.py --base resume_data.json --variant variants/application_security_engineer.json --output output/Emmanuel_Tigoue_Application_Security_Engineer.docx
    python3 resume_generator.py --base resume_data.json --variant variants/grc_analyst.json --output output/Emmanuel_Tigoue_GRC_Analyst.docx
@@ -37,7 +37,7 @@ Created 2026-06-12 after the v30 portfolio rebuild. Update this doc when the pro
    ```
 4. Verify each PDF is exactly 1 page:
    ```
-   python3 -c "from pypdf import PdfReader; print(len(PdfReader('Emmanuel_Tigoue_AI_Security_Engineer.pdf').pages))"
+   python3 -c "from pypdf import PdfReader; print(len(PdfReader('Emmanuel_Tigoue_AISecurity_Engineer.pdf').pages))"
    ```
 5. Open in Word to visually confirm the layout in Word's renderer.
 6. If Word shows 2 pages but LibreOffice shows 1, Emmanuel must hand-tighten in Word. Word renders looser than LibreOffice.
@@ -54,11 +54,16 @@ When applying to a Cloud / AppSec / GRC role, the typical hand-tightening pass i
 
 ### Surfaces to update after a resume change
 
-1. iCloud: `~/Library/Mobile Documents/com~apple~CloudDocs/Resumes/Emmanuel_Tigoue_AISecurity_Engineer_v30_FINAL.{docx,pdf}` (copy from local output dir)
-2. Google Drive root: `Emmanuel_Tigoue_AISecurity_Engineer_v30.{docx,pdf}` and the three variant `_v30.docx/pdf`
-3. Drive mirror: `cyber-squire-mirror/CoreDirective/career/resume-builder/output/` (auto-synced via post-commit hook)
-4. Google Doc: `1WupZKdplsE10WsObLuSaiNjLCnAyBbEfs4jzjsa2pBA` (refresh via `gws drive files update --params '{"fileId":"..."}' --upload <docx>`)
-5. Portfolio: copy PDF to `~/portfolio/Emmanuel_Tigoue_AISecurity_Engineer.pdf`, commit, push
+Canonical filename pattern for every surface: `Emmanuel_Tigoue_{AISecurity_Engineer,Application_Security_Engineer,Cloud_Security_Engineer,GRC_Analyst}.{docx,pdf}`. No version suffix. Overwrite in place.
+
+1. iCloud root: `~/Library/Mobile Documents/com~apple~CloudDocs/Emmanuel_Tigoue_*.{docx,pdf}` (4 variants × 2 formats = 8 files). The `Resumes/` subfolder holds `resume variations/` historical archives only — do not put live resumes there.
+2. Google Drive root: `~/Library/CloudStorage/GoogleDrive-etigoue@tigouetheory.com/My Drive/Emmanuel_Tigoue_*.{docx,pdf}` (same 8 files).
+3. Laptop output: `CoreDirective/career/resume-builder/output/Emmanuel_Tigoue_*.{docx,pdf}` (the build target; canonical names match iCloud and Drive).
+4. cyber-squire-mirror: auto-synced via post-commit hook (private GitHub mirror).
+5. Google Doc: `1WupZKdplsE10WsObLuSaiNjLCnAyBbEfs4jzjsa2pBA` (refresh via `gws drive files update --params '{"fileId":"..."}' --upload <docx>`).
+6. Portfolio: copy flagship PDF to `~/portfolio/Emmanuel_Tigoue_AISecurity_Engineer.pdf`, commit, push.
+
+After overwriting, verify SHA match across iCloud / Drive / laptop with `shasum` — that's the single fastest correctness check.
 
 ---
 
@@ -127,10 +132,10 @@ Then regenerate all four resumes per section 2.
 
 ### Resume DOCX rollback (when hand-tightening is lost)
 
-The user's hand-tightened DOCX lives at `CoreDirective/career/resume-builder/output/Emmanuel_Tigoue_AI_Security_Engineer.docx`. It is NOT committed to git (the output dir was gitignored historically). Backups exist in:
+The hand-tightened DOCX lives at `CoreDirective/career/resume-builder/output/Emmanuel_Tigoue_AISecurity_Engineer.docx`. It is NOT committed to git (the output dir was gitignored historically). Identical copies (verified by SHA) exist in:
 
-1. iCloud: `~/Library/Mobile Documents/com~apple~CloudDocs/Resumes/Emmanuel_Tigoue_AISecurity_Engineer_v30_FINAL.docx`
-2. Drive root: `~/Library/CloudStorage/GoogleDrive-etigoue@tigouetheory.com/My Drive/Emmanuel_Tigoue_AISecurity_Engineer_v30.docx`
+1. iCloud: `~/Library/Mobile Documents/com~apple~CloudDocs/Emmanuel_Tigoue_AISecurity_Engineer.docx`
+2. Drive root: `~/Library/CloudStorage/GoogleDrive-etigoue@tigouetheory.com/My Drive/Emmanuel_Tigoue_AISecurity_Engineer.docx`
 
 To restore: copy from either backup to the output dir. The local DOCX is the canonical hand-tightened version.
 

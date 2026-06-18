@@ -1,0 +1,33 @@
+{
+  "title": "AI Security Engineer",
+  "skills_override": [
+    {
+      "label": "Technical Skills",
+      "items": "AWS GuardDuty, Security Hub, Inspector, AWS Config, IAM Access Analyzer, Macie, Bedrock Guardrails, Wiz, Qualys, CIS Benchmarks"
+    }
+  ],
+  "bullet_order": {
+    "coredirective": [
+      "iac_compliance",
+      "zero_trust_edr_waf",
+      "iam",
+      "cicd_supply_chain",
+      "red_team",
+      "ai_gateway",
+      "squire_soc_agent",
+      "soar_platform",
+      "grc_program",
+      "program_ownership"
+    ],
+    "texaco": [
+      "endpoint_pci",
+      "ad_hardening",
+      "siem_monitoring",
+      "network_segmentation",
+      "automation_scripting",
+      "incident_response",
+      "ir_runbook",
+      "ai_governance"
+    ]
+  }
+}

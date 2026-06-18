@@ -1,0 +1,122 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>USSS Strategy Guide v1</title><style>
+body{font-family:Arial,sans-serif;max-width:840px;margin:0 auto;padding:24px;color:#111;line-height:1.55;}
+h1{color:#0a5a2a;margin:0 0 4px;font-size:24px;letter-spacing:-0.3px;}
+h2{color:#0a5a2a;border-bottom:2px solid #0a5a2a;padding-bottom:4px;margin-top:36px;font-size:18px;}
+h3{font-size:15px;margin-top:24px;color:#111;}
+h4{font-size:13px;margin-top:16px;color:#0a5a2a;margin-bottom:4px;}
+.meta{color:#666;font-size:12px;margin-bottom:22px;}
+.box{background:#f4faf6;border-left:4px solid #0a5a2a;padding:14px 18px;margin:14px 0;font-size:13px;}
+.warn{background:#fff4e0;border-left:4px solid #cc6600;padding:12px 16px;margin:12px 0;font-size:13px;color:#664400;}
+.trap{background:#fdecec;border-left:4px solid #cc2222;padding:12px 16px;margin:12px 0;font-size:13px;color:#661a1a;}
+.rule{background:#fafafa;border:1px solid #ddd;border-radius:4px;padding:12px 16px;margin:10px 0;font-size:13px;}
+.rule b{color:#0a5a2a;}
+.algo{background:#1a1a1a;color:#3bff8a;padding:14px 18px;border-radius:4px;font-family:Consolas,monospace;font-size:12px;margin:12px 0;line-height:1.6;}
+.algo b{color:#ffd700;}
+code{background:#eaeaea;padding:1px 6px;border-radius:3px;font-family:Consolas,monospace;font-size:12px;}
+ul{margin:6px 0;padding-left:22px;}
+li{margin:4px 0;font-size:13px;}
+.checklist{background:#f4faf6;border:1px solid #0a5a2a;border-radius:4px;padding:14px 18px;margin:14px 0;font-size:13px;}
+.checklist li{list-style:none;padding-left:20px;position:relative;margin:6px 0;}
+.checklist li:before{content:"\2610";position:absolute;left:0;color:#0a5a2a;font-size:14px;}
+table.t{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;}
+table.t th{background:#0a5a2a;color:#fff;padding:6px 10px;text-align:left;}
+table.t td{border:1px solid #ccc;padding:6px 10px;vertical-align:top;}
+</style></head><body>
+
+<h1>USSS Special Agent Entrance Exam &mdash; The Mythology</h1>
+<div class="meta">Strategic framework, per-section algorithms, traps, exam-day playbook &middot; Tuesday 2026-04-22</div>
+
+<div class="box"><b>The core truth about this exam:</b> it is not testing whether you are a good reasoner. It is testing whether you can <b>follow a rule system mechanically, under time pressure, without letting real-world knowledge contaminate your answer</b>. Score high by thinking like a machine, not a human.</div>
+
+<h2>Meta-Mythology &mdash; Read This First</h2>
+<h3>The 5 Meta-Rules (apply to every section)</h3>
+<div class="rule"><b>1. Treat every premise as ABSOLUTE TRUTH.</b> If the question says "All cats can fly," then in the world of that question, all cats fly. Your job is logic, not reality-checking.</div>
+<div class="rule"><b>2. Use ONLY what is given.</b> Never add a premise from common sense.</div>
+<div class="rule"><b>3. Prefer the WEAKEST true answer over the STRONGEST plausible one.</b></div>
+<div class="rule"><b>4. Absolute words (all, none, only, always, never, must) are testable.</b> Qualifier words (most, some, a few, often) never give certainty about a specific individual.</div>
+<div class="rule"><b>5. When premises contradict, that IS the answer.</b></div>
+
+<h2>Section 1 &mdash; Logic-Based Reasoning (LBR)</h2>
+<h3>The Only Two Valid Moves</h3>
+<div class="algo"><b>MODUS PONENS:</b><br>&nbsp;&nbsp;Given: P &rarr; Q (if P, then Q)<br>&nbsp;&nbsp;Given: P is true<br>&nbsp;&nbsp;Therefore: Q is true<br><br><b>MODUS TOLLENS:</b><br>&nbsp;&nbsp;Given: P &rarr; Q<br>&nbsp;&nbsp;Given: Q is NOT true<br>&nbsp;&nbsp;Therefore: P is NOT true</div>
+<div class="trap"><b>TRAPS:</b> Affirming the consequent (P&rarr;Q, Q, "therefore P" &mdash; WRONG). Denying the antecedent (P&rarr;Q, NOT P, "therefore NOT Q" &mdash; WRONG). Every wrong answer is one of these.</div>
+
+<h3>LBR Translation Table (memorize cold)</h3>
+<table class="t"><tr><th>English phrase</th><th>Symbolic form</th><th>Contrapositive</th></tr>
+<tr><td>If P, then Q</td><td>P &rarr; Q</td><td>NOT Q &rarr; NOT P</td></tr>
+<tr><td>All P are Q</td><td>P &rarr; Q</td><td>NOT Q &rarr; NOT P</td></tr>
+<tr><td>Only Q may P</td><td>P &rarr; Q</td><td>NOT Q &rarr; NOT P</td></tr>
+<tr><td>No P is Q</td><td>P &rarr; NOT Q</td><td>Q &rarr; NOT P</td></tr>
+<tr><td>If and only if</td><td>P &harr; Q</td><td>Both directions</td></tr>
+<tr><td>P unless Q</td><td>NOT Q &rarr; P</td><td>NOT P &rarr; Q</td></tr>
+</table>
+
+<h2>Section 2 &mdash; Detail Observation</h2>
+<h3>90-Second Scan Pattern</h3>
+<div class="algo"><b>0-15s:</b> Count PEOPLE. Count VEHICLES. Note SETTING.<br><b>15-45s:</b> Read every sign, plate, clock. Read plates TWICE.<br><b>45-70s:</b> For each person: color, item, direction, position.<br><b>70-90s:</b> Odd objects, red items, cameras, exits.</div>
+
+<div class="trap"><b>TRAPS:</b> Letter transpositions (GTV vs GVT). Object-color swap (red DRESS vs red PURSE). Undercounting uniformed staff. "Nothing visible" trap answers.</div>
+
+<h2>Section 3 &mdash; Figural Reasoning</h2>
+<h3>Rotation vs Mirror</h3>
+<div class="box"><b>Rotation preserves handedness.</b> Mirror reverses it. Use any asymmetric marker (dot, letter) to tell them apart.</div>
+
+<h3>Folding Math</h3>
+<div class="rule">N folds = 2^N layers = 2^N holes. 1 fold &rarr; 2. 2 folds &rarr; 4. 3 folds &rarr; 8.</div>
+
+<h3>Cube Nets</h3>
+<div class="rule">Faces that SHARE AN EDGE on the net are NOT opposite. Faces separated by one face in a line ARE opposite.</div>
+
+<h3>Matrix Hunt</h3>
+<div class="rule">Always look for TWO rules (row rule + column rule). Missing cell combines both.</div>
+
+<h2>Exam-Day Playbook</h2>
+<h3>Night Before</h3>
+<div class="checklist"><ul>
+<li>Review this guide 20 min only, no new material</li>
+<li>Re-read LBR translation table</li>
+<li>Lay out clothes, ID, pencils</li>
+<li>Bed early &mdash; sleep is the #1 score multiplier</li>
+</ul></div>
+
+<h3>Morning Of</h3>
+<div class="checklist"><ul>
+<li>Protein + complex carb (eggs + oatmeal)</li>
+<li>Arrive 45 min early</li>
+<li>5-min walk before sitting down</li>
+</ul></div>
+
+<h3>Pacing Rules</h3>
+<div class="rule">LBR: 90 sec/question max. Observation: 15 sec/question commit. Figural: 45 sec. NEVER leave blank.</div>
+
+<h3>Panic Tactics</h3>
+<ul>
+<li>Skip early brutal questions &mdash; come back</li>
+<li>Between sections: 10-sec eye-close reset</li>
+<li>Panic rising: press palms together hard 3 sec (vagus nerve)</li>
+<li>Clever-looking answer = usually the trap</li>
+</ul>
+
+<h2>Quick-Reference Card (print, stare before exam)</h2>
+<div class="box">
+<b>LBR:</b> Symbolize. Contrapositive. Modus ponens/tollens ONLY.<br>
+<b>Observation:</b> Count &rarr; text &rarr; people &rarr; odd items. Plates twice. Object + color.<br>
+<b>Figural:</b> Rotation preserves handedness. N folds = 2^N holes. Shared-edge = NOT opposite. Matrix = 2 rules.<br>
+<b>Meta:</b> Premises = truth. Only given info. Weakest true wins. Most/some = NO certainty.
+</div>
+
+<h3>Top 10 Mistakes</h3>
+<ol>
+<li>Affirming the consequent</li>
+<li>Denying the antecedent</li>
+<li>Using real-world knowledge</li>
+<li>Strongest plausible over weakest true</li>
+<li>Treating "most" like "all"</li>
+<li>Confusing rotation with mirror</li>
+<li>Misreading a plate by one letter</li>
+<li>Undercounting people</li>
+<li>Burning time on one question</li>
+<li>Trying to resolve contradictions</li>
+</ol>
+
+</body></html>

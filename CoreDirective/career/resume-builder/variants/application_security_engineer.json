@@ -1,0 +1,33 @@
+{
+  "headline": "AI Security Engineer  |  Application Security & Agentic Systems",
+  "skills_override": [
+    {
+      "label": "Skills",
+      "items": "Burp Suite, Snyk, Checkmarx, CodeQL, GitHub Advanced Security, OWASP Top 10, OWASP ASVS, STRIDE, PASTA, Lakera"
+    }
+  ],
+  "bullet_order": {
+    "coredirective": [
+      "red_team",
+      "cicd_supply_chain",
+      "ai_gateway",
+      "squire_soc_agent",
+      "zero_trust_edr_waf",
+      "iac_compliance",
+      "iam",
+      "soar_platform",
+      "grc_program",
+      "program_ownership"
+    ],
+    "texaco": [
+      "incident_response",
+      "ir_runbook",
+      "siem_monitoring",
+      "network_segmentation",
+      "endpoint_pci",
+      "ad_hardening",
+      "automation_scripting",
+      "ai_governance"
+    ]
+  }
+}

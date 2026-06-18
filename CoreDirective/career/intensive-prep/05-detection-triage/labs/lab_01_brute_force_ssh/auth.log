@@ -1,0 +1,25 @@
+2026-05-08T03:14:01.123456+00:00 web-prod-01 sshd[12345]: Accepted publickey for ubuntu from 10.0.5.42 port 51234 ssh2: ED25519 SHA256:abcdef
+2026-05-08T03:14:32.987654+00:00 web-prod-01 sudo: ubuntu : TTY=pts/0 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/bin/systemctl restart nginx
+2026-05-08T04:22:17.000001+00:00 web-prod-01 sshd[14401]: Failed password for root from 185.220.101.45 port 44321 ssh2
+2026-05-08T04:22:18.000001+00:00 web-prod-01 sshd[14401]: Failed password for root from 185.220.101.45 port 44321 ssh2
+2026-05-08T04:22:19.500000+00:00 web-prod-01 sshd[14402]: Failed password for admin from 185.220.101.45 port 44322 ssh2
+2026-05-08T04:22:21.000000+00:00 web-prod-01 sshd[14403]: Failed password for invalid user oracle from 185.220.101.45 port 44323 ssh2
+2026-05-08T04:22:22.500000+00:00 web-prod-01 sshd[14404]: Failed password for invalid user postgres from 185.220.101.45 port 44324 ssh2
+2026-05-08T04:22:24.000000+00:00 web-prod-01 sshd[14405]: Failed password for invalid user git from 185.220.101.45 port 44325 ssh2
+2026-05-08T04:22:25.500000+00:00 web-prod-01 sshd[14406]: Failed password for invalid user jenkins from 185.220.101.45 port 44326 ssh2
+2026-05-08T04:22:27.000000+00:00 web-prod-01 sshd[14407]: Failed password for invalid user deploy from 185.220.101.45 port 44327 ssh2
+2026-05-08T04:22:28.500000+00:00 web-prod-01 sshd[14408]: Failed password for invalid user www from 185.220.101.45 port 44328 ssh2
+2026-05-08T04:22:30.000000+00:00 web-prod-01 sshd[14409]: Failed password for invalid user test from 185.220.101.45 port 44329 ssh2
+2026-05-08T04:22:31.500000+00:00 web-prod-01 sshd[14410]: Failed password for invalid user ftp from 185.220.101.45 port 44330 ssh2
+2026-05-08T04:22:33.000000+00:00 web-prod-01 sshd[14411]: Failed password for invalid user ubuntu from 185.220.101.45 port 44331 ssh2
+2026-05-08T04:22:34.500000+00:00 web-prod-01 sshd[14412]: Failed password for invalid user mysql from 185.220.101.45 port 44332 ssh2
+2026-05-08T04:22:36.000000+00:00 web-prod-01 sshd[14413]: Accepted password for ubuntu from 185.220.101.45 port 44333 ssh2
+2026-05-08T04:22:38.000000+00:00 web-prod-01 sudo: ubuntu : TTY=pts/1 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/whoami
+2026-05-08T04:22:39.000000+00:00 web-prod-01 sudo: ubuntu : TTY=pts/1 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/bin/cat /etc/shadow
+2026-05-08T04:22:42.000000+00:00 web-prod-01 sudo: ubuntu : TTY=pts/1 ; PWD=/home/ubuntu ; USER=root ; COMMAND=/usr/sbin/useradd backdoor
+2026-05-08T05:01:17.000000+00:00 web-prod-01 sshd[15001]: Accepted publickey for ubuntu from 10.0.5.42 port 51999 ssh2: ED25519 SHA256:abcdef
+2026-05-08T06:14:22.000000+00:00 web-prod-01 sshd[16002]: Failed password for invalid user oracle from 91.224.92.110 port 33001 ssh2
+2026-05-08T06:14:23.500000+00:00 web-prod-01 sshd[16003]: Failed password for invalid user oracle from 91.224.92.110 port 33002 ssh2
+2026-05-08T06:14:24.000000+00:00 web-prod-01 sshd[16004]: Failed password for invalid user oracle from 91.224.92.110 port 33003 ssh2
+2026-05-08T08:30:00.000000+00:00 web-prod-01 sshd[17001]: Failed password for ubuntu from 192.168.1.50 port 22001 ssh2
+2026-05-08T08:30:14.000000+00:00 web-prod-01 sshd[17002]: Accepted password for ubuntu from 192.168.1.50 port 22002 ssh2

@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreDirective Brand Map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ========================================
+           RESET & BASE
+           ======================================== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0A0A0A;
+            --bg-elevated: #111111;
+            --bg-card: #141414;
+            --blue: #3B82F6;
+            --green: #22C55E;
+            --gold: #F59E0B;
+            --red: #EF4444;
+            --text: #E5E7EB;
+            --text-muted: #9CA3AF;
+            --border: rgba(59, 130, 246, 0.15);
+            --border-green: rgba(34, 197, 94, 0.15);
+            --border-gold: rgba(245, 158, 11, 0.15);
+            --glow-blue: rgba(59, 130, 246, 0.08);
+            --glow-green: rgba(34, 197, 94, 0.08);
+            --glow-gold: rgba(245, 158, 11, 0.08);
+            --font-heading: 'JetBrains Mono', monospace;
+            --font-body: 'Inter', sans-serif;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========================================
+           LAYOUT
+           ======================================== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .page-header {
+            padding: 60px 0 40px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 60px;
+        }
+
+        .page-header h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .page-header h1 span {
+            color: var(--blue);
+        }
+
+        .page-header .subtitle {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .page-header .doc-type {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 4px 14px;
+            font-family: var(--font-heading);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+            border: 1px solid var(--border-gold);
+            border-radius: 100px;
+            background: var(--glow-gold);
+        }
+
+        /* ========================================
+           SECTIONS
+           ======================================== */
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-label {
+            font-family: var(--font-heading);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+            margin-bottom: 32px;
+        }
+
+        .section-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 80px 0;
+        }
+
+        /* ========================================
+           CARDS
+           ======================================== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            transition: border-color 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .card-green {
+            border-color: var(--border-green);
+        }
+
+        .card-green:hover {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .card-gold {
+            border-color: var(--border-gold);
+        }
+
+        .card-gold:hover {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .card h3 {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* ========================================
+           BADGES / PILLS
+           ======================================== */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            font-family: var(--font-heading);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            border-radius: 100px;
+            white-space: nowrap;
+        }
+
+        .badge-active {
+            color: var(--green);
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .badge-progress {
+            color: var(--gold);
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .badge-future {
+            color: var(--text-muted);
+            background: rgba(156, 163, 175, 0.1);
+            border: 1px solid rgba(156, 163, 175, 0.2);
+        }
+
+        .badge-free {
+            color: var(--green);
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .badge-price {
+            color: var(--blue);
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+
+        .badge-premium {
+            color: var(--gold);
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        /* ========================================
+           GRIDS
+           ======================================== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-3, .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           SECTION 1: BRAND IDENTITY
+           ======================================== */
+        .identity-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .identity-grid .card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .identity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+        }
+
+        .identity-item:last-child {
+            border-bottom: none;
+        }
+
+        .identity-key {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .identity-value {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .tagline-block {
+            padding: 16px 20px;
+            background: var(--bg-elevated);
+            border-left: 3px solid var(--blue);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .tagline-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .voice-note {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .color-swatches {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .swatch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .swatch-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .swatch-label {
+            font-family: var(--font-heading);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 700px) {
+            .identity-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           SECTION 2: REVENUE STREAMS
+           ======================================== */
+        .revenue-card {
+            position: relative;
+        }
+
+        .revenue-card .channel-label {
+            font-family: var(--font-heading);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .revenue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.06);
+        }
+
+        .revenue-item:last-child {
+            border-bottom: none;
+        }
+
+        .revenue-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .revenue-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .revenue-note {
+            margin-top: 20px;
+            padding: 14px 16px;
+            background: var(--glow-gold);
+            border: 1px solid var(--border-gold);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--gold);
+            font-weight: 500;
+        }
+
+        /* ========================================
+           SECTION 3: CONTENT ENGINE
+           ======================================== */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .schedule-row {
+            display: contents;
+        }
+
+        .schedule-day {
+            padding: 16px;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--blue);
+            background: rgba(59, 130, 246, 0.04);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+            display: flex;
+            align-items: center;
+        }
+
+        .schedule-content {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .schedule-row:last-child .schedule-day,
+        .schedule-row:last-child .schedule-content {
+            border-bottom: none;
+        }
+
+        .schedule-entry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .schedule-time {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            color: var(--green);
+            min-width: 50px;
+        }
+
+        .schedule-label {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .content-totals {
+            margin-top: 24px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .total-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .total-number {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .total-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        @media (max-width: 600px) {
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+            .schedule-day {
+                border-right: none;
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+            .schedule-content {
+                padding-top: 4px;
+            }
+        }
+
+        /* ========================================
+           SECTION 4: REPURPOSE CHAINS
+           ======================================== */
+        .chain {
+            margin-bottom: 24px;
+        }
+
+        .chain:last-child {
+            margin-bottom: 0;
+        }
+
+        .chain-label {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .chain-flow {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0;
+        }
+
+        .chain-node {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .chain-node.source {
+            border-color: rgba(59, 130, 246, 0.3);
+            color: var(--blue);
+        }
+
+        .chain-node.end {
+            border-color: var(--border-green);
+            color: var(--green);
+        }
+
+        .chain-arrow {
+            padding: 0 8px;
+            font-family: var(--font-heading);
+            font-size: 16px;
+            color: rgba(59, 130, 246, 0.4);
+            user-select: none;
+        }
+
+        @media (max-width: 600px) {
+            .chain-flow {
+                gap: 4px;
+            }
+            .chain-arrow {
+                padding: 0 4px;
+                font-size: 14px;
+            }
+            .chain-node {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+
+        /* ========================================
+           SECTION 5: GROWTH FLYWHEEL
+           ======================================== */
+        .flywheel-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .flywheel {
+            position: relative;
+            width: 520px;
+            height: 520px;
+        }
+
+        .flywheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 2;
+        }
+
+        .flywheel-center-text {
+            font-family: var(--font-heading);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green);
+            line-height: 1.4;
+        }
+
+        .flywheel-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px dashed rgba(59, 130, 246, 0.15);
+        }
+
+        .flywheel-node {
+            position: absolute;
+            width: 120px;
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            line-height: 1.4;
+        }
+
+        .flywheel-node .step-num {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 10px;
+            color: var(--blue);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .flywheel-node:nth-child(2) { top: 3%; left: 50%; }
+        .flywheel-node:nth-child(3) { top: 18%; left: 87%; }
+        .flywheel-node:nth-child(4) { top: 45%; left: 98%; }
+        .flywheel-node:nth-child(5) { top: 72%; left: 87%; }
+        .flywheel-node:nth-child(6) { top: 90%; left: 63%; }
+        .flywheel-node:nth-child(7) { top: 90%; left: 37%; }
+        .flywheel-node:nth-child(8) { top: 72%; left: 13%; }
+        .flywheel-node:nth-child(9) { top: 45%; left: 2%; }
+        .flywheel-node:nth-child(10) { top: 18%; left: 13%; }
+
+        .flywheel-arrow-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 340px;
+            height: 340px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: rgba(59, 130, 246, 0.3);
+            border-right-color: rgba(34, 197, 94, 0.3);
+            border-bottom-color: rgba(245, 158, 11, 0.3);
+            border-left-color: rgba(59, 130, 246, 0.2);
+            z-index: 1;
+        }
+
+        /* Mobile flywheel fallback */
+        .flywheel-linear {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .flywheel-wrapper {
+                display: none;
+            }
+            .flywheel-linear {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                align-items: center;
+            }
+            .flywheel-linear-node {
+                padding: 12px 20px;
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--text);
+                text-align: center;
+                width: 100%;
+                max-width: 300px;
+            }
+            .flywheel-linear-arrow {
+                font-family: var(--font-heading);
+                color: rgba(59, 130, 246, 0.4);
+                font-size: 18px;
+                padding: 4px 0;
+            }
+            .flywheel-linear-loop {
+                margin-top: 8px;
+                font-family: var(--font-heading);
+                font-size: 12px;
+                color: var(--green);
+                font-weight: 600;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+            }
+        }
+
+        /* ========================================
+           SECTION 6: PLATFORM MAP
+           ======================================== */
+        .platform-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .platform-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+        }
+
+        .platform-card.tiktok::before { background: var(--green); }
+        .platform-card.youtube::before { background: var(--red); }
+        .platform-card.linkedin::before { background: var(--blue); }
+        .platform-card.skool::before { background: var(--gold); }
+        .platform-card.gumroad::before { background: #EC4899; }
+        .platform-card.github::before { background: var(--text); }
+        .platform-card.website::before { background: var(--blue); }
+
+        .platform-role {
+            font-family: var(--font-heading);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .tiktok .platform-role { color: var(--green); }
+        .youtube .platform-role { color: var(--red); }
+        .linkedin .platform-role { color: var(--blue); }
+        .skool .platform-role { color: var(--gold); }
+        .gumroad .platform-role { color: #EC4899; }
+        .github .platform-role { color: var(--text-muted); }
+        .website .platform-role { color: var(--blue); }
+
+        /* ========================================
+           SECTION 7: PRODUCT ROADMAP
+           ======================================== */
+        .roadmap-track {
+            position: relative;
+            padding-left: 32px;
+        }
+
+        .roadmap-track::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--green), var(--gold), var(--text-muted));
+            border-radius: 2px;
+        }
+
+        .roadmap-item {
+            position: relative;
+            margin-bottom: 28px;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .roadmap-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .roadmap-item::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid;
+        }
+
+        .roadmap-item.status-active::before {
+            background: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+        }
+
+        .roadmap-item.status-progress::before {
+            background: transparent;
+            border-color: var(--gold);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .roadmap-item.status-future::before {
+            background: transparent;
+            border-color: var(--text-muted);
+        }
+
+        .roadmap-title {
+            font-family: var(--font-heading);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .roadmap-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* ========================================
+           SECTION 8: WEBSITE STRUCTURE
+           ======================================== */
+        .site-nav-bar {
+            display: flex;
+            gap: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .site-nav-item {
+            flex: 1;
+            padding: 14px 8px;
+            text-align: center;
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-right: 1px solid rgba(59, 130, 246, 0.08);
+        }
+
+        .site-nav-item:last-child {
+            border-right: none;
+        }
+
+        .site-nav-item.active-item {
+            color: var(--blue);
+            background: var(--glow-blue);
+        }
+
+        .site-flow {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .site-flow-node {
+            padding: 10px 18px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .site-flow-arrow {
+            padding: 0 10px;
+            font-family: var(--font-heading);
+            font-size: 16px;
+            color: rgba(59, 130, 246, 0.35);
+        }
+
+        .site-note {
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .site-nav-bar {
+                flex-wrap: wrap;
+            }
+            .site-nav-item {
+                flex: 0 0 50%;
+                border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+            }
+        }
+
+        /* ========================================
+           FOOTER
+           ======================================== */
+        .page-footer {
+            padding: 40px 0 60px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .page-footer p {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <header class="page-header">
+            <h1>Core<span>Directive</span></h1>
+            <p class="subtitle">Brand Map and Operating Model</p>
+            <span class="doc-type">Internal Reference</span>
+        </header>
+
+        <!-- ============================================================
+             SECTION 1: BRAND IDENTITY
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">01</p>
+            <h2 class="section-title">Brand Identity</h2>
+
+            <div class="identity-grid">
+                <!-- Core Info -->
+                <div class="card">
+                    <h3>Core Info</h3>
+                    <div class="identity-item">
+                        <span class="identity-key">Brand</span>
+                        <span class="identity-value">CoreDirective</span>
+                    </div>
+                    <div class="identity-item">
+                        <span class="identity-key">LLC</span>
+                        <span class="identity-value">Tigoue Theory LLC</span>
+                    </div>
+                    <div class="identity-item">
+                        <span class="identity-key">Domain</span>
+                        <span class="identity-value">tigouetheory.com</span>
+                    </div>
+                    <div class="identity-item">
+                        <span class="identity-key">Design System</span>
+                        <span class="identity-value">Directed Signal</span>
+                    </div>
+                </div>
+
+                <!-- Visual Identity -->
+                <div class="card">
+                    <h3>Visual Identity</h3>
+                    <div class="identity-item">
+                        <span class="identity-key">Palette</span>
+                        <span class="identity-value">Black + Green + Blue</span>
+                    </div>
+                    <div class="identity-item">
+                        <span class="identity-key">Headings</span>
+                        <span class="identity-value" style="font-family: var(--font-heading);">JetBrains Mono</span>
+                    </div>
+                    <div class="identity-item">
+                        <span class="identity-key">Body</span>
+                        <span class="identity-value">Inter</span>
+                    </div>
+                    <div class="color-swatches">
+                        <div class="swatch">
+                            <div class="swatch-dot" style="background: #0A0A0A;"></div>
+                            <span class="swatch-label">#0A0A0A</span>
+                        </div>
+                        <div class="swatch">
+                            <div class="swatch-dot" style="background: #3B82F6;"></div>
+                            <span class="swatch-label">#3B82F6</span>
+                        </div>
+                        <div class="swatch">
+                            <div class="swatch-dot" style="background: #22C55E;"></div>
+                            <span class="swatch-label">#22C55E</span>
+                        </div>
+                        <div class="swatch">
+                            <div class="swatch-dot" style="background: #F59E0B;"></div>
+                            <span class="swatch-label">#F59E0B</span>
+                        </div>
+                        <div class="swatch">
+                            <div class="swatch-dot" style="background: #E5E7EB;"></div>
+                            <span class="swatch-label">#E5E7EB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice -->
+                <div class="card">
+                    <h3>Voice</h3>
+                    <p class="voice-note">
+                        Direct, tactical, no BS. No hustle culture. Restraint is intelligence. Every element earns its place. Teaching through building, not lecturing.
+                    </p>
+                </div>
+
+                <!-- Taglines -->
+                <div class="card">
+                    <h3>Taglines</h3>
+                    <div class="tagline-block">Signal over noise.</div>
+                    <div class="tagline-block">Building systems. Breaking them down. Teaching both.</div>
+                    <div class="tagline-block">Security Engineering, AI Automation, and Tactical Content.</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ============================================================
+             SECTION 2: REVENUE STREAMS
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">02</p>
+            <h2 class="section-title">Revenue Streams</h2>
+
+            <div class="grid-2">
+                <!-- Gumroad -->
+                <div class="card revenue-card">
+                    <div class="channel-label">Gumroad</div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">Network+ 009 Study System</div>
+                        </div>
+                        <span class="badge badge-free">Free</span>
+                    </div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">Security+ SY0-701 Study System</div>
+                        </div>
+                        <span class="badge badge-price">$29.99</span>
+                    </div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">CCNA 200-301 v1.1 Study System</div>
+                        </div>
+                        <span class="badge badge-price">$39.99</span>
+                    </div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">Sec+ and CCNA Bundle</div>
+                            <div class="revenue-desc">Upsell pricing</div>
+                        </div>
+                        <span class="badge badge-price">~$55-58</span>
+                    </div>
+                </div>
+
+                <!-- Skool -->
+                <div class="card revenue-card card-green">
+                    <div class="channel-label">Skool Community</div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">Skool Free</div>
+                            <div class="revenue-desc">Community, Q&A, challenges, career guidance</div>
+                        </div>
+                        <span class="badge badge-free">$0/mo</span>
+                    </div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">Skool Pro</div>
+                            <div class="revenue-desc">Free tier + Sec+ and CCNA templates + future cert drops</div>
+                        </div>
+                        <span class="badge badge-price">$47.99/mo</span>
+                    </div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">Skool Cyber Squire</div>
+                            <div class="revenue-desc">Pro tier + live cyber range on DigitalOcean</div>
+                        </div>
+                        <span class="badge badge-premium">$79.99-89.99/mo</span>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="card revenue-card card-gold full-width" style="grid-column: 1 / -1;">
+                    <div class="channel-label">AI and Automation Ops</div>
+                    <div class="revenue-item">
+                        <div>
+                            <div class="revenue-name">Quoted per project</div>
+                            <div class="revenue-desc">n8n workflow builds, container architecture, monitoring dashboards, retainer engagements</div>
+                        </div>
+                        <span class="badge badge-premium">Custom</span>
+                    </div>
+                    <div class="revenue-note">
+                        Skool Pro is intentionally cheaper than buying Gumroad products individually. This drives community membership and long term retention over one time purchases.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ============================================================
+             SECTION 3: CONTENT ENGINE
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">03</p>
+            <h2 class="section-title">Content Engine</h2>
+
+            <div class="schedule-grid">
+                <div class="schedule-row">
+                    <div class="schedule-day">Mon</div>
+                    <div class="schedule-content">
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Daily</span>
+                            <span class="schedule-label">TikTok 60sec tactical breakdown + YouTube Short repurpose</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Post</span>
+                            <span class="schedule-label">YouTube long form (edited from stream or original)</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Post</span>
+                            <span class="schedule-label">LinkedIn video (professional tone, career or industry)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-row">
+                    <div class="schedule-day">Tue</div>
+                    <div class="schedule-content">
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Daily</span>
+                            <span class="schedule-label">TikTok 60sec tactical breakdown + YouTube Short repurpose</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time" style="color: var(--gold);">8 PM</span>
+                            <span class="schedule-label"><strong>Threat Brief LIVE</strong> (vulnerability, exploit, compliance breakdown)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-row">
+                    <div class="schedule-day">Wed</div>
+                    <div class="schedule-content">
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Daily</span>
+                            <span class="schedule-label">TikTok 60sec tactical breakdown + YouTube Short repurpose</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Post</span>
+                            <span class="schedule-label">YouTube long form (edited from stream or original)</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Post</span>
+                            <span class="schedule-label">LinkedIn video (professional tone, career or industry)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-row">
+                    <div class="schedule-day">Thu</div>
+                    <div class="schedule-content">
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Daily</span>
+                            <span class="schedule-label">TikTok 60sec tactical breakdown + YouTube Short repurpose</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time" style="color: var(--gold);">8 PM</span>
+                            <span class="schedule-label"><strong>The Build LIVE</strong> (live builds, automation, security engineering)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-row">
+                    <div class="schedule-day">Fri</div>
+                    <div class="schedule-content">
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Daily</span>
+                            <span class="schedule-label">TikTok 60sec tactical breakdown + YouTube Short repurpose</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time" style="color: var(--gold);">8 PM</span>
+                            <span class="schedule-label"><strong>Open Q&A</strong> (career, certs, technical, industry)</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Post</span>
+                            <span class="schedule-label">YouTube long form (edited from stream or original)</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Post</span>
+                            <span class="schedule-label">LinkedIn video (professional tone, career or industry)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-row">
+                    <div class="schedule-day">Sat</div>
+                    <div class="schedule-content">
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Daily</span>
+                            <span class="schedule-label">TikTok 60sec tactical breakdown + YouTube Short repurpose</span>
+                        </div>
+                        <div class="schedule-entry">
+                            <span class="schedule-time" style="color: var(--gold);">8 PM</span>
+                            <span class="schedule-label"><strong>Open Q&A</strong> (alternate stream slot, Fri or Sat)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-row">
+                    <div class="schedule-day">Daily</div>
+                    <div class="schedule-content">
+                        <div class="schedule-entry">
+                            <span class="schedule-time">Skool</span>
+                            <span class="schedule-label">Discussion post in community (engagement, prompts, resource drops)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-totals">
+                <div class="total-pill">
+                    <span class="total-number">28+</span>
+                    <span class="total-label">pieces<br>per week</span>
+                </div>
+                <div class="total-pill">
+                    <span class="total-number">8-10</span>
+                    <span class="total-label">hours<br>of work</span>
+                </div>
+                <div class="total-pill">
+                    <span class="total-number">3</span>
+                    <span class="total-label">live<br>streams</span>
+                </div>
+                <div class="total-pill">
+                    <span class="total-number">3</span>
+                    <span class="total-label">YouTube<br>long form</span>
+                </div>
+                <div class="total-pill">
+                    <span class="total-number">6</span>
+                    <span class="total-label">TikToks<br>per week</span>
+                </div>
+                <div class="total-pill">
+                    <span class="total-number">3</span>
+                    <span class="total-label">LinkedIn<br>videos</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ============================================================
+             SECTION 4: REPURPOSE CHAINS
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">04</p>
+            <h2 class="section-title">Repurpose Chains</h2>
+
+            <div class="card">
+                <!-- Chain 1 -->
+                <div class="chain">
+                    <div class="chain-label">Primary Chain</div>
+                    <div class="chain-flow">
+                        <span class="chain-node source">Stream</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node">YouTube Long Form</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node">3 to 5 TikToks</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node">3 to 5 Shorts</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node end">Skool Thread</span>
+                    </div>
+                </div>
+
+                <!-- Chain 2 -->
+                <div class="chain">
+                    <div class="chain-label">LinkedIn Chain</div>
+                    <div class="chain-flow">
+                        <span class="chain-node source">LinkedIn Video</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node">YouTube Short</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node">TikTok (if fits)</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node end">Skool Thread</span>
+                    </div>
+                </div>
+
+                <!-- Chain 3 -->
+                <div class="chain">
+                    <div class="chain-label">Short Form Chain</div>
+                    <div class="chain-flow">
+                        <span class="chain-node source">TikTok</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node">YouTube Short</span>
+                        <span class="chain-arrow">&rarr;</span>
+                        <span class="chain-node end">Skool Thread</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ============================================================
+             SECTION 5: GROWTH FLYWHEEL
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">05</p>
+            <h2 class="section-title">Growth Flywheel</h2>
+
+            <!-- Desktop: circular layout -->
+            <div class="flywheel-wrapper">
+                <div class="flywheel">
+                    <div class="flywheel-ring"></div>
+                    <div class="flywheel-arrow-ring"></div>
+                    <div class="flywheel-center">
+                        <span class="flywheel-center-text">Perpetual<br>Growth<br>Loop</span>
+                    </div>
+
+                    <div class="flywheel-node">
+                        <span class="step-num">01</span>
+                        Free Content
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">02</span>
+                        Build Trust
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">03</span>
+                        Net+ Download
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">04</span>
+                        Email Captured
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">05</span>
+                        Funnel to Community
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">06</span>
+                        Skool Free
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">07</span>
+                        Skool Pro
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">08</span>
+                        Cyber Squire
+                    </div>
+                    <div class="flywheel-node">
+                        <span class="step-num">09</span>
+                        AI/Auto Ops Clients
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile: linear fallback -->
+            <div class="flywheel-linear">
+                <div class="flywheel-linear-node">Free Content</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Build Trust</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Net+ Download</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Email Captured</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Funnel to Community</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Skool Free</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Skool Pro</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Cyber Squire</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">AI/Auto Ops Clients</div>
+                <div class="flywheel-linear-arrow">&darr;</div>
+                <div class="flywheel-linear-node">Service Work = Stream Content</div>
+                <div class="flywheel-linear-loop">Loop back to Free Content</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 24px;">
+                <p style="font-size: 14px; color: var(--text-muted); max-width: 600px; margin: 0 auto;">
+                    Service work generates stream content, which feeds back into free content at the top of the funnel. The loop is self reinforcing: every client engagement produces educational material that attracts the next cohort.
+                </p>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ============================================================
+             SECTION 6: PLATFORM MAP
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">06</p>
+            <h2 class="section-title">Platform Map</h2>
+
+            <div class="grid-3">
+                <div class="card platform-card tiktok">
+                    <div class="platform-role">Top of Funnel</div>
+                    <h3>TikTok</h3>
+                    <p>Growth engine. 60 second tactical breakdowns that hook new viewers and drive them to longer content. Highest reach, lowest barrier.</p>
+                </div>
+
+                <div class="card platform-card youtube">
+                    <div class="platform-role">SEO and Depth</div>
+                    <h3>YouTube</h3>
+                    <p>Evergreen library. Long form builds, threat briefs, and Shorts. Search discovery brings people in months after publishing.</p>
+                </div>
+
+                <div class="card platform-card linkedin">
+                    <div class="platform-role">Professional Network</div>
+                    <h3>LinkedIn</h3>
+                    <p>Client and recruiter facing. Professional tone videos on career, certs, and industry trends. Drives AI/Auto Ops consulting leads.</p>
+                </div>
+
+                <div class="card platform-card skool">
+                    <div class="platform-role">Retention and Community</div>
+                    <h3>Skool</h3>
+                    <p>Where the audience becomes a community. Daily discussions, challenges, and direct access. Free tier builds trust, paid tiers deliver premium value.</p>
+                </div>
+
+                <div class="card platform-card gumroad">
+                    <div class="platform-role">Product Sales</div>
+                    <h3>Gumroad</h3>
+                    <p>Digital product storefront. Study systems with email capture on the free Net+ download. Entry point to the funnel for certification students.</p>
+                </div>
+
+                <div class="card platform-card github">
+                    <div class="platform-role">Portfolio and Credibility</div>
+                    <h3>GitHub</h3>
+                    <p>Public proof of work. Terraform configs, Docker stacks, workflow automations. Shows recruiters and clients the engineering is real.</p>
+                </div>
+
+                <div class="card platform-card website" style="grid-column: 1 / -1;">
+                    <div class="platform-role">Brand Hub</div>
+                    <h3>Website (tigouetheory.com)</h3>
+                    <p>Central hub that ties everything together. Hero, pillars, live schedule, product links, and community CTA. The one link that represents the entire operation.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ============================================================
+             SECTION 7: PRODUCT ROADMAP
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">07</p>
+            <h2 class="section-title">Product Roadmap</h2>
+
+            <div class="roadmap-track">
+                <div class="roadmap-item status-active">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div class="roadmap-title">Network+ N10-009 Study System</div>
+                        <span class="badge badge-active">Live</span>
+                    </div>
+                    <div class="roadmap-detail">Free lead magnet on Gumroad. Email capture + top of funnel entry point.</div>
+                </div>
+
+                <div class="roadmap-item status-active">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div class="roadmap-title">Security+ SY0-701 Study System</div>
+                        <span class="badge badge-active">Live</span>
+                    </div>
+                    <div class="roadmap-detail">$29.99 on Gumroad. Included in Skool Pro tier.</div>
+                </div>
+
+                <div class="roadmap-item status-active">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div class="roadmap-title">CCNA 200-301 v1.1 Study System</div>
+                        <span class="badge badge-active">Live</span>
+                    </div>
+                    <div class="roadmap-detail">$39.99 on Gumroad. Included in Skool Pro tier.</div>
+                </div>
+
+                <div class="roadmap-item status-progress">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div class="roadmap-title">CISSP Study System</div>
+                        <span class="badge badge-progress">In Progress</span>
+                    </div>
+                    <div class="roadmap-detail">Studying now. Will be added to Skool Pro on release, triggering a Pro tier price bump.</div>
+                </div>
+
+                <div class="roadmap-item status-future">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div class="roadmap-title">CISM Study System</div>
+                        <span class="badge badge-future">Planned</span>
+                    </div>
+                    <div class="roadmap-detail">After CISSP. Target timeline around April or May 2026.</div>
+                </div>
+
+                <div class="roadmap-item status-future">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div class="roadmap-title">AWS Security Specialty</div>
+                        <span class="badge badge-future">Future</span>
+                    </div>
+                    <div class="roadmap-detail">Cloud security track expansion. Follows CISM completion.</div>
+                </div>
+
+                <div class="roadmap-item status-future">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div class="roadmap-title">Cyber Squire Range</div>
+                        <span class="badge badge-future">Future</span>
+                    </div>
+                    <div class="roadmap-detail">Live cyber range on DigitalOcean for the Cyber Squire tier. Hands on labs and attack simulations.</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ============================================================
+             SECTION 8: WEBSITE STRUCTURE
+             ============================================================ -->
+        <section class="section">
+            <p class="section-label">08</p>
+            <h2 class="section-title">Website Structure</h2>
+
+            <div class="site-nav-bar">
+                <div class="site-nav-item active-item">Home</div>
+                <div class="site-nav-item">Community</div>
+                <div class="site-nav-item">Products</div>
+                <div class="site-nav-item">About</div>
+                <div class="site-nav-item">Contact</div>
+            </div>
+
+            <div class="site-flow">
+                <span class="site-flow-node">Hero</span>
+                <span class="site-flow-arrow">&rarr;</span>
+                <span class="site-flow-node">Pillars</span>
+                <span class="site-flow-arrow">&rarr;</span>
+                <span class="site-flow-node">On Air</span>
+                <span class="site-flow-arrow">&rarr;</span>
+                <span class="site-flow-node">Products</span>
+                <span class="site-flow-arrow">&rarr;</span>
+                <span class="site-flow-node">Community CTA</span>
+            </div>
+
+            <p class="site-note">Schedule page exists but has been removed from the main navigation.</p>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="page-footer">
+            <p>CoreDirective Brand Map / Tigoue Theory LLC / Internal Reference</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>Emmanuel Tigoue</title>
+  <rect width="32" height="32" rx="4" fill="#0A0A0A"/>
+  <circle cx="16" cy="16" r="8" fill="none" stroke="#00FF41" stroke-width="2"/>
+  <circle cx="16" cy="16" r="3" fill="#00FF41"/>
+</svg>

@@ -1,0 +1,194 @@
+GUMROAD PRODUCT REVAMP — MASTER CHECKLIST
+February 2026
+
+============================================
+SECURITY+ SY0-701 — FULL REVAMP
+============================================
+
+--- PRODUCT TAB ---
+
+NAME (change from current):
+OLD: Security+ 701 Cyber-Squire OS | Professional Notion System
+NEW: Security+ SY0-701 Study System | Notion Template
+
+
+DESCRIPTION (replace entire description):
+
+Eliminate Study Chaos. Pass the First Time.
+
+Most people fail the Security+ ($404 per retake) because they lack a system, not intelligence.
+
+This is a professional-grade Notion framework with 10 interconnected databases that turns information overload into career-ready mastery.
+
+The Mastery Infrastructure
+
+• 10 Interconnected Databases: Exam Readiness Tracker, Knowledge Base, Practice Exam Mistakes, Command Grimoire, Port Reference, Acronym Database, Lab Environment Log, Career Pipeline, Study Analytics, and Accountability Matrix.
+
+• The DoK Framework: A 4-level cognitive system (Recall → Concept → Analysis → Application) that tells you exactly how to study each topic — shifting you from passive reading to active mastery.
+
+• Exam Readiness Dashboard: Auto-calculating analytics across all 5 SY0-701 domains. Stop wondering if you're ready — the system tells you.
+
+• Practice Exam Mistake Tracker: Every wrong answer auto-links back to the concept it tests. You never make the same mistake twice.
+
+• Accountability Matrix: 28-day structured study plan with daily checkpoints. Anki Clear + Blank-Slate Lab + Logic Gap = Mastered.
+
+Why It's Different
+
+• ADHD-Friendly: Designed for high-speed, low-friction capture. Clean layouts. Clear progress. No cognitive overload.
+
+• Intelligent Prioritization: Automatically flags the topics with the highest exam weight and your lowest confidence. Study what matters.
+
+• Mobile Optimized: Full functionality on any device. Study on the train, in line, between classes.
+
+• Built for the Long Game: This isn't a one-off study guide. It's a career pipeline for tracking your labs, certs, and skills for years.
+
+What You Get
+
+• 10 databases with 30+ custom views
+• All official CompTIA SY0-701 exam objectives pre-loaded
+• 5 domain categories: General Security Concepts, Threats/Vulnerabilities, Security Architecture, Security Operations, Security Program Management
+• 100+ security acronyms indexed
+• 200+ port and protocol references
+• 80+ CLI commands (Linux, Windows, network security tools)
+• DoK Framework study method built in
+• Lifetime updates — new features added regularly
+
+Built by Emmanuel Tigoue | Core Directive
+Battle-tested through: CASP+ (SecurityX), SSCP, Security+, Network+, CCNA, (ISC)² CC
+
+
+SUMMARY (replace):
+OLD: Stop drowning in Security+ content. This Notion system shows you exactly what to study next-no more wasted hours or exam-day panic.
+NEW: The Security+ study system that tells you exactly what to study, tracks every mistake, and shows when you're exam-ready. 10 databases. 30+ views. ADHD-friendly.
+
+
+TAGS (replace all 5):
+1. security+ sy0-701
+2. comptia security+
+3. notion template
+4. cybersecurity study guide
+5. security+ study system
+
+
+ADDITIONAL DETAILS (add all 5):
+1. Databases: 10 interconnected with 30+ views
+2. Exam Objectives: All SY0-701 objectives pre-loaded
+3. Study Framework: DoK 4-level cognitive system
+4. Format: Notion template (duplicate to your workspace)
+5. Updates: Lifetime — new features added regularly
+
+
+COVER: Upload secplus-cover-red-1280x1280.png
+  Location: /Users/et/cyber-squire-ops/builds/gumroad-assets/secplus-cover-red-1280x1280.png
+
+THUMBNAIL: Upload secplus-thumb-red-600x600.png
+  Location: /Users/et/cyber-squire-ops/builds/gumroad-assets/secplus-thumb-red-600x600.png
+
+
+PRICING:
+• Keep price at $29.99 (no change)
+• Turn ON: "Allow customers to pay what they want"
+• Suggested price: $29.99
+• Minimum price: $29.99
+
+
+SETTINGS (verify these are set):
+• Refund policy: ON (7-day money back) — already set
+• Discover: ON — already set
+• Category: Education > Test Prep — already set
+• Star ratings: ON — already set
+
+
+--- CONTENT TAB ---
+
+READ ME page — update these items:
+• Change all "Cyber-Squire OS" → "Security+ SY0-701 Study System"
+• Change "Tigoue Theory LLC" → "Core Directive"
+• Change "coredirective.official@gmail.com" → "support@tigouetheory.com"
+• Update signature: "Emmanuel Tigoue | CASP+, SSCP, Sec+, Net+, CCNA"
+
+THE LINK page — verify Notion template link is correct and working
+
+
+--- RECEIPT TAB ---
+
+Custom message — update:
+• Keep the ACTION REQUIRED warning (it's good)
+• Change any "Cyber-Squire OS" → "Security+ Study System"
+• Verify contact email is support@tigouetheory.com
+
+
+--- SHARE TAB ---
+
+• Create a Gumroad profile section if not exists
+• Verify Discover is enabled
+
+
+--- NOTION TEMPLATE ---
+
+• Rename main page from "Cyber-Squire OS" → "Security+ SY0-701 Study System"
+• Update cover image to match red theme if possible
+
+
+============================================
+CCNA 200-301 — REMAINING 5% ITEMS
+============================================
+
+1. UPLOAD VIDEO COVER:
+   File: /Users/et/cyber-squire-ops/builds/coredirective-videos/out/CCNAShowcaseV2.mp4
+   Go to: gumroad.com/products/uhtrt/edit → Cover section → click "+" → Upload the .mp4
+   Gumroad supports video covers — this replaces/adds to the static image
+
+2. RENAME NOTION TEMPLATE:
+   Current: Cyber-Squire OS — CCNA v1.1 Master Class System
+   New: CCNA 200-301 v1.1 Study System
+   (Do this in Notion directly on the template page)
+
+3. ADD DESCRIPTION SCREENSHOTS (optional but high-converting):
+   Take screenshots of these views in the Notion template:
+   • Exam Readiness Tracker (Today's Focus view)
+   • Knowledge Base (By Category kanban)
+   • DoK Framework callout section
+   Upload to Gumroad description using the image insert button
+
+4. VERIFY ALL SETTINGS MATCH:
+   • Price: $39.99 PWYW — already set
+   • Cover: ccna-cover-gold-1280x1280.png — already uploaded
+   • Thumbnail: ccna-thumb-gold-600x600.png — already uploaded
+   • Tags: ccna 200-301, cisco ccna, it certification, notion template, ccna study guide
+   • Additional details: 5 fields filled
+   • Discover: ON
+   • Refund: 7-day
+   • Receipt message: Good
+
+
+============================================
+ASSET LOCATIONS
+============================================
+
+Security+ RED covers:
+  /Users/et/cyber-squire-ops/builds/gumroad-assets/secplus-cover-red-1280x1280.png
+  /Users/et/cyber-squire-ops/builds/gumroad-assets/secplus-thumb-red-600x600.png
+
+CCNA GOLD covers (already uploaded):
+  /Users/et/cyber-squire-ops/builds/gumroad-assets/ccna-cover-gold-1280x1280.png
+  /Users/et/cyber-squire-ops/builds/gumroad-assets/ccna-thumb-gold-600x600.png
+
+CCNA Video:
+  /Users/et/cyber-squire-ops/builds/coredirective-videos/out/CCNAShowcaseV2.mp4
+
+Cover generation scripts:
+  /Users/et/cyber-squire-ops/builds/gumroad-assets/create_covers_hq.py (CCNA gold)
+  /Users/et/cyber-squire-ops/builds/gumroad-assets/create_secplus_covers.py (Sec+ red)
+
+
+============================================
+DESIGN SYSTEM
+============================================
+
+Gold = CCNA (#F5A623 accent)
+Red = Security+ (#E63946 accent)
+Blue = Network+ (TBD)
+All: Dark bg #0D1117, WHITE text, 6x supersample, 1280x1280 covers, 600x600 thumbs
+No Jeremy IT Lab branding (trademark)
+Direct Pillow rendering (no PDF intermediate)

@@ -1,0 +1,55 @@
+@page {
+  size: letter;
+  margin: 1in;
+}
+body {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
+  line-height: 2;
+  color: #000;
+  margin: 0;
+  max-width: none;
+}
+h1 {
+  font-size: 12pt;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 0 24pt 0;
+  text-decoration: none;
+  border: none;
+}
+h2 {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 18pt 0 6pt 0;
+  color: #000;
+}
+h3 {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 12pt 0 6pt 0;
+  color: #000;
+}
+p {
+  text-indent: 0.5in;
+  margin: 0 0 6pt 0;
+}
+hr {
+  border: none;
+  border-top: 1px solid #000;
+  margin: 12pt 0;
+}
+strong { font-weight: bold; }
+blockquote {
+  margin-left: 0.5in;
+  margin-right: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-style: normal;
+}
+code {
+  font-family: "Times New Roman", Times, serif;
+  background: none;
+  padding: 0;
+}

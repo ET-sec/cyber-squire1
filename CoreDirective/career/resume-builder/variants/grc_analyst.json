@@ -1,0 +1,33 @@
+{
+  "headline": "AI Security Engineer  |  GRC & Agentic Systems",
+  "skills_override": [
+    {
+      "label": "Skills",
+      "items": "ISO 27017, ISO 27018, FISMA, GDPR, GLBA, OSCAL, NIST CSF, FAIR, OCTAVE, POAM Management"
+    }
+  ],
+  "bullet_order": {
+    "coredirective": [
+      "grc_program",
+      "program_ownership",
+      "ai_gateway",
+      "red_team",
+      "iam",
+      "iac_compliance",
+      "cicd_supply_chain",
+      "zero_trust_edr_waf",
+      "squire_soc_agent",
+      "soar_platform"
+    ],
+    "texaco": [
+      "endpoint_pci",
+      "ai_governance",
+      "ad_hardening",
+      "ir_runbook",
+      "incident_response",
+      "siem_monitoring",
+      "network_segmentation",
+      "automation_scripting"
+    ]
+  }
+}

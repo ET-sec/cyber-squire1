@@ -170,7 +170,7 @@ Gitleaks blocks hardcoded secrets. Checkov fails on security violations. OPA den
 **Emmanuel Tigoue** -- Security Engineer
 - SecurityX (CASP+), SSCP, CCNA
 - Portfolio: [et-sec.github.io/portfolio](https://et-sec.github.io/portfolio/)
-- LinkedIn: [linkedin.com/in/emmanuel-tigoue-672378307](https://www.linkedin.com/in/emmanuel-tigoue-672378307)
+- LinkedIn: [linkedin.com/in/emmanuel-tigoue](https://www.linkedin.com/in/emmanuel-tigoue)
 - GitHub: [github.com/ET-sec](https://github.com/ET-sec)
 
 ---

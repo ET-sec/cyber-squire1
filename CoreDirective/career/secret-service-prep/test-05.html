@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>USSS Uniformed Division Entrance Exam: Practice Test 05</title>
+<style>
+  :root { --bg:#0a0e14; --panel:#11161f; --ink:#e6edf3; --mute:#8b949e; --line:#1f2630; --accent:#3bff8a; --warn:#ffb547; --red:#ff5a5a; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { font-family: 'JetBrains Mono','SF Mono',Consolas,monospace; max-width: 880px; margin: 0 auto; padding: 32px 24px 96px; line-height: 1.55; }
+  h1 { color: var(--accent); margin: 0 0 4px; font-size: 26px; }
+  h2 { color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-top: 48px; font-size: 18px; }
+  h3 { margin-top: 28px; font-size: 15px; }
+  .meta { color: var(--mute); font-size: 12px; margin-bottom: 28px; }
+  .rules { background: var(--panel); border-left: 3px solid var(--accent); padding: 14px 18px; margin: 16px 0 28px; font-size: 13px; color: var(--mute); }
+  .rules b { color: var(--ink); }
+  .q { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 18px 20px; margin: 18px 0; }
+  .qnum { color: var(--accent); font-weight: bold; margin-right: 8px; }
+  .qtext { margin: 0 0 14px; font-size: 14px; }
+  .opts { list-style: none; padding: 0; margin: 0; }
+  .opts li { padding: 6px 10px; margin: 4px 0; border: 1px solid var(--line); border-radius: 3px; font-size: 13px; }
+  .opts li b { color: var(--accent); margin-right: 8px; }
+  svg { background: #f7f7f5; border-radius: 4px; display: block; margin: 8px 0 14px; }
+  .scene { background: #f7f7f5; padding: 6px; border-radius: 4px; margin: 8px 0 14px; }
+  .timer-note { background: #1a1208; border-left: 3px solid var(--warn); padding: 10px 14px; color: var(--warn); font-size: 12px; margin: 12px 0; }
+  .danger { background: #1a0808; border-left: 3px solid var(--red); padding: 10px 14px; color: var(--red); font-size: 12px; margin: 12px 0; }
+  .key-note { background: var(--panel); border: 1px dashed var(--line); border-radius: 4px; padding: 14px 18px; margin-top: 48px; color: var(--mute); font-size: 13px; }
+  .key-note b { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>USSS Uniformed Division Entrance Exam: Practice Test 05</h1>
+<div class="meta">30 questions · Maximum difficulty · Advanced figural · Dual-scene observation with deep interference · Multi-premise LBR · 2026 UDEE format</div>
+
+<div class="rules">
+  <b>Instructions.</b> This is the HARDEST test in the series (Tests 01 through 04 built up to this). Target: 65 minutes total. Pacing:
+  <ul style="margin: 8px 0 0; padding-left: 20px;">
+    <li><b>Section A (Figural):</b> 10 questions in 15 minutes. Expect 3D reasoning, multi-rule matrices, asymmetric folds.</li>
+    <li><b>Section B (Observation):</b> Study Scene 9 for 90 seconds. Then study Scene 10 for 90 seconds. THEN answer all 10 questions without scrolling back. Higher detail density than Tests 01 through 03.</li>
+    <li><b>Section C (LBR):</b> 10 questions in 30 minutes. Expect nested biconditionals, pigeonhole reasoning, and at least one puzzle with NO valid solution (trap).</li>
+  </ul>
+  <b>Answer key:</b> Separate file: <code>answer-key-test-05.html</code>. Do not peek until you finish.
+</div>
+
+<h2>SECTION A: Figural Reasoning (1 through 10)</h2>
+
+<!-- Q1: Asymmetric arrow rotation -->
+<div class="q">
+  <p class="qtext"><span class="qnum">1.</span> The arrow figure on the left is rotated 90&deg; COUNTER-CLOCKWISE. Which option (A through E) shows the correct result?</p>
+  <svg viewBox="0 0 120 120" width="120" height="120">
+    <g stroke="#0a0e14" stroke-width="2" fill="#3bff8a">
+      <polygon points="30,60 70,60 70,40 95,70 70,100 70,80 30,80"/>
+    </g>
+  </svg>
+  <svg viewBox="0 0 560 130" width="100%" height="130">
+    <g stroke="#0a0e14" stroke-width="2" fill="#d0d4d8">
+      <!-- A: rotated 90 CCW (arrow now pointing UP) -->
+      <polygon points="30,90 30,50 10,50 40,25 70,50 50,50 50,90"/>
+      <text x="35" y="110" font-size="12" fill="#0a0e14" stroke="none">A</text>
+      <!-- B: rotated 90 CW (arrow pointing DOWN) -->
+      <polygon points="130,30 130,70 110,70 140,95 170,70 150,70 150,30"/>
+      <text x="135" y="110" font-size="12" fill="#0a0e14" stroke="none">B</text>
+      <!-- C: rotated 180 (arrow pointing LEFT) -->
+      <polygon points="290,50 250,50 250,30 225,60 250,90 250,70 290,70"/>
+      <text x="255" y="110" font-size="12" fill="#0a0e14" stroke="none">C</text>
+      <!-- D: reflected vertical (still right but flipped) -->
+      <polygon points="350,60 390,60 390,40 415,70 390,100 390,80 350,80"/>
+      <text x="380" y="110" font-size="12" fill="#0a0e14" stroke="none">D</text>
+      <!-- E: same as original (right-pointing) -->
+      <polygon points="460,60 500,60 500,40 525,70 500,100 500,80 460,80"/>
+      <text x="485" y="110" font-size="12" fill="#0a0e14" stroke="none">E</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: arrow pointing up</li>
+    <li><b>B.</b> B: arrow pointing down</li>
+    <li><b>C.</b> C: arrow pointing left</li>
+    <li><b>D.</b> D: arrow pointing right (same as original)</li>
+    <li><b>E.</b> E: identical to original</li>
+  </ul>
+</div>
+
+<!-- Q2: Count squares in 4x4 grid -->
+<div class="q">
+  <p class="qtext"><span class="qnum">2.</span> How many SQUARES (of any size) can be traced on the 4&times;4 grid below?</p>
+  <svg viewBox="0 0 200 200" width="200" height="200">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <rect x="10" y="10" width="180" height="180"/>
+      <line x1="55" y1="10" x2="55" y2="190"/>
+      <line x1="100" y1="10" x2="100" y2="190"/>
+      <line x1="145" y1="10" x2="145" y2="190"/>
+      <line x1="10" y1="55" x2="190" y2="55"/>
+      <line x1="10" y1="100" x2="190" y2="100"/>
+      <line x1="10" y1="145" x2="190" y2="145"/>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 16</li>
+    <li><b>B.</b> 20</li>
+    <li><b>C.</b> 24</li>
+    <li><b>D.</b> 30</li>
+    <li><b>E.</b> 36</li>
+  </ul>
+</div>
+
+<!-- Q3: 3x3 Matrix with two rules -->
+<div class="q">
+  <p class="qtext"><span class="qnum">3.</span> The 3&times;3 matrix obeys TWO rules (one across rows, one across columns). Which figure fills the missing cell in row 3, column 3?</p>
+  <svg viewBox="0 0 300 300" width="300" height="300">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <rect x="0" y="0" width="300" height="300"/>
+      <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/>
+      <line x1="0" y1="100" x2="300" y2="100"/><line x1="0" y1="200" x2="300" y2="200"/>
+      <!-- Row 1: triangle(3), square(4), pentagon(5), all with 1 dot in center -->
+      <polygon points="50,30 75,75 25,75"/>
+      <circle cx="50" cy="58" r="3" fill="#0a0e14"/>
+      <rect x="130" y="30" width="40" height="45"/>
+      <circle cx="150" cy="52" r="3" fill="#0a0e14"/>
+      <polygon points="250,30 275,48 265,75 235,75 225,48"/>
+      <circle cx="250" cy="55" r="3" fill="#0a0e14"/>
+      <!-- Row 2: same shapes, each with 2 dots -->
+      <polygon points="50,130 75,175 25,175"/>
+      <circle cx="42" cy="158" r="3" fill="#0a0e14"/>
+      <circle cx="58" cy="158" r="3" fill="#0a0e14"/>
+      <rect x="130" y="130" width="40" height="45"/>
+      <circle cx="142" cy="152" r="3" fill="#0a0e14"/>
+      <circle cx="158" cy="152" r="3" fill="#0a0e14"/>
+      <polygon points="250,130 275,148 265,175 235,175 225,148"/>
+      <circle cx="243" cy="155" r="3" fill="#0a0e14"/>
+      <circle cx="257" cy="155" r="3" fill="#0a0e14"/>
+      <!-- Row 3: triangle 3 dots, square 3 dots, missing -->
+      <polygon points="50,230 75,275 25,275"/>
+      <circle cx="50" cy="250" r="3" fill="#0a0e14"/>
+      <circle cx="42" cy="265" r="3" fill="#0a0e14"/>
+      <circle cx="58" cy="265" r="3" fill="#0a0e14"/>
+      <rect x="130" y="230" width="40" height="45"/>
+      <circle cx="150" cy="245" r="3" fill="#0a0e14"/>
+      <circle cx="142" cy="262" r="3" fill="#0a0e14"/>
+      <circle cx="158" cy="262" r="3" fill="#0a0e14"/>
+      <text x="240" y="265" font-size="40" fill="#0a0e14" stroke="none">?</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> Pentagon with 2 dots</li>
+    <li><b>B.</b> Pentagon with 3 dots</li>
+    <li><b>C.</b> Hexagon with 3 dots</li>
+    <li><b>D.</b> Square with 3 dots</li>
+    <li><b>E.</b> Triangle with 3 dots</li>
+  </ul>
+</div>
+
+<!-- Q4: Cube net -->
+<div class="q">
+  <p class="qtext"><span class="qnum">4.</span> The cross-shaped net below folds into a cube. Labels are on the OUTSIDE of each face. When folded, which cube is the result? (The arrow on the X face points to the TOP when viewed from the front.)</p>
+  <svg viewBox="0 0 340 260" width="340" height="260">
+    <g stroke="#0a0e14" stroke-width="2" fill="#eaeaea">
+      <!-- Cross net: 3 across middle, 1 above, 1 below (4 middle) -->
+      <rect x="100" y="20" width="60" height="60"/>
+      <text x="120" y="55" font-size="22" fill="#0a0e14" stroke="none">T</text>
+      <rect x="40" y="80" width="60" height="60"/>
+      <text x="60" y="115" font-size="22" fill="#0a0e14" stroke="none">L</text>
+      <rect x="100" y="80" width="60" height="60"/>
+      <text x="120" y="108" font-size="22" fill="#0a0e14" stroke="none">X</text>
+      <line x1="130" y1="115" x2="130" y2="100" stroke="#0a0e14" stroke-width="2"/>
+      <polygon points="130,98 125,108 135,108" fill="#0a0e14"/>
+      <rect x="160" y="80" width="60" height="60"/>
+      <text x="180" y="115" font-size="22" fill="#0a0e14" stroke="none">R</text>
+      <rect x="220" y="80" width="60" height="60"/>
+      <text x="238" y="115" font-size="22" fill="#0a0e14" stroke="none">Bk</text>
+      <rect x="100" y="140" width="60" height="60"/>
+      <text x="120" y="175" font-size="22" fill="#0a0e14" stroke="none">B</text>
+    </g>
+  </svg>
+  <p style="font-size: 12px; color: var(--mute); margin: 0 0 10px;">Legend: T = top, B = bottom, L = left, R = right, X = front, Bk = back.</p>
+  <ul class="opts">
+    <li><b>A.</b> X front, T top, B bottom, L left, R right, Bk back. Arrow on X points up.</li>
+    <li><b>B.</b> X front, T bottom, B top, L right, R left. Arrow on X points up.</li>
+    <li><b>C.</b> X front, L top, R bottom, T left, B right. Arrow on X points right.</li>
+    <li><b>D.</b> Bk front, R top, L bottom, T right, B left. Arrow on X points up.</li>
+    <li><b>E.</b> X front, T top, Bk bottom, L left, R right. Arrow on X points down.</li>
+  </ul>
+</div>
+
+<!-- Q5: Number sequence -->
+<div class="q">
+  <p class="qtext"><span class="qnum">5.</span> Find the rule and the missing value.</p>
+  <svg viewBox="0 0 520 90" width="100%" height="90">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <circle cx="50" cy="45" r="26"/><text x="42" y="53" font-size="20" fill="#0a0e14" stroke="none">2</text>
+      <circle cx="140" cy="45" r="26"/><text x="132" y="53" font-size="20" fill="#0a0e14" stroke="none">5</text>
+      <circle cx="230" cy="45" r="26"/><text x="218" y="53" font-size="20" fill="#0a0e14" stroke="none">11</text>
+      <circle cx="320" cy="45" r="26"/><text x="308" y="53" font-size="20" fill="#0a0e14" stroke="none">23</text>
+      <circle cx="410" cy="45" r="26"/><text x="398" y="53" font-size="20" fill="#0a0e14" stroke="none">47</text>
+      <circle cx="490" cy="45" r="26"/><text x="482" y="55" font-size="22" fill="#0a0e14" stroke="none">?</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> 71</li>
+    <li><b>B.</b> 82</li>
+    <li><b>C.</b> 94</li>
+    <li><b>D.</b> 95</li>
+    <li><b>E.</b> 96</li>
+  </ul>
+</div>
+
+<!-- Q6: Odd one out - tetromino -->
+<div class="q">
+  <p class="qtext"><span class="qnum">6.</span> Four of these five figures are the SAME tetromino piece rotated in the plane (no reflection allowed). Which figure CANNOT be made by rotating the others?</p>
+  <svg viewBox="0 0 540 100" width="100%" height="100">
+    <g stroke="#0a0e14" stroke-width="2" fill="#d0d4d8">
+      <!-- A: S-tetromino -->
+      <rect x="40" y="20" width="20" height="20"/>
+      <rect x="60" y="20" width="20" height="20"/>
+      <rect x="20" y="40" width="20" height="20"/>
+      <rect x="40" y="40" width="20" height="20"/>
+      <!-- B: S-tetromino rotated 90 (vertical) -->
+      <rect x="140" y="15" width="20" height="20"/>
+      <rect x="140" y="35" width="20" height="20"/>
+      <rect x="160" y="35" width="20" height="20"/>
+      <rect x="160" y="55" width="20" height="20"/>
+      <!-- C: S-tetromino 180 = same as A -->
+      <rect x="240" y="20" width="20" height="20"/>
+      <rect x="260" y="20" width="20" height="20"/>
+      <rect x="220" y="40" width="20" height="20"/>
+      <rect x="240" y="40" width="20" height="20"/>
+      <!-- D: S rotated 270 = same as B -->
+      <rect x="340" y="15" width="20" height="20"/>
+      <rect x="340" y="35" width="20" height="20"/>
+      <rect x="360" y="35" width="20" height="20"/>
+      <rect x="360" y="55" width="20" height="20"/>
+      <!-- E: Z-tetromino (mirror of S, cannot be obtained by rotation alone) -->
+      <rect x="420" y="20" width="20" height="20"/>
+      <rect x="440" y="20" width="20" height="20"/>
+      <rect x="460" y="40" width="20" height="20"/>
+      <rect x="440" y="40" width="20" height="20"/>
+    </g>
+    <text x="45" y="90" font-size="12" fill="#0a0e14">A</text>
+    <text x="155" y="90" font-size="12" fill="#0a0e14">B</text>
+    <text x="245" y="90" font-size="12" fill="#0a0e14">C</text>
+    <text x="355" y="90" font-size="12" fill="#0a0e14">D</text>
+    <text x="445" y="90" font-size="12" fill="#0a0e14">E</text>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A</li><li><b>B.</b> B</li><li><b>C.</b> C</li><li><b>D.</b> D</li><li><b>E.</b> E</li>
+  </ul>
+</div>
+
+<!-- Q7: Paper folding -->
+<div class="q">
+  <p class="qtext"><span class="qnum">7.</span> A square sheet of paper is folded in HALF four consecutive times (each fold doubles the layer count). A single hole is then punched through the center of the final folded piece. When fully unfolded, how many holes are visible?</p>
+  <ul class="opts">
+    <li><b>A.</b> 4</li>
+    <li><b>B.</b> 6</li>
+    <li><b>C.</b> 8</li>
+    <li><b>D.</b> 12</li>
+    <li><b>E.</b> 16</li>
+  </ul>
+</div>
+
+<!-- Q8: Symmetric difference -->
+<div class="q">
+  <p class="qtext"><span class="qnum">8.</span> Two overlapping circles are shown on the left. Which option correctly shades ONLY the symmetric difference (the area inside EITHER circle but NOT in both)?</p>
+  <svg viewBox="0 0 160 100" width="160" height="100">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <circle cx="55" cy="50" r="35"/>
+      <circle cx="105" cy="50" r="35"/>
+    </g>
+  </svg>
+  <svg viewBox="0 0 720 110" width="100%" height="110">
+    <g stroke="#0a0e14" stroke-width="2">
+      <!-- A: symmetric difference (both crescents shaded, lens empty) -->
+      <g transform="translate(0,10)">
+        <path d="M 80,25.5 A 35,35 0 1,0 80,74.5 A 35,35 0 0,0 80,25.5 Z" fill="#d0d4d8"/>
+        <path d="M 80,25.5 A 35,35 0 1,1 80,74.5 A 35,35 0 0,1 80,25.5 Z" fill="#d0d4d8"/>
+        <circle cx="55" cy="50" r="35" fill="none"/>
+        <circle cx="105" cy="50" r="35" fill="none"/>
+      </g>
+      <text x="75" y="108" font-size="12" fill="#0a0e14" stroke="none">A</text>
+      <!-- B: only the intersection (lens) shaded -->
+      <g transform="translate(180,10)">
+        <path d="M 80,25.5 A 35,35 0 0,1 80,74.5 A 35,35 0 0,0 80,25.5 Z" fill="#d0d4d8"/>
+        <circle cx="55" cy="50" r="35" fill="none"/>
+        <circle cx="105" cy="50" r="35" fill="none"/>
+      </g>
+      <text x="255" y="108" font-size="12" fill="#0a0e14" stroke="none">B</text>
+      <!-- C: union fully shaded -->
+      <g transform="translate(360,10)">
+        <circle cx="55" cy="50" r="35" fill="#d0d4d8"/>
+        <circle cx="105" cy="50" r="35" fill="#d0d4d8"/>
+      </g>
+      <text x="435" y="108" font-size="12" fill="#0a0e14" stroke="none">C</text>
+      <!-- D: only LEFT crescent -->
+      <g transform="translate(540,10)">
+        <path d="M 80,25.5 A 35,35 0 1,0 80,74.5 A 35,35 0 0,0 80,25.5 Z" fill="#d0d4d8"/>
+        <circle cx="55" cy="50" r="35" fill="none"/>
+        <circle cx="105" cy="50" r="35" fill="none"/>
+      </g>
+      <text x="615" y="108" font-size="12" fill="#0a0e14" stroke="none">D</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> A: both crescents shaded, overlap lens empty</li>
+    <li><b>B.</b> B: only the center overlap lens shaded</li>
+    <li><b>C.</b> C: the entire union shaded</li>
+    <li><b>D.</b> D: only the left crescent shaded</li>
+    <li><b>E.</b> None of the above</li>
+  </ul>
+</div>
+
+<!-- Q9: Dual-rate rotation -->
+<div class="q">
+  <p class="qtext"><span class="qnum">9.</span> Two arrows share a common center. The OUTER arrow (thin) rotates 90&deg; CLOCKWISE each step. The INNER arrow (thick) rotates 45&deg; COUNTER-CLOCKWISE each step. Step 0 shows both arrows pointing UP. Which option correctly shows the state after STEP 4?</p>
+  <svg viewBox="0 0 560 130" width="100%" height="130">
+    <g stroke="#0a0e14" stroke-width="2" fill="none">
+      <!-- Step 0: both UP -->
+      <circle cx="65" cy="65" r="40"/>
+      <line x1="65" y1="65" x2="65" y2="30"/>
+      <polygon points="65,25 60,35 70,35" fill="#0a0e14"/>
+      <line x1="65" y1="65" x2="65" y2="45" stroke-width="4"/>
+      <polygon points="65,42 60,52 70,52" fill="#0a0e14"/>
+      <text x="45" y="125" font-size="11" fill="#0a0e14">Step 0</text>
+      <!-- Step 1: outer right (90 CW), inner up-left (45 CCW) -->
+      <circle cx="190" cy="65" r="40"/>
+      <line x1="190" y1="65" x2="225" y2="65"/>
+      <polygon points="230,65 220,60 220,70" fill="#0a0e14"/>
+      <line x1="190" y1="65" x2="176" y2="51" stroke-width="4"/>
+      <polygon points="172,47 181,51 179,58" fill="#0a0e14"/>
+      <text x="170" y="125" font-size="11" fill="#0a0e14">Step 1</text>
+      <!-- Step 2: outer down (180), inner left (90 CCW total) -->
+      <circle cx="315" cy="65" r="40"/>
+      <line x1="315" y1="65" x2="315" y2="100"/>
+      <polygon points="315,105 310,95 320,95" fill="#0a0e14"/>
+      <line x1="315" y1="65" x2="295" y2="65" stroke-width="4"/>
+      <polygon points="291,65 300,60 300,70" fill="#0a0e14"/>
+      <text x="295" y="125" font-size="11" fill="#0a0e14">Step 2</text>
+      <!-- Step 3: outer left (270 CW), inner down-left (135 CCW) -->
+      <circle cx="440" cy="65" r="40"/>
+      <line x1="440" y1="65" x2="405" y2="65"/>
+      <polygon points="400,65 410,60 410,70" fill="#0a0e14"/>
+      <line x1="440" y1="65" x2="426" y2="79" stroke-width="4"/>
+      <polygon points="422,83 431,79 429,72" fill="#0a0e14"/>
+      <text x="420" y="125" font-size="11" fill="#0a0e14">Step 3</text>
+      <!-- Step 4: ? -->
+      <circle cx="520" cy="65" r="20" stroke-dasharray="4,3"/>
+      <text x="515" y="72" font-size="22" fill="#0a0e14" stroke="none">?</text>
+      <text x="500" y="125" font-size="11" fill="#0a0e14">Step 4</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> Outer UP, inner DOWN</li>
+    <li><b>B.</b> Outer RIGHT, inner UP</li>
+    <li><b>C.</b> Outer DOWN, inner UP</li>
+    <li><b>D.</b> Outer UP, inner UP</li>
+    <li><b>E.</b> Outer LEFT, inner DOWN-RIGHT</li>
+  </ul>
+</div>
+
+<!-- Q10: Three-rule tracking -->
+<div class="q">
+  <p class="qtext"><span class="qnum">10.</span> The figures follow THREE simultaneous rules: (1) shape adds one side each step; (2) the number of dots follows 1, 2, 3, 4, ?; (3) shading cycles empty &rarr; hatched &rarr; solid &rarr; empty &rarr; ?. Which figure comes NEXT (step 5)?</p>
+  <svg viewBox="0 0 560 100" width="100%" height="100">
+    <defs>
+      <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6">
+        <line x1="0" y1="0" x2="0" y2="6" stroke="#0a0e14" stroke-width="2"/>
+      </pattern>
+    </defs>
+    <g stroke="#0a0e14" stroke-width="2">
+      <!-- Step 1: triangle, empty, 1 dot -->
+      <polygon points="55,25 80,75 30,75" fill="none"/>
+      <circle cx="55" cy="58" r="3" fill="#0a0e14"/>
+      <!-- Step 2: square, hatched, 2 dots -->
+      <rect x="130" y="25" width="50" height="50" fill="url(#hatch)"/>
+      <circle cx="145" cy="50" r="3" fill="#0a0e14"/>
+      <circle cx="165" cy="50" r="3" fill="#0a0e14"/>
+      <!-- Step 3: pentagon, solid, 3 dots -->
+      <polygon points="250,25 275,45 265,72 235,72 225,45" fill="#0a0e14"/>
+      <circle cx="243" cy="50" r="3" fill="#f7f7f5"/>
+      <circle cx="257" cy="50" r="3" fill="#f7f7f5"/>
+      <circle cx="250" cy="62" r="3" fill="#f7f7f5"/>
+      <!-- Step 4: hexagon, empty, 4 dots -->
+      <polygon points="355,30 380,30 392,55 380,80 355,80 343,55" fill="none"/>
+      <circle cx="360" cy="48" r="3" fill="#0a0e14"/>
+      <circle cx="375" cy="48" r="3" fill="#0a0e14"/>
+      <circle cx="360" cy="62" r="3" fill="#0a0e14"/>
+      <circle cx="375" cy="62" r="3" fill="#0a0e14"/>
+      <!-- Step 5: ? -->
+      <text x="470" y="60" font-size="40" fill="#0a0e14">?</text>
+    </g>
+  </svg>
+  <ul class="opts">
+    <li><b>A.</b> Heptagon (7 sides), solid, 5 dots</li>
+    <li><b>B.</b> Heptagon (7 sides), hatched, 5 dots</li>
+    <li><b>C.</b> Octagon (8 sides), hatched, 5 dots</li>
+    <li><b>D.</b> Hexagon, hatched, 5 dots</li>
+    <li><b>E.</b> Heptagon (7 sides), empty, 5 dots</li>
+  </ul>
+</div>
+
+<h2>SECTION B: Detail Observation with Interference (11 through 20)</h2>
+<p style="color:var(--mute); font-size:13px;">Study Scene 9 for 90 seconds. Then study Scene 10 for 90 seconds back-to-back. THEN answer all 10 questions with both scenes scrolled off-screen. This tests detail retention under visual interference; hard cases appear on the real exam.</p>
+
+<h3>Scene 9: Hotel Lobby Protective Detail (study 90 seconds)</h3>
+<div class="timer-note">&#9201; First 90 seconds. Memorize. Details matter.</div>
+<div class="scene">
+<svg viewBox="0 0 720 380" width="100%" height="380">
+  <!-- lobby floor and walls -->
+  <rect x="0" y="0" width="720" height="240" fill="#e8dfc8"/>
+  <rect x="0" y="240" width="720" height="140" fill="#9e8a68"/>
+  <line x1="0" y1="240" x2="720" y2="240" stroke="#555" stroke-width="2"/>
+  <!-- marble pattern lines on floor -->
+  <line x1="0" y1="280" x2="720" y2="280" stroke="#7a6a50" stroke-width="1" opacity="0.5"/>
+  <line x1="0" y1="320" x2="720" y2="320" stroke="#7a6a50" stroke-width="1" opacity="0.5"/>
+  <!-- reception desk -->
+  <rect x="40" y="160" width="240" height="90" fill="#3a2a1a" stroke="#111" stroke-width="2"/>
+  <rect x="40" y="160" width="240" height="14" fill="#1a1010"/>
+  <!-- clerk behind desk, dark green vest -->
+  <circle cx="160" cy="195" r="10" fill="#d4a784"/>
+  <rect x="150" y="205" width="20" height="30" fill="#226633"/>
+  <!-- hotel name sign GRAND MERIDIAN HOTEL -->
+  <rect x="80" y="55" width="240" height="34" fill="#1a3a6a"/>
+  <text x="90" y="78" font-size="15" fill="#ffd700" font-family="Arial" font-weight="bold">GRAND MERIDIAN HOTEL</text>
+  <!-- wall clock 10:42 -->
+  <circle cx="420" cy="75" r="22" fill="#fff" stroke="#0a0e14" stroke-width="2"/>
+  <line x1="420" y1="75" x2="412" y2="65" stroke="#0a0e14" stroke-width="2.5"/>
+  <line x1="420" y1="75" x2="403" y2="81" stroke="#0a0e14" stroke-width="1.5"/>
+  <text x="408" y="112" font-size="10" fill="#0a0e14" font-family="Arial">10:42</text>
+  <!-- protectee: woman, dark pantsuit, blonde hair, briefcase -->
+  <circle cx="420" cy="210" r="11" fill="#f4c8a8"/>
+  <rect x="413" y="197" width="14" height="8" fill="#e2c48a"/>
+  <rect x="410" y="221" width="20" height="38" fill="#1a1a2a"/>
+  <rect x="408" y="259" width="8" height="22" fill="#0a0a0a"/>
+  <rect x="424" y="259" width="8" height="22" fill="#0a0a0a"/>
+  <rect x="430" y="235" width="16" height="14" fill="#2a1a10" stroke="#111"/>
+  <!-- agent 1: directly behind protectee, dark suit, earpiece, lapel pin -->
+  <circle cx="400" cy="204" r="10" fill="#c89a78"/>
+  <rect x="390" y="214" width="20" height="38" fill="#0a0a0a"/>
+  <rect x="388" y="252" width="8" height="22" fill="#0a0a0a"/>
+  <rect x="404" y="252" width="8" height="22" fill="#0a0a0a"/>
+  <line x1="410" y1="205" x2="414" y2="210" stroke="#0a0a0a" stroke-width="1.5"/>
+  <circle cx="409" cy="205" r="1.5" fill="#444"/>
+  <circle cx="397" cy="222" r="1.5" fill="#ff5a5a"/>
+  <!-- agent 2: to the right, dark suit, holding radio -->
+  <circle cx="480" cy="210" r="10" fill="#d4a784"/>
+  <rect x="470" y="220" width="20" height="38" fill="#0a0a0a"/>
+  <rect x="468" y="258" width="8" height="22" fill="#0a0a0a"/>
+  <rect x="484" y="258" width="8" height="22" fill="#0a0a0a"/>
+  <rect x="492" y="225" width="6" height="12" fill="#333"/>
+  <circle cx="477" cy="228" r="1.5" fill="#ff5a5a"/>
+  <!-- bellhop with luggage cart on left -->
+  <circle cx="320" cy="200" r="10" fill="#e0b090"/>
+  <rect x="310" y="210" width="20" height="34" fill="#aa1a1a"/>
+  <rect x="308" y="244" width="8" height="22" fill="#1a1a1a"/>
+  <rect x="324" y="244" width="8" height="22" fill="#1a1a1a"/>
+  <!-- luggage cart -->
+  <rect x="335" y="235" width="40" height="30" fill="#888" stroke="#333"/>
+  <rect x="336" y="220" width="38" height="16" fill="#d4a070" stroke="#554"/>
+  <circle cx="340" cy="268" r="4" fill="#222"/>
+  <circle cx="372" cy="268" r="4" fill="#222"/>
+  <!-- suspicious figure: guest with camera, far right, blue cap -->
+  <circle cx="620" cy="205" r="10" fill="#d4a784"/>
+  <rect x="612" y="192" width="16" height="8" fill="#4477cc"/>
+  <rect x="610" y="215" width="20" height="34" fill="#888"/>
+  <rect x="608" y="249" width="8" height="22" fill="#2a2a1a"/>
+  <rect x="624" y="249" width="8" height="22" fill="#2a2a1a"/>
+  <rect x="592" y="220" width="14" height="10" fill="#2a2a2a"/>
+  <circle cx="594" cy="225" r="3" fill="#0a0a0a"/>
+  <!-- chandelier -->
+  <ellipse cx="360" cy="30" rx="40" ry="8" fill="#ffd700" opacity="0.6"/>
+  <line x1="360" y1="0" x2="360" y2="30" stroke="#888" stroke-width="2"/>
+  <circle cx="345" cy="35" r="4" fill="#fff8a0" opacity="0.9"/>
+  <circle cx="360" cy="38" r="4" fill="#fff8a0" opacity="0.9"/>
+  <circle cx="375" cy="35" r="4" fill="#fff8a0" opacity="0.9"/>
+  <!-- security camera top-left -->
+  <rect x="10" y="10" width="22" height="14" fill="#222"/>
+  <circle cx="15" cy="26" r="3" fill="#44ee66"/>
+  <!-- elevator doors, far left -->
+  <rect x="560" y="140" width="60" height="110" fill="#bcbcc8" stroke="#333" stroke-width="2"/>
+  <line x1="590" y1="140" x2="590" y2="250" stroke="#333" stroke-width="2"/>
+  <rect x="595" y="150" width="18" height="16" fill="#222"/>
+  <text x="599" y="163" font-size="10" fill="#ffd700" font-family="monospace">UP</text>
+  <!-- revolving door on far right -->
+  <circle cx="680" cy="200" r="30" fill="#cfd8e0" stroke="#333" stroke-width="2" opacity="0.7"/>
+  <line x1="680" y1="170" x2="680" y2="230" stroke="#333" stroke-width="2"/>
+  <line x1="650" y1="200" x2="710" y2="200" stroke="#333" stroke-width="2"/>
+  <!-- sign: ROOM 402 VIP SUITE -->
+  <rect x="460" y="130" width="90" height="22" fill="#1a1a1a"/>
+  <text x="466" y="146" font-size="11" fill="#3bff8a" font-family="monospace">ROOM 402 VIP</text>
+</svg>
+</div>
+
+<h3>Scene 10: Federal Courthouse Security Line (study 90 seconds)</h3>
+<div class="timer-note">&#9201; Second 90 seconds. Memorize. DO NOT scroll back to Scene 9.</div>
+<div class="scene">
+<svg viewBox="0 0 720 380" width="100%" height="380">
+  <!-- marble courthouse interior -->
+  <rect x="0" y="0" width="720" height="220" fill="#d8d2c0"/>
+  <rect x="0" y="220" width="720" height="160" fill="#a89c80"/>
+  <line x1="0" y1="220" x2="720" y2="220" stroke="#555" stroke-width="2"/>
+  <!-- tiled floor pattern -->
+  <line x1="80" y1="220" x2="80" y2="380" stroke="#7a6a50" stroke-width="1" opacity="0.4"/>
+  <line x1="240" y1="220" x2="240" y2="380" stroke="#7a6a50" stroke-width="1" opacity="0.4"/>
+  <line x1="480" y1="220" x2="480" y2="380" stroke="#7a6a50" stroke-width="1" opacity="0.4"/>
+  <line x1="640" y1="220" x2="640" y2="380" stroke="#7a6a50" stroke-width="1" opacity="0.4"/>
+  <!-- great seal on back wall -->
+  <circle cx="360" cy="80" r="38" fill="#ffd700" stroke="#8b6914" stroke-width="3"/>
+  <text x="344" y="86" font-size="10" fill="#8b6914" font-family="Arial" font-weight="bold">USDC-NDGA</text>
+  <!-- sign: NORTHERN DISTRICT OF GEORGIA -->
+  <rect x="200" y="30" width="320" height="26" fill="#1a3a6a"/>
+  <text x="214" y="48" font-size="13" fill="#ffffff" font-family="Arial" font-weight="bold">NORTHERN DISTRICT OF GEORGIA</text>
+  <!-- magnetometer (walk-through metal detector) -->
+  <rect x="180" y="160" width="80" height="100" fill="#88929e" stroke="#222" stroke-width="2"/>
+  <rect x="180" y="160" width="80" height="10" fill="#2a2a2a"/>
+  <rect x="180" y="250" width="80" height="10" fill="#2a2a2a"/>
+  <rect x="195" y="170" width="10" height="80" fill="#555"/>
+  <rect x="235" y="170" width="10" height="80" fill="#555"/>
+  <!-- X-ray conveyor -->
+  <rect x="320" y="210" width="160" height="30" fill="#4a4a54" stroke="#222"/>
+  <rect x="320" y="200" width="160" height="10" fill="#2a2a34"/>
+  <rect x="360" y="184" width="28" height="18" fill="#3a2a1a" stroke="#111"/>
+  <rect x="430" y="184" width="28" height="18" fill="#0a0a0a" stroke="#111"/>
+  <!-- X-ray operator at monitor -->
+  <rect x="490" y="170" width="60" height="50" fill="#2a2a34" stroke="#111"/>
+  <rect x="500" y="180" width="42" height="26" fill="#11228a"/>
+  <text x="504" y="198" font-size="9" fill="#3bff8a" font-family="monospace">X-RAY</text>
+  <circle cx="560" cy="195" r="10" fill="#c89a78"/>
+  <rect x="550" y="205" width="20" height="30" fill="#1a3a5a"/>
+  <!-- CSO (court security officer) at magnetometer exit, blue uniform, badge -->
+  <circle cx="280" cy="205" r="10" fill="#d4a784"/>
+  <rect x="270" y="215" width="20" height="40" fill="#1a3a6a"/>
+  <rect x="270" y="255" width="8" height="22" fill="#0a0a0a"/>
+  <rect x="286" y="255" width="8" height="22" fill="#0a0a0a"/>
+  <rect x="284" y="230" width="6" height="8" fill="#ffd700"/>
+  <rect x="288" y="240" width="8" height="12" fill="#0a0a0a"/>
+  <!-- person 1 at magnetometer: man, gray suit, no tie, briefcase -->
+  <circle cx="218" cy="200" r="10" fill="#d4a784"/>
+  <rect x="208" y="210" width="20" height="40" fill="#7a7a82"/>
+  <rect x="206" y="250" width="8" height="26" fill="#1a1a1a"/>
+  <rect x="222" y="250" width="8" height="26" fill="#1a1a1a"/>
+  <rect x="228" y="230" width="14" height="16" fill="#2a1a10" stroke="#111"/>
+  <!-- person 2 in line: woman, red blazer, black skirt, tote bag -->
+  <circle cx="130" cy="205" r="10" fill="#f4d4b8"/>
+  <rect x="120" y="215" width="20" height="30" fill="#cc2222"/>
+  <rect x="120" y="245" width="20" height="22" fill="#0a0a0a"/>
+  <rect x="118" y="267" width="8" height="12" fill="#2a1a10"/>
+  <rect x="134" y="267" width="8" height="12" fill="#2a1a10"/>
+  <rect x="138" y="228" width="14" height="18" fill="#aa6611" stroke="#554"/>
+  <!-- person 3 in line: young man, hoodie gray, jeans, headphones -->
+  <circle cx="60" cy="205" r="10" fill="#e0b090"/>
+  <rect x="50" y="215" width="20" height="32" fill="#888"/>
+  <rect x="50" y="247" width="20" height="28" fill="#225599"/>
+  <ellipse cx="60" cy="202" rx="11" ry="6" fill="#0a0a0a"/>
+  <!-- digital wall clock showing 08:17 -->
+  <rect x="40" y="40" width="80" height="30" fill="#000" stroke="#222"/>
+  <text x="52" y="63" font-size="20" fill="#ff5a5a" font-family="monospace" font-weight="bold">08:17</text>
+  <!-- caution sign on floor WET FLOOR -->
+  <polygon points="600,300 620,270 640,300" fill="#eeaa22" stroke="#000"/>
+  <text x="614" y="295" font-size="14" fill="#000" font-family="Arial" font-weight="bold">!</text>
+  <text x="595" y="318" font-size="9" fill="#000" font-family="Arial">WET FLOOR</text>
+  <!-- sign: SECURITY CHECKPOINT -->
+  <rect x="560" y="110" width="140" height="22" fill="#aa2222"/>
+  <text x="568" y="126" font-size="11" fill="#ffffff" font-family="Arial" font-weight="bold">SECURITY CHECKPOINT</text>
+  <!-- evidence bin contents (colored items) -->
+  <rect x="354" y="188" width="4" height="12" fill="#c0c0c0"/>
+  <circle cx="445" cy="193" r="3" fill="#ffd700"/>
+  <!-- K-9 dog near doorway, leash to handler -->
+  <ellipse cx="680" cy="260" rx="20" ry="10" fill="#8b6914"/>
+  <rect x="678" y="245" width="14" height="15" fill="#8b6914"/>
+  <circle cx="695" cy="248" r="5" fill="#8b6914"/>
+  <circle cx="697" cy="246" r="1.5" fill="#ff5a5a"/>
+  <rect x="666" y="260" width="3" height="14" fill="#6a5010"/>
+  <rect x="694" y="260" width="3" height="14" fill="#6a5010"/>
+</svg>
+</div>
+
+<div class="timer-note">&#9201; Both scenes studied. Scroll down and answer ALL 10 questions WITHOUT scrolling back up.</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">11.</span> (Scene 9) What was the name of the hotel shown on the lobby sign?</p>
+  <ul class="opts">
+    <li><b>A.</b> Grand Meridian Hotel</li>
+    <li><b>B.</b> Meridian Plaza Hotel</li>
+    <li><b>C.</b> Grand Sheraton Hotel</li>
+    <li><b>D.</b> Meridian Grand Tower</li>
+    <li><b>E.</b> No hotel name was visible on the sign</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">12.</span> (Scene 9) What time did the wall clock display?</p>
+  <ul class="opts">
+    <li><b>A.</b> 9:30</li>
+    <li><b>B.</b> 10:10</li>
+    <li><b>C.</b> 10:42</li>
+    <li><b>D.</b> 11:15</li>
+    <li><b>E.</b> No clock was visible in Scene 9</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">13.</span> (Scene 9) What was the protectee (the woman) wearing?</p>
+  <ul class="opts">
+    <li><b>A.</b> Red dress with a blue sash</li>
+    <li><b>B.</b> Green pantsuit</li>
+    <li><b>C.</b> Dark (navy/black) pantsuit, carrying a briefcase</li>
+    <li><b>D.</b> Yellow blazer and black skirt</li>
+    <li><b>E.</b> Gray business dress with a scarf</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">14.</span> (Scene 9) What was labeled on the sign next to the VIP accommodation?</p>
+  <ul class="opts">
+    <li><b>A.</b> Room 204</li>
+    <li><b>B.</b> Suite 1400</li>
+    <li><b>C.</b> Room 402 VIP</li>
+    <li><b>D.</b> Presidential Suite</li>
+    <li><b>E.</b> No room sign was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">15.</span> (Scene 9) On the far right of the lobby, a person stood near the revolving door. What item distinguished them?</p>
+  <ul class="opts">
+    <li><b>A.</b> A briefcase and a gray suit</li>
+    <li><b>B.</b> A camera and a blue cap</li>
+    <li><b>C.</b> A red bouquet and a dark overcoat</li>
+    <li><b>D.</b> A folded newspaper and reading glasses</li>
+    <li><b>E.</b> A service dog and a red leash</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">16.</span> (Scene 10) What court jurisdiction appeared on the sign above the seal?</p>
+  <ul class="opts">
+    <li><b>A.</b> Southern District of Georgia</li>
+    <li><b>B.</b> Northern District of Georgia</li>
+    <li><b>C.</b> Eastern District of Georgia</li>
+    <li><b>D.</b> Middle District of Georgia</li>
+    <li><b>E.</b> District of Columbia</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">17.</span> (Scene 10) What did the digital clock display?</p>
+  <ul class="opts">
+    <li><b>A.</b> 07:25</li>
+    <li><b>B.</b> 08:17</li>
+    <li><b>C.</b> 09:45</li>
+    <li><b>D.</b> 11:30</li>
+    <li><b>E.</b> No digital clock was visible</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">18.</span> (Scene 10) What was the woman in line wearing?</p>
+  <ul class="opts">
+    <li><b>A.</b> Yellow jacket, black pants, orange shopping bag</li>
+    <li><b>B.</b> Red blazer, black skirt, orange tote bag</li>
+    <li><b>C.</b> Gray suit, white blouse, brown briefcase</li>
+    <li><b>D.</b> Black dress, tan overcoat, red purse</li>
+    <li><b>E.</b> Navy blazer, gray skirt, black handbag</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">19.</span> (Scene 10) Which of the following was present at the checkpoint?</p>
+  <ul class="opts">
+    <li><b>A.</b> A K-9 unit (working dog)</li>
+    <li><b>B.</b> A bomb-sniffing robot</li>
+    <li><b>C.</b> A bank teller counter</li>
+    <li><b>D.</b> A luggage cart</li>
+    <li><b>E.</b> A chandelier</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">20.</span> (Cross-scene) In WHICH scene did the clock show a time in the morning hours (before noon), and what was that time?</p>
+  <ul class="opts">
+    <li><b>A.</b> Only Scene 9, at 10:42</li>
+    <li><b>B.</b> Only Scene 10, at 08:17</li>
+    <li><b>C.</b> Both scenes: Scene 9 at 10:42 and Scene 10 at 08:17</li>
+    <li><b>D.</b> Both scenes showed evening/PM times</li>
+    <li><b>E.</b> Neither clock was readable</li>
+  </ul>
+</div>
+
+<h2>SECTION C: Logic-Based Reasoning (21 through 30)</h2>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">21.</span> The vault opens IF AND ONLY IF BOTH (biometric verification AND keycard verification) succeed AND AT LEAST ONE of (supervisor code OR emergency override) is entered. On Tuesday the vault did NOT open. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> Biometric verification failed and no supervisor code was entered.</li>
+    <li><b>B.</b> Keycard verification failed and the emergency override also failed.</li>
+    <li><b>C.</b> Both supervisor code and emergency override were not entered.</li>
+    <li><b>D.</b> At least one clause failed: biometric, keycard, or both authorization codes.</li>
+    <li><b>E.</b> The vault likely malfunctioned; no input failure can be inferred.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">22.</span> Seven packages (A, B, C, D, E, F, G) are inspected in a single-file line. Constraints: (1) A is inspected immediately before D; (2) F is inspected fifth; (3) C is inspected at some point before F; (4) B is inspected last; (5) E is not inspected first. Which order is consistent with ALL constraints?</p>
+  <ul class="opts">
+    <li><b>A.</b> A, D, C, E, F, G, B</li>
+    <li><b>B.</b> D, A, C, E, F, G, B</li>
+    <li><b>C.</b> A, C, D, E, F, G, B</li>
+    <li><b>D.</b> A, D, E, G, C, F, B</li>
+    <li><b>E.</b> E, A, D, C, F, G, B</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">23.</span> Thirty-two agents are assigned to exactly six patrol zones. Each agent works exactly one zone. What is the MINIMUM number of agents that must be assigned to the most-staffed zone?</p>
+  <ul class="opts">
+    <li><b>A.</b> 5</li>
+    <li><b>B.</b> 6</li>
+    <li><b>C.</b> 7</li>
+    <li><b>D.</b> 8</li>
+    <li><b>E.</b> Cannot determine without more information</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">24.</span> Four suspects are interviewed: Alvarez, Bates, Cruz, and Dietz. EXACTLY TWO are telling the truth. Their statements:
+  <br>&bull; Alvarez: "Bates is lying."
+  <br>&bull; Bates: "Cruz and Dietz are both telling the truth."
+  <br>&bull; Cruz: "Alvarez is telling the truth."
+  <br>&bull; Dietz: "Exactly one of Alvarez and Bates is lying."
+  <br>Which pair is telling the truth?</p>
+  <ul class="opts">
+    <li><b>A.</b> Alvarez and Cruz</li>
+    <li><b>B.</b> Alvarez and Dietz</li>
+    <li><b>C.</b> Bates and Cruz</li>
+    <li><b>D.</b> Cruz and Dietz</li>
+    <li><b>E.</b> No pair satisfies all four statements under the "exactly two truthful" constraint</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">25.</span> "If a subject is BOTH armed AND actively resistant, then standard force protocol applies." On incident #714, standard force protocol was NOT applied. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> The subject was not armed at the time of contact.</li>
+    <li><b>B.</b> The subject was not resistant at the time of contact.</li>
+    <li><b>C.</b> The subject was either not armed, or not resistant, or both.</li>
+    <li><b>D.</b> The subject was both unarmed and fully compliant.</li>
+    <li><b>E.</b> The force protocol was violated by the responding officer.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">26.</span> "Either Gate A is open or Gate B is open, but not both." Investigators confirm Gate B is CLOSED. Which conclusion MUST follow?</p>
+  <ul class="opts">
+    <li><b>A.</b> Gate A is open.</li>
+    <li><b>B.</b> Gate A is closed.</li>
+    <li><b>C.</b> Both gates are closed.</li>
+    <li><b>D.</b> Cannot determine the state of Gate A.</li>
+    <li><b>E.</b> The rule is internally inconsistent.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">27.</span> In a field office, 90% of agents carry a radio, and 40% carry BOTH a radio AND a sidearm. Given that an agent carries a radio, what is the probability they also carry a sidearm? (Choose the closest value.)</p>
+  <ul class="opts">
+    <li><b>A.</b> 36%</li>
+    <li><b>B.</b> 40%</li>
+    <li><b>C.</b> 44%</li>
+    <li><b>D.</b> 50%</li>
+    <li><b>E.</b> 90%</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">28.</span> Premises:
+  <br>&bull; All K-9 handlers are Level 3 certified.
+  <br>&bull; All Level 3 certified personnel complete monthly drills.
+  <br>&bull; Agent Tate completes monthly drills.
+  <br>Which conclusion is MOST STRONGLY supported?</p>
+  <ul class="opts">
+    <li><b>A.</b> Agent Tate is a K-9 handler.</li>
+    <li><b>B.</b> Agent Tate is Level 3 certified.</li>
+    <li><b>C.</b> Agent Tate is either a K-9 handler or Level 3 certified.</li>
+    <li><b>D.</b> Nothing can be concluded specifically about Agent Tate's certification or role from these premises.</li>
+    <li><b>E.</b> Agent Tate is a supervisor.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">29.</span> A protective detail covers FIVE consecutive events (Event 1 through Event 5) in a single day. Facts:
+  <br>&bull; Event 3 occurs exactly two hours after Event 1.
+  <br>&bull; Event 2 occurs before Event 3 but after Event 1.
+  <br>&bull; Event 5 occurs at 18:00.
+  <br>&bull; Events 4 and 5 are exactly 90 minutes apart.
+  <br>&bull; Event 1 occurs at 13:00.
+  <br>Which statement MUST be true?</p>
+  <ul class="opts">
+    <li><b>A.</b> Event 2 occurs at 14:00 exactly.</li>
+    <li><b>B.</b> Event 4 occurs at 16:30.</li>
+    <li><b>C.</b> Event 3 occurs at 16:00.</li>
+    <li><b>D.</b> Event 2 occurs at 15:30.</li>
+    <li><b>E.</b> The order of events cannot be determined.</li>
+  </ul>
+</div>
+
+<div class="q">
+  <p class="qtext"><span class="qnum">30.</span> Consider three statements referring to each other:
+  <br>&bull; S1: "At least one of S2 or S3 is true."
+  <br>&bull; S2: "Exactly one of S1 or S3 is true."
+  <br>&bull; S3: "S1 is false."
+  <br>Which assignment of truth values is CONSISTENT?</p>
+  <ul class="opts">
+    <li><b>A.</b> S1 = true, S2 = true, S3 = false</li>
+    <li><b>B.</b> S1 = true, S2 = false, S3 = true</li>
+    <li><b>C.</b> S1 = false, S2 = true, S3 = true</li>
+    <li><b>D.</b> S1 = false, S2 = false, S3 = true</li>
+    <li><b>E.</b> No assignment of truth values is consistent</li>
+  </ul>
+</div>
+
+<div class="key-note">
+  <b>Finished?</b> The answer key and per-question explanations are in a separate document: <code>answer-key-test-05.html</code>. Review every miss before moving on. Test 05 is designed to be harder than the real UDEE in Sections B and C; if you score 23 or higher, you are prepared.
+</div>
+
+</body>
+</html>
