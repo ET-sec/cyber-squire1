@@ -81,6 +81,34 @@ docs/RESUME_ATS_MASTERGUIDE.md
 docs/STAFFING_FIRM_RESEARCH.md
 docs/STREAM_SETUP.md
 
+# Personal financial / planning (NEVER public)
+docs/MILLION_DOLLAR_PLAN.md
+docs/CISSP_EXAM_FUNDING_RESEARCH.md
+docs/12-WEEK-YEAR-Q2-2026.md
+docs/*INTERVIEW_PREP.md
+docs/*FUNDING*
+docs/*FINANCIAL*
+
+# Personal AI agent persona + voice (NEVER public)
+CoreDirective/skills/SOUL.md
+
+# Job pipeline, recruiter intel, interview prep, tailored resumes (NEVER public)
+CoreDirective/career/
+
+# Brand, consulting, business, content production (NEVER public)
+CoreDirective/brand/
+CoreDirective/consulting/
+CoreDirective/products/
+CoreDirective/social/
+CoreDirective/legal/
+CoreDirective/mentorship/
+CoreDirective/linkedin-posts/
+CoreDirective/streaming/
+CoreDirective/video-production/
+CoreDirective/content-tools/
+CoreDirective/school/
+CoreDirective/grammarly/
+
 # ============================================
 # SECURITY: GRC Unsanitized Copies (local only)
 # ============================================
@@ -206,3 +234,19 @@ docs/grc/zap-report-*.html
 [0-9].[0-9]_*.md
 [0-9]_MGT*.md
 1.7_Environmental_Policy.md
+
+# Personal LinkedIn / About-page drafts (NEVER public)
+artifacts/linkedin-about.md
+artifacts/linkedin-*.md
+artifacts/*about*.md
+
+# Personal operational docs (NEVER public)
+docs/ADHD_Runbook.md
+docs/Employment_Proof.md
+docs/NEED_TO_KNOW.md
+docs/NEMOCLAW_MIGRATION.md
+docs/Technical_Vault.md
+docs/APPSEC_REPO_ADDITIONS.md
+docs/context/infrastructure.md
+docs/runbook/portfolio-resume-change-management.md
+docs/runbook/image-rollback.md
