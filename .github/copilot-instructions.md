@@ -1,7 +1,6 @@
-# CoreDirective Automation Engine -- AI Coding Agent Instructions
+# CoreDirective Automation Engine, AI Coding Agent Instructions
 
 **Project:** CoreDirective Automation Engine
-**Engineer:** Emmanuel Tigoue
 **AI Agent Target:** GitHub Copilot, Claude, Cursor, Windsurf
 
 ---
@@ -11,7 +10,7 @@
 DigitalOcean droplet (s-4vcpu-8gb, 4 vCPU, 8GB RAM, 160GB disk, Ubuntu 24.04).
 Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 
-## Stack: 14 Containers (13 Compose + 1 Standalone)
+## Stack
 
 | Container | Service |
 |-----------|---------|
@@ -38,12 +37,12 @@ Zero-trust via Cloudflare Tunnel. No ports exposed to public internet.
 
 All services accessed via Cloudflare Tunnel (no direct SSH or exposed endpoints).
 
-**NEVER** run `docker compose down` via the tunnel -- it kills the tunnel container.
+**NEVER** run `docker compose down` via the tunnel. It kills the tunnel container.
 
 ## IaC: Terraform
 
-- **Active:** `terraform/cd-do-infrastructure/` (16 .tf files, DigitalOcean + Cloudflare providers)
-- **Policies:** 8 OPA/Rego policies in `terraform/cd-do-infrastructure/policy/`
+- **Active:** `terraform/cd-do-infrastructure/` (DigitalOcean + Cloudflare providers)
+- **Policies:** OPA/Rego policies in `terraform/cd-do-infrastructure/policy/`
 - **Remote state:** DigitalOcean Spaces (S3-compatible, nyc3 region)
 - **Legacy (suspended):** `terraform/simple-ec2/`, `terraform/cd-aws-automation/`
 
@@ -54,13 +53,13 @@ All services accessed via Cloudflare Tunnel (no direct SSH or exposed endpoints)
 
 ## GRC: Compliance Library
 
-37 documents in `docs/grc/` covering NIST 800-53 Moderate baseline:
-SSP, POA&M, Risk Assessment, 10 policies (including AI governance), IAM maps, CIS register, 5 IR playbooks (including AI incident response), 6 threat modeling documents, 3 executive summaries, tabletop exercise.
+Documents in `docs/grc/` covering NIST 800-53 Moderate baseline:
+SSP, POA&M, Risk Assessment, policies (including AI governance), IAM maps, CIS register, IR playbooks (including AI incident response), threat modeling documents, executive summaries, tabletop exercise.
 Diagram generators in `docs/grc/diagrams/`.
 
-## Monitoring & Security
+## Monitoring and Security
 
-- **Datadog:** Logs, metrics, 11 monitors (datadoghq.com)
+- **Datadog:** Logs, metrics, monitors (datadoghq.com)
 - **Falco:** eBPF runtime threat detection with custom rules
 - **Falcosidekick:** Routes Falco alerts to Datadog
 - **Teleport:** SSH certificate auth, session recording, JIT access roles
@@ -83,27 +82,24 @@ All secrets managed via Doppler. Never commit `.env` or secrets to git.
 
 ```
 docs/
-  ADHD_Runbook.md          -- Operational playbook
-  Employment_Proof.md      -- Business case overview
-  Technical_Vault.md       -- Architecture deep-dive
-  grc/                     -- 37-doc NIST compliance library + diagram generators
+  grc/                     NIST compliance library + diagram generators
+  GROUND_TRUTH_AUDIT_PROTOCOL.md   repo verification methodology
 
-COREDIRECTIVE_ENGINE/      -- Local Docker Compose copy (13 services)
-terraform/                 -- IaC (DigitalOcean active, legacy suspended)
-.github/workflows/         -- CI/CD pipelines
-DEPRECATED/                -- Archived legacy docs and tools
+COREDIRECTIVE_ENGINE/      Local Docker Compose copy
+terraform/                 IaC (DigitalOcean active, legacy suspended)
+.github/workflows/         CI/CD pipelines
+.githooks/                 Pre-commit checks (AI-tells sweep)
+scripts/                   Helper scripts (git workflow, etc.)
 ```
 
 ## Guidelines for AI Agents
 
 1. Use `cd-*` prefixes for any new components
-2. Read docs: Employment_Proof (why), Technical_Vault (how), ADHD_Runbook (ops)
-3. Never commit `.env`, `*.pem`, `*.key`, or `terraform.tfstate`
+2. Read SECURITY.md for disclosure policy and CONTRIBUTING.md for workflow rules. Compliance context lives in `docs/grc/`.
+3. Never commit `.env`, `*.pem`, `*.key`, `terraform.tfstate`, or any file matching `.gitignore` patterns
 4. Terraform changes go through PR pipeline (fmt, validate, Checkov, OPA)
 5. All containers communicate via internal Docker network, not exposed ports
-6. Monitor resource usage -- 8GB RAM shared across 14 containers
 
 ---
 
-**Last Updated:** March 2026
-**Maintained By:** Emmanuel Tigoue
+**Last Updated:** June 2026
