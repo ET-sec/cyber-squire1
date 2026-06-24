@@ -21,6 +21,8 @@ Squire uses a four-layer guardrail stack to gate every `/alert` call. The layers
 | 3 | NeMo Colang output rail | `builds/squire/app/rails/output.co` + `svc-nemo` | Draft + critique LLM outputs | `reason_code=<entity>`, `rail_name=output` |
 | 4 | Critique citation guard | `builds/squire/app/graph/critique.py` | Investigation narrative | `reason_code=CITATION_GUARD_FAIL`, `rail_name=critique_guard` |
 
+**Path visibility:** `builds/squire/` is gitignored locally and is the working scaffold on the build machine. The public mirror lives at `Agent_Squire/` in the repository tree. References to `builds/squire/` in this document name the development location; the published code lives at the public mirror path.
+
 The first three layers are defensive. The fourth is integrity-preserving. The combination gives Squire four independent chances to catch different classes of failure. Red-team results (`docs/grc/REDTEAM_RESULTS.md`) show the post-remediation scoreboard is 6 of 6 cases handled, with the pre-graph scanner covering the two PII cases (R-02) and the rails plus citation guard covering the four injection/severity-flip cases.
 
 ### 1.1 Design Rationale
@@ -138,7 +140,7 @@ define flow check_jailbreak
 | `PHONE_NUMBER` | 0.85 | Covers international formats the regex misses |
 | `PERSON` | 0.95 | High threshold to avoid blocking ordinary hostnames |
 | `LOCATION` | 0.95 | Same reason |
-| `IP_ADDRESS` | disabled | Infrastructure alerts contain sanitized IPs (10.100.1.10) which would block-loop |
+| `IP_ADDRESS` | disabled | Production alert payloads carry real infrastructure IPs (RFC1918 ranges and the sanitized representation `10.100.1.10` in this doc) that are required to ship through the pipeline. Enabling this entity would block-loop on legitimate alerts. The GRC corpus itself contains sanitized IPs only, so the rail does not need to scan it. |
 
 ### 3.4 Jailbreak Pattern List
 
@@ -367,7 +369,7 @@ Each file has a corresponding test module under `builds/squire/tests/`. The test
 | `LAKERA_API_KEY` | Lakera Guard (placeholder) | On activation |
 | `NEMO_ADMIN_TOKEN` | `svc-nemo` admin API | Quarterly |
 | `ANTHROPIC_API_KEY` | LLM backend | Quarterly + rotate on any 402 |
-| `OPENAI_API_KEY` | Embeddings for corpus | Quarterly |
+| `VOYAGE_API_KEY` | Embeddings for corpus (per ADR 001) | Quarterly <!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `coredirective-engine/prd`; ADR_001_EMBEDDING_PROVIDER.md chose Voyage AI and the compose env block references this key --> |
 | `TAVILY_API_KEY` | Enrichment search | Quarterly |
 
 No guardrail secret is committed to Git. All secrets come from Doppler config `coredirective-engine/prd`.

@@ -51,7 +51,7 @@ A manual architecture security review of the Organization platform identified th
 | **OWASP** | A01:2025 Broken Access Control |
 | **Discovery Method** | Manual architecture security review |
 | **Affected Component** | svc-automation (n8n) Code node execution engine |
-| **Status** | REMEDIATED |
+| **Status** | Tactical remediation applied (`N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` in compose). Strategic remediation (Vault AppRole dynamic credentials, P4 below) tracked in POA&M. |
 
 ### 2.2 CVSS Vector Justification
 
@@ -62,7 +62,7 @@ A manual architecture security review of the Organization platform identified th
 | **Privileges Required (PR)** | Low | Any authenticated n8n user can create workflows containing Code nodes. No elevated privileges needed. |
 | **User Interaction (UI)** | None | The Code node executes on trigger without any interaction from another user. |
 | **Scope (S)** | Unchanged | The vulnerability operates within the svc-automation container boundary. Secrets from other services are exposed only because they were injected into this container's environment. |
-| **Confidentiality (C)** | High | All 79 secrets are readable, including database credentials, infrastructure API keys, and encryption material. |
+| **Confidentiality (C)** | High | All 44 secrets in the container's environment are readable, including database credentials, infrastructure API keys, and encryption material. |
 | **Integrity (I)** | High | With the exposed secrets, an attacker could modify workflows, send messages through bot integrations, alter database records, reconfigure infrastructure via cloud provider API, and manipulate tunnel routing. |
 | **Availability (A)** | None | The vulnerability itself does not directly enable denial of service. Downstream misuse of stolen credentials could affect availability, but that is a secondary effect. |
 
@@ -126,7 +126,7 @@ const envKeys = Object.keys(process.env);
 return [{ json: { keys: envKeys, count: envKeys.length } }];
 ```
 
-This returns the names of all 44 environment variables without triggering any security controls.
+This returns the names of all 44 environment variables in the container without triggering any security controls.
 
 **Step 3: Extract specific secret values.**
 
@@ -198,7 +198,7 @@ The following table categorizes all 44 environment variables by function and imp
 | **Search / AI** | 1 | `SEARCH_API_KEY` | Unauthorized API usage, cost accumulation. |
 | **Cloud Office** | 1 | `OFFICE_API_KEY` | Spreadsheet data access and modification. |
 | **Object Storage** | 2 | `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` | Terraform state file access, backup data exposure, state tampering. |
-| **AWS Credentials** | 5 | `CLOUD_ACCESS_KEY_ID`, `CLOUD_SECRET_ACCESS_KEY`, `CLOUD_ROOT_PASSWORD`, `CLOUD_PERSONAL_PASSWORD`, `CLOUD_ADMIN_PASSWORD` | Full AWS account access (suspended but credentials still valid for API calls). |
+| **AWS Credentials** | 5 | `CLOUD_ACCESS_KEY_ID`, `CLOUD_SECRET_ACCESS_KEY`, `CLOUD_ROOT_PASSWORD`, `CLOUD_PERSONAL_PASSWORD`, `CLOUD_ADMIN_PASSWORD` | Full AWS account access (account suspended 2026-03-08 for billing; API credentials may still be valid for API calls until rotated). <!-- TODO(et): confirm whether the AWS access keys were rotated or revoked post-suspension; if active, residual exposure is real and a rotation event should be logged --> |
 | **Streaming** | 1 | `STREAM_KEY` | Stream hijacking, unauthorized broadcasts. |
 | **Network / VPN** | 3 | `VPN_USERNAME`, `VPN_PASSWORD`, `NETWORK_PASSWORD` | VPN account compromise, network gateway access. |
 | **Administrative Passwords** | 4 | `AUTOMATION_WEB_PASSWORD`, `AUTOMATION_ADMIN_PASS`, `DB_PASS_1P`, `MONITOR_PASSWORD` | Duplicate admin credential exposure across multiple services. |
@@ -207,7 +207,7 @@ The following table categorizes all 44 environment variables by function and imp
 
 | Impact Dimension | Assessment |
 |-----------------|------------|
-| **Confidentiality** | Complete. All 79 secrets readable. Every integrated system is exposed. |
+| **Confidentiality** | Complete. All 44 secrets readable. Every integrated system reachable from this container is exposed. |
 | **Integrity** | High. Database write access, workflow manipulation, infrastructure reconfiguration, DNS changes, and code repository modification are all possible. |
 | **Availability** | Moderate (indirect). Attacker could destroy infrastructure via cloud provider API, corrupt database, or disable tunnel connectivity. |
 | **Financial** | Moderate. Unauthorized LLM API consumption, cloud resource creation, and SaaS platform abuse. |
@@ -284,7 +284,7 @@ None observed. n8n workflows that legitimately need external data should use the
 | 2026-03-22 | 09:00 | Manual architecture security review initiated | System Owner |
 | 2026-03-22 | 09:30 | Discovery: Code node `process.env` access confirmed with test workflow | System Owner |
 | 2026-03-22 | 09:45 | CVSS scoring completed, rated HIGH (8.1) | Information Security Officer |
-| 2026-03-22 | 10:00 | Blast radius analysis completed, 79 secrets confirmed exposed | Information Security Officer |
+| 2026-03-22 | 10:00 | Blast radius analysis completed, 44 secrets confirmed exposed | Information Security Officer |
 | 2026-03-22 | 10:15 | Remediation applied: `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` | System Owner |
 | 2026-03-22 | 10:20 | svc-automation container restarted | System Owner |
 | 2026-03-22 | 10:25 | Verification completed: `process.env` returns empty object | System Owner |
@@ -305,7 +305,7 @@ n8n's default configuration does not restrict Code node access to the host proce
 
 | Factor | Description |
 |--------|-------------|
-| **Secret injection method** | All 79 secrets are injected as environment variables through the Docker Compose `.env` file. This is the standard method for containerized applications but creates a flat namespace where every variable is equally accessible to any process in the container. |
+| **Secret injection method** | All 44 secrets are injected as environment variables through the Docker Compose `.env` file. This is the standard method for containerized applications but creates a flat namespace where every variable is equally accessible to any process in the container. |
 | **n8n's execution model** | Code nodes run JavaScript in a Node.js VM context that shares the process environment with the n8n server process. There is no sandboxing or capability restriction between the workflow engine and user-authored code. |
 | **Single-container secret scope** | Docker Compose environment variables are scoped to the container, not to individual processes within the container. Every process inside svc-automation, including user-authored Code nodes, inherits the full environment. |
 | **Missing hardening checklist** | The initial deployment of svc-automation did not include a review of n8n-specific security configuration flags. The `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS` flag was not in the deployment checklist. |
@@ -354,14 +354,14 @@ Every application deployed on the platform should undergo a security configurati
 
 ## 10. Recommendations
 
-| Priority | Recommendation | Status | Timeline |
-|----------|---------------|--------|----------|
-| **P1** | Enable `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` | COMPLETE | Same day |
-| **P2** | Add n8n security flags to deployment hardening checklist | OPEN | 30 days |
-| **P3** | Implement Falco custom rule for unusual outbound connections from svc-automation | OPEN | 60 days |
-| **P4** | Migrate from static environment variables to Vault AppRole dynamic credentials | OPEN | 90 days (tracked in POA&M) |
-| **P5** | Conduct application-specific security configuration reviews for all 20 containers | OPEN | 90 days |
-| **P6** | Implement n8n execution logging that captures Code node source and output | OPEN | 60 days |
+| Priority | Recommendation | Status | Original Target | Updated Target |
+|----------|---------------|--------|-----------------|----------------|
+| **P1** | Enable `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` | COMPLETE (2026-03-22) | Same day | n/a |
+| **P2** | Add n8n security flags to deployment hardening checklist | Open; target extended | 2026-04-21 | 2026-08-15 <!-- TODO(et): mark COMPLETE with evidence link if hardening checklist has been authored, else keep extended target --> |
+| **P3** | Implement Falco custom rule for unusual outbound connections from svc-automation | Open; target extended | 2026-05-21 | 2026-08-15 <!-- TODO(et): confirm Falco custom rule status; mark COMPLETE with rule reference if shipped --> |
+| **P4** | Migrate from static environment variables to Vault AppRole dynamic credentials | Open; tracked in POA&M | 2026-06-20 | 2026-12-31 <!-- TODO(et): align with POA&M target for Vault AppRole migration --> |
+| **P5** | Conduct application-specific security configuration reviews for all 20 containers | Open; target extended | 2026-06-20 | 2026-09-30 <!-- TODO(et): track per-container review completion --> |
+| **P6** | Implement n8n execution logging that captures Code node source and output | Open; target extended | 2026-05-21 | 2026-09-15 <!-- TODO(et): confirm n8n execution logging configuration --> |
 
 ---
 

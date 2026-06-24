@@ -15,9 +15,9 @@
 | Field | Value |
 |-------|-------|
 | Document ID | DFD-OPS-001 |
-| Version | 1.0 |
+| Version | 1.1 |
 | Status | Approved |
-| Last Revised | 2026-03-12 |
+| Last Revised | 2026-04-24 |
 | Next Review | 2026-09-12 |
 | Author | Information Security Officer |
 | Approver | System Owner |
@@ -27,6 +27,7 @@
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-12 | Information Security Officer | Initial DFD covering all 20 services, 3 networks, 7 trust boundaries |
+| 1.1 | 2026-04-24 | Information Security Officer | Phase 17 scope extension. Added Squire alert pipeline section 11 with +10 data flows, +3 trust boundaries, +6 data stores, +3 external entities. Reconciled totals: 40 flows, 15 stores, 14 entities, 10 boundaries. |
 
 ---
 
@@ -135,7 +136,7 @@ The platform is represented as a single process. All external entities and their
 
 ## 4. Level 1 - System Decomposition
 
-The platform is decomposed into five trust zones with 20 services, 3 Docker networks, and 7 trust boundaries.
+The platform is decomposed into five trust zones with 20 services, 3 Docker networks, and 10 trust boundaries (7 legacy plus 3 Phase 17, see section 11).
 
 ```
 Legend: [TB-N] = Trust Boundary | [P-NN] = Process | [DS-NN] = Data Store | ──► = Data Flow
@@ -177,7 +178,7 @@ Legend: [TB-N] = Trust Boundary | [P-NN] = Process | [DS-NN] = Data Store | ─�
 │  net-core:              │         │          net-ai (internal: true):        │
 │  ┌──────────────────┐   │    ┌────┴────┐     ┌──────────────────────┐       │
 │  │[DS-01] svc-db    │◄──┘    │ [DF-15] │     │[P-06] svc-llm       │       │
-│  │(PostgreSQL 16)   │        │         ▼     │(Ollama - Qwen 3 4B) │       │
+│  │(PostgreSQL 16)   │        │         ▼     │(Ollama - Qwen 3 8B) │       │
 │  │                  │        │    [DF-16]     │  No internet egress  │       │
 │  │[DS-02] db-data-  │        │         │     └──────────────────────┘       │
 │  │  volume          │        │         │     ┌──────────────────────┐       │
@@ -265,7 +266,7 @@ Legend: [TB-N] = Trust Boundary | [AI-0N] = AI System | ──► = Data Flow
 │  │                 ─────┼──────────────────────────────── [TB-3]          │
 │  │                      │                                                 │
 │  │                      ├──[DF-16]──► [P-06] svc-llm [AI-002]            │
-│  │                      │             (Ollama - Qwen 3 4B)               │
+│  │                      │             (Ollama - Qwen 3 8B)               │
 │  │                      │             net-ai: no internet egress          │
 │  │                      │             Local classification,               │
 │  │                      │             summarization, triage               │
@@ -334,7 +335,7 @@ AI Pipeline Data Flow Summary:
 | DS-01 | svc-db (PostgreSQL 16) | Relational database | High - workflow state, credential references, user data, RBAC state | Partial - volume-level encryption depends on host disk config; no TDE | Automated scripts to /opt/platform/CD_BACKUPS/ |
 | DS-02 | db-data-volume | Docker volume (persistent) | High - PostgreSQL data files | Inherits host disk encryption | Included in DS-01 backup scope |
 | DS-03 | svc-automation persistent data | Docker volume (/opt/platform/CD_VOL_N8N/) | Medium - workflow definitions, execution history, imported credentials | No additional encryption beyond host | Not independently backed up |
-| DS-04 | svc-llm model storage | Docker volume (/opt/platform/CD_VOL_OLLAMA/) | Low - public model weights (Qwen 3 4B) | None (public data) | Not backed up (re-pullable) |
+| DS-04 | svc-llm model storage | Docker volume (/opt/platform/CD_VOL_OLLAMA/) | Low - public model weights (Qwen 3 8B) | None (public data) | Not backed up (re-pullable) |
 | DS-05 | svc-transcription model cache | Docker volume (/opt/platform/CD_VOL_WHISPER/) | Low - public Whisper model weights | None (public data) | Not backed up (re-pullable) |
 | DS-06 | svc-secrets storage | Docker volume (/opt/platform/CD_VOL_VAULT/) | Critical - sealed secret data, encryption keys, dynamic credentials | AES-256-GCM (Vault auto-unseal or Shamir) | Not independently backed up (stateless config; secrets sourced from the secrets manager) |
 | DS-07 | Terraform state | Remote encrypted storage | High - full infrastructure state, resource IDs, configuration | AES-256 at rest (remote backend) | Version history in remote backend |
@@ -445,7 +446,7 @@ Each trust boundary crossing in this DFD maps to STRIDE threats in `THREAT_MODEL
 
 ## 11. Phase 17 Scope Extension: Squire Autonomous SOC Analyst
 
-> **Key Point:** Phase 17 added a new AI-driven SOC analyst subsystem. This extends the Level 2 DFD with 10 new data flows, 3 new trust boundaries, 6 new data stores, and 3 new external entities. The canonical classification of every Squire data class lives in `SQUIRE_DATA_FLOW_CLASSIFICATION.md`.
+**Key Point:** Phase 17 added a new AI-driven SOC analyst subsystem. This extends the Level 2 DFD with 10 new data flows, 3 new trust boundaries, 6 new data stores, and 3 new external entities. The canonical classification of every Squire data class lives in `SQUIRE_DATA_FLOW_CLASSIFICATION.md`.
 
 ### 11.1 Phase 17 alert pipeline (Mermaid Level 2)
 
@@ -535,6 +536,8 @@ flowchart LR
 
 ### 11.3 New trust boundaries (+3)
 
+<!-- TODO(et): Row count mismatch. Section heading says "+3" and section 11.6 reconciled total is 10, but this table lists 4 boundaries (TB-8 through TB-11). Either drop TB-11 (Squire->Langfuse is observability, may be considered intra-zone) or change to "+4" with reconciled total 11. -->
+
 | ID | Boundary | Crosses | Controls |
 |----|----------|---------|----------|
 | TB-8 | Public Internet to Cloudflare | Inbound alert ingress, outbound delivery | Cloudflare WAF, rate limit, HMAC token |
@@ -559,6 +562,7 @@ flowchart LR
 |----|--------|---------|------|
 | E-12 | Anthropic API | Primary Opus 4.7 and Sonnet 4.6 inference | API key, 60-day rotation |
 | E-13 | Tavily API | Enrichment search | API key |
+<!-- TODO(et): Clarify production state of OpenClaw OAuth bearer. "pending" status needs an explicit owner and ETA. -->
 | E-14 | OpenClaw gateway | Agent dispatch path | OAuth bearer, pending |
 
 ### 11.6 Reconciled counts
@@ -572,7 +576,7 @@ flowchart LR
 
 ### 11.7 Cross-references
 
-See `SQUIRE_DATA_FLOW_CLASSIFICATION.md` for per-class encryption, retention, sanitization, and access rules. See `SQUIRE_SSP.md` for control implementation. See `GUARDRAILS_CONFIGURATION.md` for rail configuration. See `AI_AUDIT_TRAIL_SPEC.md` for per-invocation logging. `SQUIRE_THREAT_MODEL.md` (scheduled in plan 17-14) will supersede this section as the integrated Squire-scope threat view.
+See `SQUIRE_DATA_FLOW_CLASSIFICATION.md` for per-class encryption, retention, sanitization, and access rules. See `SQUIRE_SSP.md` for control implementation. See `GUARDRAILS_CONFIGURATION.md` for rail configuration. See `AI_AUDIT_TRAIL_SPEC.md` for per-invocation logging. `SQUIRE_THREAT_MODEL.md` supersedes this section as the integrated Squire-scope threat view.
 
 ---
 

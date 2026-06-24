@@ -68,7 +68,7 @@ Framework alignment:
 
 - NIST AI RMF function: MAP (map the context and risks), MEASURE (assess and track risks), MANAGE (prioritize and respond to risks).
 - CSA Agentic Profile: MG-1.1 (agent behavior monitoring), MG-2.2 (action allow-lists), MG-3.1 (cost governance), MG-4.3 (delegation-chain accountability).
-- OWASP LLM Top 10 (2025): LLM01 (Prompt Injection), LLM02 (Insecure Output), LLM06 (Sensitive Information Disclosure), LLM07 (Insecure Plugin Design), LLM08 (Excessive Agency), LLM09 (Overreliance), LLM10 (Model Theft).
+- OWASP LLM Top 10 (2025): LLM01 (Prompt Injection), LLM02 (Sensitive Information Disclosure), LLM03 (Supply Chain), LLM04 (Data and Model Poisoning), LLM05 (Improper Output Handling), LLM06 (Excessive Agency), LLM07 (System Prompt Leakage), LLM08 (Vector and Embedding Weaknesses), LLM09 (Misinformation), LLM10 (Unbounded Consumption).
 
 ### 2.1 Threat Model Summary
 
@@ -109,13 +109,13 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=2, I=4, score=8 (MODERATE). The residual risk is novel injection patterns not yet in the regression suite.
 
-**Framework citations.** NIST AI RMF MG-4.3 (risk monitoring for deployed systems); CSA Agentic MG-2.2 (input validation); OWASP LLM01; NIST 800-53 SI-4, SI-10; MITRE ATT&CK TA0001 (Initial Access) / T1566 (Phishing) by analogy.
+**Framework citations.** NIST AI RMF MG-4.3 (risk monitoring for deployed systems); CSA Agentic MG-2.2 (input validation); OWASP LLM01; NIST 800-53 SI-4, SI-10; MITRE ATLAS AML.T0051 (LLM Prompt Injection).
 
 ### R-02: PII Leakage Through the Alert Payload
 
 **Description.** A live alert includes unsanitized PII (SSN, credit card, email, phone) that would be transmitted to Anthropic if it reaches the draft or critique node. The NeMo input rail covers draft and critique prompts, but the classify and retrieve nodes operate on the raw payload before the rail engages.
 
-**Category.** LLM06 Sensitive Information Disclosure.
+**Category.** LLM02 Sensitive Information Disclosure.
 
 **Inherent.** L=4, I=5, score=20 (CRITICAL). PII transmitted to a third-party API is a regulatory exposure.
 
@@ -128,13 +128,13 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=2, I=3, score=6 (MODERATE). Residual risk is PII formats not covered by regex (SWIFT codes, UK NI numbers, passport numbers, non-US phones). Risk R-13 tracks this as a separate item.
 
-**Framework citations.** NIST AI RMF MG-4.3; OWASP LLM06; NIST 800-53 SC-8, SI-12; GDPR Art 32 (if EU data applied); HIPAA SR if PHI present.
+**Framework citations.** NIST AI RMF MG-4.3; OWASP LLM02; NIST 800-53 SC-8, SI-12; GDPR Art 32 (if EU data applied); HIPAA SR if PHI present.
 
 ### R-03: Hallucinated Framework Citations
 
 **Description.** The draft node fabricates a NIST or ATT&CK code that sounds plausible (e.g., `SI-99` or `T9999`) and the citation appears authoritative in the response.
 
-**Category.** LLM09 Overreliance; also relevant to LLM02 Insecure Output.
+**Category.** LLM09 Misinformation; also relevant to LLM05 Improper Output Handling.
 
 **Inherent.** L=4, I=4, score=16 (CRITICAL). A hallucinated citation destroys Squire's trust foundation. The entire interview pitch is "every response carries a real framework citation".
 
@@ -148,13 +148,13 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=2, I=3, score=6 (MODERATE). Residual is a valid-but-irrelevant citation (a real code that does not apply). The critique's consistency check partly addresses this but is imperfect.
 
-**Framework citations.** NIST AI RMF MG-4.3; CSA Agentic MG-1.1; OWASP LLM09; NIST 800-53 SI-7.
+**Framework citations.** NIST AI RMF MG-4.3; CSA Agentic MG-1.1; OWASP LLM09 Misinformation; NIST 800-53 SI-7.
 
 ### R-04: Runaway Cost
 
 **Description.** A pathological input (large retrieval result, aggressive critique iteration) or an attack loop causes the graph to consume far more tokens than budgeted. At Opus 4.7 pricing, a single runaway call can exceed $5.
 
-**Category.** LLM10 Model Theft (in the sense of resource theft); CSA Agentic MG-3.1 (cost governance).
+**Category.** LLM10 Unbounded Consumption; CSA Agentic MG-3.1 (cost governance).
 
 **Inherent.** L=3, I=3, score=9 (MODERATE). Agentic systems with unbounded iteration are prone to runaway inference loops; per-call and daily cost ceilings plus iteration caps are the primary inherent-risk reducers.
 
@@ -168,7 +168,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=1, I=2, score=2 (LOW). Accepted.
 
-**Framework citations.** NIST AI RMF MG-3.1; CSA Agentic MG-3.1; OWASP LLM10; NIST 800-53 SI-4.
+**Framework citations.** NIST AI RMF MG-3.1; CSA Agentic MG-3.1; OWASP LLM10 Unbounded Consumption; NIST 800-53 SI-4.
 
 ### R-05: Supply-Chain Compromise
 
@@ -180,6 +180,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Mitigations.**
 
+<!-- TODO(et): Verify "107 dependencies" against actual Squire repo. Confirm whether dependency manifest is requirements.txt or pyproject.toml; AI_SUPPLY_CHAIN_REGISTER references pyproject. -->
 - `requirements.txt` pins 107 dependencies to exact versions.
 - CI runs `pip-audit` on every build. Any unresolved CVE fails the pipeline.
 - Trivy scans the final image for OS-level and Python-level CVEs.
@@ -195,7 +196,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Description.** The 31-document GRC corpus goes stale. New playbooks are added to `docs/grc/` without being re-embedded, or sanitization changes create mismatches. Squire's answers cite outdated document versions.
 
-**Category.** NIST AI RMF MAP-3.4 (data management); OWASP LLM09 Overreliance.
+**Category.** NIST AI RMF MAP-3.4 (data management); OWASP LLM09 Misinformation.
 
 **Inherent.** L=4, I=2, score=8 (MODERATE). Likely because humans update docs more often than they trigger reindex. Moderate impact because stale citations still point to real content, just not the newest version.
 
@@ -214,7 +215,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Description.** Squire executes a remediation action without operator approval. For example, revoking a credential, killing a container, or isolating a host based on its own inference.
 
-**Category.** LLM08 Excessive Agency; CSA Agentic MG-2.2.
+**Category.** LLM06 Excessive Agency; CSA Agentic MG-2.2.
 
 **Inherent.** L=3, I=5, score=15 (CRITICAL). Silently taking action is the top-cited concern for agentic SOC systems.
 
@@ -228,7 +229,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=1, I=3, score=3 (LOW). Accepted.
 
-**Framework citations.** NIST AI RMF MG-2.2; CSA Agentic MG-2.2; OWASP LLM08; NIST 800-53 AC-3, AC-6.
+**Framework citations.** NIST AI RMF MG-2.2; CSA Agentic MG-2.2; OWASP LLM06; NIST 800-53 AC-3, AC-6.
 
 ### R-08: Audit Trail Tampering
 
@@ -254,7 +255,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Description.** An attacker floods `/alert` with expensive payloads designed to exhaust Anthropic quota or trigger rate limits, denying service to legitimate callers.
 
-**Category.** DoS; OWASP LLM10 variant; NIST 800-53 SC-5.
+**Category.** DoS; OWASP LLM10 Unbounded Consumption; NIST 800-53 SC-5.
 
 **Inherent.** L=3, I=3, score=9 (MODERATE). Anyone who guesses the token or cracks it out of a Langfuse screenshot can attempt this.
 
@@ -269,15 +270,15 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=1, I=2, score=2 (LOW). Accepted.
 
-**Framework citations.** NIST AI RMF MG-3.1; NIST 800-53 SC-5, SC-7; OWASP LLM10.
+**Framework citations.** NIST AI RMF MG-3.1; NIST 800-53 SC-5, SC-7; OWASP LLM10 Unbounded Consumption.
 
 ### R-10: Citation Hallucination With Real Codes
 
 **Description.** A more subtle variant of R-03: the draft cites a real code like `SI-7` in a context where it does not apply, or cites a real ATT&CK technique that is tangentially related but not the best fit. The citation is shape-valid and provenance-valid but semantically wrong.
 
-**Category.** LLM09 Overreliance.
+**Category.** LLM09 Misinformation.
 
-**Inherent.** L=3, I=2, score=6 (MODERATE). Likely at the margins, impact is "credibility erosion" not "regulatory breach".
+**Inherent.** L=3, I=2, score=6 (MODERATE). Likely at the margins. Impact is "credibility erosion" rather than "regulatory breach".
 
 **Mitigations.**
 
@@ -287,13 +288,13 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=2, I=2, score=4 (LOW). Accepted with ongoing audit.
 
-**Framework citations.** NIST AI RMF MG-4.3; OWASP LLM09.
+**Framework citations.** NIST AI RMF MG-4.3; OWASP LLM09 Misinformation.
 
 ### R-11: Model Endpoint Downgrade
 
 **Description.** An attacker coerces Squire into using the cheaper classifier model (Sonnet 4.6) for a call that should use Opus 4.7, exploiting model confusion or routing logic.
 
-**Category.** LLM02 Insecure Output; NIST AI RMF MG-1.1.
+**Category.** LLM05 Improper Output Handling; NIST AI RMF MG-1.1.
 
 **Inherent.** L=2, I=3, score=6 (MODERATE).
 
@@ -305,7 +306,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=1, I=2, score=2 (LOW). Accepted.
 
-**Framework citations.** NIST AI RMF MG-1.1; OWASP LLM02.
+**Framework citations.** NIST AI RMF MG-1.1; OWASP LLM05 Improper Output Handling.
 
 ### R-12: Replay Abuse
 
@@ -330,7 +331,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Description.** The pre-graph scanner does not cover every PII format. SWIFT codes, UK national insurance numbers, passport numbers, and non-US phone formats slip through and reach the LLM.
 
-**Category.** OWASP LLM06; NIST AI RMF MG-4.1.
+**Category.** OWASP LLM02 Sensitive Information Disclosure; NIST AI RMF MG-4.1.
 
 **Inherent.** L=3, I=3, score=9 (MODERATE). Likely given expanding attack surface; impact is regulatory exposure scaled to which PII type.
 
@@ -342,7 +343,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Residual.** L=2, I=2, score=4 (LOW). Accepted with POA&M tracking.
 
-**Framework citations.** NIST AI RMF MG-4.1; OWASP LLM06; NIST 800-53 SI-4.
+**Framework citations.** NIST AI RMF MG-4.1; OWASP LLM02 Sensitive Information Disclosure; NIST 800-53 SI-4.
 
 ## 4. Risk Heat Map
 
@@ -376,6 +377,7 @@ After mitigations, the residual landscape is clean: zero CRITICAL, zero HIGH, fo
 
 POA&M entries created for partial mitigations:
 
+<!-- TODO(et): POAM-P17-PII-01 (target 2026-06-30) imminent and POAM-P17-AUDIT-01 (target 2026-05-15) past. Confirm closure or revised target. -->
 - `POAM-P17-PII-01`: Expand regex coverage to include SWIFT, UK NI, passport, E.164 international phone. Target 2026-06-30.
 - `POAM-P17-AUDIT-01`: Implement weekly human review of 10 random traces for semantic citation drift (R-10). Target 2026-05-15.
 

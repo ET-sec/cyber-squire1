@@ -56,7 +56,7 @@ related:
 
 Squire is an autonomous Security Operations Center analyst deployed at `squire.example-ops.com`. It ingests raw alert payloads, classifies them against a sanitized Governance, Risk, and Compliance (GRC) corpus held in pgvector, retrieves relevant policy and playbook passages, calls external enrichment APIs, and drafts an analyst-style investigation report with explicit framework citations (NIST 800-53, CSF 2.0, MITRE ATT&CK, NIST AI RMF, OWASP LLM Top 10).
 
-The system is a seven-node LangGraph state machine running on top of Anthropic Claude Opus 4.7 (draft, critique, investigate) and Claude Sonnet 4.6 (classification), with `text-embedding-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
+The system is a seven-node LangGraph state machine running on top of Anthropic Claude Opus 4.7 (draft, critique, investigate) and Claude Sonnet 4.6 (classification), with Voyage AI `voyage-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
 
 Squire never performs remediation. It issues recommendations in a controlled vocabulary defined by `actions.yml` (recommend-only mode, see Annex A). Every response carries a citation block pinned to document identifiers retrieved during the RAG step (see Annex B). The system is categorized FIPS 199 LOW for availability and confidentiality of transient alert data. Audit trail integrity is the single MODERATE control family.
 
@@ -125,7 +125,7 @@ The authorization boundary encompasses:
 Out of boundary:
 
 - The Anthropic API (FedRAMP and external shared-responsibility boundary)
-- The OpenAI embeddings endpoint (external)
+- The Voyage AI embeddings endpoint (external)
 - The Tavily search API used for enrichment (external)
 - DigitalOcean compute and network substrate (parent SSP inheritance)
 - Docker runtime and the host Ubuntu 24.04 kernel (parent SSP inheritance)
@@ -138,7 +138,7 @@ Out of boundary:
 | LLM prompts and completions | C.3.5.3 | Request/response bodies persisted to Langfuse Postgres + ClickHouse for 30 days |
 | Retrieval embeddings | C.3.5.3 | 1024-dimension float vectors in `ir_chunks.embedding` |
 | Investigation reports | C.3.5.1 | Structured JSON returned to callers; not persisted beyond Langfuse trace retention |
-| Configuration and secrets | C.2.8.1 | Doppler-managed API keys (Anthropic, OpenAI, Tavily, Langfuse, Postgres) |
+| Configuration and secrets | C.2.8.1 | Doppler-managed API keys (Anthropic, Voyage AI, Tavily, Langfuse, Postgres) |
 
 ## 3. System Description
 
@@ -153,7 +153,7 @@ Squire runs as a deterministic state machine. Each incoming `/alert` request exe
                       |  HTTPS (Cloudflare tunnel)
                       v
 +---------------------------------------+
-|  svc-squire (FastAPI, port 8787)      |
+|  svc-squire (FastAPI, port 8020)      |
 |  +---------------------------------+  |
 |  | pre_graph_pii (regex, 0 ms)     |  |
 |  +---------------------------------+  |
@@ -177,7 +177,7 @@ Squire runs as a deterministic state machine. Each incoming `/alert` request exe
         v
 +---------------+
 | Anthropic /   |
-| OpenAI /      |
+| Voyage AI /   |
 | Tavily (HTTPS)|
 +---------------+
 ```
@@ -186,12 +186,12 @@ Squire runs as a deterministic state machine. Each incoming `/alert` request exe
 
 | Container | Image | Role | Network | Port |
 |-----------|-------|------|---------|------|
-| `svc-squire` | Built locally, python:3.11-slim base | FastAPI app, LangGraph executor | net-ai | 8787 |
-| `svc-nemo` | `nvidia/nemo-guardrails:0.21.0` | Rail evaluator, presidio PII | net-ai | 8000 |
-| `svc-langfuse-web` | `langfuse/langfuse:3` | Trace UI + REST ingest | net-ai | 3000 |
-| `svc-langfuse-worker` | `langfuse/langfuse-worker:3` | Background ingest, eval jobs | net-ai | - |
-| `svc-langfuse-clickhouse` | `clickhouse/clickhouse-server:24.11` | Trace analytics store | net-ai | 9000 |
-| `svc-langfuse-redis` | `redis:7-alpine` | Queue, rate limits | net-ai | 6379 |
+| `svc-squire` | Built locally, python:3.11-slim base | FastAPI app, LangGraph executor | net-core | 8020 |
+| `svc-nemo` | `nvidia/nemo-guardrails:0.21.0` | Rail evaluator, presidio PII | net-core | 8000 (host 8001) |
+| `svc-langfuse-web` | `langfuse/langfuse:3` | Trace UI + REST ingest | net-core | 3000 |
+| `svc-langfuse-worker` | `langfuse/langfuse-worker:3` | Background ingest, eval jobs | net-core | - |
+| `svc-langfuse-clickhouse` | `clickhouse/clickhouse-server:24.11` | Trace analytics store | net-core | 9000 |
+| `svc-langfuse-redis` | `redis:7-alpine` | Queue, rate limits | net-core | 6379 |
 | `svc-db` | `pgvector/pgvector:pg16` | Shared Postgres with `ir_*` tables | net-core | 5432 |
 
 ### 3.3 LLM Backend Abstraction
@@ -217,7 +217,7 @@ Model routing per node:
 | investigate | `anthropic/claude-opus-4-7` | Multi-step reasoning over retrieved chunks |
 | draft | `anthropic/claude-opus-4-7` | Final narrative composition |
 | critique | `anthropic/claude-opus-4-7` | Citation validator + severity sanity check |
-| embeddings | `openai/text-embedding-3-large` | 1024-dim vectors (see ADR 001) |
+| embeddings | `voyage/voyage-3-large` | 1024-dim vectors (see ADR 001) |
 
 ## 4. Security Categorization
 
@@ -247,7 +247,7 @@ Overall system category: MODERATE (driven by integrity).
 | Destination | Content | Transport | PII Exposure |
 |-------------|---------|-----------|--------------|
 | Anthropic API | System prompt + user alert summary + retrieved chunks | HTTPS | Blocked by pre-graph scanner and NeMo rails |
-| OpenAI embeddings | Chunk text for ingestion only (not alert bodies) | HTTPS | None by design (corpus pre-sanitized) |
+| Voyage AI embeddings | Chunk text for ingestion only (not alert bodies) | HTTPS | None by design (corpus pre-sanitized) |
 | Tavily search | Query strings derived from `classify` output | HTTPS | None (classifier strips identifiers) |
 | Langfuse | Full prompt/response pairs including rail decisions | HTTPS to `langfuse.example-ops.com` | Blocked content is tagged `__NEMO_BLOCK__` with reason code; raw PII never reaches the LLM so never reaches the trace |
 
@@ -266,7 +266,7 @@ Alert telemetry is classified as Internal rather than Regulated because the corp
 
 Investigation reports are not persisted beyond Langfuse trace retention. The caller receives the JSON and is responsible for downstream storage. This is a deliberate choice: Squire behaves like a stateless function call with a trace side-effect. It does not maintain a case file of its own.
 
-Embeddings in `ir_chunks.embedding` are 1024-dimension float32 vectors. The decision to use 1024 dimensions (rather than the native 3072 from `text-embedding-3-large`) reduces storage by 3x and index build time by roughly 4x at the cost of modest recall. ADR 001 in `docs/grc/ADR_001_EMBEDDING_PROVIDER.md` records the rationale.
+Embeddings in `ir_chunks.embedding` are 1024-dimension float32 vectors. The decision to use Voyage AI `voyage-3-large` at the 1024-dim Matryoshka setting (rather than a larger native dimension or an alternative provider) is recorded in ADR 001 at `docs/grc/ADR_001_EMBEDDING_PROVIDER.md`.
 
 ### 5.5 Retention and Disposition
 
@@ -327,7 +327,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | IR-4 | Implemented | Squire is itself an incident-handling tool. Incidents against Squire (rail bypass, prompt injection success) are captured in `docs/grc/REDTEAM_RESULTS.md` and tracked as POA&M entries. | `docs/grc/REDTEAM_RESULTS.md` |
 | IR-5 | Implemented | Every `/alert` call is monitored through Langfuse. Latency P95 budget is 45 seconds. Cost budget per call is $0.75. Violations fire a Datadog monitor. | Datadog monitor ID `squire_cost_ceiling` |
-| IR-6 | Implemented | Rail triggers and pre-graph blocks route to Telegram within 30 seconds via the `svc-event-handler` path. | `builds/squire/app/alerting.py` |
+| IR-6 | Implemented | Rail triggers and pre-graph blocks route to Telegram within 30 seconds via the `svc-event-shipper` path. | `builds/squire/app/alerting.py` |
 
 ### 6.6 RA - Risk Assessment
 
@@ -342,6 +342,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | SA-8 | Implemented | Secure design principles applied: fail closed, defense in depth (pre-graph regex plus NeMo rails plus critique validator), least privilege (no remediation capability, recommend-only), separation of duties (model routing ensures no single prompt decides severity and citations). | This SSP |
+<!-- TODO(et): 127-test count is 2 months old. Re-run the suite and update the number. -->
 | SA-11 | Implemented | Security testing is continuous: pytest suite has 127 tests including 24 red-team regression cases. All 127 passing as of 2026-04-23. | `builds/squire/tests/` |
 | SA-15 | Implemented | Development tooling is minimal: `uv`, `ruff`, `mypy`, `pytest`. No proprietary build server. | `builds/squire/pyproject.toml` |
 
@@ -349,7 +350,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| SC-7 | Implemented | Only `svc-squire` receives external traffic through the Cloudflare tunnel. `svc-nemo`, Langfuse, and `svc-db` are on internal networks only. | `builds/squire/docker-compose.yaml` ports block shows `svc-squire` binding `127.0.0.1:8787` |
+| SC-7 | Implemented | Only `svc-squire` receives external traffic through the Cloudflare tunnel. `svc-nemo`, Langfuse, and `svc-db` are on internal networks only. | `builds/squire/docker-compose.yaml` ports block shows `svc-squire` binding `127.0.0.1:8020` |
 | SC-8 | Implemented | All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container. | Cloudflare config |
 | SC-12 | Implemented | Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on-demand for the ingest token. | Doppler rotation log |
 | SC-28 | Implemented | Data at rest in the `ir_*` tables is encrypted at the volume layer (parent SSP). Langfuse trace data has the same treatment. | Parent SSP LUKS coverage |
@@ -369,6 +370,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | SQ-COST-1 | Implemented | Per-call cost ceiling of $0.75 enforced in `builds/squire/app/cost_guard.py`. The guard tracks cumulative Anthropic spend returned in response headers (`anthropic-input-tokens`, `anthropic-output-tokens`) and aborts the graph if the budget would be exceeded on the next node. Aborted calls return 402 with `reason_code=COST_CEILING_EXCEEDED`. | `builds/squire/app/cost_guard.py` |
+<!-- TODO(et): Compose env shows ANTHROPIC_DAILY_CEILING_USD default $5.00. SSP says $10. Confirm production override via Doppler. -->
 | SQ-COST-2 | Implemented | Daily cost ceiling of $10.00 tracked in Redis counter `squire:cost:daily:<yyyy-mm-dd>`. Reset at UTC midnight. When exceeded, the LLM backend abstraction transparently switches to `ollama` mode and a Telegram alert fires. | `builds/squire/app/cost_guard.py::daily_budget_check` |
 | SQ-ITER-1 | Implemented | The investigate node has a hard loop cap of 3 iterations. The critique node has a hard loop cap of 2. Exceeding either returns the best response so far with a `degraded=true` flag. | `builds/squire/app/graph/investigate.py` |
 | SQ-LAT-1 | Implemented | Per-call latency budget of 45 seconds (P95). Exceeded calls fire a Datadog monitor tagged `service:squire severity:warn` and log a span with `latency_budget_exceeded=true`. | Datadog monitor ID `squire_latency_p95` |
@@ -391,15 +393,15 @@ The following control families are inherited without modification from SSP-OPS-0
 | External System | Purpose | Data Direction | Protocol | Authentication |
 |-----------------|---------|----------------|----------|----------------|
 | Anthropic API | LLM inference (Opus 4.7, Sonnet 4.6) | Outbound | HTTPS | Bearer API key from Doppler `ANTHROPIC_API_KEY` |
-| OpenAI API | Embeddings for RAG (`text-embedding-3-large`, 1024 dim) | Outbound, corpus only | HTTPS | Bearer API key from Doppler `OPENAI_API_KEY` |
+| Voyage AI API | Embeddings for RAG (`voyage-3-large`, 1024 dim) | Outbound, corpus only | HTTPS | Bearer API key from Doppler `VOYAGE_API_KEY` |
 | Tavily | Enrichment web search (optional, skippable) | Outbound | HTTPS | Bearer API key from Doppler `TAVILY_API_KEY` |
 | DO Spaces | Nightly Postgres backups | Outbound | HTTPS | S3 access key from Doppler `SPACES_ACCESS_KEY` / `SPACES_SECRET_KEY` |
 | Falco / Datadog / n8n | Alert ingest callers | Inbound | HTTPS via Cloudflare tunnel | `x-squire-token` header |
 | OpenClaw gateway | Optional Max-plan routing | Outbound | HTTP (loopback 172.17.0.1:18789) | Gateway-managed |
 
-Each interconnection has a documented fallback or skip behavior. Anthropic failure falls through to ollama. OpenAI failure aborts corpus reindex but does not affect runtime (embeddings are pre-computed at ingest, not per call). Tavily failure logs a warning and the enrich node returns the alert unchanged. DO Spaces failure retries on the next cron run. Caller authentication failure returns 401 and is rate-limited to 5 requests per minute per source IP.
+Each interconnection has a documented fallback or skip behavior. Anthropic failure falls through to ollama. Voyage AI failure aborts corpus reindex but does not affect runtime (embeddings are pre-computed at ingest, not per call). Tavily failure logs a warning and the enrich node returns the alert unchanged. DO Spaces failure retries on the next cron run. Caller authentication failure returns 401 and is rate-limited to 5 requests per minute per source IP.
 
-The interconnection footprint is intentionally small. Six external dependencies total. Two of them (OpenAI embeddings and DO Spaces) execute outside the request path, so runtime latency is governed by three endpoints only: Anthropic, Tavily, Cloudflare.
+The interconnection footprint is intentionally small. Six external dependencies total. Two of them (Voyage AI embeddings and DO Spaces) execute outside the request path, so runtime latency is governed by three endpoints only: Anthropic, Tavily, Cloudflare.
 
 ## 9. Authorization Boundary
 
@@ -424,7 +426,7 @@ The assertions run on every CI build and on a daily scheduled workflow against t
 
 ### 9.2 Ingress Path Verification
 
-Cloudflare tunnel configuration is managed through Terraform in `terraform/cd-do-infrastructure/cloudflare_tunnel.tf`. The relevant resource is `cloudflare_tunnel_config.cd_alpha` with three routes: `squire.example-ops.com -> http://localhost:8787`, `langfuse.example-ops.com -> http://localhost:3000`, and existing `n8n.example-ops.com` and `ssh.example-ops.com` routes carried forward.
+Cloudflare tunnel configuration is managed through Terraform in `terraform/cd-do-infrastructure/cloudflare_tunnel.tf`. The relevant resource is `cloudflare_tunnel_config.cd_alpha` with three routes: `squire.example-ops.com -> http://localhost:8020`, `langfuse.example-ops.com -> http://localhost:3000`, and existing `n8n.example-ops.com` and `ssh.example-ops.com` routes carried forward.
 
 Ingress verification runs on a daily cron:
 
@@ -501,6 +503,7 @@ The full Squire operational runbook lives in `docs/context/rules-of-engagement.m
 
 1. Author change in `builds/squire/` branch off `main`.
 2. Open PR; CI runs pytest (127 tests), Trivy, ruff, mypy, SBOM, and container signature verification.
+<!-- TODO(et): Verify the GHCR push pipeline is wired. CLAUDE.md does not list this in CI/CD scope. -->
 3. On merge, GitHub Actions builds and pushes `ghcr.io/et-sec/squire:<sha>` and `:latest`.
 4. Operator SSH to `alpha-node` and runs `docker compose pull svc-squire && docker compose up -d svc-squire`.
 5. Healthcheck polls `https://squire.example-ops.com/health` until 200 or 60 seconds elapsed.

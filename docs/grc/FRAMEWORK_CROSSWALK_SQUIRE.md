@@ -3,8 +3,8 @@ document_id: CW-SQUIRE-001
 title: Framework Crosswalk - Squire Controls
 doc_type: crosswalk
 classification: CUI-INTERNAL
-version: "1.0"
-last_updated: 2026-04-23
+version: "1.1"
+last_updated: 2026-06-24
 next_review: 2026-07-23
 owner: System Owner
 approver: System Owner (Authorizing Official)
@@ -25,9 +25,9 @@ related:
 # Framework Crosswalk: Squire Controls
 
 **Document Identifier:** CW-SQUIRE-001
-**Classification:** CONTROLLED UNCLASSIFIED - INTERNAL USE ONLY
-**Version:** 1.0
-**Last Updated:** 2026-04-23
+**Classification:** CONTROLLED UNCLASSIFIED, INTERNAL USE ONLY
+**Version:** 1.1
+**Last Updated:** 2026-06-24
 **Next Scheduled Review:** 2026-07-23
 **Prepared By:** System Owner
 **Approved By:** System Owner (Authorizing Official)
@@ -97,7 +97,10 @@ The `x-squire-token` header is the primary access gate to the graph. Absence or 
 
 ### Row 2: Langfuse trace on every call
 
-Every `/alert` call is decorated with `@observe()` from `langfuse.decorators`. The decorator emits a trace that carries every node span, prompt, completion, cost, and rail decision. CI enforces that every graph node is covered; removing a decorator breaks `tests/test_trace_coverage.py`. The trace is the primary audit artifact tying a response back to its inputs.
+Every `/alert` call is decorated with `@observe()` from `langfuse.decorators`. The decorator emits a trace that carries every node span, prompt, completion, cost, and rail decision. CI enforces that every graph node is covered; trace coverage assertions live in `builds/squire/tests/redteam/test_guardrails_redteam.py` (consolidated test module driven by `cases.yaml`). The trace is the primary audit artifact tying a response back to its inputs.
+
+<!-- TODO(et): expand test_guardrails_redteam.py into individual files per test category, OR keep consolidated and update doc to reflect single file -->
+
 
 ### Row 3: Pre-graph PII regex scanner
 
@@ -105,11 +108,11 @@ Regex patterns for US SSN, Luhn-valid credit card, email, and US phone run befor
 
 ### Row 4: NeMo Colang input rail
 
-The Colang input rail at `builds/squire/app/rails/input.co` runs before the draft and critique LLM calls. It uses presidio entity detection plus a jailbreak pattern list. Output on match is `__NEMO_BLOCK__:reason_code=<code>;rail_name=input` which the FastAPI app interprets and returns to the caller.
+The Colang input rail at `builds/squire/docker/nemo_config/rails/input.co` runs before the draft and critique LLM calls. It uses presidio entity detection plus a jailbreak pattern list. Output on match is `__NEMO_BLOCK__:reason_code=<code>;rail_name=input` which the FastAPI app interprets and returns to the caller.
 
 ### Row 5: NeMo Colang output rail
 
-The Colang output rail at `builds/squire/app/rails/output.co` runs on the LLM response from draft before it reaches the caller. It catches scenarios where the model echoed PII back from retrieved chunks (unlikely given sanitized corpus, but defense in depth).
+The Colang output rail at `builds/squire/docker/nemo_config/rails/output.co` runs on the LLM response from draft before it reaches the caller. It catches scenarios where the model echoed PII back from retrieved chunks (unlikely given sanitized corpus, but defense in depth).
 
 ### Row 6: pgvector RAG isolation
 
@@ -121,7 +124,10 @@ Three independent cost and loop guards prevent runaway spend. Each has an explic
 
 ### Row 10: Hard-coded model routing
 
-Model choice is compiled into the graph code. The Pydantic request schema rejects any user-supplied `model` field. CI test `tests/test_model_routing.py` enforces the per-node model map and fails the build if the map changes without an accompanying ADR entry.
+Model choice is compiled into the graph code. The Pydantic request schema rejects any user-supplied `model` field. CI coverage for the per-node model map lives in `builds/squire/tests/redteam/test_guardrails_redteam.py` (consolidated module driven by `cases.yaml`); the build fails if the map changes without an accompanying ADR entry.
+
+<!-- TODO(et): expand test_guardrails_redteam.py into individual files per test category, OR keep consolidated and update doc to reflect single file -->
+
 
 ### Row 11: Critique citation guard
 
@@ -206,7 +212,7 @@ For verification:
 | NIST AI RMF subcategory | `^(GV|MP|MS|MG)-\d+\.\d+$` |
 | NIST 800-61 r3 citation | `^§\d+(\.\d+)?\s*\/\s*(GV|ID|PR|DE|RS|RC)\.[A-Z]{2}$` |
 
-These shapes are enforced by `builds/squire/app/frameworks.py` and the critique citation guard.
+These shapes are enforced in the Squire `src/squire/` tree (citation guard module path `builds/squire/src/squire/citations.py`) and the critique citation guard at `builds/squire/src/squire/nodes/critique.py`.
 
 ## Scenario Walkthroughs
 
@@ -280,15 +286,15 @@ Auditors tracing a specific framework citation back to evidence follow this shor
 
 Primary evidence file: `docs/grc/SQUIRE_SSP.md` Section 6 (Control Implementation). Each family subsection lists status plus implementation plus evidence link. Repository artifacts:
 
-- AC family: `builds/squire/app/api.py` (require_token), `builds/squire/docker-compose.yaml` networks
-- AU family: `builds/squire/app/audit.py`, `svc-db` migrations `ir_*` schema, Langfuse trace views
+- AC family: `builds/squire/src/squire/app.py` (require_token), `builds/squire/docker-compose.yaml` networks
+- AU family: Langfuse trace views and `svc-db` migrations `ir_*` schema. Audit-event emission lives in the graph nodes themselves, not a single `audit.py` module. <!-- TODO(et): if a dedicated `builds/squire/src/squire/audit.py` is added later, update this row. -->
 - CM family: `builds/squire/Dockerfile`, `builds/squire/requirements.txt`, `.github/workflows/squire-ci.yml`
 - IA family: Doppler project `coredirective-engine`, secret audit log
 - IR family: `docs/grc/PLAYBOOK_AI_INCIDENT.md`, Datadog monitor definitions
 - RA family: `docs/grc/SQUIRE_AI_RISK_ASSESSMENT.md`, Trivy CI artifacts
 - SA family: `builds/squire/tests/`, `builds/squire/pyproject.toml`
 - SC family: Cloudflare tunnel Terraform, Docker compose network block
-- SI family: `builds/squire/app/pre_graph_pii.py`, `builds/squire/app/rails/*.co`, `builds/squire/app/graph/critique.py`
+- SI family: `builds/squire/src/squire/pre_graph_pii.py`, `builds/squire/docker/nemo_config/rails/*.co`, `builds/squire/src/squire/nodes/critique.py`
 
 ### NIST CSF 2.0
 
@@ -335,6 +341,7 @@ None identified at the time of issue. Items flagged for verification during the 
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0 | 2026-04-23 | System Owner | Initial crosswalk covering 31 Squire controls across seven frameworks |
+| 1.1 | 2026-06-24 | System Owner | Audit refresh: code paths corrected to `builds/squire/src/squire/` and `builds/squire/docker/nemo_config/rails/`; test-file references consolidated to actual `test_guardrails_redteam.py`; AU-family evidence note clarified. |
 
 Related documents:
 

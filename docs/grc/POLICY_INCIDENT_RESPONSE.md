@@ -1,7 +1,7 @@
 # Incident Response Policy
 
 **Document ID:** POL-IR-001
-**Version:** 1.0
+**Version:** 1.2
 **Classification:** Internal Use Only
 **Effective Date:** 2026-03-11
 **Review Date:** 2027-03-11
@@ -16,9 +16,9 @@
 |-------|-------|
 | Policy Title | Incident Response Policy |
 | Document ID | POL-IR-001 |
-| Version | 1.0 |
+| Version | 1.2 |
 | Status | Approved |
-| Last Revised | 2026-03-11 |
+| Last Revised | 2026-04-24 |
 | Next Review | 2027-03-11 |
 | Author | Information Security Officer |
 | Approver | System Owner |
@@ -29,6 +29,7 @@
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-11 | Information Security Officer | Initial policy creation |
+| 1.2 | 2026-04-24 | Information Security Officer | Phase 17 plan 17-14 Squire integration added (threat model, tabletop, diagrams) |
 
 ---
 
@@ -83,6 +84,17 @@ All suspected and confirmed incidents shall be classified using the following pr
 | **P2** | High | Confirmed unauthorized access attempt, security control degradation, or service compromise without confirmed exfiltration | Within 1 hour | Brute-force attack against `svc-identity` exceeding lockout threshold; unauthorized container deployed on `alpha-node`; `svc-gateway` session recording disabled; CI/CD pipeline secret leak detected by secrets scanner |
 | **P3** | Medium | Suspicious activity, policy violations, or vulnerability requiring remediation | Within 4 hours | Runtime detection alert for unexpected process execution inside a container; failed MFA authentication spike; infrastructure policy violation in CI/CD pipeline; outdated container image with known CVE (CVSS >= 7.0) |
 | **P4** | Low | Informational findings, minor policy deviations, or low-risk vulnerabilities | Within 24 hours | Container health check failure on non-critical service; log ingestion delay on `Fluentd`; CI/CD lint warnings; low-severity CVE in dependency (CVSS < 4.0) |
+
+#### Cross-Policy Severity Mapping
+
+This taxonomy is the canonical Organization severity model. Sibling policies that pre-date this mapping use their own labels; the equivalences below apply.
+
+| POL-IR-001 (this policy) | HITL_POLICY Section 3.1 | POLICY_AI_GOVERNANCE Section 14.1 | POL-VM-001 CVSS Range |
+|--------------------------|-------------------------|-----------------------------------|-----------------------|
+| P1 (Critical) | CRITICAL | Severity 1 | 9.0 - 10.0 |
+| P2 (High) | HIGH | Severity 2 | 7.0 - 8.9 |
+| P3 (Medium) | MEDIUM | Severity 3 | 4.0 - 6.9 |
+| P4 (Low) | LOW | Severity 4 | 0.1 - 3.9 |
 
 ### 4.2 Classification Criteria
 

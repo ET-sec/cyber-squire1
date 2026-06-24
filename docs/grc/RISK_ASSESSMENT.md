@@ -145,8 +145,10 @@ Risk Score = Likelihood x Impact
 | Risk ID | Threat | Threat Source | Vulnerability | Affected Assets | Likelihood | Impact | Inherent Risk | Current Controls | Residual Likelihood | Residual Impact | Residual Risk |
 |---------|--------|---------------|---------------|-----------------|------------|--------|---------------|-----------------|-------------------|----------------|---------------|
 | R-07 | Container Misconfiguration (T-07) | Operator error | Docker Compose complexity; 19 services to configure | All containers | 3 | 3 | **9 (Mod)** | CIS Docker Bench scans (37 PASS); OPA (Rego) policies (8 rules); no-new-privileges on 18/19 containers; resource limits; Checkov in CI | 2 | 3 | **6 (Low)** |
-| R-08 | Privilege Escalation (T-08) | External/internal adversary | Container with elevated capabilities (svc-detection requires SYS_ADMIN) | svc-detection, host kernel | 2 | 5 | **10 (Mod)** | Only svc-detection has SYS_ADMIN (required for eBPF); all others run no-new-privileges; PID limits; read-only rootfs where feasible; session recording on SSH | 1 | 5 | **5 (Low)** |
+| R-08 | Privilege Escalation (T-08) | External/internal adversary | Container with elevated capabilities (svc-detection requires SYS_ADMIN) | svc-detection, host kernel | 2 | 5 | **10 (Mod)** | Only svc-detection has SYS_ADMIN (required for eBPF); all others run no-new-privileges; PID limits; read-only rootfs where feasible; Teleport session recording on SSH | 1 | 5 | **5 (Low)** |
 | R-09 | Insider Threat (T-09) | Authorized user | Single-operator environment limits but does not eliminate risk | All infrastructure | 1 | 5 | **5 (Low)** | Session recording on all SSH; immutable audit log with hash chain; JIT admin access (4h TTL); monthly access reviews | 1 | 4 | **4 (Low)** |
+<!-- TODO(et): R-10 residual rated Moderate here vs High in THREAT_MODEL_STRIDE I-02. RISK_ASSESSMENT is authoritative (Moderate); align STRIDE doc. -->
+<!-- TODO(et): "log rotation (10MB x 3)" bounds local cache size only and does not prevent secret exposure. Reword control or remove. -->
 | R-10 | Accidental Secret Exposure (T-10) | Operator error | Secrets in environment variables could leak via logs or debug output | API keys, database credentials, tokens | 3 | 5 | **15 (High)** | External secrets manager (never hardcoded); Gitleaks in CI; log rotation (10MB x 3); .gitignore for sensitive files; env var validation (existence checks only) | 2 | 5 | **10 (Mod)** |
 | R-11 | Unauthorized Config Change (T-11) | Operator error / adversary | IaC state drift or unreviewed changes | Infrastructure-as-code state, Docker Compose, firewall | 2 | 4 | **8 (Mod)** | IaC remote state with encryption; mandatory PR reviews; Checkov + Terraform linter in CI; policy engine enforcement | 1 | 4 | **4 (Low)** |
 
@@ -156,6 +158,7 @@ Risk Score = Likelihood x Impact
 |---------|--------|---------------|---------------|-----------------|------------|--------|---------------|-----------------|-------------------|----------------|---------------|
 | R-12 | DigitalOcean Outage (T-12) | Cloud provider | Single VPS, single region, no failover | All services | 2 | 4 | **8 (Mod)** | Datadog alerts on host downtime; documented recovery procedures; IaC enables rapid redeployment to alternate region | 2 | 3 | **6 (Low)** |
 | R-13 | Hardware Failure (T-13) | Infrastructure | Hypervisor-managed hardware; limited control | VPS, persistent volumes | 1 | 4 | **4 (Low)** | Cloud provider SLA (99.99%); automated backups of database; IaC for infrastructure rebuild | 1 | 3 | **3 (Low)** |
+<!-- TODO(et): "PostgreSQL backup scripts (CD_BACKUPS volume)" verify backup cron actually runs against current stack. Compose only mounts ./CD_BACKUPS:/backups:z; script source not confirmed. -->
 | R-14 | Data Loss (T-14) | Multiple (failure, attack, error) | Single-node persistent volumes; no off-site replication | svc-db data, svc-secrets data, configurations | 2 | 5 | **10 (Mod)** | PostgreSQL backup scripts (CD_BACKUPS volume); secrets stored in external manager (authoritative copy outside VPS); IaC for config rebuild; no automated off-site replication yet | 2 | 4 | **8 (Mod)** |
 
 ### 4.4 Compliance Threats
@@ -163,6 +166,7 @@ Risk Score = Likelihood x Impact
 | Risk ID | Threat | Threat Source | Vulnerability | Affected Assets | Likelihood | Impact | Inherent Risk | Current Controls | Residual Likelihood | Residual Impact | Residual Risk |
 |---------|--------|---------------|---------------|-----------------|------------|--------|---------------|-----------------|-------------------|----------------|---------------|
 | R-15 | Regulatory Changes (T-15) | Government / industry bodies | Architecture may not meet new requirements | Platform design, documentation | 2 | 3 | **6 (Low)** | Modular architecture supports component replacement; quarterly framework review; NIST 800-53 alignment provides broad coverage | 2 | 2 | **4 (Low)** |
+<!-- TODO(et): "96 CIS Docker Bench WARNs with 29 documented compensating controls" reflects 2026-03-11 baseline. Stack added Squire/NeMo/Langfuse/Teleport/Vault containers since; re-run CIS Bench and refresh. -->
 | R-16 | POA&M Remediation Failure (T-16) | Process gap | 96 CIS Docker Bench WARNs with 29 documented compensating controls | Compliance posture, audit readiness | 3 | 3 | **9 (Mod)** | CIS Risk Register with documented compensating controls; 90-day review cycle; POA&M tracking | 2 | 3 | **6 (Low)** |
 | R-17 | Breach Notification (T-17) | Data breach event | No formal incident notification procedure for external parties | Legal compliance, reputation | 1 | 5 | **5 (Low)** | Incident response procedure documented; tabletop exercises (semi-annual); audit log preservation for forensics | 1 | 4 | **4 (Low)** |
 
@@ -279,6 +283,7 @@ The following five risks carry the highest residual risk scores after current co
 | R-01 | Low (6) | **Accept** | Existing controls are sufficient. Monitor edge provider metrics for volumetric anomalies. | System Owner | N/A | Accepted |
 | R-02 | Low (6) | **Accept** | MFA and session limits provide adequate protection. Review authentication logs monthly. | System Owner | N/A | Accepted |
 | R-03 | Low (5) | **Accept** | CI scanning and image signing reduce supply chain risk to acceptable levels. | System Owner | N/A | Accepted |
+<!-- TODO(et): R-04 / R-10 / R-12 / R-14 / R-16 target dates (2026-04-11 through 2026-06-11) past due. Confirm Open status or record closure. -->
 | R-04 | Moderate (8) | **Mitigate** | Deploy webhook schema validation and edge WAF rules. Restrict container network egress. | System Owner | 2026-06-11 | Open |
 | R-05 | Low (4) | **Accept** | MFA and JIT access provide adequate protection. Evaluate hardware token adoption. | System Owner | N/A | Accepted |
 | R-06 | Low (5) | **Accept** | Minimal attack surface and runtime detection are the appropriate controls for zero-days. | System Owner | N/A | Accepted |
@@ -306,6 +311,8 @@ The following five risks carry the highest residual risk scores after current co
 ---
 
 ## 8. Review Schedule
+
+<!-- TODO(et): Quarterly risk register review (2026-06-11), monthly POAM review (2026-04-11), and monthly CIS scan (2026-04-11) are all past due. Refresh next-date column. -->
 
 | Activity | Frequency | Next Date | Owner |
 |----------|-----------|-----------|-------|
@@ -365,8 +372,15 @@ The following five risks carry the highest residual risk scores after current co
 
 ## Cross-References
 
+<!-- TODO(et): Add Phase 17 + 19 doc cross-refs (SQUIRE_AI_RISK_ASSESSMENT, SQUIRE_THREAT_MODEL, AI_SUPPLY_CHAIN_RISK, AI_THREAT_CATALOG, ATTACK_TREE_AI_PIPELINE) so readers can navigate from parent RA to AI risks. -->
+
 | Document | Relationship |
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan with NIST 800-53 control mapping |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks findings and remediation milestones |
+| [SQUIRE_AI_RISK_ASSESSMENT.md](SQUIRE_AI_RISK_ASSESSMENT.md) | Child RA covering AI subsystem (Squire SOC analyst) risks R-01 through R-13 |
+| [SQUIRE_THREAT_MODEL.md](SQUIRE_THREAT_MODEL.md) | STRIDE plus MITRE ATLAS threat model for Squire components |
+| [AI_SUPPLY_CHAIN_RISK.md](AI_SUPPLY_CHAIN_RISK.md) | AI supply chain risk policy (AI-001/002/003 systems) |
+| [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | Platform-wide AI threat catalog (ATC-01 through ATC-10) |
+| [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack-tree decomposition for AI pipeline (Paths 1 through 4) |
 | [README.md](README.md) | GRC library index and reading guide |
