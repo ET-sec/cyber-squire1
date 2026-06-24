@@ -52,6 +52,12 @@ This plan covers the recovery of:
 | `Fluentd` | Deferrable | 4 hours | 1 hour | Buffered logs in memory; exported logs on object storage are durable |
 | `svc-event-shipper` | Deferrable | 4 hours | 1 hour | Events queued in gateway; resume export on restart |
 | `svc-ai-gateway` | Deferrable | 8 hours | 0 (stateless) | Configuration in file; no persistent data |
+| `svc-squire` | Important | 2 hours | 24 hours (via svc-db) | Workflow state and ir_* tables in `svc-db`; advisory-only AI per HITL_POLICY |
+| `svc-nemo` | Important | 2 hours | 0 (config only) | Rail config in repo; pgvector corpus in `svc-db` |
+| `svc-langfuse-web` | Deferrable | 8 hours | 1 hour | Stateless UI; data lives in ClickHouse and Redis |
+| `svc-langfuse-worker` | Deferrable | 8 hours | 1 hour | Stateless worker; queue lives in Redis |
+| `svc-langfuse-clickhouse` | Deferrable | 8 hours | 24 hours | Trace analytics store; backups exported to object storage |
+| `svc-langfuse-redis` | Deferrable | 8 hours | 0 (queue-only) | Ephemeral cache and queue; rebuilds on restart |
 
 ### 3.2 Aggregate Platform Targets
 
@@ -282,10 +288,13 @@ $ cat backup.sql | docker compose exec -T svc-db psql -U <user> -d <db>
 
 Step 9: Start all Compose-managed services
 $ docker compose up -d
+$ # Locally-built Tier 0 images (svc-nemo, svc-squire, svc-fluentd) are rebuilt from `builds/squire/docker/` Dockerfiles on first up; Renovate does not track these
+$ # Order: svc-langfuse-clickhouse + svc-langfuse-redis healthy -> svc-langfuse-worker -> svc-nemo -> svc-squire
 
 Step 9a: Rebuild standalone svc-ai-gateway
 $ # svc-ai-gateway runs outside Compose; redeploy from its own config
 $ # See gateway configuration file for container run parameters
+$ # Reference: /root/moltbot/config-dir/openclaw.json for run parameters
 
 Step 10: Unseal Vault
 $ docker compose exec svc-secrets vault operator unseal <key1>
@@ -303,7 +312,9 @@ $ # Point ssh.example-ops.com to new IP via Cloudflare
 Step 13: Validate (see Section 8)
 ```
 
-### 6.2 Playbook: PostgreSQL Point-in-Time Recovery
+### 6.2 Playbook: PostgreSQL Backup Restore
+
+<!-- TODO(et): If WAL archiving is configured for true point-in-time recovery, rename this section back to "Point-in-Time Recovery" and replace the procedure with the WAL replay flow. Current procedure is a full restore from the most recent `pg_dump`, not PITR. -->
 
 **Trigger:** Database corruption detected; services reporting data errors.
 

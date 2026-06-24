@@ -26,7 +26,7 @@
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| 1.0 | 2026-04-23 | Information Security Officer | Initial model card covering Opus 4.7 primary, Sonnet 4.6 classifier, text-embedding-3-large retriever |
+| 1.0 | 2026-04-23 | Information Security Officer | Initial model card covering Opus 4.7 primary, Sonnet 4.6 classifier, Voyage AI voyage-3-large retriever |
 
 ---
 
@@ -40,7 +40,7 @@ Squire is a composite AI system, not a single model. Three foundation models are
 |------|-------|----------|---------|---------|-------|
 | Primary reasoning | Claude Opus 4.7 | Anthropic PBC | claude-opus-4-7 (2026 release) | Proprietary (API ToS) | investigate, draft, critique |
 | Classifier | Claude Sonnet 4.6 | Anthropic PBC | claude-sonnet-4-6 | Proprietary (API ToS) | classify |
-| Embeddings | text-embedding-3-large | OpenAI | v3-large, 1536 dim | Proprietary (API ToS) | retrieve (ingest side) |
+| Embeddings | voyage-3-large | Voyage AI | v3-large, 1024 dim | Proprietary (API ToS) | retrieve (ingest side) |
 
 Non-model components are covered in AI_SUPPLY_CHAIN_REGISTER.md.
 
@@ -50,7 +50,7 @@ Squire talks to these models through a `LLMBackend` interface with three impleme
 
 | Mode | Implementation | Use Case |
 |------|----------------|----------|
-| `api` | Direct Anthropic REST, OpenAI REST | Production |
+| `api` | Direct Anthropic REST, Voyage AI REST | Production |
 | `max` | `claude` CLI over Max subscription | Development on Mac |
 | `ollama` | Local Qwen or Llama via svc-ollama | Outage fallback, air-gap demo |
 
@@ -60,11 +60,12 @@ Backend selection is driven by `SQUIRE_BACKEND` environment variable with runtim
 
 ```
 classify (Sonnet 4.6)
-  -> retrieve (pgvector HNSW, vector(1536))
+  -> retrieve (pgvector HNSW, vector(1024))
   -> enrich (Tavily search, no LLM)
   -> investigate (Opus 4.7)
   -> draft (Opus 4.7)
   -> critique (Opus 4.7, loops up to 3x)
+<!-- TODO(et): Critique loop count contradicts SQUIRE_SSP SQ-ITER-1 which says "hard loop cap of 2". Pick one. -->
   -> route_severity (deterministic)
 ```
 
@@ -95,6 +96,7 @@ Autonomous triage of security alerts arriving from Falco, n8n security workflows
 ### 2.2 In Scope
 
 - Single-tenant demo on alpha-node running from /opt/platform/
+<!-- TODO(et): Per-invocation ceiling contradicts SQUIRE_SSP SQ-COST-1 ($0.75). Pick one. -->
 - Alert volumes up to ~50 per day (cost ceiling enforced at $0.50 per invocation)
 - GRC corpus of 31 sanitized documents as the only knowledge base
 
@@ -102,6 +104,7 @@ Autonomous triage of security alerts arriving from Falco, n8n security workflows
 
 - Multi-tenant SaaS operation
 - Automated remediation (all recommended actions are advisory, mediated through HITL per HITL_POLICY.md)
+<!-- TODO(et): SQUIRE_SSP SQ-COST-1 says aborted calls return 402, not 429. Reconcile. -->
 - Alert volumes above the cost ceiling (HTTP 429 with `cost_ceiling_exceeded`)
 - Use as a substitute for an analyst on CRITICAL severity investigations (HITL is required per HITL_POLICY.md section 3)
 
@@ -139,6 +142,7 @@ Squire is only as good as the pgvector corpus. The initial 31 GRC docs give it s
 
 ## 4. Metrics
 
+<!-- TODO(et): Test count (62) contradicts SQUIRE_SSP line 345 ("127 tests"). Re-run and update. Also confirm the Langfuse project id can be exposed in public doc; mask if needed. -->
 Observed on the current 62-test suite plus 10 canonical integration fixtures, captured in Langfuse project `Squire` (id cmobbrs8f0006rt07bz3q73jj).
 
 | Metric | Target | Observed (api backend) | Observed (max backend) |
@@ -148,6 +152,7 @@ Observed on the current 62-test suite plus 10 canonical integration fixtures, ca
 | Cost per invocation p95 | < $0.50 | $0.38 | $0 marginal |
 | Citation validity rate | > 95% | 97.2% | 96.8% |
 | Critique loop rate | < 35% | 28% | 32% |
+<!-- TODO(et): REDTEAM_RESULTS.md shows 6 executed cases. Update pass rate with actual result. -->
 | Red-team pass rate (17-11, pending) | > 85% | deferred until credit restored | deferred |
 
 Per-node timing (Opus 4.7 primary, API backend):
@@ -168,7 +173,7 @@ Per-node evidence rows are written to `ir_investigations` for every invocation. 
 
 ## 5. Training Data
 
-**Not applicable.** Squire is a RAG system over proprietary foundation models. No fine-tuning. No weight updates. The three foundation models were trained by Anthropic and OpenAI on proprietary corpora; provider training data disclosures apply.
+**Not applicable.** Squire is a RAG system over proprietary foundation models. No fine-tuning. No weight updates. The three foundation models were trained by Anthropic and Voyage AI on proprietary corpora; provider training data disclosures apply.
 
 Retrieval corpus is the 31 sanitized GRC documents under `docs/grc/`. Embedding pipeline is documented in ADR_001_EMBEDDING_PROVIDER.md.
 
@@ -247,7 +252,7 @@ Squire's outputs describe attack techniques, which could in theory assist an att
 
 | Aspect | Detail |
 |--------|--------|
-| Foundation models | Anthropic (Opus 4.7, Sonnet 4.6), OpenAI (text-embedding-3-large) |
+| Foundation models | Anthropic (Opus 4.7, Sonnet 4.6), Voyage AI (voyage-3-large) |
 | Orchestration | LangGraph 0.2+, LangChain 1.0+, langchain-anthropic 0.3+ |
 | Observability | Langfuse v3 self-hosted at langfuse.example-ops.com |
 | Guardrails | NeMo Guardrails v0.21.0, presidio PII via `[sdd]` extra |

@@ -107,7 +107,7 @@
 
 ## 1. Purpose
 
-This playbook provides step-by-step procedures for responding to a leaked credential -- any API key, database password, SSH key, token, or other secret that has been exposed through code commits, log files, error messages, screenshots, or any other unauthorized disclosure channel.
+This playbook provides step-by-step procedures for responding to a leaked credential. A leaked credential is any API key, database password, SSH key, token, or other secret that has been exposed through code commits, log files, error messages, screenshots, or any other unauthorized disclosure channel.
 
 ---
 
@@ -140,18 +140,20 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 ### 4.1 Automated Detection
 
-- [ ] **Gitleaks CI scan failure** -- secret pattern detected in a commit during CI/CD pipeline
-- [ ] **Code repository platform secret scanning alert** -- platform-native secret detection on push
-- [ ] **Datadog alert** -- secret pattern detected in log output (regex-based alert rule)
-- [ ] **Pre-commit hook failure** -- Gitleaks pre-commit hook blocked a commit containing a secret
-- [ ] **Secrets manager audit log** -- unusual access pattern (unexpected IP, time, or frequency)
+- [ ] **Gitleaks CI scan failure**: secret pattern detected in a commit during CI/CD pipeline
+- [ ] **Code repository platform secret scanning alert**: platform-native secret detection on push
+- [ ] **Datadog alert**: secret pattern detected in log output (regex-based alert rule) <!-- TODO(et): verify the Datadog log monitor for secret patterns actually exists. If not, this trigger is aspirational. -->
+- [ ] **Pre-commit hook failure**: Gitleaks pre-commit hook blocked a commit containing a secret
+- [ ] **Secrets manager audit log**: unusual access pattern (unexpected IP, time, or frequency) <!-- TODO(et): confirm Doppler audit log is shipped to Datadog so this trigger fires. -->
+
 
 ### 4.2 Manual / External Detection
 
-- [ ] **Developer self-report** -- engineer realizes they committed or logged a secret
-- [ ] **Peer code review** -- secret spotted during pull request review
-- [ ] **Third-party notification** -- vendor reports that a credential associated with the Organization was found on a public paste site, repository, or dark web
-- [ ] **Unauthorized usage alert** -- unexpected API calls or logins using a credential that suggest it was obtained by an unauthorized party
+- [ ] **Developer self-report**: engineer realizes they committed or logged a secret
+- [ ] **Peer code review**: secret spotted during pull request review
+- [ ] **Third-party notification**: vendor reports that a credential associated with the Organization was found on a public paste site, repository, or dark web
+- [ ] **Unauthorized usage alert**: unexpected API calls or logins using a credential that suggest it was obtained by an unauthorized party <!-- TODO(et): specify the alert source (Datadog on auth logs, Vault audit, cloud provider audit trail) so this row is actionable. -->
+
 
 ---
 
@@ -161,25 +163,25 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 **CRITICAL: Time is the primary factor. Every minute a credential remains active after exposure increases risk. Revoke first, investigate second.**
 
-- [ ] **Step 1.1** -- Identify the exposed credential:
+- [ ] **Step 1.1**: Identify the exposed credential:
  - What type of credential is it? (API key, password, SSH key, token, certificate)
  - Which service or system does it authenticate to?
  - What level of access does it grant? (read, write, admin)
 
-- [ ] **Step 1.2** -- Determine the exposure vector:
+- [ ] **Step 1.2**: Determine the exposure vector:
  - Committed to a public or private repository?
  - Logged to application logs, Datadog, or CI output?
  - Shared in a message, email, or document?
  - Found on an external site or paste?
 
-- [ ] **Step 1.3** -- Determine the exposure window:
+- [ ] **Step 1.3**: Determine the exposure window:
  - When was the credential first exposed?
  - When was the exposure detected?
  - Is the exposure ongoing (e.g., still in a public repo)?
 
-- [ ] **Step 1.4** -- Assign severity per Section 3.
+- [ ] **Step 1.4**: Assign severity per Section 3.
 
-- [ ] **Step 1.5** -- Open an incident ticket:
+- [ ] **Step 1.5**: Open an incident ticket:
  - Incident ID: `INC-YYYY-MM-DD-NNN`
  - Credential type and associated service
  - Exposure vector and window
@@ -189,85 +191,110 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 **Objective:** Revoke the exposed credential immediately. Do not wait for investigation to complete.
 
-- [ ] **Step 2.1** -- **Revoke / disable the credential at its source:**
+- [ ] **Step 2.1**: **Revoke / disable the credential at its source:**
 
  **Database credentials (`svc-db`):**
  ```bash
  # Connect to the database and change the password immediately
- docker exec svc-db psql -U <admin_user> -c "ALTER USER <compromised_user> WITH PASSWORD '<new_password>';"
+ docker exec svc-db psql -U "$CD_DB_USER" -c \
+   "ALTER USER <compromised_user> WITH PASSWORD '<new_password>';"
 
- # Restart services that use this credential
- docker compose restart <service_name>
+ # ALTER USER does NOT terminate existing sessions. Force them closed:
+ docker exec svc-db psql -U "$CD_DB_USER" -c \
+   "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = '<compromised_user>';"
+
+ # Restart EVERY service that consumes this credential. The svc-db instance
+ # hosts both the n8n database and the Langfuse database (see compose
+ # DATABASE_URL for svc-langfuse-worker / svc-langfuse-web), so all of the
+ # following must restart after rotation:
+ docker compose restart svc-automation svc-identity svc-langfuse-worker svc-langfuse-web svc-squire
  ```
 
  **Cloud provider API token:**
  ```bash
  # Revoke via DigitalOcean dashboard or CLI
  # Generate a new token immediately
- # Update in secrets manager
+ # Update in secrets manager (Doppler is the source of truth)
  ```
 
  **Cloudflare API key:**
  ```bash
  # Regenerate the API key in the Cloudflare dashboard
- # Update in secrets manager
+ # Update in Doppler
  ```
 
  **Code repository platform token:**
  ```bash
+ # Before revoking the old token, capture its scope set so the replacement
+ # can be issued with identical scopes (screenshot the scopes screen).
  # Revoke the token in code repository platform settings > Developer settings > Tokens
  # Generate a new token with the same scopes
- # Update in secrets manager
+ # Update in Doppler
  ```
 
  **SSH private key:**
  ```bash
- # Remove the public key from authorized_keys on all hosts
- ssh root@10.100.1.10 "sed -i '/<key_fingerprint>/d' ~/.ssh/authorized_keys"
-
- # Generate a new key pair
+ # Standard rotation order: generate the NEW key, deploy it, verify the new
+ # key works, then remove the OLD key. Reversing the order risks lockout.
+ #
+ # 1. Generate the new keypair (omit -N for prompt, or use -N '' for unattended)
  ssh-keygen -t ed25519 -f ~/.ssh/<new_key_name> -C "admin@example-ops.com"
 
- # Deploy the new public key
+ # 2. Deploy the new public key
  ssh-copy-id -i ~/.ssh/<new_key_name>.pub root@10.100.1.10
+
+ # 3. Verify the new key authenticates BEFORE removing the old one
+ ssh -i ~/.ssh/<new_key_name> root@10.100.1.10 'echo "new key works"'
+
+ # 4. Identify the compromised key on the host. authorized_keys stores the
+ #    PUBLIC KEY, not the fingerprint, so `sed -i '/<fingerprint>/d'` will
+ #    not match. List fingerprints, then remove by matching the public-key
+ #    blob prefix (unique portion of the ssh-ed25519 or ssh-rsa string).
+ ssh root@10.100.1.10 'ssh-keygen -lf ~/.ssh/authorized_keys'
+ ssh root@10.100.1.10 'sed -i "/<unique_pubkey_prefix>/d" ~/.ssh/authorized_keys'
+
+ # 5. Reconfirm the new key still works after the old key is removed
+ ssh -i ~/.ssh/<new_key_name> root@10.100.1.10 'echo "still working"'
  ```
 
  **Bot token (messaging platform):**
  ```bash
  # Revoke the token via the bot platform's BotFather or admin panel
  # Generate a new token
- # Update in secrets manager and restart the consuming service
+ # Update in Doppler and restart the consuming service
  docker compose restart svc-automation
  ```
 
  **Gateway or identity provider credentials:**
  ```bash
- # Rotate via the respective admin interfaces
- # If gateway CA private key is compromised:
+ # Rotate via the respective admin interfaces. Teleport `tctl auth rotate`
+ # initiates a multi-phase rotation: init, update_clients, update_servers,
+ # standby. New certs are issued during the grace period; old certs are
+ # revoked at grace expiry.
  docker exec svc-gateway tctl auth rotate --type=host --grace-period=12h
  ```
 
-- [ ] **Step 2.2** -- Update the new credential in the secrets manager:
+- [ ] **Step 2.2**: Update the new credential in the secrets manager. Doppler is the source of truth (44 secrets in `coredirective-engine/prd`).
  ```bash
- # Update the secret in the secrets manager (via CLI or dashboard)
- # Verify the new value is set
- # NEVER echo or print the secret value
+ # Update the secret in Doppler. Verify without echoing the value.
+ doppler secrets set <KEY> "<new value>" --project coredirective-engine --config prd
+ doppler secrets get <KEY> --plain | wc -c   # length sanity check only; never print value
  ```
 
-- [ ] **Step 2.3** -- Update the credential on `alpha-node`:
+- [ ] **Step 2.3**: Update the credential on `alpha-node`:
  ```bash
  # Update the .env file on the node
  ssh root@10.100.1.10 "vim /opt/platform/.env"
- # OR use secrets manager injection:
- # secrets-manager run -- docker compose up -d
+ # OR run with Doppler injection so the value never lands on disk:
+ # doppler run --project coredirective-engine --config prd, docker compose up -d
  ```
 
-- [ ] **Step 2.4** -- Restart all services that consume the rotated credential:
+- [ ] **Step 2.4**: Restart all services that consume the rotated credential:
  ```bash
  docker compose restart <service1> <service2> <service3>
  ```
 
-- [ ] **Step 2.5** -- Verify services are operational with the new credential:
+- [ ] **Step 2.5**: Verify services are operational with the new credential:
  ```bash
  docker compose ps
  # Check healthchecks
@@ -278,13 +305,13 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 **Objective:** Determine the full scope of exposure and whether the credential was used by an unauthorized party.
 
-- [ ] **Step 3.1** -- Determine all systems and services that used the compromised credential:
+- [ ] **Step 3.1**: Determine all systems and services that used the compromised credential:
  ```bash
  # Search compose files for the credential's environment variable name
  grep -r "<SECRET_VAR_NAME>" /opt/platform/
  ```
 
-- [ ] **Step 3.2** -- Review audit logs for unauthorized use during the exposure window:
+- [ ] **Step 3.2**: Review audit logs for unauthorized use during the exposure window:
 
  **Database access logs:**
  ```bash
@@ -307,14 +334,14 @@ Applies to all secrets managed by the Organization, including but not limited to
  docker exec svc-gateway tctl sessions ls --from=<exposure_start_time>
  ```
 
-- [ ] **Step 3.3** -- Check if the credential was used from any unauthorized IP addresses or at unusual times.
+- [ ] **Step 3.3**: Check if the credential was used from any unauthorized IP addresses or at unusual times.
 
-- [ ] **Step 3.4** -- Determine if the credential exposure led to secondary compromise:
+- [ ] **Step 3.4**: Determine if the credential exposure led to secondary compromise:
  - Were other secrets accessible through the compromised credential?
  - Was any data read, modified, or exfiltrated?
  - Were any new accounts or access keys created?
 
-- [ ] **Step 3.5** -- If the credential was committed to a repository, determine the commit and exposure scope:
+- [ ] **Step 3.5**: If the credential was committed to a repository, determine the commit and exposure scope:
  ```bash
  # Find the commit(s) containing the secret
  git log --all --oneline -- <file_with_secret>
@@ -329,7 +356,7 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 > **WARNING:** This phase involves rewriting git history. Coordinate with all contributors. Anyone with a local clone will need to re-clone or rebase.
 
-- [ ] **Step 4.1** -- Remove the secret from the current codebase first:
+- [ ] **Step 4.1**: Remove the secret from the current codebase first:
  ```bash
  # Edit the file to remove the hardcoded secret
  # Replace with environment variable reference or secrets manager lookup
@@ -337,40 +364,47 @@ Applies to all secrets managed by the Organization, including but not limited to
  git commit -m "fix: remove hardcoded credential from <file>"
  ```
 
-- [ ] **Step 4.2** -- Use BFG Repo Cleaner to remove the secret from all history:
+- [ ] **Step 4.2**: Use BFG Repo Cleaner to remove the secret from all history. The canonical BFG flow uses a **bare mirror clone**, not the working tree. Even after BFG plus force push, assume the secret was harvested during the exposure window: the rotation in Phase 2 is the actual defense, not history scrubbing.
  ```bash
- # Create a file with the secret value to scrub
+ # 1. Mirror clone (bare repo for BFG)
+ git clone --mirror git@github.com:<org>/<repo>.git /tmp/<repo>.git
+
+ # 2. Write the secret value to a scrub list
  echo "<secret_value>" > /tmp/secrets_to_remove.txt
 
- # Run BFG
- bfg --replace-text /tmp/secrets_to_remove.txt <repo_path>
+ # 3. Run BFG against the bare clone
+ bfg --replace-text /tmp/secrets_to_remove.txt /tmp/<repo>.git
 
- # Clean up
- cd <repo_path>
+ # 4. Aggressively GC the bare repo
+ cd /tmp/<repo>.git
  git reflog expire --expire=now --all
  git gc --prune=now --aggressive
 
- # Securely delete the secrets file
- rm -P /tmp/secrets_to_remove.txt
+ # 5. Force push the rewritten history
+ git push
+
+ # 6. Securely delete the scrub list
+ shred -u /tmp/secrets_to_remove.txt || rm -P /tmp/secrets_to_remove.txt
  ```
 
-- [ ] **Step 4.3** -- Force push the cleaned history:
+- [ ] **Step 4.3**: Force push from the bare mirror (already done in Step 4.2 if the mirror flow was followed). For normal working copies the equivalent is:
  ```bash
  git push --force --all
  git push --force --tags
  ```
 
-- [ ] **Step 4.4** -- Verify the secret is no longer in any branch or tag:
+- [ ] **Step 4.4**: Verify the secret is no longer in any branch or tag:
  ```bash
  git log --all -p | grep -c "<partial_secret_pattern>"
  # Should return 0
  ```
 
-- [ ] **Step 4.5** -- Invalidate code repository platform caches:
+- [ ] **Step 4.5**: Invalidate code repository platform caches:
  - Contact code repository platform support if the repo is public and the secret may be cached
  - Note: Even after force push, the commit may be accessible via its SHA for up to 90 days on some platforms
+ - Treat the secret as compromised regardless of cleanup success; Phase 2 rotation is the real control
 
-- [ ] **Step 4.6** -- Notify all contributors to re-clone:
+- [ ] **Step 4.6**: Notify all contributors to re-clone:
  ```
  The repository history has been rewritten to remove a leaked credential.
  Please delete your local clone and re-clone from the remote.
@@ -381,28 +415,28 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 **Objective:** Confirm all systems work with new credentials and no unauthorized access occurred.
 
-- [ ] **Step 5.1** -- Verify all services are healthy with the new credential:
+- [ ] **Step 5.1**: Verify all services are healthy with the new credential:
  ```bash
  docker compose ps
  # All services should show "Up" and "healthy"
  ```
 
-- [ ] **Step 5.2** -- Test critical integrations end-to-end:
+- [ ] **Step 5.2**: Test critical integrations end-to-end:
  - Database connectivity from automation workflows
  - Edge security tunnel connectivity
  - Code repository platform API access
  - Datadog agent reporting
  - Bot responsiveness
 
-- [ ] **Step 5.3** -- Verify CI/CD pipeline passes with updated credentials.
+- [ ] **Step 5.3**: Verify CI/CD pipeline passes with updated credentials.
 
-- [ ] **Step 5.4** -- Confirm Gitleaks rules would catch this pattern:
+- [ ] **Step 5.4**: Confirm Gitleaks rules would catch this pattern:
  ```bash
  # Run secrets scanner on the repository
  gitleaks detect --source <repo_path> -v
  ```
 
-- [ ] **Step 5.5** -- Verify the old credential no longer works (it should be revoked):
+- [ ] **Step 5.5**: Verify the old credential no longer works (it should be revoked):
  ```bash
  # Attempt to authenticate with the old credential (in a safe, logged manner)
  # Should return authentication failure
@@ -412,20 +446,20 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 **Objective:** Document, learn, and prevent recurrence.
 
-- [ ] **Step 6.1** -- Complete the incident timeline:
+- [ ] **Step 6.1**: Complete the incident timeline:
  - When was the credential first exposed?
  - When was the exposure detected?
  - Time from exposure to revocation (target: <5 minutes after detection)
  - Was the credential used by an unauthorized party? If so, what was accessed?
 
-- [ ] **Step 6.2** -- Identify root cause:
+- [ ] **Step 6.2**: Identify root cause:
  - Developer committed a secret directly?
  - Secret was logged by an application?
  - Secret was included in an error message or stack trace?
  - Secret was shared via an insecure channel?
  - Pre-commit hooks not installed or bypassed?
 
-- [ ] **Step 6.3** -- Write a post-incident report containing:
+- [ ] **Step 6.3**: Write a post-incident report containing:
  - Executive summary
  - Timeline of events
  - Credential type and scope of access
@@ -435,7 +469,7 @@ Applies to all secrets managed by the Organization, including but not limited to
  - Lessons learned
  - Action items with owners and due dates
 
-- [ ] **Step 6.4** -- Implement preventive measures:
+- [ ] **Step 6.4**: Implement preventive measures:
  - [ ] Verify Gitleaks pre-commit hook is installed on all developer machines
  - [ ] Update Gitleaks config (.gitleaks.toml) if the pattern was not caught
  - [ ] Update CI/CD Gitleaks rules
@@ -443,9 +477,9 @@ Applies to all secrets managed by the Organization, including but not limited to
  - [ ] Review and enforce the "never hardcode secrets" policy
  - [ ] Verify secrets manager is the sole source of truth for all credentials
 
-- [ ] **Step 6.5** -- If the leak was due to a process failure, update developer onboarding and training materials.
+- [ ] **Step 6.5**: If the leak was due to a process failure, update developer onboarding and training materials.
 
-- [ ] **Step 6.6** -- Update this playbook with any lessons learned.
+- [ ] **Step 6.6**: Update this playbook with any lessons learned.
 
 ---
 
@@ -498,17 +532,17 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 ## 9. Quick Reference Card
 
-**For use during an active incident -- tear-off summary:**
+**For use during an active incident, tear-off summary:**
 
 ```
-1. REVOKE: Disable/regenerate the credential AT ITS SOURCE immediately
-2. ROTATE: Generate new credential in secrets manager
-3. UPDATE: Push new credential to .env and all consumers
-4. RESTART: docker compose restart <affected_services>
-5. VERIFY: Confirm services healthy with new credential
-6. AUDIT:  Review logs for unauthorized use during exposure window
-7. CLEAN:  BFG repo cleaner if committed to git, then force push
-8. REPORT: Post-incident report within 72 hours
+1. REVOKE:  Disable or regenerate the credential AT ITS SOURCE immediately
+2. ROTATE:  Generate new credential and write to Doppler
+3. UPDATE:  Push new credential to .env (or doppler run) for all consumers
+4. RESTART: docker compose restart <affected_services> (include n8n, keycloak, langfuse-worker, langfuse-web, squire for db creds)
+5. VERIFY:  Confirm services healthy with new credential
+6. AUDIT:   Review logs for unauthorized use during exposure window
+7. CLEAN:   BFG repo cleaner (bare mirror flow) if committed to git, then force push
+8. REPORT:  Post-incident report within 72 hours
 ```
 
 **Remember: REVOKE FIRST, INVESTIGATE SECOND. Every minute counts.**

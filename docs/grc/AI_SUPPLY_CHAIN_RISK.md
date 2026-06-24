@@ -3,7 +3,7 @@
 **Organization:** Organization Security Operations Platform
 **Assessment Date:** 2026-03-12
 **Assessor:** System Owner
-**Methodology:** NIST SP 800-161r1 (C-SCRM), NIST AI RMF (MAP/MEASURE), OWASP LLM Top 10 (LLM03), MITRE ATLAS (AML.T0018, AML.T0043)
+**Methodology:** NIST SP 800-161r1 (C-SCRM), NIST AI RMF (MAP/MEASURE), OWASP LLM Top 10 2025 (LLM03 Supply Chain, LLM04 Data and Model Poisoning), MITRE ATLAS (AML.T0010 ML Supply Chain Compromise, AML.T0018 Backdoor ML Model, AML.T0020 Poison Training Data)
 **NIST 800-53 Controls:** SA-12 (Supply Chain Protection), SR-1 (Supply Chain Risk Management Policy), SR-2 (Supply Chain Risk Management Plan), SR-3 (Supply Chain Controls and Processes), SR-11 (Component Authenticity)
 **Classification:** Internal Use Only
 **Version:** 1.0
@@ -38,11 +38,11 @@ This assessment evaluates the supply chain risk posture of all three AI systems 
 
 1. **AI-001** (svc-ai-gateway) - Claude Opus 4.7 via Anthropic API, a vendor-hosted model accessed over HTTPS where the Organization has zero visibility into model internals
 2. **AI-002** (svc-llm) - Qwen 3 4B via Ollama registry, a self-hosted model pulled from a public registry and stored locally in llm-model-volume
-3. **AI-003** (svc-transcription) - OpenAI Whisper, an open-weight model with weights baked into or downloaded by the Docker container image
+3. **AI-003** (svc-transcription) - `fedirz/faster-whisper-server` (CTranslate2 reimplementation of OpenAI's Whisper model architecture). Open-weight model served by a CTranslate2 runtime, distributed as a Docker container image with weights downloaded into a HuggingFace cache volume at first startup.
 
 Each system presents a distinct supply chain profile with different trust boundaries, verification capabilities, and failure modes. This document maps those differences, identifies gaps, and provides a prioritized remediation roadmap.
 
-This assessment supports NIST SP 800-161r1 Cyber Supply Chain Risk Management (C-SCRM) practices and directly addresses OWASP LLM Top 10 category LLM03 (Supply Chain Vulnerabilities) and MITRE ATLAS techniques AML.T0018 (Backdoor ML Model) and AML.T0043 (Adversarial Data Injection). It complements the AI Threat Catalog (`AI_THREAT_CATALOG.md`, ATC-04) by providing deep supply chain decomposition that the catalog references but does not expand.
+This assessment supports NIST SP 800-161r1 Cyber Supply Chain Risk Management (C-SCRM) practices and directly addresses OWASP LLM Top 10 2025 LLM03 (Supply Chain) and LLM04 (Data and Model Poisoning), plus MITRE ATLAS techniques AML.T0010 (ML Supply Chain Compromise), AML.T0018 (Backdoor ML Model), and AML.T0020 (Poison Training Data). It complements the AI Threat Catalog (`AI_THREAT_CATALOG.md`, ATC-04) by providing deep supply chain decomposition that the catalog references but does not expand.
 
 ---
 
@@ -54,7 +54,7 @@ This assessment supports NIST SP 800-161r1 Cyber Supply Chain Risk Management (C
 |----|--------|-----------|-------|----------|----------------|-----------------|---------|
 | AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) | Claude Opus 4.7 | Anthropic PBC | REST API (provider-hosted) | Vendor-controlled (no notice) | Proprietary (API ToS) |
 | AI-002 | Local LLM Inference | svc-llm (Ollama) | Qwen 3 4B | Alibaba Cloud (via Ollama registry) | Registry pull (self-hosted) | Manual (`ollama pull`) | Apache 2.0 |
-| AI-003 | Voice Transcription | svc-transcription (Whisper) | OpenAI Whisper | OpenAI (via Docker image) | Baked into container image | Image rebuild | MIT |
+| AI-003 | Voice Transcription | svc-transcription (`fedirz/faster-whisper-server`) | Whisper model weights, CTranslate2 runtime | OpenAI (model architecture), fedirz (container packager), HuggingFace (weight hosting) | Container image, weights downloaded to HuggingFace cache volume at first run | Image rebuild | MIT (model), Apache 2.0 (CTranslate2) |
 
 ### 2.2 Supply Chain Type Classification
 
@@ -169,56 +169,58 @@ The Ollama supply chain has a **two-hop trust problem**: the Organization trusts
 
 ---
 
-### 3.3 AI-003: Whisper (Open-Weight)
+### 3.3 AI-003: faster-whisper-server (CTranslate2 runtime, Whisper weights)
 
 #### Supply Chain Profile
 
 | Attribute | Detail |
 |-----------|--------|
-| **Model creator** | OpenAI |
-| **Delivery mechanism** | Model weights embedded in or downloaded by the Docker container image at first startup |
-| **Container image** | Whisper container (specific image tag maintained by container packager) |
-| **Model format** | PyTorch (.pt / .bin) checkpoint files |
-| **Runtime framework** | Python, PyTorch, potentially CUDA/CPU-specific libraries |
-| **Runtime network** | net-ai (`internal: true`) - no internet access at inference time |
-| **Model signing** | None - OpenAI does not sign Whisper model weight files |
-| **Hash verification** | Manual - compare weight file SHA256 against OpenAI's published hashes (if available) |
-| **Update model** | Container image rebuild/repull |
-| **License** | MIT |
+| **Model architecture creator** | OpenAI (Whisper paper and original model release) |
+| **Container packager** | fedirz (`fedirz/faster-whisper-server` on Docker Hub) |
+| **Runtime engine** | CTranslate2 (translates Whisper to its own optimized binary format) |
+| **Delivery mechanism** | Container image pulled from Docker Hub. Quantized CTranslate2 model weights downloaded from HuggingFace to the mounted cache volume at first startup |
+| **Container image** | `fedirz/faster-whisper-server:latest-cpu` (mutable tag, should be pinned to digest) |
+| **Model format** | CTranslate2 binary format (NOT PyTorch pickle). Per CTranslate2 docs, weights live in a custom binary file with a JSON manifest; no Python `pickle` deserialization is involved when CTranslate2 loads the model. |
+| **Runtime framework** | Python launcher plus CTranslate2 C++ binary; smaller dependency surface than vanilla `openai-whisper` |
+| **Runtime network** | net-ai (`internal: true`), no internet access at inference time |
+| **Model signing** | None at the CTranslate2 conversion step or HuggingFace publish step |
+| **Hash verification** | HuggingFace publishes per-file SHA256 in the model card. Verification is manual unless the puller-side cron is wired |
+| **Update model** | Container image rebuild or HuggingFace re-pull when the cache volume is cleared |
+| **License** | MIT (Whisper model), Apache 2.0 (CTranslate2 runtime) |
 
 #### Supply Chain Dependencies
 
 ```
-svc-transcription (Whisper container)
-├── Docker image: [whisper image] (Docker Hub or custom build)
-│   ├── Base image: python:3.x or nvidia/cuda
-│   ├── Framework: PyTorch (pip install)
-│   │   ├── numpy, scipy, tokenizers, transformers
-│   │   └── ~150+ transitive Python dependencies
-│   ├── Whisper library: openai-whisper (pip package)
-│   └── Model weights: downloaded at build/first-run
-│       ├── Source: OpenAI GitHub releases or HuggingFace
-│       ├── Format: PyTorch checkpoint (.pt)
-│       └── Storage: transcription-model-volume or baked into image layer
-├── Network (runtime): net-ai (internal: true - no egress)
-└── Network (build-time): requires internet for pip install + model download
+svc-transcription (fedirz/faster-whisper-server container)
+├── Docker image: fedirz/faster-whisper-server:latest-cpu (Docker Hub)
+│   ├── Base image: vendor-specified (python slim plus CTranslate2 build dependencies)
+│   ├── Runtime: CTranslate2 C++ binary plus Python launcher
+│   ├── Dependencies: ctranslate2, faster-whisper, transformers tokenizer (no full PyTorch runtime requirement)
+│   └── Inference engine: CTranslate2 (optimized Transformer runtime)
+├── Model artifact: faster-whisper or whisper checkpoint converted to CTranslate2 format
+│   ├── Source: HuggingFace model repository (e.g. `Systran/faster-whisper-*`)
+│   ├── Format: CTranslate2 binary plus JSON config (NOT pickle)
+│   ├── Storage: ./CD_VOL_WHISPER:/root/.cache/huggingface (HuggingFace cache layout)
+│   └── Download trigger: first run unless cache volume already populated
+├── Network (runtime): net-ai (internal: true, no egress)
+└── Network (first-run): HuggingFace Hub to populate cache; subsequent restarts are offline
 ```
 
 #### Identified Risks
 
 | Risk | Description | MITRE ATLAS |
 |------|-------------|-------------|
-| **Docker image compromise** | The container image includes the full Python + PyTorch stack. A compromised base image, malicious PyPI package, or dependency confusion attack could inject code that runs alongside or instead of the Whisper model. | - |
-| **PyTorch dependency chain** | Whisper depends on PyTorch, which depends on ~150+ transitive Python packages. Any of these packages could be compromised via supply chain attack (typosquatting, maintainer account takeover, malicious release). This is the deepest dependency tree of all three AI systems. | - |
-| **Weight file tampering** | PyTorch checkpoint files (.pt) use Python's `pickle` for serialization. Pickle deserialization is inherently unsafe - a crafted .pt file can execute arbitrary Python code when loaded. This is the most critical supply chain vector for Whisper. | AML.T0018 |
-| **Model source ambiguity** | Whisper weights may be sourced from OpenAI's GitHub, HuggingFace, or a third-party mirror depending on the container image's Dockerfile. The actual provenance depends on which image was used and when it was built. | AML.T0018 |
-| **Stale dependencies** | The Python dependency tree is frozen at image build time. Known CVEs in PyTorch, numpy, or other dependencies will persist until the image is rebuilt. | - |
+| **Docker image compromise** | `fedirz/faster-whisper-server` is published by a third-party packager (not OpenAI, not Systran). A compromised packager account or build pipeline could inject malicious code into the image. Mitigation is to pin to digest and rebuild from a trusted Dockerfile if `fedirz` is not on the approved-publisher list. | AML.T0010 |
+| **CTranslate2 dependency chain** | The CTranslate2 runtime has a much smaller Python footprint than vanilla openai-whisper (no full PyTorch), but it still ships compiled C++ binaries and pulls a tokenizer plus transformers package. Supply chain compromise of CTranslate2 upstream releases or its small Python wrapper is the analogous risk. | AML.T0010 |
+| **Weight file tampering on HuggingFace** | CTranslate2 weight files are NOT pickle, so the arbitrary-code-execution risk that affects PyTorch `.pt` checkpoints does not apply here. The residual risk is behavioral integrity: a tampered weight file could degrade transcription accuracy or introduce targeted misclassification. SHA256 verification against the published model card detects this. | AML.T0018 |
+| **Conversion-step compromise** | Faster-whisper publishes pre-converted weights; the conversion from the original OpenAI Whisper to CTranslate2 format happened upstream. A compromise at that conversion step would produce a backdoored weight file with a valid SHA256 but bad behavior. | AML.T0018, AML.T0020 |
+| **Stale dependencies** | The Python and C++ dependency tree is frozen at image build time. Known CVEs in CTranslate2, transformers, or the base image will persist until the image is rebuilt and republished. | - |
 
 #### Trust Assessment
 
-Whisper has the **deepest and most fragile supply chain** of the three AI systems. The PyTorch pickle deserialization vector means that a compromised weight file is equivalent to arbitrary code execution - not just model behavior manipulation. The ~150+ transitive Python dependencies create a broad attack surface that no amount of model-level verification can address. However, the air-gapped runtime on net-ai prevents exploitation from reaching external infrastructure, and the limited capability of the Whisper model (audio-to-text only) constrains the impact of a behavior-only compromise.
+Faster-whisper-server has a **smaller and less fragile supply chain** than a vanilla PyTorch Whisper deployment. The CTranslate2 binary format is not Python pickle, so the load-time-arbitrary-code-execution vector that defines the PyTorch supply chain risk does not apply. The dominant residual risks are container-image provenance (third-party packager `fedirz` rather than OpenAI directly) and weight-file integrity at the HuggingFace cache layer. The air-gapped runtime on net-ai prevents exploitation from reaching external infrastructure, and the limited capability of the Whisper model (audio-to-text only) constrains the impact of a behavior-only compromise.
 
-**Risk Rating: Medium-High** - Pickle deserialization risk and deep dependency tree offset by air-gapped runtime and limited model capability scope (transcription only, no autonomous actions).
+**Risk Rating: Medium.** Third-party container packager and unsigned weights offset by air-gapped runtime, narrow model capability scope, and the fact that CTranslate2 weight loading does not deserialize Python pickle.
 
 ---
 
@@ -342,24 +344,25 @@ An ML Bill of Materials extends the concept of a Software Bill of Materials (SBO
 | **Last verified** | 2026-03-11 (pull and hash recorded) |
 | **SBOM coverage** | Container SBOM generated; model weights not in SBOM |
 
-### 6.3 AI-003: OpenAI Whisper
+### 6.3 AI-003: faster-whisper-server (CTranslate2 runtime, Whisper weights)
 
 | Field | Value |
 |-------|-------|
-| **Model name** | OpenAI Whisper |
-| **Model version** | Determined by container image tag |
-| **Model format** | PyTorch checkpoint (.pt / .bin) |
-| **Model creator** | OpenAI |
-| **Model license** | MIT |
+| **Model name** | Whisper (architecture by OpenAI), served via faster-whisper / CTranslate2 |
+| **Model version** | Determined by container image tag and the CTranslate2 model file downloaded from HuggingFace |
+| **Model format** | CTranslate2 binary format plus JSON config (not PyTorch pickle) |
+| **Model creator** | OpenAI (architecture and original weights), Systran/community (CTranslate2 conversion) |
+| **Container packager** | fedirz (`fedirz/faster-whisper-server`) |
+| **Model license** | MIT (model), Apache 2.0 (CTranslate2 runtime) |
 | **Training data** | 680,000 hours of web audio (documented in Whisper paper, arXiv:2212.04356) |
 | **Training data provenance** | **Partially documented** - aggregate statistics published; specific audio sources not itemized |
-| **Container image** | Whisper container image (Docker Hub) |
+| **Container image** | `fedirz/faster-whisper-server:latest-cpu` |
 | **Container tag** | Mutable tag (should pin to digest) |
-| **Runtime dependencies** | Python 3.x, PyTorch, numpy, scipy, tokenizers, transformers, ffmpeg |
-| **Model storage** | transcription-model-volume or baked into image layer |
-| **Model hash (SHA256)** | Not currently recorded |
+| **Runtime dependencies** | Python launcher, CTranslate2 C++ binary, faster-whisper, transformers tokenizer, ffmpeg |
+| **Model storage** | `./CD_VOL_WHISPER:/root/.cache/huggingface` (HuggingFace cache layout on host) |
+| **Model hash (SHA256)** | Published per-file in HuggingFace model card; not currently re-verified locally |
 | **Last verified** | 2026-03-11 (container health check) |
-| **SBOM coverage** | Container SBOM generated; Python dependency tree partially covered; model weights not in SBOM |
+| **SBOM coverage** | Container SBOM generated; CTranslate2 plus Python dependency tree partially covered; model weights not in SBOM |
 
 ### 6.4 ML-BOM Gap Analysis
 
@@ -399,26 +402,26 @@ fi
 # /etc/cron.d/model-integrity-check (daily at 03:00 UTC)
 0 3 * * * root docker exec svc-llm ollama show qwen3:4b --format json \
   | jq -r '.layers[] | select(.mediaType == "application/vnd.ollama.image.model") | .digest' \
-  | diff - /opt/platform/model-baselines/qwen3-8b.sha256 \
+  | diff - /opt/platform/model-baselines/qwen3-4b.sha256 \
   || curl -X POST https://example-ops.com/webhook/master-cmd \
      -H "Content-Type: application/json" \
      -d '{"action":"telegram","chat_id":"OPERATOR","text":"ALERT: Ollama model hash mismatch detected"}'
 ```
 
-### 7.2 AI-003: Whisper Model Verification
+### 7.2 AI-003: faster-whisper-server Model Verification
 
-**Current state:** No automated weight file verification.
+**Current state:** No automated weight file verification. CTranslate2 binary files live under the mounted HuggingFace cache (`./CD_VOL_WHISPER:/root/.cache/huggingface`).
 
 **Verification procedure:**
 ```bash
-# Identify weight file location inside container
-docker exec svc-transcription find / -name "*.pt" -o -name "*.bin" 2>/dev/null
+# Identify CTranslate2 model files inside the cache volume
+docker exec svc-transcription find /root/.cache/huggingface -name "model.bin" -o -name "config.json" 2>/dev/null
 
-# Compute SHA256 of weight files
-docker exec svc-transcription sha256sum /path/to/model/weights.pt
+# Compute SHA256 of the CTranslate2 binary
+docker exec svc-transcription sha256sum /root/.cache/huggingface/.../model.bin
 
-# Compare against OpenAI published hashes (from GitHub release or model card)
-# Note: OpenAI publishes expected hashes for each Whisper model size
+# Compare against the SHA256 published on the HuggingFace model card for the converted faster-whisper model
+# (e.g. Systran/faster-whisper-base, Systran/faster-whisper-small, etc.)
 
 # Verify container image digest
 docker inspect svc-transcription --format '{{.Image}}'
@@ -429,7 +432,7 @@ docker inspect svc-transcription --format '{{.Image}}'
 # docker-compose.yaml - pin to digest instead of mutable tag
 services:
   svc-transcription:
-    image: whisper-image@sha256:<immutable_digest>
+    image: fedirz/faster-whisper-server@sha256:<immutable_digest>
 ```
 
 ### 7.3 AI-001: Anthropic API Behavioral Baseline
@@ -488,6 +491,9 @@ BASELINE_PROMPTS = [
 
 ### 8.1 Anthropic PBC
 
+<!-- TODO(et): Funding wording "Series D ($4B+ raised)" understates current cumulative funding ($10B+ as of late 2025 / 2026). Consider rephrasing to "well-funded, market-leading" or update with current figures from Anthropic trust page. -->
+<!-- TODO(et): "SOC 2 Type II certified" is correct but Anthropic also holds ISO 27001 and offers HIPAA BAA. Consider expanding compliance row. -->
+
 | Category | Assessment |
 |----------|-----------|
 | **Company type** | Private (venture-funded); Series D ($4B+ raised) |
@@ -535,6 +541,8 @@ BASELINE_PROMPTS = [
 
 ### 9.1 Prioritized Actions
 
+<!-- TODO(et): P1 through P7 target dates (2026-04-15 through 2026-06-15) all past. Refresh with closure status or revised targets. -->
+
 | Priority | Action | Risk(s) Addressed | Gap(s) | Effort | Target Date | Owner |
 |----------|--------|-------------------|--------|--------|-------------|-------|
 | **P1** | Implement model hash verification cron job for AI-002 and AI-003 | SCR-01, SCR-12 | SCG-04 | Low | 2026-04-15 | Information Security Officer |
@@ -557,7 +565,7 @@ BASELINE_PROMPTS = [
 ### 9.3 Long-Term Initiatives
 
 1. **Sigstore for ML** - The Sigstore project (sigstore.dev) is extending its signing framework to cover ML model artifacts. When model registries (Ollama, HuggingFace) support Sigstore attestations, adopt verification as a mandatory step in the model update workflow.
-2. **SafeTensors adoption** - HuggingFace's SafeTensors format eliminates the pickle deserialization risk inherent in PyTorch checkpoint files. Monitor Whisper ecosystem for SafeTensors support.
+2. **SafeTensors adoption (where applicable)** - HuggingFace's SafeTensors format eliminates pickle deserialization risk for PyTorch-based models. The current AI-003 deployment uses CTranslate2 binary format (not pickle) so this concern does not apply to faster-whisper-server, but SafeTensors remains the right pivot if the deployment ever moves to a vanilla PyTorch Whisper runtime or to a different HuggingFace model that ships pickle checkpoints.
 3. **ML-BOM automation** - As tools like CycloneDX ML-BOM and SPDX AI Profile mature, integrate automated ML-BOM generation into the CI/CD pipeline alongside existing SBOM generation.
 4. **Model behavioral regression CI** - Integrate behavioral baseline tests into the CI/CD pipeline so that any model-related change (container rebuild, explicit pull) triggers automated behavioral validation before deployment.
 

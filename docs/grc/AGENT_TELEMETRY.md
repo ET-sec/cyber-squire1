@@ -46,7 +46,7 @@ requires a Registry row change (gated by Plan 20-04's PR check).
 
 | Surface | Mechanism | File |
 |---|---|---|
-| Python agents (5) | `ddtrace.tracer.set_tags` at module import | `builds/squire/src/squire/telemetry.py` and `Agent_Squire/agents/<id>/telemetry.py` |
+| Python agents (5: 4 in public mirror, 1 gitignored) | `ddtrace.tracer.set_tags` at module import | `Agent_Squire/agents/<id>/telemetry.py` (public mirror: blue_squire, red_squire, keeper_squire, grc_librarian) and `builds/squire/src/squire/telemetry.py` (gitignored local) |
 | n8n workflows (4) | Shared Code-node snippet injects `dd_tags: ['agent_id:<id>']` | `Agent_Squire/n8n_function_snippets/agent_id_tagger.js` |
 | Falcosidekick | `customfields` adds `agent_id: falco_sensor` | `falcosidekick.yaml` on the host |
 | openclaw gateway | Datadog Agent host-level `DD_TAGS` env var (binary cannot self-tag) | `datadog-agent` service env on the host |
@@ -127,4 +127,9 @@ End-to-end smoke test (after rollout):
 
 *Companion artifacts: `.agents/registry.yaml` (single source of truth),
 `scripts/grc/inventory_scan.py` (drift detector), `agent_activity_dashboard.tf`
-(dashboard).*
+(dashboard), `AGENT_SIGNING.md` (Sigstore keyless signing for the cards
+behind these telemetry tags), `AI_AUDIT_TRAIL_SPEC.md` (per-investigation
+audit rows now carry `agent_id` to keep the per-agent attribution story
+consistent across metrics, logs, traces, and audit records).*
+
+<!-- TODO(et): confirm the current `.agents/registry.yaml` row count matches the "13 LLM-callers" figure in the Cardinality Budget; the registry currently includes the four Squire agents and additional rows for openclaw, cdirective_bot, coredirective_bot, fastmcp_grc_corpus, master_orchestrator, n8n_content_research, n8n_gmail_readers, n8n_telegram_supervisor, grc_librarian. -->

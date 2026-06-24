@@ -19,6 +19,8 @@ This exercise validates the Organization's ability to detect a compromised auton
 
 > **Key Point:** Squire produces recommend-only text, but the tabletop proves that even recommend-only output reaching a fatigued operator could lead to bad real-world action if detection is delayed. The exercise trains the operator, not the platform.
 
+> **Scope note:** Squire is one tier of a five-agent platform. This exercise covers the tier-1 read-only triage agent (`squire`). Tier-3 (`blue_squire`) write-with-approval flows are exercised separately.
+
 ### 1.2 Objectives
 
 | # | Objective | Control |
@@ -184,7 +186,8 @@ doppler secrets set SQUIRE_WEBHOOK_TOKEN="$(openssl rand -hex 48)" \
 
 - Token rotation stops new alerts at the /alert endpoint (next POST with old token returns 401).
 - In-flight invocations continue to completion; they do not terminate mid-graph.
-- n8n credential `SQUIRE_WEBHOOK_TOKEN` must be updated in the n8n credentials store before the next alert dispatch; otherwise n8n will 401. Update must be done *after* triage confirms scope so upstream re-enables cleanly.
+- n8n credential `SQUIRE_WEBHOOK_TOKEN` must be updated in the n8n credentials store before the next alert dispatch; otherwise n8n will 401. Update must be done *after* triage confirms scope so upstream re-enables cleanly. <!-- TODO(et): record the n8n credential ID for SQUIRE_WEBHOOK_TOKEN so the responder can update it directly via the REST API rather than the UI. -->
+
 
 **Scoring:**
 
@@ -209,8 +212,13 @@ doppler secrets set SQUIRE_WEBHOOK_TOKEN="$(openssl rand -hex 48)" \
 
 - SOC identifies that the NeMo input rail allowed the YAML-structured payload (presidio does not behaviorally detect role-hijack; it checks PII entities).
 - Critique loop detected the inconsistency but only flagged, did not loop again (1 iteration used out of 3; 2 remaining, but the graph advanced because APPROVED state is not mandatory for progression, only consistency-within-iteration-cap is).
+- **Design rationale (interview-quality answer):** blocking on every INCONSISTENT verdict would cause runaway critique loops (Case C in PLAYBOOK_AI_INCIDENT.md), so the design prefers flag-and-flag-up over block-and-stall. The operator-in-the-loop is the final defense by intent.
 - The `ALLOW_WITH_REWRITE` on output rail shows actions.yml caught the literal "stop" verb.
 - Live-prompt injection, not corpus poisoning. Corpus integrity check is still prudent but not the root cause.
+- Additional Phase 3 evidence to capture (per POLICY_INCIDENT_RESPONSE.md §Squire Integration):
+  - Query `ir_investigations` for the affected verdicts and snapshot the trace IDs.
+  - Cross-reference `REDTEAM_RESULTS.md` for any prior similar bypass pattern before declaring novelty.
+  - Block the alert source at Cloudflare WAF as defense-in-depth alongside the Doppler token rotation.
 
 **Scoring:**
 
@@ -227,10 +235,13 @@ doppler secrets set SQUIRE_WEBHOOK_TOKEN="$(openssl rand -hex 48)" \
 **Expected commands (to discuss, not execute):**
 
 ```bash
+# Run from a DIRECT SSH session (not the Cloudflare Tunnel SSH route) to
+# avoid losing the connection mid-execution. `docker compose stop svc-squire`
+# is single-service and safe; never `docker compose down` via the tunnel.
 ssh host-alpha 'cd /opt/platform && docker compose stop svc-squire'
 
 # Verify other services remain up
-ssh host-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "svc-n8n|svc-db|svc-datadog|svc-falco"'
+ssh host-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "svc-n8n|svc-db|svc-datadog|svc-detection"'
 
 # Expected output: all four containers Up, svc-squire Exited
 ```
@@ -266,9 +277,13 @@ ssh host-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "sv
 # to the golden baseline
 ssh host-alpha 'docker exec svc-db psql -U "$CD_DB_USER" -d "$CD_DB_NAME" \
   -c "SELECT count(*), md5(string_agg(content, '"'"','"'"' ORDER BY id)) FROM ir_chunks"'
+# <!-- TODO(et): verify the ir_chunks schema actually exposes `content` and `id`
+# columns. If the live schema differs (e.g., chunk_text, chunk_id), update
+# both the recovery procedure and Phase 5 inject. -->
+
 
 # Compare output to:
-# .planning/phases/17-squire-autonomous-soc-analyst/evidence/ir_chunks_baseline.txt
+# <baseline_evidence_path>/ir_chunks_baseline.txt
 
 # If match: corpus clean, proceed to restart
 # If mismatch: escalate to A.2.a poisoning branch of PLAYBOOK_AI_INCIDENT.md
@@ -279,7 +294,11 @@ ssh host-alpha 'cd /opt/platform && docker compose up -d svc-squire'
 # Verify health
 ssh host-alpha 'docker inspect svc-squire --format "{{.State.Health.Status}}"'
 
-# Canary test with a known-benign fixture, new token
+# Canary test with a known-benign fixture, new token.
+# Header name is intentionally lowercase; HTTP headers are case-insensitive
+# per RFC 7230, but verify the Squire FastAPI dependency uses
+# `Header(...)` (case-insensitive) rather than `request.headers["X-Squire-Token"]`
+# (case-sensitive dict access).
 curl -X POST https://squire.example-ops.com/alert \
   -H "x-squire-token: <new-token>" \
   -H "content-type: application/json" \
@@ -315,8 +334,9 @@ curl -X POST https://squire.example-ops.com/alert \
 
 **Expected artifacts:**
 
-1. POA&M entry filed (example: POAM-P17-11 "expand NeMo rail for YAML-structured role-hijack", Owner: Security Eng, Target: next release).
-2. Regression test added to `builds/squire/tests/test_redteam.py` with this exact payload; must return a blocked or INCONSISTENT-rejected state.
+1. POA&M entry filed (example: POAM-P17-11 "expand NeMo rail for YAML-structured role-hijack", Owner: Security Eng, Target: next release). <!-- TODO(et): confirm POAM-P17-11 is the live entry number in POAM_PLAN_OF_ACTION.md; if not, replace with the actual ID at exercise time. -->
+2. Regression test added to `builds/squire/tests/test_redteam.py` with this exact payload; must return a blocked or INCONSISTENT-rejected state. <!-- TODO(et): confirm builds/squire/tests/test_redteam.py exists and that the payload is in it; otherwise this is roadmap, not done. -->
+
 3. NeMo rail config updated: add a behavioral pre-check for YAML-framed directive patterns before presidio pass.
 4. Update to [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) with a new case entry documenting the bypass, fix, and verification.
 5. Update to [GUARDRAILS_CONFIGURATION.md](GUARDRAILS_CONFIGURATION.md) reflecting the new pre-check.
@@ -344,7 +364,7 @@ After the exercise, the Incident Commander owns a one-page summary with:
 - Time-to-recover (stop to canary pass)
 - Concrete follow-up actions with owner and date
 
-Template lives at `.planning/phases/17-squire-autonomous-soc-analyst/templates/tabletop-postmortem.md`.
+Template lives at `<phase_planning_path>/templates/tabletop-postmortem.md` (internal path; substitute the project-local location).
 
 ---
 
@@ -361,14 +381,18 @@ doppler secrets set SQUIRE_WEBHOOK_TOKEN="$(openssl rand -hex 48)" \
 ssh host-alpha 'cd /opt/platform && docker compose stop svc-squire'
 
 # 3. Verify other services up
-ssh host-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "svc-n8n|svc-db|svc-datadog|svc-falco"'
+ssh host-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "svc-n8n|svc-db|svc-datadog|svc-detection"'
 
 # 4. Corpus integrity check
 ssh host-alpha 'docker exec svc-db psql -U "$CD_DB_USER" -d "$CD_DB_NAME" \
   -c "SELECT count(*), md5(string_agg(content, '"'"','"'"' ORDER BY id)) FROM ir_chunks"'
+# <!-- TODO(et): verify the ir_chunks schema actually exposes `content` and `id`
+# columns. If the live schema differs (e.g., chunk_text, chunk_id), update
+# both the recovery procedure and Phase 5 inject. -->
+
 
 # 5. Compare to baseline
-cat .planning/phases/17-squire-autonomous-soc-analyst/evidence/ir_chunks_baseline.txt
+cat <baseline_evidence_path>/ir_chunks_baseline.txt
 
 # 6. Restart svc-squire
 ssh host-alpha 'cd /opt/platform && docker compose up -d svc-squire'

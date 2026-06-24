@@ -42,6 +42,8 @@ This policy applies to all individuals who:
 
 ## 4. Training Requirements by Role
 
+> **Current state:** The Organization operates as a single-operator environment in which one individual holds the Administrator, Operator, and Auditor roles concurrently. Role-based training in this section maps to self-administered training tracked via git commits and policy acknowledgments. As the team scales beyond one operator, role separation becomes meaningful and a structured LMS will be procured.
+
 ### 4.1 Administrator Role
 
 Personnel with the Administrator role have full access to all platform systems, including infrastructure provisioning, secret management, and access control configuration.
@@ -266,7 +268,7 @@ Additional training SHALL be delivered when:
 
 **Topics covered:**
 
-- All SSH sessions through `svc-gateway` are recorded (video and command log)
+- All SSH sessions through `svc-gateway` are recorded with full terminal capture (stdin, stdout, stderr)
 - Session recordings are stored as immutable audit logs
 - Recordings are used for:
  - Post-incident forensic analysis
@@ -320,6 +322,7 @@ Additional training SHALL be delivered when:
 
 ### 8.4 Simulated Exercises
 
+<!-- TODO(et): Identify the phishing simulation platform (or note as aspirational). Single-operator self-targeted phishing is performative; document the platform in use or rewrite this section as future-state. -->
 - Phishing simulations conducted semi-annually
 - Metrics tracked: click rate, report rate, time to report
 - Personnel who fail simulations receive targeted remedial training within 7 days

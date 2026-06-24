@@ -34,7 +34,7 @@
 
 This document formalizes the Secure Software Development Lifecycle (SSDLC) for the Organization Security Operations Platform. It maps the existing CI/CD security pipeline to a structured development lifecycle, documenting security gates, tooling, enforcement policies, and evidence generation at each phase.
 
-The Organization operates a security-first CI/CD pipeline with two complementary GitHub Actions workflows. The first workflow enforces security scanning on every push and pull request, gating all downstream jobs behind a mandatory security scan. The second workflow validates infrastructure-as-code changes through seven sequential checks before any Terraform modification reaches production. Together, these workflows implement shift-left security testing, supply chain verification, and policy-as-code enforcement.
+The Organization operates a security-first CI/CD pipeline with twelve GitHub Actions workflows that fan out across security scanning, infrastructure validation, agent supply-chain signing, GRC document validation, and post-merge runtime checks. The primary security workflow enforces secret detection, CVE scanning, SAST, supply-chain verification, and SBOM generation on every push and pull request, gating downstream jobs behind a mandatory security scan. A second workflow validates infrastructure-as-code changes through seven sequential checks before any Terraform modification reaches production. Additional workflows enforce Sigstore keyless signing on agent cards, drift detection between the agent registry and the running stack, image smoke tests after rebuilds, Conftest policy on Docker Compose, DAST scans on PRs, and validation of GRC artifacts. Together, these workflows implement shift-left security testing, supply chain verification, agent-card integrity, and policy-as-code enforcement.
 
 This document satisfies NIST 800-53 controls for developer security testing (SA-11), development process standards (SA-15), configuration change control (CM-3), impact analysis (CM-4), vulnerability monitoring (RA-5), flaw remediation (SI-2), and software integrity verification (SI-7).
 
@@ -46,9 +46,9 @@ This Secure SDLC applies to all code, configuration, and infrastructure managed 
 
 - **Infrastructure-as-Code:** 19 Terraform files defining Cloud Provider resources (droplet, firewall, DNS, Spaces, volumes, Cloudflare tunnel configuration)
 - **Docker Compose:** 19-service container orchestration stack
-- **OPA Policies:** 8 Rego policy files (249 lines) enforcing security, naming, and operational standards
-- **CI/CD Workflows:** 2 GitHub Actions workflow files (`security.yml`, `terraform-pr.yml`)
-- **Container Images:** 8 upstream images consumed from public registries
+- **OPA Policies:** 8 Rego policy files (249 lines) enforcing security, naming, and operational standards <!-- TODO(et): verify the count and line total against the current `terraform/cd-do-infrastructure/policy/` directory. -->
+- **CI/CD Workflows:** 12 GitHub Actions workflow files (`agent-inventory.yml`, `agent-signing.yml`, `agent-verify.yml`, `compose-admission.yml`, `dast-zap.yml`, `grc-librarian-eval.yml`, `grc-reviewer.yml`, `grc-validate.yml`, `image-smoke.yml`, `pr-agent.yml`, `security.yml`, `terraform-pr.yml`)
+- **Container Images:** Upstream images consumed from public registries. See Section 8 for the current verified roster, image digests, and SBOM coverage.
 - **Automation Workflows:** n8n workflow definitions exported as JSON
 
 ### Out of Scope
@@ -77,7 +77,28 @@ The following table maps traditional SDLC phases to the Organization's tooling a
 
 ## 4. Pipeline Architecture
 
-The Organization operates two GitHub Actions workflows that form the complete CI/CD security pipeline. All security scans must pass before any production change is applied.
+The Organization operates twelve GitHub Actions workflows that form the complete CI/CD security pipeline. All security scans must pass before any production change is applied.
+
+### 4.0 Full Workflow Inventory
+
+| Workflow | Purpose | Trigger |
+|----------|---------|---------|
+| `security.yml` | Secret detection (Gitleaks), CVE scan (Trivy), SAST (Semgrep), Cosign image verification, SBOM, conditional Terraform apply, opportunistic Snyk gated on `SNYK_TOKEN` | Push to main/dev, PR to main |
+| `terraform-pr.yml` | 7-step Terraform PR validation (fmt, init, validate, TFLint, Checkov, plan, OPA/Conftest) with PR comment | PR to main touching `terraform/**`, `policy/**`, or the workflow file |
+| `compose-admission.yml` | Conftest policy enforcement on `docker-compose.yaml` (image tags, pinning, network shape) | PR touching `COREDIRECTIVE_ENGINE/docker-compose.yaml` |
+| `agent-signing.yml` | Sigstore keyless signing of `.agents/*.card.json` via Cosign and Fulcio short-lived OIDC certificates | Push to main when `.agents/**.card.json` changes, manual `workflow_dispatch` |
+| `agent-verify.yml` | Verification of agent-card signatures using `scripts/grc/verify_agent_signatures.sh` and pinned Cosign | PR touching `.agents/**` |
+| `agent-inventory.yml` | Daily drift check between `.agents/registry.yaml` and the running stack | Scheduled daily plus `workflow_dispatch` |
+| `image-smoke.yml` | Smoke test after image rebuilds to catch broken services before deploy | Image build completion |
+| `grc-validate.yml` | Schema and link validation on `docs/grc/` artifacts | PR touching `docs/grc/**` |
+| `grc-reviewer.yml` | Automated GRC reviewer comments on PRs | PR touching `docs/grc/**` |
+| `grc-librarian-eval.yml` | Evaluation harness for the GRC librarian agent | PR touching librarian code or `docs/grc/**` |
+| `dast-zap.yml` | OWASP ZAP DAST scan against the staging surface | PR plus scheduled |
+| `pr-agent.yml` | Automated PR commentary | PR events |
+
+`security.yml` is the gate workflow for the merge path. `terraform-pr.yml` is the gate workflow for infrastructure PRs. The remaining ten workflows extend the pipeline into agent supply-chain signing, GRC validation, post-deploy verification, and DAST coverage.
+
+
 
 ### 4.1 Workflow Overview
 
@@ -93,17 +114,20 @@ PR WORKFLOW (terraform-pr.yml):
 MERGE WORKFLOW (security.yml):
   Triggers: Push to main/dev, Pull request to main
 
-  push ─→ [Gitleaks] ─→ [Trivy] ─→ [Semgrep] ──┬──→ [Terraform Init] ─→ [Plan] ─→ [Apply*]
-          │              │            │           │
-          │  secrets     │  CVE/FS    │  SAST     ├──→ [Cosign Verify] ─→ Digest Manifest
-          │  detection   │  scan      │  4 rules  │     8 images
-          │              │            │           │
-          │              ▼            │           └──→ [Anchore SBOM] ─→ 90-day Retention
-          │         GitHub Security   │                 6 SBOMs (1 repo + 5 images)
-          │         Tab (SARIF)       │
-          ▼                           ▼
-     Block pipeline            Block pipeline
-     on finding                on finding
+  push ─→ [Gitleaks] ─→ [Trivy] ─→ [Semgrep] ─→ [Snyk*]──┬──→ [Terraform Init] ─→ [Plan] ─→ [Apply*]
+          │              │            │           │      │
+          │  secrets     │  CVE/FS    │  SAST     │ opt  ├──→ [Cosign Verify] ─→ Digest Manifest
+          │  detection   │  scan      │  4 rules  │ token├──→ [Anchore SBOM] ─→ 90-day Retention
+          │              │            │           │ gated│     SBOMs for repo plus selected images
+          │              ▼            │           ▼      │
+          │         GitHub Security   │     Snyk Cloud   │
+          │         Tab (SARIF)       │     (if token)   │
+          ▼                           ▼                  │
+     Block pipeline            Block pipeline            │
+     on finding                on finding                │
+                                                         ▼
+                                              * Snyk runs only when SNYK_TOKEN is set;
+                                                continue-on-error: true
 
   * Terraform Apply runs only on main branch, only when plan detects changes
 ```
@@ -271,6 +295,8 @@ Checkov enforces hard failures. Any CIS benchmark violation blocks the PR from p
 
 The Organization maintains 8 custom OPA/Rego policies (249 lines total) in the `policy/` directory. These policies evaluate the Terraform plan JSON output and enforce organizational security and operational standards.
 
+<!-- TODO(et): confirm SANITIZATION_KEY.md documents the mapping from real Terraform resource names (`digitalocean_firewall`, `digitalocean_spaces_bucket`, `digitalocean_droplet`, `digitalocean_volume`, `digitalocean_ssh_key`) to the sanitized `cloud_provider_*` names used in policies and examples below. -->
+
 ### 7.1 Deny Policies (Hard Fail)
 
 Deny policies halt the pipeline. Any violation must be resolved before the PR can merge.
@@ -386,20 +412,30 @@ The merge pipeline includes container supply chain verification through two mech
 
 ### 8.1 Cosign Image Verification
 
-After the security-scan gate passes, the `container-verification` job verifies cryptographic signatures on all 8 upstream container images consumed by the platform.
+After the security-scan gate passes, the `container-verification` job verifies cryptographic signatures on upstream container images consumed by the platform. The current image inventory (verified against `COREDIRECTIVE_ENGINE/docker-compose.yaml`) is below. All production images are pinned by SHA-256 digest in addition to the semver tag.
 
 **Verified images:**
 
-| Image | Service | Registry |
-|-------|---------|----------|
-| `postgres:16-alpine` | svc-db (PostgreSQL) | Docker Hub |
-| `n8nio/n8n:latest` | svc-automation (n8n SOAR) | Docker Hub |
-| `ollama/ollama:latest` | svc-llm (Ollama) | Docker Hub |
+| Image (with digest pin) | Service | Registry |
+|-------------------------|---------|----------|
+| `pgvector/pgvector:pg16@sha256:7d4...` | svc-db (PostgreSQL with pgvector) | Docker Hub |
+| `n8nio/n8n:2.17.5@sha256:81d...` | svc-automation (n8n SOAR) | Docker Hub |
+| `ollama/ollama@sha256:0ff...` | svc-llm (Ollama) | Docker Hub |
 | `fedirz/faster-whisper-server:latest-cpu` | svc-transcription (Whisper) | Docker Hub |
-| `hashicorp/vault:1.15` | svc-secrets (HashiCorp Vault) | Docker Hub |
-| `quay.io/keycloak/keycloak:23.0` | svc-identity (Keycloak) | Quay.io |
-| `datadog/agent:latest` | svc-monitor (Datadog Agent) | Docker Hub |
-| `cloudflare/cloudflared:latest` | svc-tunnel (Cloudflare Tunnel) | Docker Hub |
+| `hashicorp/vault:1.15@sha256:045...` | svc-secrets (HashiCorp Vault) | Docker Hub |
+| `quay.io/keycloak/keycloak:26.5.2@sha256:fb3...` | svc-identity (Keycloak) | Quay.io |
+| `public.ecr.aws/gravitational/teleport-distroless:18.7.2@sha256:d66...` | svc-gateway (Teleport) | AWS ECR Public |
+| `datadog/agent:7.78.0@sha256:506...` | svc-monitor (Datadog Agent) | Docker Hub |
+| `falcosecurity/falco:0.43.0@sha256:88c...` | svc-detection (Falco) | Docker Hub |
+| `falcosecurity/falcosidekick:2.32.0@sha256:197...` | svc-detection-router (Falcosidekick) | Docker Hub |
+| `public.ecr.aws/gravitational/teleport-plugin-event-handler:18.7.2@sha256:488...` | svc-event-shipper | AWS ECR Public |
+| `cloudflare/cloudflared:2026.3.0@sha256:6b5...` | svc-tunnel (Cloudflare Tunnel) | Docker Hub |
+| `clickhouse/clickhouse-server:24.11-alpine@sha256:3cc...` | langfuse-clickhouse (Langfuse columnar store) | Docker Hub |
+| `redis:7-alpine@sha256:7ae...` | langfuse-redis (Langfuse hot cache) | Docker Hub |
+| `langfuse/langfuse-worker:3@sha256:f8a...` | langfuse-worker | Docker Hub |
+| `langfuse/langfuse:3@sha256:cdf...` | langfuse-web | Docker Hub |
+
+Two services (`cd-service-nemo` and `cd-service-squire`) build locally from Dockerfiles and are not pulled from public registries; they ship under the `:dev` tag and are signed at promotion time. <!-- TODO(et): when nemo and squire images move to a registry, add Cosign verification rows here. -->
 
 **Verification flow:**
 
@@ -587,10 +623,14 @@ Every pipeline run is traceable through:
 
 | Enhancement | Priority | Target | NIST Control |
 |-------------|----------|--------|-------------|
-| DAST integration (OWASP ZAP) | Medium | Shipped 2026-05-25 | SA-11(8), RA-5 |
-| Container runtime scanning in pipeline | Medium | Q3 2026 | RA-5, SI-7 |
+| DAST integration (OWASP ZAP) | Medium | Shipped 2026-05-25 (`dast-zap.yml`) | SA-11(8), RA-5 |
+| Agent card Sigstore keyless signing | High | Shipped (`agent-signing.yml`, `agent-verify.yml`); see [AGENT_SIGNING.md](AGENT_SIGNING.md) | CM-3, SI-7 |
+| Daily registry-to-stack drift detection | High | Shipped (`agent-inventory.yml`) | CM-8, SI-7 |
+| Compose admission policy (Conftest) | High | Shipped (`compose-admission.yml`) | CM-3, CM-6 |
+| Per-agent telemetry tagging | High | Shipped (Phase 20 Plan 05); see [AGENT_TELEMETRY.md](AGENT_TELEMETRY.md) | AU-2, AU-3, SI-4 |
+| Dependency update automation (Renovate) | Active | Renovate configured in compose; patch bumps auto-merge after smoke test green | SI-2, RA-5 |
+| Container runtime scanning in pipeline | Medium | Q3 2026 (current Trivy covers filesystem + image CVEs; this row tracks live runtime scanning, e.g. Sysdig or Falco-driven) | RA-5, SI-7 |
 | Signed commits enforcement | Low | Q4 2026 | CM-3, SI-7 |
-| Dependency update automation (Dependabot) | Low | Q4 2026 | SI-2, RA-5 |
 
 ---
 
@@ -606,15 +646,29 @@ Every pipeline run is traceable through:
 | [DAST_METHODOLOGY.md](DAST_METHODOLOGY.md) | Documents the DAST assessment approach now running in CI referenced in Section 12.2 |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Maps NIST 800-53 controls to this SDLC's technical implementation |
 | [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md) | Identifies threats that this SDLC's security gates are designed to detect |
+| [AGENT_SIGNING.md](AGENT_SIGNING.md) | Sigstore keyless signing workflow (`agent-signing.yml`, `agent-verify.yml`) for `.agents/*.card.json`; this SDLC document references the pipeline, AGENT_SIGNING owns the trust model |
+| [AGENT_TELEMETRY.md](AGENT_TELEMETRY.md) | Per-agent_id tagging across Datadog metrics, logs, and traces; agent_id tagging is required at the Monitoring row of Section 3 |
 
 ---
 
 ## Appendix A: Workflow File Reference
 
-| File | Path | Lines | Triggers |
-|------|------|-------|----------|
-| `security.yml` | `.github/workflows/security.yml` | 299 | Push to main/dev, PR to main |
-| `terraform-pr.yml` | `.github/workflows/terraform-pr.yml` | 207 | PR to main (terraform path changes) |
+| File | Path | Approx. Lines | Triggers |
+|------|------|---------------|----------|
+| `security.yml` | `.github/workflows/security.yml` | ~310 (grown since baseline; includes opportunistic Snyk gated on `SNYK_TOKEN`) | Push to main/dev, PR to main |
+| `terraform-pr.yml` | `.github/workflows/terraform-pr.yml` | ~206 | PR to main (terraform path changes) |
+| `compose-admission.yml` | `.github/workflows/compose-admission.yml` | Conftest policy on compose | PR touching docker-compose.yaml |
+| `agent-signing.yml` | `.github/workflows/agent-signing.yml` | ~97 | Push to main on `.agents/**.card.json` |
+| `agent-verify.yml` | `.github/workflows/agent-verify.yml` | ~39 | PR touching `.agents/**` |
+| `agent-inventory.yml` | `.github/workflows/agent-inventory.yml` | Daily drift check | Schedule plus workflow_dispatch |
+| `image-smoke.yml` | `.github/workflows/image-smoke.yml` | Post-rebuild smoke test | Image build completion |
+| `grc-validate.yml` | `.github/workflows/grc-validate.yml` | GRC schema/link validation | PR touching `docs/grc/**` |
+| `grc-reviewer.yml` | `.github/workflows/grc-reviewer.yml` | GRC review automation | PR touching `docs/grc/**` |
+| `grc-librarian-eval.yml` | `.github/workflows/grc-librarian-eval.yml` | Librarian agent evaluation | PR touching librarian code |
+| `dast-zap.yml` | `.github/workflows/dast-zap.yml` | OWASP ZAP scan | PR plus schedule |
+| `pr-agent.yml` | `.github/workflows/pr-agent.yml` | Automated PR commentary | PR events |
+
+<!-- TODO(et): refresh line counts on next review; security.yml has grown since baseline due to Snyk additions. -->
 
 ## Appendix B: OPA Policy File Reference
 

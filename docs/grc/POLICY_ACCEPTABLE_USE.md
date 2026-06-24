@@ -90,7 +90,7 @@ The following activities are authorized within the bounds of the user's assigned
 
 ### 4.3 Personal Use
 
-Limited personal use of Organization systems is not permitted. Organization infrastructure exists exclusively for operational and business purposes. Personal projects, communications, file storage, or computing workloads shall not be run on Organization systems.
+Personal use of Organization systems is not permitted. Organization infrastructure exists exclusively for operational and business purposes. Personal projects, communications, file storage, or computing workloads shall not be run on Organization systems.
 
 ---
 
@@ -175,20 +175,26 @@ Only the following containers are authorized to run on `alpha-node`:
 
 | Container | Service | Authorization |
 |-----------|---------|---------------|
-| `svc-db` | PostgreSQL 16 | Authorized -- production database |
-| `svc-automation` | SOAR platform | Authorized -- workflow orchestration |
-| `svc-secrets` | Secrets engine | Authorized -- secrets management |
-| `svc-identity` | Identity provider (v26) | Authorized -- authentication and SSO |
-| `svc-gateway` | SSH gateway (v18) | Authorized -- access control and session recording |
-| `svc-monitor` | Observability agent | Authorized -- monitoring and log collection |
-| `svc-detection` | eBPF runtime detection | Authorized -- syscall-level threat detection |
-| `svc-detection-router` | Alert routing | Authorized -- detection event enrichment and forwarding |
-| `Fluentd` | Log transformation | Authorized -- structured log routing with mTLS |
-| `svc-event-shipper` | Audit event export | Authorized -- `svc-gateway` audit log shipping |
-| `svc-llm` | Local LLM inference | Authorized -- local language model inference |
-| `svc-transcription` | Voice-to-text processing | Authorized -- audio transcription service |
-| `svc-tunnel` | Zero-trust tunnel | Authorized -- Cloudflare ingress |
-| `svc-ai-gateway` | AI model gateway | Authorized -- standalone AI inference endpoint |
+| `svc-db` | PostgreSQL 16 | Authorized, production database |
+| `svc-automation` | SOAR platform | Authorized, workflow orchestration |
+| `svc-secrets` | Secrets engine | Authorized, secrets management |
+| `svc-identity` | Identity provider (v26) | Authorized, authentication and SSO |
+| `svc-gateway` | SSH gateway (v18) | Authorized, access control and session recording |
+| `svc-event-shipper` | Audit event export | Authorized, `svc-gateway` audit log shipping |
+| `svc-monitor` | Observability agent | Authorized, monitoring and log collection |
+| `svc-detection` | eBPF runtime detection | Authorized, syscall-level threat detection |
+| `svc-detection-router` | Alert routing | Authorized, detection event enrichment and forwarding |
+| `Fluentd` | Log transformation | Authorized, structured log routing with mTLS |
+| `svc-llm` | Local LLM inference | Authorized, local language model inference |
+| `svc-transcription` | Voice-to-text processing | Authorized, audio transcription service |
+| `svc-tunnel` | Zero-trust tunnel | Authorized, Cloudflare ingress |
+| `svc-ai-gateway` | AI model gateway | Authorized, standalone AI inference endpoint |
+| `svc-squire` | Squire autonomous SOC analyst | Authorized, advisory AI investigation per HITL_POLICY.md |
+| `svc-nemo` | NeMo Guardrails | Authorized, input/output rail enforcement for svc-squire |
+| `svc-langfuse-web` | Langfuse UI | Authorized, AI trace observability dashboard |
+| `svc-langfuse-worker` | Langfuse background worker | Authorized, trace ingestion and processing |
+| `svc-langfuse-clickhouse` | Langfuse analytics store | Authorized, trace storage backend |
+| `svc-langfuse-redis` | Langfuse cache/queue | Authorized, worker queue and cache |
 
 ### 8.2 Container Governance Rules
 
@@ -217,7 +223,7 @@ Only the following containers are authorized to run on `alpha-node`:
 
 ### 9.1 Commit and Push Requirements
 
-1. **No secrets in commits:** Every commit is scanned by the secrets scanner in the CI/CD pipeline. Commits containing detected secrets will block the pipeline. If a secret is accidentally committed, it shall be considered compromised and rotated immediately -- removing it from git history alone is insufficient.
+1. **No secrets in commits:** Every commit is scanned by the secrets scanner in the CI/CD pipeline. Commits containing detected secrets will block the pipeline. If a secret is accidentally committed, it shall be considered compromised and rotated immediately. Removing it from git history alone is insufficient.
 2. **Mandatory security scanning:** All pull requests trigger the following automated scans before merge is permitted:
   - **CVE scanner:** Container image vulnerability scanning (CVE detection)
   - **SAST scanner:** Static application security testing (SAST)
@@ -288,7 +294,7 @@ Monitoring data shall not be used for purposes unrelated to security and operati
 
 ### 11.3 Reporting Violations
 
-Personnel who become aware of a policy violation -- whether committed by themselves or by another individual -- shall report it to the Information Security Officer immediately. Self-reporting of accidental violations (e.g., accidentally committing a secret to version control) is encouraged and will be considered a mitigating factor in enforcement decisions. Failure to report a known violation is itself a policy violation.
+Personnel who become aware of a policy violation, whether committed by themselves or by another individual, shall report it to the Information Security Officer immediately. Self-reporting of accidental violations (e.g., accidentally committing a secret to version control) is encouraged and will be considered a mitigating factor in enforcement decisions. Failure to report a known violation is itself a policy violation.
 
 ---
 
