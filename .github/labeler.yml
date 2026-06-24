@@ -1,0 +1,57 @@
+# Auto-labels PRs based on branch prefix and changed paths.
+# Used by .github/workflows/auto-label.yml
+
+# Branch prefix labels
+feature:
+  - head-branch: ['^feat/']
+bug:
+  - head-branch: ['^fix/', '^hotfix/']
+documentation:
+  - head-branch: ['^docs/']
+chore:
+  - head-branch: ['^chore/']
+security:
+  - head-branch: ['^security/']
+refactor:
+  - head-branch: ['^refactor/']
+gta-audit:
+  - head-branch: ['^gta/']
+infrastructure:
+  - head-branch: ['^infra/']
+ci-cd:
+  - head-branch: ['^ci/']
+test:
+  - head-branch: ['^test/']
+
+# Path-based labels (additive)
+area/grc:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/grc/**'
+area/agent-squire:
+  - changed-files:
+      - any-glob-to-any-file: 'Agent_Squire/**'
+area/terraform:
+  - changed-files:
+      - any-glob-to-any-file: 'terraform/**'
+area/compose:
+  - changed-files:
+      - any-glob-to-any-file: 'COREDIRECTIVE_ENGINE/**'
+area/detections:
+  - changed-files:
+      - any-glob-to-any-file: 'detections/**'
+area/workflows:
+  - changed-files:
+      - any-glob-to-any-file: '.github/workflows/**'
+area/policies:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/grc/POLICY_*.md'
+area/playbooks:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/grc/PLAYBOOK_*.md'
+area/threat-model:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/grc/*THREAT*'
+      - any-glob-to-any-file: 'docs/grc/*RISK*'
+area/scripts:
+  - changed-files:
+      - any-glob-to-any-file: 'scripts/**'
