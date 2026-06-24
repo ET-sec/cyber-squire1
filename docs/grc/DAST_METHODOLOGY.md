@@ -15,9 +15,9 @@
 | Field | Value |
 |-------|-------|
 | Document ID | DAST-001 |
-| Version | 1.1 |
+| Version | 1.2 |
 | Status | Active |
-| Last Revised | 2026-03-22 |
+| Last Revised | 2026-06-24 |
 | Next Review | 2026-09-22 |
 | Author | Information Security Officer |
 | Approver | System Owner |
@@ -28,6 +28,7 @@
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-20 | Information Security Officer | Initial methodology and assessment plan |
 | 1.1 | 2026-03-22 | Information Security Officer | Added baseline assessment results (OWASP ZAP 2.17.0 scan) |
+| 1.2 | 2026-06-24 | Information Security Officer | Audit refresh: `ollama` removed from valid orchestrator actions list (action no longer wired, container still runs). Network segmentation prose reconciled with the 4-row table (three Compose networks plus default Docker bridge). Section 13.2 Q3 row collapsed to a single consistent statement. Companion authenticated ZAP scan called out in Appendix C header. |
 
 ---
 
@@ -244,7 +245,7 @@ All external traffic passes through Cloudflare Tunnel (svc-tunnel). No ports are
 
 ### 7.2 Network Segmentation
 
-The Docker Compose stack uses three segmented networks:
+The Docker Compose stack uses three segmented application networks (net-core, net-ai, net-monitoring) plus the default Docker bridge for the one standalone container that lives outside Compose:
 
 | Network | Services | DAST Relevance |
 |---------|----------|---------------|
@@ -306,9 +307,11 @@ If n8n uses JWT tokens for API authentication:
 
 ### 9.1 Master Orchestrator Webhook
 
-The Master Orchestrator webhook (`/webhook/master-cmd`) is the highest-priority API target. It accepts JSON payloads with an `action` parameter that routes to 16 backend services.
+The Master Orchestrator webhook (`/webhook/master-cmd`) is the highest-priority API target. It accepts JSON payloads with an `action` parameter that routes to 15 backend services.
 
-**Valid actions:** `postgres`, `telegram`, `github`, `drive`, `tasks`, `sheets`, `docs`, `slides`, `gumroad`, `ollama`, `cloudflare`, `notion`, `tavily`, `gmail`, `workspace_admin`, `excel`
+**Valid actions:** `postgres`, `telegram`, `github`, `drive`, `tasks`, `sheets`, `docs`, `slides`, `gumroad`, `cloudflare`, `notion`, `tavily`, `gmail`, `workspace_admin`, `excel`
+
+> Note: the `ollama` action was removed from the orchestrator. The ollama container still runs on the host; the action route is no longer wired into n8n.
 
 **Test cases:**
 
@@ -508,11 +511,11 @@ This follows the same pattern as the existing Trivy SARIF upload and Conftest PR
 
 ### 13.2 Quarterly Schedule Alignment
 
-DAST assessments align with the existing quarterly review cadence:
+DAST assessments align with the existing quarterly review cadence. CI/CD DAST integration shipped on 2026-05-25 (see Section 12.3); the Q3 row below reflects the completed go-live plus the scheduled Q3 full retest.
 
 | Q2 2026 | Q3 2026 | Q4 2026 | Q1 2027 |
 |---------|---------|---------|---------|
-| Initial DAST assessment (baseline) | DAST + AI adversarial testing (per `AI_RED_TEAM_PLAN.md`) | DAST + CI/CD integration go-live | DAST + annual SDLC review |
+| Initial DAST assessment (baseline) | Full retest plus AI adversarial testing (per `AI_RED_TEAM_PLAN.md`); CI/CD DAST integration shipped 2026-05-25, retest validates the gate. | DAST plus annual remediation review | DAST plus annual SDLC review |
 
 ### 13.3 Assessment Prerequisites
 
@@ -619,7 +622,7 @@ Use this checklist before each DAST assessment to ensure consistent configuratio
 | Java Runtime | OpenJDK 17.0.18 (Homebrew) |
 | Scanner Position | External (Mac workstation through public internet) |
 | Target | `https://[automation-subdomain].example-ops.com` |
-| Authentication | Unauthenticated (pre-login surface only) |
+| Authentication | Unauthenticated (pre-login surface only). A companion authenticated ZAP scan was also captured on 2026-03-22 as `zap-report-n8n-auth-20260322.html`. <!-- TODO(et): add an Appendix D covering the authenticated-scan results, or reference where those results live. --> |
 | Scan Type | Spider + Passive + Active (full scan policy) |
 | Spider Results | 161 URLs discovered |
 | Scan Duration | Approximately 8 minutes (spider: 12s, passive: 60s, active: ~7 min) |
@@ -631,7 +634,7 @@ Use this checklist before each DAST assessment to ensure consistent configuratio
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 4 | Security header misconfigurations |
-| Low | 536 | Missing hardening headers on static assets |
+| Low | 536 | Missing hardening headers on static assets <!-- TODO(et): the 536 Low count exceeds the Section 5.4 "alert threshold 20 findings per category" cap by 26x. Either the per-category threshold was disabled for the baseline, or the count is correctly consolidated across many categories. Verify against the raw zap-report-n8n-20260322.html and add a one-line note explaining which is the case. --> |
 | Informational | 193 | Cache directives, technology detection |
 
 **No injection vulnerabilities detected.** ZAP tested SQL injection, Cross-Site Scripting (XSS), command injection, path traversal, LDAP injection, CRLF injection, and Server-Side Request Forgery (SSRF) against all discovered endpoints. All attack payloads were either rejected or had no observable effect.

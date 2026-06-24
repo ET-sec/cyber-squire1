@@ -13,14 +13,14 @@
 
 ## 1. Purpose
 
-This playbook provides step-by-step procedures for responding to AI-specific incidents within the Organization infrastructure. These are incidents that originate from, target, or exploit the AI inference pipeline and its integration with downstream automation -- threat classes not adequately covered by the existing container, credential, DDoS, or unauthorized access playbooks.
+This playbook provides step-by-step procedures for responding to AI-specific incidents within the Organization infrastructure. These are incidents that originate from, target, or exploit the AI inference pipeline and its integration with downstream automation. These threat classes are not adequately covered by the existing container, credential, DDoS, or unauthorized access playbooks.
 
 Specifically, this playbook addresses:
 
-- **Prompt injection and jailbreak** -- adversarial input that overrides AI system instructions or extracts protected context
-- **Excessive agency and unauthorized AI-triggered actions** -- AI agent executing workflow actions beyond its authorized scope
-- **Data exfiltration via AI inference** -- sensitive data (PII, credentials, operational context) leaked through AI prompts or responses to external API providers
-- **AI model supply chain compromise** -- tampered model weights, backdoored container images, or compromised upstream model providers
+- **Prompt injection and jailbreak**: adversarial input that overrides AI system instructions or extracts protected context
+- **Excessive agency and unauthorized AI-triggered actions**: AI agent executing workflow actions beyond its authorized scope
+- **Data exfiltration via AI inference**: sensitive data (PII, credentials, operational context) leaked through AI prompts or responses to external API providers
+- **AI model supply chain compromise**: tampered model weights, backdoored container images, or compromised upstream model providers
 
 This playbook cross-references the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`), Attack Tree (`ATTACK_TREE_AI_PIPELINE.md`), and AI Threat Catalog (`AI_THREAT_CATALOG.md`) for threat decomposition and control mapping.
 
@@ -144,14 +144,16 @@ Applies to all three AI systems within the authorization boundary and their down
 
 | ID | System | Service | Model | Trust Zone |
 |----|--------|---------|-------|------------|
-| AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) → Claude Opus 4.7 | Anthropic API (external) | DMZ |
-| AI-002 | Local LLM | svc-llm (Ollama) → Qwen 3 4B | Ollama registry (pulled locally) | Internal |
+| AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) to Claude Opus 4.7 | Anthropic API (external) | DMZ |
+| AI-002 | Local LLM | svc-llm (Ollama) running `<MODEL_NAME>` | Ollama registry (pulled locally) | Internal |
 | AI-003 | Transcription | svc-transcription (Whisper) | Open-weight (local) | Internal |
 
+<!-- TODO(et): verify deployed Ollama model name via `ssh engine-host "docker exec svc-ollama ollama list"` and replace <MODEL_NAME> placeholder throughout this playbook -->
+
 **Downstream consumers in scope:**
-- svc-automation -- orchestration workflows triggered by AI outputs (16+ service integrations)
-- svc-db -- database operations executed via AI-initiated workflow actions
-- Telegram bot interfaces -- user-facing message channel for AI-001
+- svc-automation: orchestration workflows triggered by AI outputs (16 action types, 14 currently operational; `workspace_admin` and `excel` need OAuth re-auth)
+- svc-db: database operations executed via AI-initiated workflow actions
+- Telegram bot interfaces: user-facing message channel for AI-001
 
 **Out of scope:** Non-AI container compromise (see IR-PLAY-001), credential leaks not involving AI systems (see IR-PLAY-002), DDoS not targeting AI endpoints (see IR-PLAY-003), unauthorized access not originating from AI behavior (see IR-PLAY-004).
 
@@ -178,21 +180,21 @@ Applies to all three AI systems within the authorization boundary and their down
 
 #### A.1 Detection Triggers
 
-- [ ] **Input pattern matching** -- known injection patterns detected in Telegram messages or API inputs (e.g., "ignore previous instructions", "you are now", system prompt extraction attempts)
-- [ ] **Output anomaly** -- AI response contains content inconsistent with system prompt constraints (refusal override, persona change, raw system prompt text)
-- [ ] **Behavior deviation** -- AI-001 initiates svc-automation workflow actions not aligned with the user's stated request
-- [ ] **Indirect injection indicator** -- AI output references content from an external source (web page, document) that contains embedded instructions
-- [ ] **User report** -- authorized user reports unexpected AI behavior or response content
-- [ ] **Monitoring platform alert** -- log analysis rule triggers on suspicious prompt or response patterns
+- [ ] **Input pattern matching**: known injection patterns detected in Telegram messages or API inputs (e.g., "ignore previous instructions", "you are now", system prompt extraction attempts)
+- [ ] **Output anomaly**: AI response contains content inconsistent with system prompt constraints (refusal override, persona change, raw system prompt text)
+- [ ] **Behavior deviation**: AI-001 initiates svc-automation workflow actions not aligned with the user's stated request
+- [ ] **Indirect injection indicator**: AI output references content from an external source (web page, document) that contains embedded instructions
+- [ ] **User report**: authorized user reports unexpected AI behavior or response content
+- [ ] **Monitoring platform alert**: log analysis rule triggers on suspicious prompt or response patterns
 
 #### A.2 Triage Checklist (0-10 minutes)
 
-- [ ] **Step A.2.1** -- Identify the injection vector:
+- [ ] **Step A.2.1**: Identify the injection vector:
   - Direct injection via Telegram message?
-  - Indirect injection via retrieved external content (Tavily search, browser skill, GitHub, Notion)?
+  - Indirect injection via retrieved external content (Tavily search, browser skill, GitHub, Notion, python-interpreter, Gemini)?
   - Injection via API call to svc-ai-gateway?
 
-- [ ] **Step A.2.2** -- Determine which AI system is affected:
+- [ ] **Step A.2.2**: Determine which AI system is affected:
   ```bash
   # Check svc-ai-gateway logs for the incident window
   docker logs --since 1h svc-ai-gateway 2>&1 | tail -200
@@ -201,15 +203,17 @@ Applies to all three AI systems within the authorization boundary and their down
   docker logs --since 1h svc-llm 2>&1 | tail -100
   ```
 
-- [ ] **Step A.2.3** -- Determine if the injection succeeded:
+- [ ] **Step A.2.3**: Determine if the injection succeeded:
   - Did the AI execute an action it should not have?
   - Did the AI reveal system prompt content or operational context?
   - Did the AI change persona or override safety instructions?
 
-- [ ] **Step A.2.4** -- Check if any svc-automation workflows were triggered as a result:
+- [ ] **Step A.2.4**: Check if any svc-automation workflows were triggered as a result:
   ```bash
   # Check svc-automation execution history via API
+  # n8n REST API requires X-N8N-API-KEY header (value from CD_N8N_KEY in Doppler)
   curl -s -H "Content-Type: application/json" \
+    -H "X-N8N-API-KEY: $CD_N8N_KEY" \
     http://localhost:<automation-port>/api/v1/executions?limit=20 | jq '.'
 
   # Check svc-db for recent workflow execution records
@@ -217,9 +221,9 @@ Applies to all three AI systems within the authorization boundary and their down
     "SELECT id, workflow_id, status, started_at FROM execution_entity ORDER BY started_at DESC LIMIT 20;"
   ```
 
-- [ ] **Step A.2.5** -- Assign severity per Section 3. If injection succeeded and triggered actions: SEV-1 or SEV-2. If detected and blocked: SEV-3.
+- [ ] **Step A.2.5**: Assign severity per Section 3. If injection succeeded and triggered actions: SEV-1 or SEV-2. If detected and blocked: SEV-3.
 
-- [ ] **Step A.2.6** -- Open an incident ticket:
+- [ ] **Step A.2.6**: Open an incident ticket:
   - Incident ID: `INC-YYYY-MM-DD-NNN`
   - Injection vector (direct / indirect)
   - Affected AI system(s)
@@ -230,97 +234,105 @@ Applies to all three AI systems within the authorization boundary and their down
 
 > **CRITICAL:** Preserve conversation logs and API call records BEFORE taking containment actions. AI conversation state is ephemeral and may be lost on restart.
 
-- [ ] **Step A.3.1** -- Preserve the current conversation state and logs:
+- [ ] **Step A.3.1**: Preserve the current conversation state and logs:
   ```bash
-  # Export svc-ai-gateway logs
+  # Export svc-ai-gateway logs (OpenClaw runs standalone, not under compose)
+  # Logs go to stdout/stderr, captured by the Docker daemon
   docker logs svc-ai-gateway > /tmp/evidence_ai_gateway_$(date +%Y%m%d_%H%M%S).txt 2>&1
 
   # Export svc-automation execution logs
   docker logs --since 4h svc-automation > /tmp/evidence_automation_$(date +%Y%m%d_%H%M%S).txt 2>&1
   ```
 
-- [ ] **Step A.3.2** -- If the injection is ongoing (attacker actively sending messages), block the input channel:
+- [ ] **Step A.3.2**: If the injection is ongoing (attacker actively sending messages), block the input channel:
   ```bash
   # Block the Telegram chat ID if the attack is via Telegram
-  # Update the chat ID allowlist in svc-ai-gateway configuration
-  # Restart svc-ai-gateway to apply the change
-  docker compose restart svc-ai-gateway
+  # Update the chat ID allowlist in the svc-ai-gateway config file
+  # (canonical path on the live host: /root/moltbot/config-dir/openclaw.json)
+  # Restart svc-ai-gateway to apply the change. OpenClaw runs standalone,
+  # so use `docker restart` directly, NOT `docker compose restart`.
+  docker restart svc-ai-gateway
   ```
 
-- [ ] **Step A.3.3** -- If the injection triggered unauthorized svc-automation workflows, disable the AI-to-automation integration:
+- [ ] **Step A.3.3**: If the injection triggered unauthorized svc-automation workflows, disable the AI-to-automation integration:
   ```bash
   # Deactivate AI-triggered workflows in svc-automation
-  # Via svc-automation API: deactivate the workflow that accepts AI inputs
+  # Target workflows: MASTER_ORCHESTRATOR_V1 (id UIf3v1ZNN98OtUge),
+  # Telegram Supervisor Agent (id iO6PfPdk0SSPBTWb)
   curl -X PATCH -H "Content-Type: application/json" \
+    -H "X-N8N-API-KEY: $CD_N8N_KEY" \
     http://localhost:<automation-port>/api/v1/workflows/<workflow_id> \
     -d '{"active": false}'
   ```
 
-- [ ] **Step A.3.4** -- If SEV-1 (confirmed unauthorized actions executed), isolate svc-ai-gateway from the network:
+- [ ] **Step A.3.4**: If SEV-1 (confirmed unauthorized actions executed), isolate svc-ai-gateway from the network:
   ```bash
-  docker network disconnect net-core svc-ai-gateway
+  # svc-ai-gateway sits on the docker default bridge (host gateway at 172.17.0.1).
+  # Disconnect from internal-net to halt service-to-service traffic.
+  docker network disconnect internal-net svc-ai-gateway
   ```
 
-- [ ] **Step A.3.5** -- Verify containment by checking that no new AI-initiated actions are executing:
+- [ ] **Step A.3.5**: Verify containment by checking that no new AI-initiated actions are executing:
   ```bash
   docker logs --since 5m svc-automation 2>&1 | grep -i "execution\|started\|webhook"
   ```
 
 #### A.4 Eradication (30-60 minutes)
 
-- [ ] **Step A.4.1** -- Analyze the injection payload to understand the attack technique:
+- [ ] **Step A.4.1**: Analyze the injection payload to understand the attack technique:
   ```bash
   # Review the preserved conversation logs for the injection content
   grep -i "ignore\|override\|system prompt\|you are\|pretend\|jailbreak" \
     /tmp/evidence_ai_gateway_*.txt
   ```
 
-- [ ] **Step A.4.2** -- Update input validation rules to block the specific injection pattern:
+- [ ] **Step A.4.2**: Update input validation rules to block the specific injection pattern:
   - Add the injection pattern to the input filter rules
   - If indirect injection: add the source domain or content pattern to the block list
 
-- [ ] **Step A.4.3** -- Harden the system prompt:
+- [ ] **Step A.4.3**: Harden the system prompt:
   - Review system prompt for instruction boundary weaknesses
   - Add explicit refusal directives for the observed attack pattern
   - Reinforce separation between system instructions and user input
 
-- [ ] **Step A.4.4** -- If the injection leveraged a skill (browser, search, GitHub, Notion), restrict or temporarily disable that skill:
+- [ ] **Step A.4.4**: If the injection leveraged a skill (browser, tavily-search, GitHub, Notion, python-interpreter, Gemini), restrict or temporarily disable that skill:
   ```bash
-  # Update svc-ai-gateway configuration to disable the affected skill
-  # Restart the gateway to apply
-  docker compose restart svc-ai-gateway
+  # Update svc-ai-gateway configuration at /root/moltbot/config-dir/openclaw.json
+  # Restart the gateway to apply. OpenClaw is standalone.
+  docker restart svc-ai-gateway
   ```
 
-- [ ] **Step A.4.5** -- If unauthorized svc-automation actions were executed, reverse those actions:
+- [ ] **Step A.4.5**: If unauthorized svc-automation actions were executed, reverse those actions:
   - Identify all actions taken (database writes, messages sent, API calls made)
   - Reverse each action where possible (delete records, retract messages)
   - Document any actions that cannot be reversed
 
 #### A.5 Recovery (30-60 minutes)
 
-- [ ] **Step A.5.1** -- Restore svc-ai-gateway with updated configuration:
+- [ ] **Step A.5.1**: Restore svc-ai-gateway with updated configuration:
   ```bash
   # If network was disconnected, reconnect
-  docker network connect net-core svc-ai-gateway
+  docker network connect internal-net svc-ai-gateway
 
   # Restart with updated system prompt and input validation
-  docker compose restart svc-ai-gateway
+  docker restart svc-ai-gateway
   ```
 
-- [ ] **Step A.5.2** -- Re-enable AI-to-automation integration with tighter controls:
+- [ ] **Step A.5.2**: Re-enable AI-to-automation integration with tighter controls:
   ```bash
   # Reactivate the workflow with updated validation
   curl -X PATCH -H "Content-Type: application/json" \
+    -H "X-N8N-API-KEY: $CD_N8N_KEY" \
     http://localhost:<automation-port>/api/v1/workflows/<workflow_id> \
     -d '{"active": true}'
   ```
 
-- [ ] **Step A.5.3** -- Validate AI behavior with test prompts:
+- [ ] **Step A.5.3**: Validate AI behavior with test prompts:
   - Send known-safe prompts and verify expected responses
   - Send the injection pattern that triggered the incident and verify it is now blocked
   - Verify the AI refuses inappropriate requests correctly
 
-- [ ] **Step A.5.4** -- Monitor for recurrence over the next 24 hours:
+- [ ] **Step A.5.4**: Monitor for recurrence over the next 24 hours:
   ```bash
   # Set up a log watch for injection patterns
   docker logs -f svc-ai-gateway 2>&1 | grep -i "ignore\|override\|system prompt"
@@ -348,70 +360,74 @@ Applies to all three AI systems within the authorization boundary and their down
 
 #### B.1 Detection Triggers
 
-- [ ] **Unexpected workflow execution** -- svc-automation executes a workflow not initiated by an authorized user or expected trigger
-- [ ] **Permission escalation pattern** -- AI-initiated action targets a service or resource outside its authorized scope
-- [ ] **Action volume anomaly** -- unusual number of svc-automation executions in a short window originating from AI input
-- [ ] **Destructive action attempt** -- AI attempts to trigger a workflow classified as destructive (data deletion, credential rotation, infrastructure change)
-- [ ] **Cross-service chain** -- AI triggers a sequence of actions across multiple integrated services (database + messaging + API) without a corresponding user request
-- [ ] **Monitoring platform alert** -- resource utilization spike in svc-automation correlated with AI gateway activity
+- [ ] **Unexpected workflow execution**: svc-automation executes a workflow not initiated by an authorized user or expected trigger
+- [ ] **Permission escalation pattern**: AI-initiated action targets a service or resource outside its authorized scope
+- [ ] **Action volume anomaly**: unusual number of svc-automation executions in a short window originating from AI input
+- [ ] **Destructive action attempt**: AI attempts to trigger a workflow classified as destructive (data deletion, credential rotation, infrastructure change)
+- [ ] **Cross-service chain**: AI triggers a sequence of actions across multiple integrated services (database + messaging + API) without a corresponding user request
+- [ ] **Monitoring platform alert**: resource utilization spike in svc-automation correlated with AI gateway activity
 
 #### B.2 Triage Checklist (0-10 minutes)
 
-- [ ] **Step B.2.1** -- Identify which workflows were triggered:
+- [ ] **Step B.2.1**: Identify which workflows were triggered:
   ```bash
   # List recent svc-automation executions
-  curl -s http://localhost:<automation-port>/api/v1/executions?limit=50 | \
+  curl -s -H "X-N8N-API-KEY: $CD_N8N_KEY" \
+    http://localhost:<automation-port>/api/v1/executions?limit=50 | \
     jq '.data[] | {id, workflowId: .workflowData.name, status: .finished, startedAt}'
   ```
 
-- [ ] **Step B.2.2** -- Determine what actions were actually executed:
+- [ ] **Step B.2.2**: Determine what actions were actually executed:
   ```bash
   # Check svc-db for action details
   docker exec svc-db psql -U <admin_user> -d <db_name> -c \
     "SELECT id, workflow_id, mode, status, started_at, finished_at FROM execution_entity WHERE started_at > NOW() - INTERVAL '2 hours' ORDER BY started_at DESC;"
   ```
 
-- [ ] **Step B.2.3** -- Identify the AI input that triggered the action chain:
+- [ ] **Step B.2.3**: Identify the AI input that triggered the action chain:
   ```bash
   docker logs --since 2h svc-ai-gateway 2>&1 | grep -B 5 -A 5 "webhook\|action\|workflow"
   ```
 
-- [ ] **Step B.2.4** -- Assess the impact of executed actions:
+- [ ] **Step B.2.4**: Assess the impact of executed actions:
   - Were any database records modified or deleted?
   - Were any messages sent to external parties?
   - Were any API calls made to third-party services?
   - Were any infrastructure configurations changed?
 
-- [ ] **Step B.2.5** -- Assign severity per Section 3. If infrastructure actions executed: SEV-1. If non-destructive but unauthorized: SEV-2.
+- [ ] **Step B.2.5**: Assign severity per Section 3. If infrastructure actions executed: SEV-1. If non-destructive but unauthorized: SEV-2.
 
 #### B.3 Containment (10-30 minutes)
 
-- [ ] **Step B.3.1** -- Immediately disable the AI-to-automation integration:
+- [ ] **Step B.3.1**: Immediately disable the AI-to-automation integration:
   ```bash
   # Deactivate all AI-triggered workflows
   # Identify webhook-triggered workflows and deactivate
-  curl -s http://localhost:<automation-port>/api/v1/workflows | \
+  curl -s -H "X-N8N-API-KEY: $CD_N8N_KEY" \
+    http://localhost:<automation-port>/api/v1/workflows | \
     jq '.data[] | select(.active == true) | {id, name}'
 
   # Deactivate each AI-connected workflow
   curl -X PATCH -H "Content-Type: application/json" \
+    -H "X-N8N-API-KEY: $CD_N8N_KEY" \
     http://localhost:<automation-port>/api/v1/workflows/<workflow_id> \
     -d '{"active": false}'
   ```
 
-- [ ] **Step B.3.2** -- Lock workflow credentials to prevent further authenticated actions:
+- [ ] **Step B.3.2**: Lock workflow credentials to prevent further authenticated actions:
   ```bash
   # Rotate the master orchestrator webhook secret if applicable
   # Update svc-automation environment variables
   docker compose restart svc-automation
   ```
 
-- [ ] **Step B.3.3** -- If the AI is still generating action requests, stop svc-ai-gateway:
+- [ ] **Step B.3.3**: If the AI is still generating action requests, stop svc-ai-gateway:
   ```bash
-  docker compose stop svc-ai-gateway
+  # OpenClaw runs standalone, not under compose
+  docker stop svc-ai-gateway
   ```
 
-- [ ] **Step B.3.4** -- Preserve execution state before any cleanup:
+- [ ] **Step B.3.4**: Preserve execution state before any cleanup:
   ```bash
   # Export svc-automation full execution log
   docker logs svc-automation > /tmp/evidence_automation_full_$(date +%Y%m%d_%H%M%S).txt 2>&1
@@ -423,44 +439,45 @@ Applies to all three AI systems within the authorization boundary and their down
 
 #### B.4 Eradication (30-90 minutes)
 
-- [ ] **Step B.4.1** -- Audit all AI-triggered actions during the incident window:
+- [ ] **Step B.4.1**: Audit all AI-triggered actions during the incident window:
   - Generate a complete list of every workflow execution, target service, and result
   - Cross-reference against authorized action allowlist
 
-- [ ] **Step B.4.2** -- Reverse unauthorized actions where possible:
+- [ ] **Step B.4.2**: Reverse unauthorized actions where possible:
   - Database modifications: restore from backup or reverse the specific changes
   - Sent messages: retract or send corrections
   - API calls: review for side effects and remediate
   - Document any irreversible actions and their impact
 
-- [ ] **Step B.4.3** -- Update the action allowlist to prevent recurrence:
+- [ ] **Step B.4.3**: Update the action allowlist to prevent recurrence:
   - Restrict which workflow endpoints the AI can trigger
   - Add rate limits per action type per time window
   - Implement human approval gates for any newly identified sensitive actions
 
-- [ ] **Step B.4.4** -- Review and tighten the AI system prompt regarding action boundaries:
+- [ ] **Step B.4.4**: Review and tighten the AI system prompt regarding action boundaries:
   - Explicitly define prohibited actions
   - Add confirmation requirements for multi-step action chains
   - Limit the scope of single-request action authority
 
 #### B.5 Recovery (30-60 minutes)
 
-- [ ] **Step B.5.1** -- Re-enable svc-ai-gateway with updated configuration:
+- [ ] **Step B.5.1**: Re-enable svc-ai-gateway with updated configuration:
   ```bash
-  docker compose start svc-ai-gateway
+  # OpenClaw runs standalone
+  docker start svc-ai-gateway
   ```
 
-- [ ] **Step B.5.2** -- Re-enable AI-to-automation integration with new guardrails:
+- [ ] **Step B.5.2**: Re-enable AI-to-automation integration with new guardrails:
   - Reactivate workflows one at a time
   - Verify each workflow has appropriate input validation
   - Confirm human approval gates are functional for sensitive actions
 
-- [ ] **Step B.5.3** -- Implement or verify human-in-the-loop controls:
+- [ ] **Step B.5.3**: Implement or verify human-in-the-loop controls:
   - Destructive actions require explicit operator confirmation
   - Multi-service action chains require step-by-step approval
   - Action budget (maximum actions per session) is enforced
 
-- [ ] **Step B.5.4** -- Monitor AI-initiated actions for 48 hours:
+- [ ] **Step B.5.4**: Monitor AI-initiated actions for 48 hours:
   ```bash
   # Review daily execution summary
   docker exec svc-db psql -U <admin_user> -d <db_name> -c \
@@ -488,61 +505,67 @@ Applies to all three AI systems within the authorization boundary and their down
 
 #### C.1 Detection Triggers
 
-- [ ] **Sensitive data in outbound API calls** -- PII, credentials, or internal architecture details detected in prompts sent to the Anthropic API
-- [ ] **PII in AI responses** -- AI output contains personally identifiable information, database contents, or credential material
-- [ ] **Unusual data patterns in prompts** -- prompts contain structured data (database query results, configuration files, environment variables) that should not be sent externally
-- [ ] **System prompt extraction** -- AI response contains verbatim or paraphrased system prompt contents
-- [ ] **Monitoring platform alert** -- log analysis detects sensitive patterns in AI gateway traffic
-- [ ] **Network anomaly** -- unusual outbound data volume from svc-ai-gateway to Anthropic API endpoints
+- [ ] **Sensitive data in outbound API calls**: PII, credentials, or internal architecture details detected in prompts sent to the Anthropic API
+- [ ] **PII in AI responses**: AI output contains personally identifiable information, database contents, or credential material
+- [ ] **Unusual data patterns in prompts**: prompts contain structured data (database query results, configuration files, environment variables) that should not be sent externally
+- [ ] **System prompt extraction**: AI response contains verbatim or paraphrased system prompt contents
+- [ ] **Monitoring platform alert**: log analysis detects sensitive patterns in AI gateway traffic
+- [ ] **Network anomaly**: unusual outbound data volume from svc-ai-gateway to Anthropic API endpoints
 
 #### C.2 Triage Checklist (0-15 minutes)
 
-- [ ] **Step C.2.1** -- Identify what data was exposed:
+- [ ] **Step C.2.1**: Identify what data was exposed:
   ```bash
   # Review AI gateway logs for sensitive content
   docker logs --since 2h svc-ai-gateway 2>&1 | \
     grep -i "password\|token\|key\|secret\|ssn\|credit.card\|@.*\.com"
   ```
 
-- [ ] **Step C.2.2** -- Determine the destination of the exfiltrated data:
+- [ ] **Step C.2.2**: Determine the destination of the exfiltrated data:
   - Was it sent to the Anthropic API (external)?
   - Was it returned in a Telegram response (user-facing)?
   - Was it logged to monitoring platform (internal but persistent)?
   - Was it passed to an svc-automation workflow?
 
-- [ ] **Step C.2.3** -- Determine if the exfiltration was adversarial (injection-driven) or accidental (user-initiated or system design):
+- [ ] **Step C.2.3**: Determine if the exfiltration was adversarial (injection-driven) or accidental (user-initiated or system design):
   - Did a prompt injection cause the AI to dump context?
   - Did a user inadvertently include sensitive data in their request?
   - Did an svc-automation workflow pass sensitive data to the AI as context?
 
-- [ ] **Step C.2.4** -- Scope the breach:
+- [ ] **Step C.2.4**: Scope the breach:
   - What specific data types were exposed? (PII, credentials, architecture details, source code)
   - How many records or data points were disclosed?
   - Over what time period did the exposure occur?
 
-- [ ] **Step C.2.5** -- Assign severity per Section 3. If confirmed credentials or PII sent externally: SEV-1. If internal data in responses or system prompt leaked: SEV-2.
+- [ ] **Step C.2.5**: Assign severity per Section 3. If confirmed credentials or PII sent externally: SEV-1. If internal data in responses or system prompt leaked: SEV-2.
 
 #### C.3 Containment (5-20 minutes)
 
 > **PRIORITY:** Stop external data flow immediately. Switch to local-only inference if AI capability is still needed.
 
-- [ ] **Step C.3.1** -- Block external AI API calls from svc-ai-gateway:
+- [ ] **Step C.3.1**: Block external AI API calls from svc-ai-gateway:
   ```bash
-  # Block outbound traffic from svc-ai-gateway to external APIs
-  # Get the container IP
+  # Block outbound traffic from svc-ai-gateway to external APIs.
+  # Use the DOCKER-USER chain (the canonical chain for filtering container
+  # traffic on Docker bridge networks; FORWARD-chain rules can be
+  # overridden by the auto-managed DOCKER chain).
   CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' svc-ai-gateway)
 
   # Block outbound HTTPS to Anthropic API
-  iptables -I FORWARD -s $CONTAINER_IP -p tcp --dport 443 -j DROP
+  iptables -I DOCKER-USER -s $CONTAINER_IP -p tcp --dport 443 -j DROP
   ```
 
-- [ ] **Step C.3.2** -- If AI capability is needed during the incident, redirect to local inference:
+- [ ] **Step C.3.2**: If AI capability is needed during the incident, redirect to local inference:
   ```bash
-  # svc-llm (Ollama) operates locally with no external API calls
-  # Update workflows to use svc-llm instead of svc-ai-gateway temporarily
+  # svc-llm (Ollama) operates locally with no external API calls.
+  # Note: the `ollama` action in MASTER_ORCHESTRATOR_V1 has been removed.
+  # The svc-llm container still runs and is callable directly via the
+  # Ollama HTTP API on port 11434 (e.g., POST /api/generate, /api/chat).
+  # Workflows that previously used the n8n `ollama` action need to call
+  # the Ollama API directly via an HTTP Request node.
   ```
 
-- [ ] **Step C.3.3** -- Preserve evidence of the exfiltration:
+- [ ] **Step C.3.3**: Preserve evidence of the exfiltration:
   ```bash
   # Export AI gateway logs covering the exfiltration window
   docker logs svc-ai-gateway > /tmp/evidence_exfiltration_$(date +%Y%m%d_%H%M%S).txt 2>&1
@@ -551,26 +574,26 @@ Applies to all three AI systems within the authorization boundary and their down
   ssh root@10.100.1.10 "tcpdump -i any -w /tmp/evidence_network_capture.pcap host api.anthropic.com -c 1000" &
   ```
 
-- [ ] **Step C.3.4** -- If credentials were exfiltrated, immediately rotate them:
+- [ ] **Step C.3.4**: If credentials were exfiltrated, immediately rotate them:
   - Follow IR-PLAY-002 (Leaked Credential) for credential rotation procedures
   - Prioritize credentials that were confirmed in the exfiltrated data
 
 #### C.4 Eradication (30-90 minutes)
 
-- [ ] **Step C.4.1** -- Implement output filtering on svc-ai-gateway:
+- [ ] **Step C.4.1**: Implement output filtering on svc-ai-gateway:
   - Add regex-based PII detection rules (SSN, email, credit card, API key patterns)
   - Configure filtering to scrub sensitive patterns before external API transmission
 
-- [ ] **Step C.4.2** -- Implement prompt sanitization:
+- [ ] **Step C.4.2**: Implement prompt sanitization:
   - Add pre-processing step that strips known sensitive patterns from user inputs before they reach the AI model
   - Sanitize svc-automation workflow outputs before they are injected as AI context
 
-- [ ] **Step C.4.3** -- Review and restrict what context the AI system receives:
+- [ ] **Step C.4.3**: Review and restrict what context the AI system receives:
   - Audit all data sources that feed into AI prompts
   - Remove unnecessary sensitive context from system prompts
   - Ensure database query results are filtered before AI processing
 
-- [ ] **Step C.4.4** -- Implement DLP (Data Loss Prevention) rules for AI traffic:
+- [ ] **Step C.4.4**: Implement DLP (Data Loss Prevention) rules for AI traffic:
   ```bash
   # Add monitoring rules to detect sensitive data patterns in AI traffic
   # Configure Fluentd to flag sensitive patterns in log output
@@ -579,26 +602,26 @@ Applies to all three AI systems within the authorization boundary and their down
 
 #### C.5 Recovery (30-60 minutes)
 
-- [ ] **Step C.5.1** -- Assess breach scope and notification requirements:
+- [ ] **Step C.5.1**: Assess breach scope and notification requirements:
   - Was the data subject to any regulatory requirements (PII, PHI)?
   - Does the Anthropic data processing agreement cover this scenario?
   - Are there breach notification obligations?
 
-- [ ] **Step C.5.2** -- Restore external API access with controls:
+- [ ] **Step C.5.2**: Restore external API access with controls:
   ```bash
   # Remove iptables block
-  iptables -D FORWARD -s $CONTAINER_IP -p tcp --dport 443 -j DROP
+  iptables -D DOCKER-USER -s $CONTAINER_IP -p tcp --dport 443 -j DROP
 
-  # Restart svc-ai-gateway with updated filtering
-  docker compose restart svc-ai-gateway
+  # Restart svc-ai-gateway with updated filtering. OpenClaw is standalone.
+  docker restart svc-ai-gateway
   ```
 
-- [ ] **Step C.5.3** -- Validate that filtering is working:
+- [ ] **Step C.5.3**: Validate that filtering is working:
   - Send test prompts containing synthetic sensitive data
   - Verify the data is scrubbed before external API transmission
   - Verify AI responses do not contain sensitive patterns
 
-- [ ] **Step C.5.4** -- Monitor outbound AI traffic for 72 hours:
+- [ ] **Step C.5.4**: Monitor outbound AI traffic for 72 hours:
   ```bash
   # Review AI gateway logs daily for sensitive pattern leakage
   docker logs --since 24h svc-ai-gateway 2>&1 | \
@@ -626,30 +649,30 @@ Applies to all three AI systems within the authorization boundary and their down
 
 #### D.1 Detection Triggers
 
-- [ ] **Model hash mismatch** -- checksum of pulled model does not match published/expected hash
-- [ ] **Unexpected model behavior change** -- AI outputs deviate from established baseline after a model update or without any configuration change
-- [ ] **Upstream vendor advisory** -- Anthropic, Ollama, or Whisper project publishes a security advisory affecting deployed model versions
-- [ ] **CI/CD pipeline alert** -- Trivy scan detects new CVE in AI container image; Cosign signature verification fails
-- [ ] **Container image tampering** -- image digest does not match the expected digest from the registry
-- [ ] **Anomalous inference patterns** -- model produces outputs with unexpected biases, hallucination patterns, or refusal behavior changes
+- [ ] **Model hash mismatch**: checksum of pulled model does not match published/expected hash
+- [ ] **Unexpected model behavior change**: AI outputs deviate from established baseline after a model update or without any configuration change
+- [ ] **Upstream vendor advisory**: Anthropic, Ollama, or Whisper project publishes a security advisory affecting deployed model versions
+- [ ] **CI/CD pipeline alert**: Trivy scan detects new CVE in AI container image; Cosign signature verification fails
+- [ ] **Container image tampering**: image digest does not match the expected digest from the registry
+- [ ] **Anomalous inference patterns**: model produces outputs with unexpected biases, hallucination patterns, or refusal behavior changes
 
 #### D.2 Triage Checklist (0-15 minutes)
 
-- [ ] **Step D.2.1** -- Identify which AI system is affected:
+- [ ] **Step D.2.1**: Identify which AI system is affected:
 
   | System | Verification Method |
   |--------|-------------------|
   | AI-001 (svc-ai-gateway) | Check OpenClaw container image digest; Anthropic API model version is managed upstream |
-  | AI-002 (svc-llm) | Check Ollama model checksum against published hash |
+  | AI-002 (svc-llm) | Check Ollama model metadata + local blob digests against last known-good values |
   | AI-003 (svc-transcription) | Check Whisper container image digest and model weight hash |
 
-- [ ] **Step D.2.2** -- Verify model integrity:
+- [ ] **Step D.2.2**: Verify model integrity:
   ```bash
   # Check container image digests
   docker images --digests --format "{{.Repository}}:{{.Tag}} {{.Digest}}" | grep -E "ollama|whisper|openclaw"
 
   # For svc-llm (Ollama): check model metadata
-  docker exec svc-llm ollama show qwen3:4b --modelfile 2>/dev/null
+  docker exec svc-llm ollama show <MODEL_NAME> --modelfile 2>/dev/null
 
   # For container images: compare against known-good digest
   docker inspect svc-ai-gateway --format '{{.Image}}'
@@ -657,7 +680,7 @@ Applies to all three AI systems within the authorization boundary and their down
   docker inspect svc-transcription --format '{{.Image}}'
   ```
 
-- [ ] **Step D.2.3** -- Check when the model or image was last updated:
+- [ ] **Step D.2.3**: Check when the model or image was last updated:
   ```bash
   # Check container creation time
   docker inspect --format '{{.Created}}' svc-ai-gateway svc-llm svc-transcription
@@ -666,64 +689,73 @@ Applies to all three AI systems within the authorization boundary and their down
   docker history $(docker inspect --format '{{.Image}}' svc-llm) --no-trunc
   ```
 
-- [ ] **Step D.2.4** -- Determine if the compromise affects model behavior:
+- [ ] **Step D.2.4**: Determine if the compromise affects model behavior:
   - Test with known-good prompt/response pairs (baseline comparison)
   - Check for unexpected refusal patterns, bias shifts, or output format changes
 
-- [ ] **Step D.2.5** -- Assign severity. If confirmed model tampering with behavioral change: SEV-2. If hash mismatch without confirmed behavioral change: SEV-3. If vendor advisory only: SEV-4 until verified.
+- [ ] **Step D.2.5**: Assign severity. If confirmed model tampering with behavioral change: SEV-2. If hash mismatch without confirmed behavioral change: SEV-3. If vendor advisory only: SEV-4 until verified.
 
 #### D.3 Containment (10-30 minutes)
 
-- [ ] **Step D.3.1** -- Isolate the affected AI service:
+- [ ] **Step D.3.1**: Isolate the affected AI service:
   ```bash
-  # Stop the affected service to prevent compromised inference
+  # Stop the affected service to prevent compromised inference.
+  # For compose-managed services (svc-llm, svc-transcription):
   docker compose stop <affected_service>
   # e.g., docker compose stop svc-llm
+  # For svc-ai-gateway (OpenClaw runs standalone):
+  # docker stop svc-ai-gateway
   ```
 
-- [ ] **Step D.3.2** -- Block model updates to prevent further supply chain compromise:
+- [ ] **Step D.3.2**: Block model updates to prevent further supply chain compromise:
   ```bash
   # Block outbound connections from svc-llm to Ollama registry
   CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' svc-llm)
-  iptables -I FORWARD -s $CONTAINER_IP -p tcp --dport 443 -j DROP
+  iptables -I DOCKER-USER -s $CONTAINER_IP -p tcp --dport 443 -j DROP
   ```
 
-- [ ] **Step D.3.3** -- If AI-001 (Anthropic API) is affected by an upstream compromise:
+- [ ] **Step D.3.3**: If AI-001 (Anthropic API) is affected by an upstream compromise:
   - The model runs externally; containment means stopping API calls
   - Block outbound from svc-ai-gateway (same as Scenario C, Step C.3.1)
-  - Switch critical AI tasks to svc-llm (local) if it is unaffected
+  - Switch critical AI tasks to svc-llm (local) if it is unaffected. Note: the n8n `ollama` action was removed; route via direct HTTP to the Ollama API on port 11434.
 
-- [ ] **Step D.3.4** -- Preserve the potentially compromised model artifacts:
+- [ ] **Step D.3.4**: Preserve the potentially compromised model artifacts:
   ```bash
   # Export the container with the compromised model
   docker export svc-llm > /tmp/evidence_model_container_$(date +%Y%m%d_%H%M%S).tar
 
   # Save model metadata
-  docker exec svc-llm ollama show qwen3:4b > /tmp/evidence_model_metadata.txt 2>&1
+  docker exec svc-llm ollama show <MODEL_NAME> > /tmp/evidence_model_metadata.txt 2>&1
   ```
 
 #### D.4 Eradication (30-90 minutes)
 
-- [ ] **Step D.4.1** -- Verify model provenance from a trusted source:
+- [ ] **Step D.4.1**: Verify model provenance from a trusted source:
   ```bash
-  # Check the official Ollama registry for the expected model hash
-  # Compare against the deployed model hash
-  # Document the comparison result
+  # Note: Ollama does NOT publish per-model SHA-256 hashes the way Docker Hub
+  # publishes image digests. Verify instead via two paths:
+  #   1. Query the local manifest digest via the Ollama API:
+  #        curl -s http://svc-llm:11434/api/show -d '{"name":"<MODEL_NAME>"}' | jq .
+  #      Compare the returned digest to the digest captured on the prior pull.
+  #   2. Hash the local blob files and compare across pulls:
+  #        docker exec svc-llm sh -c 'sha256sum /root/.ollama/models/blobs/*'
+  # Document the comparison result and store the prior baseline values.
   ```
 
-- [ ] **Step D.4.2** -- Pull a clean model from the trusted source:
+- [ ] **Step D.4.2**: Pull a clean model from the trusted source:
   ```bash
   # Remove the potentially compromised model
-  docker exec svc-llm ollama rm qwen3:4b
+  docker exec svc-llm ollama rm <MODEL_NAME>
 
   # Pull fresh from trusted registry
-  docker exec svc-llm ollama pull qwen3:4b
+  docker exec svc-llm ollama pull <MODEL_NAME>
 
-  # Verify the new model hash
-  docker exec svc-llm ollama show qwen3:4b --modelfile
+  # Capture the new model metadata and blob digests for baseline
+  docker exec svc-llm ollama show <MODEL_NAME> --modelfile
+  docker exec svc-llm sh -c 'sha256sum /root/.ollama/models/blobs/*'
   ```
 
-- [ ] **Step D.4.3** -- For container image compromise, rebuild from trusted images:
+- [ ] **Step D.4.3**: For container image compromise, rebuild from trusted images:
   ```bash
   # Remove compromised image
   docker compose down <service_name>
@@ -732,36 +764,39 @@ Applies to all three AI systems within the authorization boundary and their down
   # Pull verified image
   docker compose pull <service_name>
 
-  # Verify image signature (if Cosign is configured)
-  cosign verify <image_name>:<tag>
+  # Verify image signature only if Cosign signing is in place for this image.
+  # Cosign verification is currently aspirational: docker-compose.yaml pins
+  # digests but no Cosign verification policy is documented. Skip if not
+  # configured.
+  # cosign verify <image_name>:<tag>
 
   # Run Trivy scan on the new image
   trivy image <image_name>:<tag>
   ```
 
-- [ ] **Step D.4.4** -- Compare new model behavior against known-good baseline:
+- [ ] **Step D.4.4**: Compare new model behavior against known-good baseline:
   - Run a set of standardized test prompts
   - Compare outputs against documented expected responses
   - Verify no unexpected behavioral patterns
 
 #### D.5 Recovery (30-60 minutes)
 
-- [ ] **Step D.5.1** -- Deploy the verified clean model:
+- [ ] **Step D.5.1**: Deploy the verified clean model:
   ```bash
   docker compose up -d <service_name>
   ```
 
-- [ ] **Step D.5.2** -- Remove network restrictions added during containment:
+- [ ] **Step D.5.2**: Remove network restrictions added during containment:
   ```bash
-  iptables -D FORWARD -s $CONTAINER_IP -p tcp --dport 443 -j DROP
+  iptables -D DOCKER-USER -s $CONTAINER_IP -p tcp --dport 443 -j DROP
   ```
 
-- [ ] **Step D.5.3** -- Validate outputs against known-good baseline:
+- [ ] **Step D.5.3**: Validate outputs against known-good baseline:
   - Run the full behavioral test suite
   - Confirm outputs match expected patterns
   - Verify integration with downstream svc-automation workflows
 
-- [ ] **Step D.5.4** -- Implement ongoing model integrity monitoring:
+- [ ] **Step D.5.4**: Implement ongoing model integrity monitoring:
   - Record the current model hash as the new baseline
   - Set up periodic hash verification checks
   - Configure alerts for any model file changes
@@ -783,12 +818,14 @@ Applies to all three AI systems within the authorization boundary and their down
 
 ## 5. Communication Matrix
 
+This matrix aligns with POLICY_INCIDENT_RESPONSE.md §7. For P1 incidents, the policy requires internal notification within 15 minutes; the playbook's "Immediately" and "Within 10 min" rows are stricter and acceptable. External notifications follow POLICY_INCIDENT_RESPONSE.md §7.3: drafted by Communications Lead, reviewed by System Owner, transmitted only after explicit approval.
+
 | Audience | SEV-1 | SEV-2 | SEV-3 | SEV-4 | Method |
 |----------|-------|-------|-------|-------|--------|
 | Incident Commander | Immediately | Within 15 min | Within 1 hour | Next business day | Direct message / phone |
 | System Owner | Within 10 min | Within 30 min | Within 4 hours | Next business day | Direct message / phone |
 | AI Model Provider (Anthropic) | If upstream compromise | If upstream advisory | - | - | Support ticket / email |
-| Affected users (data breach) | Within 24 hours | Within 48 hours | - | - | Email from `admin@example-ops.com` |
+| Affected users (data breach) | Within 24 hours (HIPAA breach notification rule allows up to 60 days for individuals; 24h is the playbook's stricter target) | Within 48 hours | - | - | Email from `admin@example-ops.com` (after System Owner approval per POL-IR §7.3) |
 | Legal / compliance | If PII breach confirmed | If data exposure suspected | - | - | Email to `admin@example-ops.com` |
 | Cloud provider | If infrastructure action needed | - | - | - | Support ticket |
 
@@ -837,6 +874,7 @@ All AI incidents require the following post-incident activities within 72 hours:
 - [ ] Complete the incident timeline with exact timestamps:
   - When did the AI incident begin?
   - When was it detected?
+  - Mean Time to Detect (MTTD) target: < 5 minutes (aligned to POLICY_INCIDENT_RESPONSE.md §9)
   - Detection-to-containment time (target: <15 minutes)
   - Total incident duration and service impact window
 
@@ -935,40 +973,40 @@ All AI incidents require the following post-incident activities within 72 hours:
 
 ## 10. Quick Reference Card
 
-**For use during an active AI incident -- tear-off summary:**
+**For use during an active AI incident, tear-off summary:**
 
 ```
-SCENARIO A - PROMPT INJECTION:
+SCENARIO A: PROMPT INJECTION
 1. PRESERVE: docker logs svc-ai-gateway > /tmp/evidence_ai_*.txt
-2. BLOCK:   Block attacker input (Telegram chat ID / API source)
-3. DISABLE: Deactivate AI→svc-automation workflows
-4. ANALYZE: Review injection payload and triggered actions
-5. HARDEN:  Update input filters + system prompt
-6. RESTORE: Restart svc-ai-gateway, re-enable workflows, validate behavior
+2. BLOCK:    Block attacker input (Telegram chat ID / API source)
+3. DISABLE:  Deactivate AI to svc-automation workflows
+4. ANALYZE:  Review injection payload and triggered actions
+5. HARDEN:   Update input filters and system prompt
+6. RESTORE:  docker restart svc-ai-gateway, re-enable workflows, validate
 
-SCENARIO B - EXCESSIVE AGENCY:
-1. DISABLE: Deactivate all AI-triggered workflows immediately
+SCENARIO B: EXCESSIVE AGENCY
+1. DISABLE:  Deactivate all AI-triggered workflows immediately
 2. PRESERVE: Export execution logs and svc-db records
-3. AUDIT:  List all AI-triggered actions during incident window
-4. REVERSE: Undo unauthorized actions where possible
-5. TIGHTEN: Update action allowlist + add human approval gates
-6. RESTORE: Re-enable workflows one at a time, monitor 48h
+3. AUDIT:    List all AI-triggered actions during incident window
+4. REVERSE:  Undo unauthorized actions where possible
+5. TIGHTEN:  Update action allowlist and add human approval gates
+6. RESTORE:  Re-enable workflows one at a time, monitor 48h
 
-SCENARIO C - DATA EXFILTRATION:
-1. BLOCK:   iptables DROP outbound 443 from svc-ai-gateway
-2. SWITCH:  Redirect to svc-llm (local) if AI needed
-3. ROTATE:  Rotate any exposed credentials (→ IR-PLAY-002)
-4. FILTER:  Implement PII scrubbing on prompts/responses
-5. ASSESS:  Scope breach, check notification requirements
-6. RESTORE: Re-enable external API with filtering, monitor 72h
+SCENARIO C: DATA EXFILTRATION
+1. BLOCK:    iptables DROP on DOCKER-USER, outbound 443 from svc-ai-gateway
+2. SWITCH:   Call Ollama API directly on port 11434 if local AI needed
+3. ROTATE:   Rotate any exposed credentials (see IR-PLAY-002)
+4. FILTER:   Implement PII scrubbing on prompts and responses
+5. ASSESS:   Scope breach, check notification requirements
+6. RESTORE:  Re-enable external API with filtering, monitor 72h
 
-SCENARIO D - SUPPLY CHAIN:
-1. STOP:    docker compose stop <affected_service>
-2. EXPORT:  docker export <container> > /tmp/evidence_model_*.tar
-3. VERIFY:  Compare model hash against trusted source
-4. PULL:    Pull clean model from trusted registry
-5. SCAN:    trivy image + cosign verify on new image
-6. RESTORE: Deploy verified model, validate against baseline
+SCENARIO D: SUPPLY CHAIN
+1. STOP:     docker compose stop <affected_service> (or docker stop svc-ai-gateway)
+2. EXPORT:   docker export <container> > /tmp/evidence_model_*.tar
+3. VERIFY:   Compare Ollama /api/show digest and blob sha256 to baseline
+4. PULL:     Pull clean model from trusted registry
+5. SCAN:     trivy image (Cosign only if signing policy active)
+6. RESTORE:  Deploy verified model, validate against baseline
 ```
 
 ---
@@ -987,6 +1025,8 @@ SCENARIO D - SUPPLY CHAIN:
 6. If guardrail bypass is suspected, freeze `svc-nemo-config` and schedule a rail coverage regression in staging.
 
 ### Squire-specific containment
+
+<!-- TODO(et): confirm that disable_alert_ingress.sh and run_rail_coverage.sh exist in builds/squire/ or document where they live. They are referenced here but not located in the public corrections cluster. -->
 
 ```
 # Disable /alert ingress at Squire container level (does not require compose down)
@@ -1087,4 +1127,4 @@ Quick response:
 
 ---
 
-*This playbook is a living document. It SHALL be updated after any AI-related security incident, when new AI systems are deployed, when AI integration scope changes, or when new OWASP LLM or MITRE ATLAS techniques relevant to this environment are published. The next scheduled review is 2026-09-12.*
+*This playbook SHALL be updated after any AI-related security incident, when new AI systems are deployed, when AI integration scope changes, or when new OWASP LLM or MITRE ATLAS techniques relevant to this environment are published. The next scheduled review is 2026-09-12.*

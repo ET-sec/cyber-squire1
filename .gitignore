@@ -257,6 +257,9 @@ REPO_MAP.yaml
 *.bak
 docs/context/
 
+# GTA per-doc audit sidecars (local only)
+docs/grc/_corrections/
+
 # Resume rebuild private data
 builds/resume-rebuild/resume_data.json
 builds/resume-rebuild/test_fixture.json

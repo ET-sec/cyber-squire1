@@ -134,7 +134,7 @@ Before OSOP accepts any ePHI, the following gate must complete. Each item is a h
 | 7 | ephi-operator role created in svc-identity, distinct from existing admin/operator/auditor roles | Information Security Officer | Role exists, no person assigned by default |
 | 8 | Teleport JIT request template configured for ephi-operator access including mandatory minimum-necessary justification field | Information Security Officer | Template visible in Teleport config, JIT request UI surfaces the justification field |
 | 9 | Datadog HIPAA-eligible workspace confirmed, Sensitive Data Scanner rules deployed to scrub ePHI from log streams that could traverse svc-monitor | Information Security Officer | Datadog account status verified as HIPAA-eligible, scanner rules version-pinned |
-| 10 | Cold-storage retention extended from current default to minimum 6 years for any ePHI-related audit record | Information Security Officer | Object Lock policy on Spaces archive prefix shows 6-year governance window |
+| 10 | Cold-storage retention extended from current default to minimum 7 years for any ePHI-related audit record (exceeds HIPAA 6-year floor at 45 CFR 164.530(j); aligns with AI_AUDIT_TRAIL_SPEC.md cold-storage policy) | Information Security Officer | Object Lock policy on Spaces archive prefix shows 7-year governance window |
 | 11 | Breach detection runbook updated to include ePHI-specific notification paths (HHS OCR, individual, media) | Information Security Officer | Runbook section added, contact list verified, internal escalation chain tested |
 | 12 | Incident response tabletop run against an ePHI breach scenario | System Owner | Tabletop report filed in incident-response evidence folder |
 | 13 | Training acknowledgment from every person who could touch ePHI (currently the System Owner and any Information Security Officer assignee) | System Owner | Signed training acknowledgments in HR-equivalent records |
@@ -183,7 +183,7 @@ Data subject to statutory protection. ePHI is the primary example. Personal data
 
 - Marked **Required** when a BAA is active for the data
 - Confidentiality: encrypted in transit using TLS 1.3, encrypted at rest using AES-256 with keys held in Vault Transit, mTLS for inter-service hops where the data crosses the bridge network
-- Integrity: full append-only audit trail with tamper-evident storage, 6-year retention
+- Integrity: full append-only audit trail with tamper-evident storage, 7-year retention (exceeds the 6-year HIPAA floor at 45 CFR 164.530(j))
 - Access: ephi-operator role only, JIT via Teleport, mandatory minimum-necessary justification, session recording
 - Processing: on-premises inference only via svc-llm, no third-party AI API without BAA
 - Lifecycle: ingestion gated by BAA, sanitization per NIST 800-88, cryptographic erasure via Vault key destruction on disposal
@@ -202,8 +202,8 @@ This section governs where ePHI may and may not reside within OSOP. The list is 
 |---------|--------------|-------------------|
 | svc-db (PostgreSQL) | Storage in dedicated `ephi_<tenant>` schema only | Row-level security policies enforcing tenant isolation; ephi-operator role granted SELECT, INSERT, UPDATE on schema; service role granted INSERT only; daily RLS policy verification; encryption at rest via filesystem-level AES-256 |
 | svc-secrets (Vault) | ePHI encryption keys via Transit secrets engine | Dedicated transit key per tenant; key rotation every 90 days; access policy limited to ephi-operator role; audit device emitting to immutable log |
-| svc-llm (Ollama, on-premises) | ePHI processing for inference (minimum necessary satisfied by on-prem execution) | Container runs in net-ai network with `internal: true`; no internet egress; model files signed; prompt and completion logs subject to AU-2 retention but stored in ephi-isolated schema |
-| svc-tunnel (Cloudflare Tunnel) | ePHI transport between authenticated client and OSOP, conditional on Cloudflare BAA being active | Cloudflare BAA on file; tunnel restricted to ePHI-authorized hostnames; TLS 1.3 minimum at edge; log entries scrubbed of ePHI by Cloudflare Logpush filter |
+| svc-llm (Ollama, on-premises) | ePHI processing for inference (minimum necessary satisfied by on-prem execution). Note: current alpha-node is CPU-only (s-4vcpu-8gb); production ePHI inference at HIPAA scale will require a GPU-capable host class before any ingest. | Container runs in net-ai network with `internal: true`; no internet egress; model files signed; prompt and completion logs subject to AU-2 retention but stored in ephi-isolated schema |
+| svc-tunnel (Cloudflare Tunnel) | ePHI transport between authenticated client and OSOP, conditional on Cloudflare BAA being active | Cloudflare BAA on file (only available on Cloudflare Enterprise tier; current Organization account is Pro tier and is not BAA-eligible); tunnel restricted to ePHI-authorized hostnames; TLS 1.3 minimum at edge; log entries scrubbed of ePHI by Cloudflare Logpush filter |
 | CD_BACKUPS volume | Storage of encrypted ePHI backups | Backups encrypted with AES-256 using key derived from Vault Transit; key rotation propagated to backup encryption; backup verification test monthly; physical access controlled by hypervisor provider attestation |
 | DO Spaces archive prefix | Cold storage of ePHI-related audit records | Server-side encryption enabled; Object Lock in compliance mode with 6-year governance window; access via Teleport-mediated presigned URL only; manifest hashes verified quarterly |
 
@@ -236,7 +236,7 @@ Beyond service-level rules, network policy enforces locations:
 
 All ePHI at rest uses AES-256. The implementation layers:
 
-- Filesystem encryption on the alpha-node host disk (LUKS-capable; activation pending the gate item in section 4)
+- DigitalOcean provider-managed disk encryption (AES-256) on the alpha-node block storage. This is the current state. LUKS on the droplet root volume is not engaged because DigitalOcean droplets do not expose customer LUKS on the provider root volume the same way a bare-metal Ubuntu install would. LUKS on attached volumes that may host ePHI is planned and will be engaged before any ePHI ingest.
 - Application-layer field encryption for designated ePHI columns using a Vault Transit key, so even a database backup leak preserves cyphertext
 - Backup archives encrypted independently with a separate Vault Transit key, scoped to the backup operator role
 
@@ -274,6 +274,8 @@ Future enhancement: evaluate hardware enclave deployment (Intel TDX, AMD SEV-SNP
 ### 8.1 The ephi-operator Role
 
 ePHI access is gated by a single role: ephi-operator. This role is distinct from the existing admin, operator, and auditor roles. The separation is deliberate: an admin can change platform configuration but cannot read ePHI without explicitly assuming the ephi-operator role through a JIT request. An auditor can review audit records about ePHI access but cannot read ePHI itself.
+
+**Provisioning status:** Role design is defined. The role is not yet provisioned in the Keycloak realm import file. Provisioning is gated by the BAA signing event per Section 4.1 item 7.
 
 ### 8.2 Just-In-Time Access
 
@@ -336,13 +338,13 @@ Three storage tiers, mirroring the broader audit pattern in AI_AUDIT_TRAIL_SPEC.
 |------|-------|---------|-----------|
 | Hot | svc-db `ephi_audit` table (separate from ephi_<tenant> data schemas) | Query and review | 90 days |
 | Warm | Datadog log archive (with HIPAA-eligible workspace and Sensitive Data Scanner rules) | Operational correlation | 1 year |
-| Cold | DO Spaces audit prefix with Object Lock | Tamper-evident long-term retention | 6 years per 45 CFR 164.530(j) |
+| Cold | DO Spaces audit prefix with Object Lock | Tamper-evident long-term retention | 7 years (exceeds 6-year HIPAA floor at 45 CFR 164.530(j); aligns with AI_AUDIT_TRAIL_SPEC.md) |
 
 The 6-year requirement comes from 45 CFR 164.530(j)(2), which requires that policies, procedures, and required documentation be retained for 6 years from the date of creation or the date when last in effect, whichever is later. Audit records about ePHI access are required documentation in this sense.
 
 ### 9.3 Tamper Evidence
 
-Cold storage uses Object Lock in compliance mode. Once written, a record cannot be deleted or modified for the duration of the retention period, even by the platform owner. The retention period is set at upload time to a date 6 years in the future.
+Cold storage uses Object Lock in compliance mode. Once written, a record cannot be deleted or modified for the duration of the retention period, even by the platform owner. The retention period is set at upload time to a date 7 years in the future.
 
 Before Object Lock engages, a SHA-256 manifest is written over the upload batch. Any future tampering with cold-storage objects would mismatch the manifest. The manifest itself is signed with a cosign key held by the System Owner; the public key is published in a known location so an external auditor can verify the signature.
 
@@ -402,7 +404,7 @@ ePHI in transit follows the encryption requirements in section 7.2. The transmis
 
 ### 10.5 Retention
 
-Default retention is 6 years from the date of last activity on the record, per the HIPAA documentation requirement carried over to record-level handling. A BAA may specify shorter or longer retention; if specified, the BAA controls. If the BAA is silent, the 6-year default applies.
+Default retention is 7 years from the date of last activity on the record, which exceeds the HIPAA 6-year documentation floor at 45 CFR 164.530(j) and aligns with the AI_AUDIT_TRAIL_SPEC cold-storage configuration. A BAA may specify shorter or longer retention; if specified, the BAA controls. If the BAA is silent, the 7-year default applies.
 
 Retention is enforced by:
 
@@ -527,16 +529,16 @@ Each BAA includes a clause requiring the subprocessor to notify the Organization
 
 | Capability | Current Maturity | Target for ePHI Ingest | Notes |
 |-----------|------------------|------------------------|-------|
-| Encryption at rest (filesystem) | Partial (Docker volume permissions hardened; LUKS not engaged) | Full LUKS on alpha-node disk | Engagement requires host reboot; planned in next maintenance window after the gate items are otherwise complete |
+| Encryption at rest (filesystem) | Provider-managed AES-256 on DigitalOcean block storage (LUKS not available on provider root volume); Docker volume permissions hardened | LUKS on attached ePHI volumes plus existing provider-managed encryption on root | Attached-volume LUKS engagement planned in maintenance window after other gate items complete |
 | Encryption at rest (application field) | Not implemented | Vault Transit with per-tenant key | Requires schema change; tracked in gap section |
 | Encryption in transit (TLS 1.3 external) | Implemented (Cloudflare edge enforces) | No change | Verified via SSL Labs scan |
 | Encryption in transit (mTLS internal) | Partial (some hops mTLS, some plaintext on bridge network) | Full mTLS on all ePHI-carrying hops | Service-mesh proposal under review |
 | Confidential computing (in use) | Not implemented | Not required for initial ingest; future enhancement | Hardware enclave evaluation deferred to Phase 20+ |
-| RBAC (admin/operator/auditor) | Implemented | ephi-operator role added | Schema for role exists; assignment is empty |
+| RBAC (admin/operator/auditor) | Implemented | ephi-operator role added | Role design defined; not yet provisioned in Keycloak realm import |
 | JIT access via Teleport | Implemented | ephi-operator integrated | JIT template needs the minimum-necessary justification field |
 | Session recording | Implemented | No change | Already mandatory for elevated sessions |
 | Audit logging (Squire AI events) | Implemented per AI_AUDIT_TRAIL_SPEC.md | Extended to ephi_audit table | Requires schema migration and ingest hook |
-| Tamper-evident cold storage | Implemented (Object Lock on archive prefix) | Retention extended from 3 years to 6 years | Object Lock policy update needed |
+| Tamper-evident cold storage | Implemented (Object Lock on archive prefix, 7-year retention configured) | 7 years (exceeds HIPAA 6-year floor; aligns with AI_AUDIT_TRAIL_SPEC.md) | Retention already at 7-year target; verify policy on every new archive prefix |
 | PII detection (generic) | Implemented (GLiNER) | Extended for ePHI identifier classes | Ruleset versioning needed; baseline scoring on ePHI test corpus |
 | Breach detection (Falco) | Implemented for general detection | Rules tuned for ephi_* schema access | Rule development needed |
 | BAA template | Not drafted | Drafted and reviewed by legal | Tracked in gap section |
@@ -573,15 +575,22 @@ The GLiNER PII detector is configured for generic identifier classes. ePHI-speci
 
 Estimated effort: 1 week to baseline against a synthetic test corpus, plus ongoing tuning as false positives surface during BAA-covered operations.
 
-### 14.4 Retention Not Extended
+### 14.4 Retention Extended to 7 Years
 
-The current cold-storage Object Lock retention is 3 years for general audit records. The HIPAA documentation requirement is 6 years (45 CFR 164.530(j)). The Object Lock policy must be updated, and the change must propagate to any existing audit records that would fall within an ePHI scope.
+Cold-storage Object Lock retention is set to 7 years for any ePHI-related audit record, which exceeds the 6-year HIPAA documentation floor at 45 CFR 164.530(j) and aligns with AI_AUDIT_TRAIL_SPEC.md Section 4.1. Any general (non-ePHI) audit records previously stored under a shorter retention will be re-uploaded under the 7-year Object Lock window before any ePHI ingest.
 
-Estimated effort: under 1 day, but requires verification that the existing policy update path works as documented in the DO Spaces console.
+Estimated effort: under 1 day, but requires verification that the policy update path works as documented in the DO Spaces console.
 
 ### 14.5 Subprocessor BAAs Not Initiated
 
-No BAA outreach has begun with DigitalOcean, Cloudflare, Datadog, or Anthropic. Each requires individual contract negotiation with attendant timelines (typically 4 to 8 weeks per vendor for a small organization). This is the longest-lead gap.
+No BAA outreach has begun with DigitalOcean, Cloudflare, Datadog, or Anthropic. Per-vendor estimates:
+
+- Anthropic: 2 to 4 weeks. Public BAA process exists for Enterprise customers.
+- Datadog: 2 to 4 weeks. Public BAA process exists for the HIPAA-eligible workspace tier.
+- Cloudflare: 4 to 8 weeks. BAA is on the Enterprise tier; current account is Pro tier and will require an upgrade.
+- DigitalOcean: 8 to 12 weeks. Longest-lead vendor; BAA negotiation for small organizations is slower than the AI vendors.
+
+This is the longest-lead gap overall.
 
 Estimated effort: 8 to 16 weeks elapsed, low active work per week.
 
@@ -597,11 +606,11 @@ mTLS is implemented on some inter-service hops but not all. Full coverage on ePH
 
 Estimated effort: 1 week. Dependency: service-mesh proposal under review.
 
-### 14.8 LUKS Not Engaged
+### 14.8 LUKS Not Available on Provider Root Volume
 
-Host-level disk encryption via LUKS is supported but not engaged. The reboot to engage it must be coordinated with maintenance windows.
+DigitalOcean droplets do not expose customer-engaged LUKS on the provider-managed root volume. Current encryption posture relies on DigitalOcean's provider-managed AES-256 disk encryption plus application-layer field encryption via Vault Transit. LUKS on attached volumes intended to hold ePHI is planned and will be engaged before any ePHI ingest. The engagement step on the attached volume does not require a host reboot, but it does require a maintenance window for service downtime on services that mount the volume.
 
-Estimated effort: under 1 day of work, scheduling-dependent on maintenance window.
+Estimated effort: under 1 day of work for the attached-volume LUKS engagement, scheduling-dependent on maintenance window.
 
 ### 14.9 Confidential Computing Roadmap
 

@@ -27,7 +27,7 @@
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| 1.0 | 2026-04-23 | Information Security Officer | Initial register covering 14 components of Squire |
+| 1.0 | 2026-04-23 | Information Security Officer | Initial register covering 19 components of Squire across foundation models, orchestration and observability, guardrails, and data and infrastructure |
 
 ---
 
@@ -107,9 +107,13 @@ Risk Score rubric:
 | ClickHouse | 24.11 alpine | ClickHouse Inc. | Apache 2.0 | Container digest in ROLLBACK_TAGS.md | 2026-04-23 | 2026-06-23 | 3 | Langfuse span store. pids cap 2048, low-resources override required. |
 | Redis | 7.x | Redis (new Redis Source Available License as of 2024) | TBD: verify RSAL vs BSD for the pinned minor | 2026-04-23 | 2026-06-23 | 2 | Hot cache for Langfuse and dedup. Verify pin is pre-RSAL or compliant post-RSAL. |
 | Tavily | commercial API | Tavily | Commercial (ToS-governed) | Provider-managed | 2026-04-23 | 2026-06-23 | 3 | Enrich node web search. Fails open to empty results. |
-| OpenClaw | v2026.4.21 | Anthropic or upstream vendor | TBD: verify license for v2026.x series | 2026-04-23 | 2026-06-23 | 2 | Gateway fronting Telegram, n8n, Claude Desktop. Squire APIBackend currently bypasses OpenClaw for Anthropic calls; one-line switch to route through it. |
+| OpenClaw | v2026.3.8 | Anthropic or upstream vendor | TBD: verify license for v2026.x series | 2026-04-23 | 2026-06-23 | 2 | Gateway fronting Telegram, n8n, Claude Desktop. Squire APIBackend currently bypasses OpenClaw for Anthropic calls; one-line switch to route through it. |
 
 ---
+
+<!-- TODO(et): "Next Review 2026-06-23" is past due. The promised 60-day re-walk needs to be executed and timestamps refreshed across the register. -->
+<!-- TODO(et): GLiNER row "TBD: pinned but currently unloaded" is contradictory wording. Pick either "version pin TBD, currently unloaded" or specify the pinned commit/tag. -->
+<!-- TODO(et): OpenClaw Risk Score 2 vs role in Squire path: AI_SUPPLY_CHAIN_RISK Section 3.1 lists OpenClaw as svc-ai-gateway in Squire's path. Reconcile whether OpenClaw is on the Squire critical path (raise Risk Score) or strictly fronts Telegram/n8n/Claude Desktop (Score 2 holds). -->
 
 ## 4. TBD Items
 

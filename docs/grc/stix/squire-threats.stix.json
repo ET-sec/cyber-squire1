@@ -59,15 +59,15 @@
             "created_by_ref": "identity--9f0d3869-3835-508f-acd1-dc9424f4903c",
             "created": "2026-04-24T00:00:00.000Z",
             "modified": "2026-04-24T00:00:00.000Z",
-            "name": "AML.T0024 Model Stealing",
-            "description": "Adversary repeatedly queries the model to extract decision boundaries, training data, or proprietary prompts. In Squire context, attacker uses a leaked webhook token to map the classifier or recover the system prompt.",
+            "name": "AML.T0024 Exfiltration via ML Inference API",
+            "description": "Adversary repeatedly queries the model via the inference API to extract proprietary information such as decision boundaries, system prompts, or RAG corpus structure. In Squire context, attacker uses a leaked webhook token to map the classifier or recover the system prompt.",
             "labels": [
                 "residual:low"
             ],
             "external_references": [
                 {
                     "source_name": "mitre-atlas",
-                    "description": "Model Stealing",
+                    "description": "Exfiltration via ML Inference API",
                     "url": "https://atlas.mitre.org/techniques/AML.T0024",
                     "external_id": "AML.T0024"
                 }
@@ -122,8 +122,8 @@
                 {
                     "source_name": "owasp-llm-top10-2025",
                     "description": "Sensitive Information Disclosure",
-                    "url": "https://genai.owasp.org/llmrisk/llm06",
-                    "external_id": "LLM06"
+                    "url": "https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/",
+                    "external_id": "LLM02"
                 }
             ]
         },
@@ -338,8 +338,8 @@
                 {
                     "source_name": "owasp-llm-top10-2025",
                     "description": "Sensitive Information Disclosure",
-                    "url": "https://genai.owasp.org/llmrisk/llm06",
-                    "external_id": "LLM06"
+                    "url": "https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/",
+                    "external_id": "LLM02"
                 }
             ]
         },
@@ -364,9 +364,9 @@
                 },
                 {
                     "source_name": "owasp-llm-top10-2025",
-                    "description": "Insecure Skill or Plugin Execution",
-                    "url": "https://genai.owasp.org/llmrisk/llm07",
-                    "external_id": "LLM07"
+                    "description": "Excessive Agency (skill/plugin execution authority)",
+                    "url": "https://genai.owasp.org/llmrisk/llm06-excessive-agency/",
+                    "external_id": "LLM06"
                 },
                 {
                     "source_name": "mitre-atlas",
@@ -397,9 +397,9 @@
                 },
                 {
                     "source_name": "owasp-llm-top10-2025",
-                    "description": "Excessive Autonomous Agency",
-                    "url": "https://genai.owasp.org/llmrisk/llm08",
-                    "external_id": "LLM08"
+                    "description": "Excessive Agency",
+                    "url": "https://genai.owasp.org/llmrisk/llm06-excessive-agency/",
+                    "external_id": "LLM06"
                 }
             ]
         },
@@ -410,8 +410,8 @@
             "created_by_ref": "identity--9f0d3869-3835-508f-acd1-dc9424f4903c",
             "created": "2026-04-24T00:00:00.000Z",
             "modified": "2026-04-24T00:00:00.000Z",
-            "name": "ATC-08 Overreliance on AI Outputs",
-            "description": "Operator develops excessive trust in AI generated outputs, reducing manual verification and critical review.",
+            "name": "ATC-08 Misinformation and Overreliance on AI Outputs",
+            "description": "Model produces inaccurate or fabricated information; operator develops excessive trust in AI generated outputs, reducing manual verification and critical review. OWASP renamed this 2023 'Overreliance' category to 'Misinformation' in 2025.",
             "labels": [
                 "residual:medium",
                 "framework:owasp-llm-2025"
@@ -424,8 +424,8 @@
                 },
                 {
                     "source_name": "owasp-llm-top10-2025",
-                    "description": "Overreliance on AI Outputs",
-                    "url": "https://genai.owasp.org/llmrisk/llm09",
+                    "description": "Misinformation",
+                    "url": "https://genai.owasp.org/llmrisk/llm09-misinformation/",
                     "external_id": "LLM09"
                 }
             ]
@@ -552,9 +552,9 @@
                 },
                 {
                     "source_name": "owasp-llm-top10-2025",
-                    "description": "Pre graph PII scanner",
-                    "url": "https://genai.owasp.org/llmrisk/llm06",
-                    "external_id": "LLM06"
+                    "description": "Pre graph PII scanner addresses Sensitive Information Disclosure",
+                    "url": "https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/",
+                    "external_id": "LLM02"
                 }
             ]
         },
@@ -616,9 +616,9 @@
                 },
                 {
                     "source_name": "owasp-llm-top10-2025",
-                    "description": "Actions allow list rewrite",
-                    "url": "https://genai.owasp.org/llmrisk/llm08",
-                    "external_id": "LLM08"
+                    "description": "Actions allow list rewrite addresses Excessive Agency",
+                    "url": "https://genai.owasp.org/llmrisk/llm06-excessive-agency/",
+                    "external_id": "LLM06"
                 }
             ]
         },

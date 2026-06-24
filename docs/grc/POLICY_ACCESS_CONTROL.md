@@ -241,6 +241,8 @@ Administrative access is never permanently assigned. The operator role includes 
 
 ### 7.2 Standing Privileges
 
+<!-- TODO(et): In a single-operator environment, document how JIT approval works when the requestor IS the only approver. Either describe the self-approval workflow with the audit trail as compensating control, or mark dual control as aspirational until a second operator is added. -->
+
 No standing administrative privileges are permitted. The following restrictions apply:
 
 1. The admin role shall not be permanently assigned to any user account in `svc-gateway`
@@ -267,7 +269,7 @@ All SSH sessions through `svc-gateway` are recorded with the following character
 
 | Property | Setting |
 |----------|---------|
-| Recording mode | `node-sync` (resilient -- recording persists even if proxy disconnects) |
+| Recording mode | `node-sync` (resilient: recording persists even if proxy disconnects) |
 | Content captured | Full terminal input and output (stdin, stdout, stderr) |
 | Storage | Local on `svc-gateway`, exported via `svc-event-shipper` and `Fluentd` to Datadog |
 | Playback access | Admin (all sessions), Operator (own sessions only), Auditor (all sessions) |
@@ -307,7 +309,7 @@ Edge Security Provider (zero-trust tunnel)
 svc-tunnel (on alpha-node, host network)
   |
   v
-svc-gateway -- authentication, MFA, session recording
+svc-gateway: authentication, MFA, session recording
   |
   v
 alpha-node (SSH session with role-appropriate login)
@@ -324,7 +326,7 @@ alpha-node (SSH session with role-appropriate login)
 |---------|-----------|----------------|-----------|
 | `svc-automation` | `https://automation.example-ops.com` | Username/password | Cloudflare tunnel (HTTPS) |
 | `svc-identity` | Container-internal (internal identity port) | Admin credentials | No external exposure; accessed via SSH tunnel only |
-| Datadog | `https://monitoring.example-ops.com` (external SaaS) | Platform-native SSO + MFA | Direct HTTPS |
+| Datadog | External monitoring SaaS (Datadog regional dashboard URL) | Platform-native SSO + MFA | Direct HTTPS |
 
 ---
 
@@ -388,7 +390,7 @@ The break-glass procedure provides emergency access to Organization infrastructu
 Remote User (Information Security Officer or System Owner only)
   |
   v
-Edge Security Provider (zero-trust tunnel -- SSH route)
+Edge Security Provider (zero-trust tunnel, SSH route)
   |
   v
 svc-tunnel (host network mode)

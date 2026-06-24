@@ -51,7 +51,7 @@ This policy applies to all changes affecting:
 **Definition:** Pre-approved, low-risk, routine changes that follow a documented procedure and do not require individual review.
 
 **Examples:**
-- Container image version updates (patch-level, e.g., `16.2` to `16.3`)
+- Container image version updates (patch-level, e.g., `16.2` to `16.3`). For Renovate-tracked images, the bump flows in as a Renovate-authored PR. Locally built Tier 0 images (`svc-nemo`, `svc-squire`, `svc-fluentd`) require a manual PR per the docker-compose header note.
 - Dependency version bumps with passing CI
 - Documentation updates
 - Log rotation adjustments
@@ -291,8 +291,8 @@ Changes to the Docker Compose stack follow the standard change process with addi
 
 ### 8.4 Critical Safety Rules
 
-- **NEVER** run `docker compose down` via the zero-trust tunnel - this kills `svc-tunnel` and severs remote access
-- **NEVER** use the `-v` flag with `docker compose down` - this destroys persistent data volumes
+- **NEVER** run `docker compose down` via the zero-trust tunnel: this kills `svc-tunnel` and severs remote access
+- **NEVER** use the `-v` flag with `docker compose down`: this destroys persistent data volumes
 - **ALWAYS** stop individual services with `docker compose stop <service>` when possible
 - **ALWAYS** have direct SSH access available as a fallback before modifying tunnel-related services
 
@@ -386,6 +386,12 @@ Per NIST 800-53 CM-8, the Organization maintains an inventory of all configurabl
 | `svc-llm` | Container | Docker Compose | System Owner |
 | `svc-transcription` | Container | Docker Compose | System Owner |
 | `svc-ai-gateway` | Container | Docker Compose + gateway config | System Owner |
+| `svc-squire` | Container (locally built) | Docker Compose + `builds/squire/` Dockerfile | System Owner |
+| `svc-nemo` | Container (locally built) | Docker Compose + `builds/squire/docker/nemo_config/` Dockerfile and rail config | System Owner |
+| `svc-langfuse-web` | Container | Docker Compose | System Owner |
+| `svc-langfuse-worker` | Container | Docker Compose | System Owner |
+| `svc-langfuse-clickhouse` | Container | Docker Compose | System Owner |
+| `svc-langfuse-redis` | Container | Docker Compose | System Owner |
 | Firewall rules | Network | Infrastructure-as-code platform | System Owner |
 | DNS records | Network | Infrastructure-as-code platform / Cloudflare | System Owner |
 | CI/CD pipelines | Automation | Repository workflow files | System Owner |
@@ -452,6 +458,7 @@ Phase 17 change categories under this policy:
 
 ### Reference example: in-session emergency remediation
 
+<!-- TODO(et): Verify commit hash 3e47524 exists in the cyber-squire1 git history before quoting it in interviews. The 127-test passing claim should also be confirmed against `builds/squire/tests/`. -->
 On 2026-04-23, red-team Case 03 revealed that the NeMo input rail did not catch raw SSN in `/alert` payloads. Under the emergency remediation provision of this policy, the pre_graph_pii.py scanner was drafted, unit-tested (12 tests), wired into `builds/squire/src/squire/app.py` before `graph.invoke`, and validated against the same red-team payload. Commit 3e47524. The full suite of 127 tests passed. Post-deployment: a CLOSED entry was added to POAM (POAM-P17-01) with full evidence linkage. This path is documented as the standard for in-session emergency remediation when a live red-team finding surfaces a HIGH severity gap.
 
 Cross-reference: `REDTEAM_RESULTS.md` Finding 1 (evidence); `POAM_PLAN_OF_ACTION.md` POAM-P17-01 (tracking); `SSP_SYSTEM_SECURITY_PLAN.md` SI-10 (control); `builds/squire/src/squire/pre_graph_pii.py` (artifact).

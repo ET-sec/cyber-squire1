@@ -3,8 +3,8 @@
 **System Name:** Organization Security Operations Platform (OSOP)
 **Document Identifier:** EXEC-SEC-001
 **Classification:** Internal Use Only
-**Version:** 1.1
-**Date:** 2026-04-24 (v1.1 Phase 17 posture refresh)
+**Version:** 1.2
+**Date:** 2026-05-25
 **Prepared By:** System Owner
 
 ---
@@ -40,7 +40,7 @@ The platform processes API keys, operational credentials, workflow automation lo
 
 ## Findings and Risk Posture
 
-### POA&M Summary
+### Raw Findings by Severity (pre-consolidation)
 
 | Severity | Count |
 |----------|-------|
@@ -48,7 +48,7 @@ The platform processes API keys, operational credentials, workflow automation lo
 | High | 0 |
 | Medium | 7 |
 | Low | 30 |
-| **Total** | **37** |
+| **Total raw findings** | **37** |
 
 ### Finding Sources
 
@@ -59,14 +59,18 @@ The platform processes API keys, operational credentials, workflow automation lo
 | Risk Assessment (Mitigate treatments) | 5 |
 | Falco Runtime Detection (baseline) | 0 |
 
-### Disposition
+### Disposition (consolidated POA&M register)
+
+<!-- TODO(et): Reconcile legacy disposition (16/10/1 totaling 27 across 15 legacy POA&M entries) with the README's 15/9/6 across all 30 entries. Source of truth: POAM_PLAN_OF_ACTION.md grep returns 30 register entries. -->
 
 | Status | Count |
 |--------|-------|
 | Accepted Risk (with compensating controls) | 16 |
 | Open (remediation tracked) | 10 |
 | Closed | 1 |
-| **Total** | **30 POA&M entries** |
+| **Total POA&M register entries** | **30** |
+
+The 37 figure above is raw findings across all assessment sources. The 30 figure is consolidated POA&M register entries (POAM_PLAN_OF_ACTION.md). Multiple raw findings collapse into a single register entry where compensating controls overlap.
 
 ![POA&M Summary](diagrams/poam_summary.png)
 
@@ -75,8 +79,10 @@ The platform processes API keys, operational credentials, workflow automation lo
 ## Risk Assessment Overview
 
 - **17 threat scenarios** assessed using NIST SP 800-30 Rev. 1 methodology with a 5x5 risk matrix
+<!-- TODO(et): Verify the 35% figure against RISK_ASSESSMENT.md residual risk math. If not derivable, remove or replace. -->
 - **35% average risk reduction** achieved through implemented controls
 - All scenarios mapped to MITRE ATT&CK techniques
+<!-- TODO(et): Verify against current 5x5 matrix in RISK_ASSESSMENT.md. -->
 - Zero scenarios rated Critical or High after control application
 
 ![Risk Heat Map](diagrams/risk_heat_map.png)
@@ -99,7 +105,7 @@ Layer 8: HITL review                 [HIGH/CRITICAL gate] ███████�
 Layer 9: Audit trail                 [Langfuse+pgvector]  ████████████████
 ```
 
-> **Key Point:** The 2026-04-23 red-team exercise validated Layers 5 through 9 against 6 attack scenarios. Layer 6 (pre-graph scanner) was added in-session as remediation for a BYPASSED PII case. Evidence in `REDTEAM_RESULTS.md`. Full Squire SSP in `SQUIRE_SSP.md` (36 additional controls).
+**Key Point:** The 2026-04-23 red-team exercise validated Layers 5 through 9 against 6 attack scenarios. Layer 6 (pre-graph scanner) was added during the exercise as remediation for a BYPASSED PII case. Evidence in `REDTEAM_RESULTS.md`. Full Squire SSP in `SQUIRE_SSP.md` (36 additional controls).
 
 The platform runs **20 containers** protected by layered security controls:
 
@@ -134,8 +140,9 @@ The platform runs **20 containers** protected by layered security controls:
 4. **Automated evidence collection** via Falco, Datadog, and CI/CD scanners reduces manual audit burden
 5. **Immutable audit chain** from Teleport session recording through Fluentd log shipping to Datadog
 6. **Zero exposed ports** to the public internet - all ingress through Cloudflare zero-trust tunnel
-7. **Comprehensive GRC library** (54 documents after Phase 17 expansion) with defined review cadences
-8. **Squire subsystem live** (Phase 17) with 36 additional controls, 9-layer defense-in-depth, 6 executed red-team cases, 1 HIGH remediation in-session
+7. **Comprehensive GRC library** (58 documents after Phase 17 expansion plus subsequent additions) with defined review cadences
+<!-- TODO(et): Verify "1 HIGH remediation" claim against REDTEAM_RESULTS.md. -->
+8. **Squire subsystem live** (Phase 17) with 36 additional controls, 9-layer defense-in-depth, 6 executed red-team cases, 1 HIGH remediation closed during the exercise
 
 ## Areas for Improvement
 

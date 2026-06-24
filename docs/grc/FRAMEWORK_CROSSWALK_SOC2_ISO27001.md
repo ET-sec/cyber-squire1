@@ -46,9 +46,9 @@ related:
 |-------|-------|
 | Document Title | Framework Crosswalk: SOC 2 and ISO 27001:2022 |
 | Document ID | CW-002 |
-| Version | 1.0 |
+| Version | 1.1 |
 | Status | Approved |
-| Last Revised | 2026-05-25 |
+| Last Revised | 2026-06-24 |
 | Next Review | 2026-08-25 |
 | Author | Information Security Officer |
 | Approver | System Owner |
@@ -59,6 +59,7 @@ related:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-05-25 | Information Security Officer | Initial combined crosswalk covering AICPA Trust Services Criteria (Security, Availability, Confidentiality) and ISO/IEC 27001:2022 clauses 4 through 10 and Annex A controls, both anchored to the NIST SP 800-53 Rev 5 baseline already implemented |
+| 1.1 | 2026-06-24 | Information Security Officer | Audit refresh: Section 9.1 SoA totals reconciled with the per-theme breakdown (Implemented direct 48, Inherited 13, Partial 28, Gap 4, sum 93). Section 10.2 ISMS sub-clause count corrected from 18 to 25 to match the body of Section 7 sub-clauses actually mapped. |
 
 ---
 
@@ -521,9 +522,9 @@ Of the 93 Annex A controls in ISO/IEC 27001:2022, the OSOP draft Statement of Ap
 
 | Disposition | Count | Notes |
 |-------------|-------|-------|
-| Implemented (direct) | 56 | OSOP implements the control directly with evidence |
+| Implemented (direct) | 48 | OSOP implements the control directly with evidence |
 | Implemented (inherited) | 13 | Inherited from cloud provider or other SaaS with documented attestation |
-| Partial | 20 | Control exists but missing operating cadence, automation, or independent review |
+| Partial | 28 | Control exists but missing operating cadence, automation, or independent review |
 | Gap | 4 | Control does not yet exist in the program |
 | Not Applicable | 0 | No controls are formally excluded as not applicable; cloud-inheritance covers the physical control set |
 
@@ -572,7 +573,7 @@ Implemented or Inherited coverage: 26 of 38 criteria, or 68 percent. Including P
 
 | Surface | Total Items | Implemented or Inherited | Partial | Gap | Coverage % |
 |---------|-------------|--------------------------|---------|-----|------------|
-| ISMS Clauses 4-10 | 18 sub-clauses | 11 | 4 | 3 | 61% direct, 83% including partial |
+| ISMS Clauses 4-10 | 25 sub-clauses | 16 | 6 | 3 | 64% direct, 88% including partial |
 | Annex A.5 | 37 | 20 | 13 | 4 | 54% direct, 89% including partial |
 | Annex A.6 | 8 | 2 | 6 | 0 | 25% direct, 100% including partial |
 | Annex A.7 | 14 | 13 | 1 | 0 | 93% direct, 100% including partial |
@@ -776,7 +777,7 @@ The gaps are around the ISMS scaffolding (management review, internal audit, for
 | Field | Value |
 |-------|-------|
 | Document ID | CW-002 |
-| Version | 1.0 |
+| Version | 1.1 |
 | Status | Approved (internal) |
 | Audit Status | Not audited; self-attested readiness |
 | SOC 2 Engagement | None engaged |

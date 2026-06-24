@@ -15,9 +15,9 @@
 | Field | Value |
 |-------|-------|
 | Document ID | CR-001 |
-| Version | 1.0 |
+| Version | 1.1 |
 | Status | Approved |
-| Last Revised | 2026-03-22 |
+| Last Revised | 2026-06-24 |
 | Next Review | 2026-09-22 |
 | Author | Information Security Officer |
 | Approver | System Owner |
@@ -27,6 +27,7 @@
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-15 | Information Security Officer | Initial release, 5 findings |
+| 1.1 | 2026-06-24 | Information Security Officer | Audit refresh: secret count standardized to 44 (matches Doppler `coredirective-engine/prd` live state). Remediation Tracking section flagged Past Due where target dates have lapsed without confirmed completion. |
 
 ---
 
@@ -54,7 +55,7 @@ The single HIGH finding (environment variable credential exposure in svc-automat
 | Artifact | Location | Description |
 |----------|----------|-------------|
 | Docker Compose configuration | `primary-node:/opt/platform/docker-compose.yaml` | 19-service container orchestration definition |
-| Environment file | `primary-node:/opt/platform/.env` | 79 secrets injected at container startup |
+| Environment file | `primary-node:/opt/platform/.env` | 44 secrets injected at container startup (matches `doppler secrets list` against the live `coredirective-engine/prd` config) |
 | Terraform IaC | Repository: `terraform/infrastructure/` | 19 `.tf` files defining Cloud Provider infrastructure |
 | OPA policies | Repository: `terraform/infrastructure/policies/` | 8 Rego policy files enforcing infrastructure guardrails |
 | CI/CD pipelines | Repository: `.github/workflows/` | 2 workflow files (PR pipeline, merge pipeline) |
@@ -127,7 +128,7 @@ Output confirmed the database password was fully readable from a Code node.
 
 | Dimension | Impact |
 |-----------|--------|
-| Confidentiality | All 79 secrets exposed to any authenticated n8n user via Code node execution |
+| Confidentiality | All 44 secrets exposed to any authenticated n8n user via Code node execution |
 | Integrity | Stolen credentials enable database modification, workflow tampering, infrastructure reconfiguration, and DNS manipulation |
 | Financial | Unauthorized consumption of LLM API credits, cloud resources, and SaaS subscriptions |
 | Lateral Movement | Database credentials provide access to n8n's internal credential store. Cloud provider token enables infrastructure-level pivoting. |
@@ -168,7 +169,7 @@ The Docker Compose deployment passes all secrets to containers via environment v
 4. Child processes inherit the full environment by default
 5. Crash dumps and core files may contain environment variable contents
 
-All 20 containers receive their secrets through this mechanism. The `.env` file contains 79 secrets in cleartext.
+All 20 containers receive their secrets through this mechanism. The `.env` file contains 44 secrets in cleartext.
 
 #### Evidence
 
@@ -192,7 +193,7 @@ The `.env` file permissions are correctly set to `chmod 600`, limiting read acce
 |-----------|--------|
 | Confidentiality | Secrets readable by any process with Docker socket access or host-level root access |
 | Integrity | An attacker with host-level access could modify `.env` and restart containers with altered credentials |
-| Scope | All 20 containers, all 79 secrets |
+| Scope | All 20 containers, all 44 secrets |
 
 #### Risk Decision: ACCEPTED
 
@@ -208,7 +209,7 @@ This finding is accepted with compensating controls for the following reasons:
 |---------|-------------|
 | File permissions | `.env` file permissions set to `chmod 600` (root read/write only) |
 | Git exclusion | `.env` file is listed in `.gitignore` and is not tracked in version control |
-| Source of truth | External secrets manager serves as the external secrets manager and source of truth for all 79 secrets. The `.env` file is a deployment artifact, not the canonical store. |
+| Source of truth | External secrets manager serves as the external secrets manager and source of truth for all 44 secrets. The `.env` file is a deployment artifact, not the canonical store. |
 | Rotation capability | Secrets can be rotated through the external secrets manager and redeployed without manual editing of the `.env` file |
 | SSH access control | Host access requires SSH with ed25519 key authentication through a zero-trust tunnel. No password-based SSH. |
 | Runtime detection | Falco (svc-detection) monitors for sensitive file reads on the host, including reads of `.env` and `/proc/*/environ` |
@@ -547,18 +548,20 @@ The following table maps each finding to the NIST 800-53 Rev. 5 controls that ar
 
 ## 6. Remediation Tracking
 
+> Status as of 2026-06-24 audit refresh: all OPEN items below have crossed their original target date. Statuses below carry a Past Due flag and a TODO; owner verification required before flipping any row to COMPLETE.
+
 | Finding | Action Item | Owner | Target Date | Status |
 |---------|------------|-------|-------------|--------|
 | CR-001-F1 | Enable `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` | System Owner | 2026-03-22 | COMPLETE |
-| CR-001-F2 | Migrate to Vault AppRole dynamic credentials | System Owner | 2026-06-22 | OPEN (POA&M) |
-| CR-001-F3 | Enable Spaces bucket encryption at rest | System Owner | 2026-06-22 | OPEN (POA&M) |
-| CR-001-F3 | Add OPA policy for storage encryption enforcement | System Owner | 2026-06-22 | OPEN (POA&M) |
-| CR-001-F3 | Enable Spaces bucket access logging | System Owner | 2026-06-22 | OPEN (POA&M) |
-| CR-001-F4 | Add webhook authentication header validation | System Owner | 2026-05-22 | OPEN |
-| CR-001-F4 | Add action allowlist validation at webhook entry | System Owner | 2026-05-22 | OPEN |
-| CR-001-F4 | Add per-action parameter validation | System Owner | 2026-06-22 | OPEN |
-| CR-001-F5 | Implement quarterly tunnel token rotation | System Owner | 2026-06-22 | OPEN |
-| CR-001-F5 | Configure Cloudflare connector registration alerts | System Owner | 2026-05-22 | OPEN |
+| CR-001-F2 | Migrate to Vault AppRole dynamic credentials | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify Vault AppRole migration status. --> |
+| CR-001-F3 | Enable Spaces bucket encryption at rest | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify Spaces encryption status. --> |
+| CR-001-F3 | Add OPA policy for storage encryption enforcement | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify OPA storage-encryption policy status. --> |
+| CR-001-F3 | Enable Spaces bucket access logging | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify Spaces bucket access logging status. --> |
+| CR-001-F4 | Add webhook authentication header validation | System Owner | 2026-05-22 | OPEN (Past Due) <!-- TODO(et): verify webhook auth header validation status. --> |
+| CR-001-F4 | Add action allowlist validation at webhook entry | System Owner | 2026-05-22 | OPEN (Past Due) <!-- TODO(et): verify action allowlist status. --> |
+| CR-001-F4 | Add per-action parameter validation | System Owner | 2026-06-22 | OPEN (Past Due) <!-- TODO(et): verify per-action parameter validation status. --> |
+| CR-001-F5 | Implement quarterly tunnel token rotation | System Owner | 2026-06-22 | OPEN (Past Due) <!-- TODO(et): verify tunnel token rotation cadence is live. --> |
+| CR-001-F5 | Configure Cloudflare connector registration alerts | System Owner | 2026-05-22 | OPEN (Past Due) <!-- TODO(et): verify Cloudflare connector alert configuration. --> |
 
 ---
 

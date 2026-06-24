@@ -3,8 +3,8 @@
 **System Name:** Organization Security Operations Platform (OSOP)
 **Document Identifier:** EXEC-ARCH-001
 **Classification:** Internal Use Only
-**Version:** 1.1 (Phase 17 Squire subsystem added)
-**Date:** 2026-04-24
+**Version:** 1.2
+**Date:** 2026-05-25
 **Prepared By:** System Owner
 
 ---
@@ -32,8 +32,8 @@ The platform implements four trust zones with network-layer isolation:
 |------|----------|--------|
 | **Public** | Cloudflare Tunnel (sole entry point) | Internet-facing, TLS-terminated |
 | **DMZ** | n8n SOAR (svc-automation), OpenClaw Gateway | Accessible via tunnel routes only |
-| **Internal** | PostgreSQL, Ollama, Whisper, Fluentd, Falcosidekick, Datadog, Event Handler | No external access, Docker bridge only |
-| **Sensitive** | Vault (secrets), Keycloak (identity), Teleport (PAM) | Restricted internal access, audit-logged |
+| **Internal** | svc-db, svc-llm, svc-transcription, svc-log-router, svc-detection-router, svc-monitor, svc-event-shipper | No external access, Docker bridge only |
+| **Sensitive** | svc-secrets, svc-identity, svc-gateway | Restricted internal access, audit-logged |
 
 All inter-service communication occurs over Docker bridge networks. No container ports are bound to the host's public interface.
 
@@ -57,7 +57,7 @@ All inter-service communication occurs over Docker bridge networks. No container
 |-----------|----------|-----------------|
 | svc-gateway | Teleport v18 - PAM, session recording, JIT access | 3080 |
 | svc-identity | Keycloak v26 - RBAC, SSO, 3-tier role model | internal |
-| svc-event-handler | Teleport audit event shipper | - |
+| svc-event-shipper | Teleport audit event shipper | - |
 
 ### Security & Monitoring
 
@@ -65,8 +65,8 @@ All inter-service communication occurs over Docker bridge networks. No container
 |-----------|----------|-----------------|
 | svc-detection | Falco - eBPF kernel-level runtime detection | - |
 | svc-detection-router | Falcosidekick - alert routing to Datadog | - |
-| svc-observability | Datadog Agent - metrics, logs, APM | - |
-| svc-log-shipper | Fluentd - structured log pipeline to Datadog | - |
+| svc-monitor | Datadog Agent - metrics, logs, APM | - |
+| svc-log-router | Fluentd - structured log pipeline to Datadog | - |
 
 ### AI & Analysis
 
@@ -74,7 +74,7 @@ All inter-service communication occurs over Docker bridge networks. No container
 |-----------|----------|-----------------|
 | svc-llm | Ollama - local LLM inference | internal |
 | svc-transcription | Whisper - voice transcription | internal |
-| openclaw-gateway | OpenClaw - Claude Opus 4.7 AI gateway | internal |
+| svc-ai-gateway | OpenClaw - Claude Opus 4.7 AI gateway | internal |
 
 ### Infrastructure
 
@@ -122,11 +122,11 @@ flowchart LR
 
 ![Data Flow Diagram](diagrams/data_flow.png)
 
-**Inbound:** Internet traffic terminates at Cloudflare's edge, passes through the zero-trust tunnel, and routes to internal services (n8n on `example-ops.com`, SSH via `ssh.example-ops.com`).
+**Inbound:** Internet traffic terminates at Cloudflare's edge, passes through the zero-trust tunnel, and routes to internal services (n8n on `n8n.example-ops.com`, SSH via `ssh.example-ops.com`).
 
-**Internal:** n8n orchestrates workflows by connecting to PostgreSQL, Telegram Bot API, GitHub API, Ollama, and external SaaS integrations. Teleport records all SSH and console sessions. Falco monitors syscalls via eBPF and ships alerts through Falcosidekick to Datadog.
+**Internal:** svc-automation orchestrates workflows by connecting to svc-db, Telegram Bot API, GitHub API, svc-llm, and external SaaS integrations. svc-gateway records all SSH and console sessions. svc-detection monitors syscalls via eBPF and ships alerts through svc-detection-router to Datadog.
 
-**Outbound:** Audit logs flow from Teleport Event Handler through Fluentd to Datadog. Datadog Agent ships metrics, logs, and traces to the Datadog SaaS platform.
+**Outbound:** Audit logs flow from svc-event-shipper through svc-log-router to Datadog. svc-monitor ships metrics, logs, and traces to the Datadog SaaS platform.
 
 ---
 
@@ -135,8 +135,9 @@ flowchart LR
 | Component | Detail |
 |-----------|--------|
 | **IaC Tool** | Terraform |
-| **Files** | 19 `.tf` files |
+| **Files** | 20 `.tf` files |
 | **State** | Remote, encrypted |
+<!-- TODO(et): Verified 8 .rego policies as of 2026-06-24. Confirm count stays current when policy directory changes. -->
 | **Policy Enforcement** | 8 OPA (Rego) policies evaluated on every PR |
 | **Managed Resources** | VPS, firewall rules, DNS records, tunnel configuration, monitoring |
 

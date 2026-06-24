@@ -37,7 +37,7 @@ Self-hosted embedding model running inside the Squire container. 1024-dimensiona
 
 The embedding provider Anthropic officially recommends for Claude-based retrieval systems. 1024-dimensional vectors.
 
-- **Cost:** Approximately $0.06 for the bulk ingest; free tier covers it.
+- **Cost:** Approximately $0.06 for the bulk ingest at one cent per ten thousand tokens on the indicative rate at decision time; free tier covers it. <!-- TODO(et): verify the per-million-token rate against the current Voyage AI pricing page; published rates have ranged from approximately $0.06 to $0.18 per million tokens across model classes; update this figure on next review. -->
 - **Data path:** Equivalent to Option A (alert text traverses the public internet).
 - **Ecosystem fit:** Clean integration with the Anthropic stack Squire already uses.
 
@@ -49,12 +49,14 @@ The choice is driven by four factors:
 
 1. **Anthropic-native stack coherence.** The rest of Squire runs on Claude Opus 4.7 (reasoning) and Claude Sonnet 4.6 (classification). Voyage is the embedding provider Anthropic explicitly recommends in its RAG documentation, producing a clean single-vendor narrative for commercial interviews (Dropzone, Prophet, Resilience, OneDigital) while still matching or exceeding OpenAI quality on MTEB retrieval benchmarks.
 2. **Zero marginal cost.** Voyage's free tier covers 200 million tokens per month. Squire's 41-document corpus is approximately 1 million tokens after chunking, so the free tier has 200 times the headroom for the initial ingest and every subsequent re-embed. Under the current 12-week-year financial constraint, zero is the right price.
-3. **Ownership trajectory.** MongoDB acquired Voyage in February 2025. MongoDB is the database layer most commonly deployed alongside pgvector-style vector stacks in AI security products, and their GitHub Education benefit is one Emmanuel can activate as a peripheral resume-building step. Using Voyage positions the stack inside an ecosystem that is actively consolidating.
+3. **Ownership trajectory.** MongoDB acquired Voyage AI in February 2024. MongoDB is the database layer most commonly deployed alongside pgvector-style vector stacks in AI security products, and their GitHub Education benefit is one Emmanuel can activate as a peripheral resume-building step. Using Voyage positions the stack inside an ecosystem that is actively consolidating.
 4. **Dimension alignment with the air-gap fallback.** Voyage returns 1024-dimensional vectors by default. `BAAI/bge-large-en-v1.5` (Option B, the air-gap fallback) also returns 1024-dimensional vectors. Standardizing on 1024 dims across both the commercial and air-gapped deployment modes means swapping providers never requires a re-index or another schema migration. The 1024 choice is the dimension that makes operational portability free.
 
 The reference deployment processes synthetic alerts against a sanitized GRC corpus, so the data-residency disadvantage of a cloud embedding service does not apply to the current use case. Production customer deployments that cannot send alert content to external APIs are covered by the swap procedure below.
 
 **Schema migration applied alongside this decision:** `builds/squire/migrations/002_vector_1024.sql` drops the original `vector(1536)` column and replaces it with `vector(1024)`, recreating the HNSW index on the new column. This migration runs before bulk ingest since `ir_chunks` is empty at this point.
+
+<!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `coredirective-engine/prd`. The compose env block on svc-squire references this key; missing key causes runtime failure on first embed call. -->
 
 ## Consequences for Customer Deployments
 
@@ -86,11 +88,10 @@ For deployments that can tolerate cloud embeddings for non-sensitive corpus docu
 
 ## References
 
-- Squire scaffold: `/Users/et/cyber-squire-ops/builds/squire/` (gitignored locally; built artifact)
+- Squire scaffold: `builds/squire/` (gitignored; visible in local working tree)
 - Schema migration (original 1536 dims): `builds/squire/migrations/001_squire_tables.sql`
 - Schema migration (1024 dims, applied): `builds/squire/migrations/002_vector_1024.sql`
 - Provider abstraction: `builds/squire/src/squire/retrievers/grc_retriever.py` (created in 17-07)
 - Voyage AI embeddings documentation: docs.voyageai.com/docs/embeddings
 - BAAI bge-large-en-v1.5 model card: huggingface.co/BAAI/bge-large-en-v1.5
 - OpenAI text-embedding-3-large documentation (historical reference for Option A): platform.openai.com/docs/guides/embeddings
-- Voyage AI embeddings: docs.voyageai.com/docs/embeddings

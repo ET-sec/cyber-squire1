@@ -377,7 +377,7 @@ Threats where an attacker modifies data, code, or system state to alter intended
 
 **Trust Boundary:** External model registries → svc-llm (AI-002)
 **Affected Services:** svc-llm
-**OWASP LLM:** LLM03 (Supply Chain Vulnerabilities)
+**OWASP LLM:** LLM03 (Supply Chain)
 **MITRE ATLAS:** AML.T0018 (Backdoor ML Model)
 **Description:** An attacker compromises upstream model weights (e.g., through a poisoned Ollama model registry entry or a tampered Hugging Face checkpoint). The poisoned model produces subtly altered outputs - biased classifications, hidden trigger phrases, or backdoored behavior - that are consumed by downstream svc-automation workflows.
 
@@ -495,7 +495,7 @@ Threats where an attacker gains unauthorized access to confidential data.
 
 **Trust Boundary:** TB-5 (svc-ai-gateway → Anthropic API)
 **Affected Services:** svc-ai-gateway (AI-001)
-**OWASP LLM:** LLM06 (Sensitive Information Disclosure)
+**OWASP LLM:** LLM02 (Sensitive Information Disclosure)
 **Description:** User prompts processed by AI-001 may contain personally identifiable information (PII), operational secrets, or sensitive system context. This data is transmitted to the Anthropic API for inference, creating an external data flow that crosses the authorization boundary. Anthropic's data retention and processing practices determine the exposure window.
 
 | Attribute | Assessment |
@@ -513,9 +513,9 @@ Threats where an attacker gains unauthorized access to confidential data.
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | Log rotation (10MB x 3 files) limits exposure window (Implemented); Gitleaks scanning in CI prevents hardcoded secrets (Implemented); .gitignore for sensitive files (Implemented); external secrets manager as authoritative source (Implemented); log level restricted to info/warn in production (Implemented) |
+| **Current Controls** | Local log rotation (10MB x 3 files) bounds on-disk cache before shipping, not a prevention control (Implemented); Gitleaks scanning in CI prevents hardcoded secrets (Implemented); .gitignore for sensitive files (Implemented); external secrets manager as authoritative source (Implemented); log level restricted to info/warn in production (Implemented) |
 | **Control Status** | Partial - no runtime log scrubbing for secret patterns at svc-log-router |
-| **Residual Risk** | **High** - this is the highest residual Information Disclosure risk; aligns with R-10 in the Risk Assessment |
+| **Residual Risk** | **Moderate** (aligned with R-10 in RISK_ASSESSMENT.md as the authoritative source). This remains the highest residual Information Disclosure threat in the model, but the rating harmonizes with the parent risk register. |
 | **Recommended Mitigation** | Implement regex-based secret scrubbing rules in Fluentd configuration; migrate from environment variable secrets to mounted tmpfs files; add automated secret pattern scanning on log streams |
 
 ### I-03: System Prompt Extraction via AI Agent (AI-Specific)
@@ -653,7 +653,7 @@ Threats where an attacker gains capabilities beyond their authorized level.
 
 **Trust Boundary:** svc-ai-gateway → svc-automation → all integrated services
 **Affected Services:** svc-ai-gateway (AI-001), svc-automation
-**OWASP LLM:** LLM08 (Excessive Agency)
+**OWASP LLM:** LLM06 (Excessive Agency)
 **Description:** The AI agent, through its integration with svc-automation, has access to multiple downstream actions (database queries, Telegram messaging, GitHub operations, cloud infrastructure management). If the AI makes an incorrect decision or is manipulated via prompt injection, it could execute privileged actions beyond what the user intended - including infrastructure modifications, data deletion, or credential operations.
 
 | Attribute | Assessment |
@@ -714,15 +714,15 @@ The following threats are AI-specific extensions of traditional STRIDE categorie
 | AI Threat | Primary STRIDE Category | Secondary Category | AI System | Reference |
 |-----------|------------------------|-------------------|-----------|-----------|
 | Prompt Injection | **Tampering** (T-01) | Elevation of Privilege | AI-001 | OWASP LLM01, AI-T02 |
-| Model Weight Poisoning | **Tampering** (T-02) | Information Disclosure | AI-002 | OWASP LLM03, AI-T06, AML.T0018 |
-| PII Leakage in Prompts | **Information Disclosure** (I-01) | Repudiation | AI-001 | OWASP LLM06, AI-T07 |
-| System Prompt Extraction | **Information Disclosure** (I-03) | Spoofing | AI-001 | OWASP LLM01, AI-T10 |
-| Excessive Autonomous Agency | **Elevation of Privilege** (E-02) | Tampering | AI-001 | OWASP LLM08, AI-T09 |
-| AI Denial of Service | **Denial of Service** (D-02) | - | AI-001, AI-002 | OWASP LLM10, AI-T08 |
-| Hallucination-Driven Actions | **Tampering** | Repudiation | AI-001, AI-002 | OWASP LLM09, AI-T01 |
-| Training Data Extraction | **Information Disclosure** | - | AI-001 | OWASP LLM06, AI-T10 |
+| Model Weight Poisoning | **Tampering** (T-02) | Information Disclosure | AI-002 | OWASP LLM03 (Supply Chain), LLM04 (Data and Model Poisoning), AI-T06, AML.T0018 |
+| PII Leakage in Prompts | **Information Disclosure** (I-01) | Repudiation | AI-001 | OWASP LLM02 (Sensitive Information Disclosure), AI-T07 |
+| System Prompt Extraction | **Information Disclosure** (I-03) | Spoofing | AI-001 | OWASP LLM07 (System Prompt Leakage), AI-T10 |
+| Excessive Autonomous Agency | **Elevation of Privilege** (E-02) | Tampering | AI-001 | OWASP LLM06 (Excessive Agency), AI-T09 |
+| AI Denial of Service | **Denial of Service** (D-02) | - | AI-001, AI-002 | OWASP LLM10 (Unbounded Consumption), AI-T08 |
+| Hallucination-Driven Actions | **Tampering** | Repudiation | AI-001, AI-002 | OWASP LLM09 (Misinformation), AI-T01 |
+| Training Data Extraction | **Information Disclosure** | - | AI-001 | OWASP LLM02 (Sensitive Information Disclosure), AI-T10 |
 | AI-Enabled Lateral Movement | **Elevation of Privilege** (E-04) | - | AI-001, AI-002 | AML.T0040 |
-| Insecure Output Handling | **Tampering** | Elevation of Privilege | AI-001 | OWASP LLM02 |
+| Improper Output Handling | **Tampering** | Elevation of Privilege | AI-001 | OWASP LLM05 (Improper Output Handling) |
 
 ### 10.2 Control Coverage for AI STRIDE Threats
 
@@ -798,7 +798,10 @@ The following table maps every STRIDE threat identified in this analysis to the 
 
 ## 12.5 Phase 17 Scope Extension: Squire Subsystem STRIDE
 
-> **Key Point:** The Squire autonomous SOC analyst subsystem introduces 6 new components. STRIDE rows below map each Squire component to each STRIDE category with the Phase 17 control that resists the threat. `SQUIRE_THREAT_MODEL.md` (scheduled 17-14) will become the integrated authoritative Squire-scope threat view.
+> **Key Point:** The Squire autonomous SOC analyst subsystem introduces 6 new components. STRIDE rows below map each Squire component to each STRIDE category with the Phase 17 control that resists the threat. `SQUIRE_THREAT_MODEL.md` is the integrated authoritative Squire-scope threat view.
+
+<!-- TODO(et): "patched Langfuse v3" in svc-langfuse-web row is vague. Cite the specific Langfuse v3 minor and the CVE-XXXX-NNNN that motivated the patch. -->
+<!-- TODO(et): Section 12.5 Squire/NeMo/Langfuse components live as an addendum here but are not yet integrated into Section 2 Trust Zones / Authorization Boundary. Integrate or formally call out the scope split. -->
 
 ### 12.5.1 Squire components x STRIDE
 

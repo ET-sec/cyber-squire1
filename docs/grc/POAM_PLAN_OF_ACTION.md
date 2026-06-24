@@ -4,9 +4,9 @@ title: Plan of Action and Milestones
 doc_type: poam
 system_name: Organization Security Operations Platform
 classification: INTERNAL-USE-ONLY
-version: "1.1"
-last_updated: 2026-04-24
-next_review: 2026-05-24
+version: "1.3"
+last_updated: 2026-06-24
+next_review: 2026-07-24
 owner: System Owner (Platform Administrator)
 contact: admin@example-ops.com
 parent_ssp: SSP-OPS-001
@@ -22,9 +22,12 @@ related:
 **System Name:** Organization Security Operations Platform
 **System Owner:** System Owner (Platform Administrator)
 **Contact:** admin@example-ops.com
-**Document Date:** 2026-03-11 (v1.0), 2026-04-24 (v1.1 Phase 17 entries)
+**Document Date:** 2026-03-11 (v1.0), 2026-04-24 (v1.1 Phase 17 entries), 2026-06-24 (v1.3 audit refresh)
 **Classification:** Internal Use Only
-**Version:** 1.1
+**Version:** 1.3
+
+<!-- TODO(et): 2026-06-24 audit refresh propagated embedding-provider and code-path corrections plus past-due status flags. Many Q2 milestones (POAM-003, POAM-005, POAM-014, POAM-019, POAM-022, POAM-023, POAM-024, POAM-025, POAM-026, POAM-027, POAM-P17-08, POAM-P17-10) need owner verification before flipping to Closed; left as Open with a past-due flag rather than blind-closing. -->
+
 
 ---
 
@@ -47,7 +50,7 @@ Source Distribution (30 entries)
 └──────────────────────────┴──────────────────────────────────┘
 ```
 
-> **Counting note:** The original v1.0 dashboard claimed 27 entries, 19 CIS, 5 Risk, 2 Checkov, 1 Falco. The actual `POAM-*` row count in the register at v1.0 was 15 (register entries differ from underlying finding counts because multiple CIS findings roll into a single POAM row when mitigated by identical compensating controls). Phase 17 added 10 entries in POAM-P17-01 through P17-10 (cycle 1 red-team + deferred rails), then 4 more in P17-11 through P17-14 (threat model residuals from 17-14), then 1 more in P17-15 (cycle 2 red-team infra finding) for a v1.3 total of 30.
+> **Counting note:** The original v1.0 dashboard claimed 27 entries, 19 CIS, 5 Risk, 2 Checkov, 1 Falco. The actual `POAM-*` row count in the register at v1.0 was 15 (register entries differ from underlying finding counts because multiple CIS findings roll into a single POAM row when mitigated by identical compensating controls). Phase 17 added 10 entries in POAM-P17-01 through P17-10 (cycle 1 red-team and deferred rails), then 4 more in P17-11 through P17-14 (threat model residuals from 17-14), then 1 more in P17-15 (cycle 2 red-team infra finding) for a v1.3 total of 30.
 
 ---
 
@@ -91,7 +94,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | Docker daemon (all containers on `alpha-node`) |
 | **Compensating Controls** | `no-new-privileges` set on all containers except svc-detection (requires eBPF). `cap_drop: ALL` with explicit minimum `cap_add` on privileged containers. AppArmor profiles active on host. |
 | **Remediation Plan** | Evaluate user namespace remapping with per-container UID/GID mapping for svc-db (uid 999), svc-automation (uid 1000). Requires volume permission migration and testing for svc-detection compatibility. |
-| **Milestone** | 2026-06-09 -- Re-evaluate feasibility after Compose v2.28+ supports per-container userns |
+| **Milestone** | 2026-06-09, Re-evaluate feasibility after Compose v2.28+ supports per-container userns |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -108,7 +111,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-monitor, svc-db, svc-llm, svc-secrets, svc-transcription |
 | **Compensating Controls** | `no-new-privileges: true` on all affected containers. Memory, CPU, and PIDs limits enforced via Compose resource constraints. Falco monitors for privilege escalation attempts via eBPF syscall tracing. |
 | **Remediation Plan** | Monitor upstream image releases for non-root variants. Build custom Dockerfiles with `USER` directive where feasible (svc-llm and svc-transcription are candidates). svc-db and svc-secrets require root by design. |
-| **Milestone** | 2026-06-09 -- Reassess upstream image status; build non-root variants for svc-llm and svc-transcription if available |
+| **Milestone** | 2026-06-09, Reassess upstream image status; build non-root variants for svc-llm and svc-transcription if available |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -125,8 +128,8 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | Docker daemon, all image pulls on `alpha-node` |
 | **Compensating Controls** | CI/CD pipeline runs container signature verification (soft-fail) for images that support it. Container vulnerability scanner scans all images for known vulnerabilities on every push and PR. SBOMs generated for 6 key images (svc-db, svc-automation, svc-secrets, svc-monitor, svc-tunnel, repository filesystem). Image digest manifest generated per deployment. |
 | **Remediation Plan** | Enable Docker Content Trust in CI/CD build environment. Maintain an allowlist of unsigned upstream images (svc-detection, svc-detection-router, svc-ai-gateway, svc-transcription) with documented justification. |
-| **Milestone** | 2026-06-09 -- Enable DCT in CI with unsigned image allowlist |
-| **Status** | Open |
+| **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Enable DCT in CI with unsigned image allowlist |
+| **Status** | Open (Past Due) <!-- TODO(et): verify whether DCT shipped in CI; if so, mark Closed with commit ref. --> |
 | **Responsible Party** | Platform Administrator |
 
 ---
@@ -142,7 +145,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-detection (SYS_ADMIN, SYS_PTRACE, SYS_RESOURCE), Vault (IPC_LOCK) |
 | **Compensating Controls** | svc-detection uses `cap_drop: ALL` then adds only required capabilities (SYS_ADMIN, SYS_PTRACE, SYS_RESOURCE). Vault adds only IPC_LOCK to protect unsealed secrets from memory swap. All other containers have no additional capabilities. |
 | **Remediation Plan** | No remediation possible without disabling core security functionality. svc-detection requires SYS_ADMIN for eBPF. Vault requires IPC_LOCK per vendor security guidance. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -159,8 +162,8 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-detection, svc-ai-gateway |
 | **Compensating Controls** | svc-detection uses `cap_drop: ALL` with explicit minimum `cap_add`. svc-ai-gateway memory usage monitored by Datadog (typically under 200MB). All other 12 of 19 Compose-managed containers enforce `no-new-privileges: true`. |
 | **Remediation Plan** | Migrate svc-ai-gateway to Docker Compose management with `no-new-privileges: true` and resource limits. svc-detection exemption is permanent (eBPF requires privilege escalation path). |
-| **Milestone** | 2026-06-09 -- Migrate svc-ai-gateway to Compose with hardening |
-| **Status** | Open |
+| **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Migrate svc-ai-gateway to Compose with hardening |
+| **Status** | Open (Past Due) <!-- TODO(et): verify svc-ai-gateway migration status. --> |
 | **Responsible Party** | Platform Administrator |
 
 ---
@@ -176,11 +179,11 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-detection, svc-monitor |
 | **Compensating Controls** | Socket mounted read-only (`:ro`) on both containers. `no-new-privileges` set on svc-monitor. svc-detection uses `cap_drop: ALL` with minimum capabilities. Both are trusted security/monitoring agents, not application workloads. svc-detection monitors Docker API access patterns. |
 | **Remediation Plan** | No remediation possible without disabling monitoring. svc-detection requires socket access for container metadata correlation with syscall events. svc-monitor requires socket access for container autodiscovery and metrics collection. Both are core security functions. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
-#### Low Findings -- Host Auditing (5 findings)
+#### Low Findings, Host Auditing (5 findings)
 
 | Field | Value |
 |-------|-------|
@@ -191,13 +194,13 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Risk Level** | Low |
 | **NIST 800-53 Control** | AU-2 (Event Logging), AU-12 (Audit Record Generation), SC-4 (Information in Shared System Resources) |
 | **Affected Components** | `alpha-node` host OS |
-| **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring of all processes including the Docker daemon -- covering the same detection surface as `auditd` with lower overhead on the 8GB memory-constrained host. svc-detection events route to Datadog via svc-detection-router. Disk usage monitored with alerts at 80% threshold. Log rotation configured on all containers (10MB x 3 files). |
-| **Remediation Plan** | Evaluate adding targeted `auditd` rules for Docker paths if memory headroom increases (upgrade to 16GB VPS). Separate partition requires data migration and downtime -- not justified at current utilization (<30%). |
-| **Milestone** | 2026-06-09 -- Re-evaluate if host is upgraded to 16GB |
+| **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring of all processes including the Docker daemon, covering the same detection surface as `auditd` with lower overhead on the 8GB memory-constrained host. svc-detection events route to Datadog via svc-detection-router. Disk usage monitored with alerts at 80% threshold. Log rotation configured on all containers (10MB x 3 files). |
+| **Remediation Plan** | Evaluate adding targeted `auditd` rules for Docker paths if memory headroom increases (upgrade to 16GB VPS). Separate partition requires data migration and downtime, not justified at current utilization (<30%). |
+| **Milestone** | 2026-06-09, Re-evaluate if host is upgraded to 16GB |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
-#### Low Findings -- Daemon Configuration (6 findings)
+#### Low Findings, Daemon Configuration (6 findings)
 
 | Field | Value |
 |-------|-------|
@@ -210,11 +213,11 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | Docker daemon on `alpha-node` |
 | **Compensating Controls** | (2.1) All services use a dedicated bridge network, not `docker0`; svc-detection monitors cross-container traffic. (2.11) Single-admin host with SSH key-only access via zero-trust tunnel; svc-detection detects unauthorized `docker exec`. (2.12) Datadog agent collects all container logs centrally (15-day retention). (2.14) `restart: unless-stopped` policy on all containers; Compose manages lifecycle. (2.15) Network traffic monitored; zero-trust tunnel provides primary ingress. (2.18) `no-new-privileges` applied per-container on 12 of 13 Compose services. |
 | **Remediation Plan** | These daemon-level settings either conflict with operational requirements (ICC needed for service mesh, live-restore conflicts with Compose orchestration) or are effectively mitigated by per-container controls. No action planned. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
-#### Low Findings -- Container Images (1 finding)
+#### Low Findings, Container Images (1 finding)
 
 | Field | Value |
 |-------|-------|
@@ -227,11 +230,11 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | All upstream images (svc-tunnel, svc-automation, svc-llm, svc-db, svc-detection, svc-detection-router, svc-transcription, svc-secrets, svc-identity) |
 | **Compensating Controls** | Runtime healthchecks configured in `docker-compose.yaml` for all services with appropriate intervals, timeouts, and retry thresholds. Datadog tracks container health status and alerts on unhealthy transitions. |
 | **Remediation Plan** | No action. Runtime healthchecks are functionally equivalent and more flexible than Dockerfile `HEALTHCHECK` directives. Building custom images solely to add a `HEALTHCHECK` line creates unnecessary maintenance burden. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
-#### Low Findings -- Container Runtime (12 findings)
+#### Low Findings, Container Runtime (12 findings)
 
 | Field | Value |
 |-------|-------|
@@ -244,7 +247,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-ai-gateway (standalone) |
 | **Compensating Controls** | Host OS (Ubuntu 24.04) uses AppArmor, not SELinux. CIS check 5.1 (AppArmor) passes. SELinux and AppArmor are mutually exclusive Linux Security Modules. |
 | **Remediation Plan** | No action. AppArmor is the appropriate mandatory access control for this platform. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -261,7 +264,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-monitor |
 | **Compensating Controls** | `/proc` mounted read-only. `no-new-privileges` set. svc-detection monitors all `/proc` access patterns. |
 | **Remediation Plan** | No action. Process agent requires `/proc` for process-level metrics. This is the vendor-recommended deployment configuration. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -278,7 +281,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-monitor |
 | **Compensating Controls** | No SSH ports exposed outside the container. Container runs on isolated bridge network. svc-detection detects unauthorized SSH connections. |
 | **Remediation Plan** | No action. SSHD is bundled in the upstream vendor image for remote diagnostics; it is not exposed. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -295,7 +298,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-tunnel |
 | **Compensating Controls** | Read-only root filesystem. `no-new-privileges` set. Resource limits applied. Falco monitors all network connections. Tunnel only routes pre-configured hostnames to specific localhost ports. |
 | **Remediation Plan** | No action. Zero-trust tunnel requires host networking to forward traffic to localhost-bound services (svc-automation on , SSH on :22). |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -309,11 +312,11 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Description** | svc-ai-gateway (standalone) lacks memory limits, CPU priority settings, and PIDs cgroup limit. CIS 5.11 also flags all Compose containers for using `NanoCpus` (hard CPU limits) instead of `CpuShares` (relative priority). |
 | **Risk Level** | Low |
 | **NIST 800-53 Control** | SC-6 (Resource Availability), SC-24 (Fail in Known State) |
-| **Affected Components** | svc-ai-gateway (5.10, 5.28); all containers (5.11 -- CpuShares) |
+| **Affected Components** | svc-ai-gateway (5.10, 5.28); all containers (5.11, CpuShares) |
 | **Compensating Controls** | All Compose-managed containers have hard CPU limits (`deploy.resources.limits.cpus`), memory limits, and PIDs limits. Host memory monitored with alerts at 85%. svc-ai-gateway typically uses <200MB. |
-| **Remediation Plan** | Migrate svc-ai-gateway to Docker Compose with full resource constraints (memory, CPU, PIDs limits). CpuShares finding for Compose containers is accepted -- `NanoCpus` is a stricter control than relative priority weighting. |
-| **Milestone** | 2026-06-09 -- Migrate svc-ai-gateway to Compose (same as POAM-005) |
-| **Status** | Open |
+| **Remediation Plan** | Migrate svc-ai-gateway to Docker Compose with full resource constraints (memory, CPU, PIDs limits). CpuShares finding for Compose containers is accepted, `NanoCpus` is a stricter control than relative priority weighting. |
+| **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Migrate svc-ai-gateway to Compose (same as POAM-005) |
+| **Status** | Open (Past Due) <!-- TODO(et): verify svc-ai-gateway resource constraints status. --> |
 | **Responsible Party** | Platform Administrator |
 
 ---
@@ -329,7 +332,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-detection, svc-automation, svc-identity, svc-monitor, svc-db, svc-llm, svc-secrets, svc-transcription, svc-ai-gateway |
 | **Compensating Controls** | Volume mounts scoped to specific paths. Falco monitors file writes outside designated directories. `no-new-privileges` prevents rootfs modification escalation. |
 | **Remediation Plan** | Evaluate adding `read_only: true` with targeted `tmpfs` mounts for containers that only need temporary write access (svc-identity, svc-automation). svc-db, svc-secrets, svc-llm, and svc-transcription require writable rootfs for WAL, runtime state, and model loading. |
-| **Milestone** | 2026-09-08 -- Test read-only rootfs on svc-identity and svc-automation |
+| **Milestone** | 2026-09-08, Test read-only rootfs on svc-identity and svc-automation |
 | **Status** | Open |
 | **Responsible Party** | Platform Administrator |
 
@@ -346,7 +349,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-automation, svc-identity, svc-llm, svc-transcription, svc-ai-gateway |
 | **Compensating Controls** | DigitalOcean Cloud Firewall restricts inbound traffic at the network layer. Zero-trust tunnel is the only public ingress path (no direct port exposure to internet). Host-level UFW rules provide defense-in-depth. |
 | **Remediation Plan** | Bind service ports to `127.0.0.1` for containers only accessed via localhost or the zero-trust tunnel. Evaluate impact on container-to-container communication over the bridge network. |
-| **Milestone** | 2026-09-08 -- Test interface binding on svc-automation and svc-identity |
+| **Milestone** | 2026-09-08, Test interface binding on svc-automation and svc-identity |
 | **Status** | Open |
 | **Responsible Party** | Platform Administrator |
 
@@ -363,7 +366,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | All Compose-managed containers, svc-ai-gateway |
 | **Compensating Controls** | PIDs limits set on all Compose containers (64-512), preventing fork bombs. Datadog tracks container restart counts with alerts on excessive restarts (>3 in 5 minutes). |
 | **Remediation Plan** | No action. `unless-stopped` provides better availability on a single-node deployment. CIS recommendation of `on-failure:5` is designed for multi-node orchestrators where failed containers should be rescheduled, not restarted indefinitely. PIDs limits prevent the fork-bomb scenario that limited retries address. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -380,7 +383,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-monitor |
 | **Compensating Controls** | `no-new-privileges` set. Memory and PIDs limits applied. Falco monitors all process operations. Agent has read-only access to host processes (monitoring only). |
 | **Remediation Plan** | No action. Process agent requires `pid: host` for process-level metrics collection. This is the vendor-required deployment configuration. |
-| **Milestone** | Accepted Risk -- permanent |
+| **Milestone** | Accepted Risk, permanent |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -397,8 +400,8 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | svc-llm, svc-event-shipper |
 | **Compensating Controls** | Datadog monitors container status and restart counts for both services. Upstream workflows that consume svc-llm have built-in timeout and retry logic. svc-event-shipper health is inferred from log flow continuity. |
 | **Remediation Plan** | Add a basic healthcheck using the svc-llm API endpoint once endpoint reliability during model loading is confirmed. Add a healthcheck to svc-event-shipper based on log output or process liveness. |
-| **Milestone** | 2026-06-09 -- Add healthchecks to svc-llm and svc-event-shipper |
-| **Status** | Open |
+| **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Add healthchecks to svc-llm and svc-event-shipper |
+| **Status** | Open (Past Due) <!-- TODO(et): verify svc-llm and svc-event-shipper healthcheck status. --> |
 | **Responsible Party** | Platform Administrator |
 
 ### Source 2: Checkov / Checkov Static Analysis (3 Findings)
@@ -412,9 +415,9 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Risk Level** | Low |
 | **NIST 800-53 Control** | CM-2 (Baseline Configuration), SA-10 (Developer Configuration Management) |
 | **Affected Components** | Terraform IaC (`terraform/cloud-infrastructure/`) |
-| **Compensating Controls** | Infrastructure does not use external Terraform modules -- all resources are defined inline. Checks are skipped in `.checkov.yaml` with documented justification. IaC changes go through PR pipeline (format, validate, TFLint, Checkov, OPA/Conftest, plan review) before merge. |
+| **Compensating Controls** | Infrastructure does not use external Terraform modules, all resources are defined inline. Checks are skipped in `.checkov.yaml` with documented justification. IaC changes go through PR pipeline (format, validate, TFLint, Checkov, OPA/Conftest, plan review) before merge. |
 | **Remediation Plan** | No action. Findings are not applicable to current IaC architecture. If external modules are adopted in the future, pinning will be enforced. |
-| **Milestone** | Accepted Risk -- permanent (not applicable) |
+| **Milestone** | Accepted Risk, permanent (not applicable) |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -429,9 +432,9 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Risk Level** | Low |
 | **NIST 800-53 Control** | SC-7 (Boundary Protection), AC-17 (Remote Access) |
 | **Affected Components** | DigitalOcean Cloud Firewall, `alpha-node` VPS |
-| **Compensating Controls** | SSH access is gated behind a zero-trust tunnel with ed25519 key authentication. Direct SSH from the public internet is blocked by the tunnel architecture -- the firewall rule exists for tunnel-to-host forwarding. svc-gateway (Teleport) provides session recording and JIT access control for all SSH sessions. |
+| **Compensating Controls** | SSH access is gated behind a zero-trust tunnel with ed25519 key authentication. Direct SSH from the public internet is blocked by the tunnel architecture, the firewall rule exists for tunnel-to-host forwarding. svc-gateway (Teleport) provides session recording and JIT access control for all SSH sessions. |
 | **Remediation Plan** | No action. The firewall rule is intentionally broad because the zero-trust tunnel handles authentication and authorization. Restricting to specific IPs would break the tunnel architecture. |
-| **Milestone** | Accepted Risk -- permanent (architectural requirement) |
+| **Milestone** | Accepted Risk, permanent (architectural requirement) |
 | **Status** | Accepted Risk |
 | **Responsible Party** | Platform Administrator |
 
@@ -448,8 +451,8 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Affected Components** | All containers on `alpha-node` |
 | **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring. 8 custom rules monitor sensitive file access, process execution, network connections, and capability usage per container. Events route to Datadog via svc-detection-router for alerting and correlation. |
 | **Remediation Plan** | Continue monitoring. Tune rules quarterly based on false positive analysis. Expand rule coverage as new services are added. |
-| **Milestone** | 2026-06-09 -- First quarterly rule review |
-| **Status** | Closed (baseline established, monitoring active) |
+| **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) First quarterly rule review |
+| **Status** | Closed (baseline established, monitoring active) <!-- TODO(et): confirm quarterly rule review was executed on or near 2026-06-09; if not, reopen and reschedule. --> |
 | **Responsible Party** | Platform Administrator |
 
 ### Source 4: Risk Assessment - Mitigate Treatment Items (5 Findings)
@@ -467,8 +470,8 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Affected Components** | All containers with secrets in environment variables (svc-automation, svc-db, svc-identity, svc-secrets) |
 | **Current Controls** | External secrets manager (never hardcoded); Gitleaks in CI; log rotation (10MB x 3); .gitignore for sensitive files; env var validation (existence checks only) |
 | **Remediation Plan** | 1. Transition from env-var secrets to mounted tmpfs files. 2. Deploy log scrubbing rules in Fluentd to redact patterns matching API keys and tokens. 3. Add automated secret scanning to container runtime logs. 4. Establish credential rotation runbook with 24-hour rotation SLA after suspected exposure. |
-| **Milestone** | 2026-05-11 - Implement tmpfs-mounted secrets for svc-automation and svc-db |
-| **Status** | Open |
+| **Milestone** | 2026-05-11 (PAST DUE as of 2026-06-24) Implement tmpfs-mounted secrets for svc-automation and svc-db |
+| **Status** | Open (Past Due) <!-- TODO(et): verify whether tmpfs-mounted secrets shipped for svc-automation and svc-db. --> |
 | **Responsible Party** | System Owner |
 
 ---
@@ -484,8 +487,8 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Affected Components** | svc-automation, svc-tunnel |
 | **Current Controls** | Webhook authentication tokens; input validation in workflow logic; svc-detection monitors for shell spawns; no-new-privileges on container |
 | **Remediation Plan** | 1. Deploy webhook payload schema validation at the tunnel layer. 2. Add WAF rules at Cloudflare for webhook endpoints. 3. Restrict svc-automation network egress to required destinations only. 4. Implement webhook request signing with HMAC verification. |
-| **Milestone** | 2026-06-11 - Deploy webhook schema validation and egress allowlisting |
-| **Status** | Open |
+| **Milestone** | 2026-06-11 (PAST DUE as of 2026-06-24) Deploy webhook schema validation and egress allowlisting |
+| **Status** | Open (Past Due) <!-- TODO(et): verify webhook schema validation and egress allowlist status. --> |
 | **Responsible Party** | System Owner |
 
 ---
@@ -501,8 +504,8 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Affected Components** | svc-db (db-data-volume), svc-secrets (secrets engine data), configuration files |
 | **Current Controls** | PostgreSQL backup scripts (local backup volume); secrets stored in external manager; IaC for config rebuild; no automated off-site replication |
 | **Remediation Plan** | 1. Implement automated daily database backups to encrypted object storage (off-VPS). 2. Add backup integrity verification (restore testing) on monthly schedule. 3. Document RPO/RTO targets. 4. Implement volume snapshot scheduling at DigitalOcean level. |
-| **Milestone** | 2026-05-11 - Automated off-site backup with integrity verification |
-| **Status** | Open |
+| **Milestone** | 2026-05-11 (PAST DUE as of 2026-06-24) Automated off-site backup with integrity verification |
+| **Status** | Open (Past Due) <!-- TODO(et): verify automated off-site backup status. --> |
 | **Responsible Party** | System Owner |
 
 ---
@@ -518,8 +521,8 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Affected Components** | All services on alpha-node |
 | **Current Controls** | Datadog alerts on host downtime; documented recovery procedures; IaC enables rapid redeployment |
 | **Remediation Plan** | 1. Document warm-standby deployment procedure for alternate region using IaC. 2. Pre-stage encrypted database backups in a second region. 3. Define and test RTO targets (current estimated RTO: 2-4 hours). |
-| **Milestone** | 2026-06-11 - Documented warm-standby procedure with tested RTO |
-| **Status** | Open |
+| **Milestone** | 2026-06-11 (PAST DUE as of 2026-06-24) Documented warm-standby procedure with tested RTO |
+| **Status** | Open (Past Due) <!-- TODO(et): verify warm-standby documentation and RTO test status. --> |
 | **Responsible Party** | System Owner |
 
 ---
@@ -535,8 +538,8 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Affected Components** | All POA&M items, compliance posture |
 | **Current Controls** | CIS Risk Register with documented compensating controls; 90-day review cycle; POA&M tracking |
 | **Remediation Plan** | 1. Automate CIS Docker Bench scans on weekly schedule with delta reporting. 2. Prioritize top 10 WARN findings by risk score. 3. Integrate POA&M tracking into automation platform with due-date alerts. 4. Conduct focused compensating control review every 90 days. |
-| **Milestone** | 2026-06-11 - Automated weekly CIS scans with delta reporting |
-| **Status** | Open |
+| **Milestone** | 2026-06-11 (PAST DUE as of 2026-06-24) Automated weekly CIS scans with delta reporting |
+| **Status** | Open (Past Due) <!-- TODO(et): verify automated weekly CIS scan status. --> |
 | **Responsible Party** | System Owner |
 
 ---
@@ -556,9 +559,9 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | POAM-P17-05 | Benign framing severity flip attempt; graph classifier held. Regression test added. | MED | System Owner | 2026-04-23 | CLOSED | `REDTEAM_RESULTS.md` Finding 5 (RESISTED) |
 | POAM-P17-06 | Drill framing severity flip attempt; graph classifier held. Regression test added. | MED | System Owner | 2026-04-23 | CLOSED | `REDTEAM_RESULTS.md` Finding 6 (RESISTED) |
 | POAM-P17-07 | Lakera Guard rail deferred. Blocked on free-tier re-evaluation. Current rail coverage is NeMo plus pre-graph scanner. | LOW | Operator | 2026-Q3 | OPEN | `GUARDRAILS_CONFIGURATION.md` deferred rails section |
-| POAM-P17-08 | PolicyAI self-check path held in degraded mode pending the next provider-access rotation cycle. Critique node still gates draft and enforces severity consistency. | LOW | Operator | 2026-Q2 | OPEN | `SQUIRE_MODEL_CARD.md` limitations section |
+| POAM-P17-08 | PolicyAI self-check path held in degraded mode pending the next provider-access rotation cycle. Critique node still gates draft and enforces severity consistency. | LOW | Operator | 2026-Q2 (closes 2026-06-30, less than a week remaining as of 2026-06-24) | OPEN <!-- TODO(et): confirm PolicyAI rotation status before Q2 closes. --> | `SQUIRE_MODEL_CARD.md` limitations section |
 | POAM-P17-09 | OpenClaw agent LLM auth not yet configured. Deferred to 17-07 follow-up. Squire currently calls Anthropic direct, not via OpenClaw gateway. | LOW | Operator | 2026-Q3 | OPEN | Plan 17-07 |
-| POAM-P17-10 | AI supply chain register TBDs: Langfuse v3 exact commit pinning, NeMo Guardrails upgrade cadence, pgvector extension provenance. | LOW | System Owner | 2026-06-22 | OPEN | `AI_SUPPLY_CHAIN_REGISTER.md` |
+| POAM-P17-10 | AI supply chain register TBDs: Langfuse v3 exact commit pinning, NeMo Guardrails upgrade cadence, pgvector extension provenance. | LOW | System Owner | 2026-06-22 (PAST DUE as of 2026-06-24) | OPEN (Past Due) <!-- TODO(et): close supply-chain TBDs or extend milestone. --> | `AI_SUPPLY_CHAIN_REGISTER.md` |
 | POAM-P17-11 | Novel injection patterns (YAML-framed role-hijack, structured key-value directives) can bypass NeMo presidio input rail because presidio is PII-centric, not behavioral. Critique consistency override and actions.yml rewrite provide defense-in-depth. Expand rail pre-check for directive patterns; add regression cases in 17-11 cycle 2. | MED | System Owner | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.2 AML.T0051 |
 | POAM-P17-12 | International phone formats and non-Luhn-checked CC patterns can false-negative against US-only pre-graph regex. NeMo output rail at 0.85 threshold is the last-chance net. Expand pre-graph scanner to E.164 international phone and secondary structural CC checks. | MED | System Owner | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.5 AML.T0041 |
 | POAM-P17-13 | Tavily enrichment results are untrusted text; a poisoned index entry could inject directives at the enrichment merge point. Critique consistency check is the sole behavioral override. Red-team cycle 2 will execute attack tree leaf A.3.a to quantify. | MED | Security Eng | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.2, `ATTACK_TREE_AI_PIPELINE.md` A.3.a |
@@ -599,7 +602,7 @@ The following findings have been formally accepted with documented business just
 |----------|------------|------------|----------------------|------------------------------|
 | POAM-001 | CIS 2.8 | Medium | User namespace remapping breaks volume permissions for svc-db (uid 999) and svc-detection (requires real root for eBPF). Enabling requires per-container UID mapping that is not yet mature in Compose. | `no-new-privileges`, `cap_drop: ALL`, AppArmor profiles |
 | POAM-002 | CIS 4.1 | Medium | Five containers use official upstream images that require root (svc-db for file ownership, svc-secrets for IPC_LOCK, svc-monitor for host monitoring, svc-llm/svc-transcription for model management). Cannot override without custom Dockerfiles. | `no-new-privileges`, resource limits (CPU/memory/PIDs), runtime detection monitoring |
-| POAM-004 | CIS 5.3 | Medium | svc-detection requires SYS_ADMIN/SYS_PTRACE/SYS_RESOURCE for eBPF kernel tracing -- this IS the security monitoring tool. Vault requires IPC_LOCK to protect unsealed secrets from memory swap. | svc-detection: `cap_drop: ALL` + explicit minimum `cap_add`; svc-secrets: `cap_add: IPC_LOCK` only. AppArmor profiles active. |
+| POAM-004 | CIS 5.3 | Medium | svc-detection requires SYS_ADMIN/SYS_PTRACE/SYS_RESOURCE for eBPF kernel tracing, this IS the security monitoring tool. Vault requires IPC_LOCK to protect unsealed secrets from memory swap. | svc-detection: `cap_drop: ALL` + explicit minimum `cap_add`; svc-secrets: `cap_add: IPC_LOCK` only. AppArmor profiles active. |
 | POAM-006 | CIS 5.31 | Medium | Docker socket access required by svc-detection (container metadata correlation) and svc-monitor (container autodiscovery). Both are trusted security/monitoring agents. | Read-only socket mount (`:ro`), `no-new-privileges` on svc-monitor, `cap_drop: ALL` on svc-detection |
 | POAM-007 | CIS 1.1, 1.5-1.9 | Low | No `auditd` on memory-constrained 8GB host. No separate Docker partition on single-disk DigitalOcean VPS. | eBPF runtime detection covers same surface as `auditd`. Disk monitoring at 80% threshold. |
 | POAM-008 | CIS 2.1, 2.11, 2.12, 2.14, 2.15, 2.18 | Low | Daemon-level settings conflict with operational requirements or are effectively superseded by per-container controls. | Dedicated bridge network, SSH key + tunnel access, centralized log collection, per-container `no-new-privileges` |
@@ -611,7 +614,7 @@ The following findings have been formally accepted with documented business just
 | POAM-017 | CIS 5.14 | Low | `unless-stopped` provides better single-node availability than `on-failure:5`. PIDs limits prevent fork bombs. | PIDs limits (64-512), restart count monitoring with alerting |
 | POAM-018 | CIS 5.15 | Low | svc-monitor requires `pid: host` for process-level metrics (vendor requirement). | `no-new-privileges`, resource limits, runtime detection, read-only access |
 | POAM-020 | CKV_TF_1, CKV_TF_2 | Low | No external Terraform modules in use. Checks not applicable. | PR pipeline with 7-step validation (format, init, validate, TFLint, Checkov, plan, OPA) |
-| POAM-021 | CKV-CLOUD-004 | Low | SSH `0.0.0.0/0` is intentional -- zero-trust tunnel handles auth. Restricting IPs breaks tunnel architecture. | Zero-trust tunnel, ed25519 key auth, session recording via svc-gateway, JIT access control |
+| POAM-021 | CKV-CLOUD-004 | Low | SSH `0.0.0.0/0` is intentional, zero-trust tunnel handles auth. Restricting IPs breaks tunnel architecture. | Zero-trust tunnel, ed25519 key auth, session recording via svc-gateway, JIT access control |
 
 **Total accepted risks:** 15 (4 Medium, 11 Low)
 **Total with active remediation plans:** 11 (POAM-003, POAM-005, POAM-014, POAM-015, POAM-016, POAM-019, POAM-023, POAM-024, POAM-025, POAM-026, POAM-027)
@@ -623,7 +626,7 @@ The following findings have been formally accepted with documented business just
 ```
 2026-03-11 Today (POA&M created, baseline established)
    |
-   | Q2 2026 -- Phase 1 Remediation
+   | Q2 2026, Phase 1 Remediation
    | =========================================
    |
    | POAM-003 [============================] Enable Docker Content Trust in CI
@@ -643,7 +646,7 @@ The following findings have been formally accepted with documented business just
    |
 2026-06-09 90-Day Review #1 (all findings re-assessed)
    |
-   | Q3 2026 -- Phase 2 Remediation
+   | Q3 2026, Phase 2 Remediation
    | =========================================
    |
    | POAM-015 [============================] Test read-only rootfs on
@@ -718,10 +721,10 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 | AU-6 | Audit Record Review | POAM-008 | Compensating controls in place |
 | AU-12 | Audit Record Generation | POAM-007 | Compensating controls in place |
 | CM-2 | Baseline Configuration | POAM-020 | Not applicable |
-| CM-5 | Access Restrictions for Change | POAM-015 | Open -- remediation Q3 2026 |
+| CM-5 | Access Restrictions for Change | POAM-015 | Open, remediation Q3 2026 |
 | CM-6 | Configuration Settings | POAM-001, POAM-002, POAM-005, POAM-008 | Compensating controls in place |
 | CM-7 | Least Functionality | POAM-006, POAM-008, POAM-011, POAM-012, POAM-018 | Compensating controls in place |
-| CM-14 | Signed Components | POAM-003 | Open -- remediation Q2 2026 |
+| CM-14 | Signed Components | POAM-003 | Open, remediation Q2 2026 |
 | IR-4 | Incident Handling | POAM-022 | Monitoring active |
 | SA-10 | Developer Configuration Management | POAM-020 | Not applicable |
 | SC-4 | Information in Shared Resources | POAM-007 | Compensating controls in place |
@@ -730,7 +733,7 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 | SC-39 | Process Isolation | POAM-001, POAM-004, POAM-013, POAM-018 | Compensating controls in place |
 | SI-4 | System Monitoring | POAM-022 | Monitoring active |
 | SI-6 | Security Function Verification | POAM-009, POAM-019 | Accepted (POAM-009) / Open (POAM-019) |
-| SI-7 | Software/Firmware Integrity | POAM-003, POAM-015 | Open -- remediation planned |
+| SI-7 | Software/Firmware Integrity | POAM-003, POAM-015 | Open, remediation planned |
 | SC-24 | Fail in Known State | POAM-014, POAM-017 | Compensating controls in place |
 
 ---
@@ -741,10 +744,10 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 |-------|-------|
 | **Document Title** | Plan of Action and Milestones (POA&M) |
 | **System** | Organization Security Operations Platform |
-| **Version** | 1.0 |
+| **Version** | 1.3 |
 | **Created** | 2026-03-11 |
-| **Last Updated** | 2026-03-11 |
-| **Next Review** | 2026-06-09 |
+| **Last Updated** | 2026-06-24 |
+| **Next Review** | 2026-07-24 |
 | **Author** | Platform Administrator |
 | **Approver** | System Owner |
 | **Classification** | Internal Use Only |
@@ -754,7 +757,9 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-03-11 | Platform Administrator | Initial POA&M creation. 32 findings documented from 3 sources. 15 formally accepted, 6 open for remediation, 1 closed (baseline). |
-| 1.1 | 2026-03-11 | Platform Administrator | Added 5 findings from Risk Assessment mitigate treatments (POAM-023 through POAM-027). Fixed SI-17→SC-24 (invalid NIST control). Total: 37 findings from 4 sources. |
+| 1.1 | 2026-03-11 | Platform Administrator | Added 5 findings from Risk Assessment mitigate treatments (POAM-023 through POAM-027). Fixed SI-17 to SC-24 (invalid NIST control). Total: 37 findings from 4 sources. |
+| 1.2 | 2026-04-24 | Platform Administrator | Added Phase 17 Squire cluster: POAM-P17-01 through P17-15. Cycle 1 red-team findings closed; cycle 2 cluster opened (rails, threat-model residuals, rate-limit infra). |
+| 1.3 | 2026-06-24 | Platform Administrator | Audit refresh: embedding provider and code path corrections propagated from REDTEAM_RESULTS and FRAMEWORK_CROSSWALK_SQUIRE. Past-due flags applied to all milestones that have crossed their target date without an owner status update. MCP01-001 and MCP08-001 in POAM_MCP_2025.md confirmed Closed 2026-05-31. |
 
 ### Sub-POAMs (control-family-specific)
 
