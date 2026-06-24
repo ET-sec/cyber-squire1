@@ -1,0 +1,34 @@
+# CODEOWNERS
+# GitHub uses this to auto-request review on PRs.
+# Path patterns work like .gitignore. Order matters: last match wins.
+
+# Default owner for everything
+*                                @ET-sec
+
+# Security-sensitive areas: explicit ownership for audit trail
+SECURITY.md                      @ET-sec
+.github/                         @ET-sec
+.github/workflows/               @ET-sec
+.githooks/                       @ET-sec
+SANITIZATION_KEY.md              @ET-sec
+docs/context/                    @ET-sec
+
+# GRC library: every change is reviewable
+docs/grc/                        @ET-sec
+
+# Agent code and threat models
+Agent_Squire/                    @ET-sec
+docs/grc/SQUIRE_*.md             @ET-sec
+docs/grc/AI_*.md                 @ET-sec
+docs/grc/THREAT_MODEL_*.md       @ET-sec
+
+# Infrastructure as code
+terraform/                       @ET-sec
+COREDIRECTIVE_ENGINE/            @ET-sec
+
+# Detection rules
+detections/                      @ET-sec
+
+# Build scripts and content tools
+builds/                          @ET-sec
+scripts/                         @ET-sec

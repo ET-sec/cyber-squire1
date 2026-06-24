@@ -250,3 +250,9 @@ docs/APPSEC_REPO_ADDITIONS.md
 docs/context/infrastructure.md
 docs/runbook/portfolio-resume-change-management.md
 docs/runbook/image-rollback.md
+
+# GTA Ground Truth Audit skill artifacts
+REPO_MAP.yaml
+.gta/
+*.bak
+docs/context/

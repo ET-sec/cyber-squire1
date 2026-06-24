@@ -1,0 +1,37 @@
+name: Close stale PRs and branches
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Mondays at 9 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-pr-stale: 14
+          days-before-pr-close: 7
+          stale-pr-message: |
+            This PR has had no activity for 14 days. It will be closed in 7 days if no further activity occurs.
+            If still relevant, push a commit or comment to keep it open.
+          close-pr-message: |
+            Closed due to inactivity. Reopen if still needed.
+          stale-pr-label: stale
+          exempt-pr-labels: pinned,blocked,security
+          days-before-issue-stale: 30
+          days-before-issue-close: 14
+          stale-issue-message: |
+            This issue has had no activity for 30 days. It will be closed in 14 days if no further activity occurs.
+          close-issue-message: |
+            Closed due to inactivity. Reopen if still relevant.
+          stale-issue-label: stale
+          exempt-issue-labels: pinned,blocked,security
+          delete-branch: true

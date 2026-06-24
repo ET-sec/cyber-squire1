@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# pre-commit hook: runs the GTA AI-tells sweep against staged markdown files.
+#
+# BLOCKS commits with:
+#   - em dashes (—)
+#   - en dashes (–)
+#   - double-hyphen prose ( -- between words)
+# These are unambiguous voice violations and have a deterministic fix.
+#
+# WARNS (does not block) on:
+#   - AI-tell phrases (leveraging, robust, seamlessly, etc.)
+#   - "not X. Y." juxtaposition
+# These can be legitimate in context. Human review decides.
+#
+# Install: git config core.hooksPath .githooks
+# Bypass:  git commit --no-verify  (NOT recommended)
+
+set -euo pipefail
+
+SWEEP_SCRIPT="${HOME}/.claude/skills/gta/scripts/sweep_ai_tells.py"
+
+if [ ! -x "$SWEEP_SCRIPT" ]; then
+  echo "pre-commit: GTA sweep script not found at $SWEEP_SCRIPT, skipping"
+  exit 0
+fi
+
+STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.md$' || true)
+
+if [ -z "$STAGED_MD" ]; then
+  exit 0
+fi
+
+echo "pre-commit: running AI-tells sweep on staged markdown..."
+OUTPUT=$(python3 "$SWEEP_SCRIPT" $STAGED_MD 2>&1) || true
+
+# Hard block: em dashes, en dashes, double-hyphens
+if echo "$OUTPUT" | grep -qE 'em=[1-9]|en=[1-9]|dashes=[1-9]'; then
+  echo ""
+  echo "pre-commit: BLOCKED. Em dashes, en dashes, or double-hyphens in staged files."
+  echo ""
+  echo "$OUTPUT" | grep -E 'em=|en=|dashes='
+  echo ""
+  echo "Auto-fix:"
+  echo "  python3 $SWEEP_SCRIPT --apply $STAGED_MD"
+  echo "  git add $STAGED_MD"
+  echo "  git commit"
+  exit 1
+fi
+
+# Soft warn: AI-tell phrases and juxtaposition
+if echo "$OUTPUT" | grep -qE 'ai_tells=|juxt='; then
+  echo ""
+  echo "pre-commit: WARNING. AI-tell phrases or juxtaposition found."
+  echo ""
+  echo "$OUTPUT" | grep -E 'ai_tells=|juxt='
+  echo ""
+  echo "These can be legitimate in context. Review with:"
+  echo "  python3 $SWEEP_SCRIPT -v $STAGED_MD"
+  echo ""
+  echo "Proceeding with commit. Fix later if review confirms violation."
+fi
+
+echo "pre-commit: AI-tells sweep done (no hard violations)"
+exit 0
