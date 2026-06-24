@@ -167,10 +167,11 @@ Most documents include cross-references to related documents in their final sect
 
 | Document | Description |
 |----------|-------------|
-| [ADR_001_EMBEDDING_PROVIDER.md](ADR_001_EMBEDDING_PROVIDER.md) | Embedding provider decision record (text-embedding-3-large for pgvector RAG) |
+| [ADR_001_EMBEDDING_PROVIDER.md](ADR_001_EMBEDDING_PROVIDER.md) | Embedding provider decision record (Voyage AI voyage-3-large for pgvector RAG) |
 
 ### Squire (Phase 17)
 
+<!-- TODO(et): Sonnet 4.6 is used for classification, not routing. Either change "routing" to "classification" or confirm intended meaning. -->
 Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state machine with pgvector RAG, Opus 4.7 primary and Sonnet 4.6 routing, NeMo Guardrails v0.21.0 sidecar, Langfuse v3 observability. Ten documents covering compliance, risk, red-team, and governance.
 
 | Document | Description |
@@ -180,7 +181,7 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 | [FRAMEWORK_CROSSWALK_SQUIRE.md](FRAMEWORK_CROSSWALK_SQUIRE.md) | Cross-framework control mapping - 31 Squire controls mapped to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM 2025, NIST 800-61 r3, and NIST AI RMF |
 | [GUARDRAILS_CONFIGURATION.md](GUARDRAILS_CONFIGURATION.md) | Guardrail layer configuration - pre-graph regex scan, NeMo input and output Colang rails, presidio PII detection, rail-by-rail test coverage, failure modes, change control |
 | [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) | Red team test results - 6 executed cases covering prompt injection, severity manipulation, and PII exfiltration with live Langfuse trace IDs and post-remediation verification |
-| [SQUIRE_MODEL_CARD.md](SQUIRE_MODEL_CARD.md) | Mitchell et al. model card - Opus 4.7 primary plus Sonnet 4.6 routing plus text-embedding-3-large, intended use, evaluation data, ethical considerations, limitations, provenance |
+| [SQUIRE_MODEL_CARD.md](SQUIRE_MODEL_CARD.md) | Mitchell et al. model card - Opus 4.7 primary plus Sonnet 4.6 classifier plus Voyage AI voyage-3-large embeddings, intended use, evaluation data, ethical considerations, limitations, provenance |
 | [SQUIRE_DATA_FLOW_CLASSIFICATION.md](SQUIRE_DATA_FLOW_CLASSIFICATION.md) | Data flow classification - alert payloads, investigation records, trace data, chunk embeddings, per-class source and storage and retention and sanitization and encryption and access rules |
 | [AI_AUDIT_TRAIL_SPEC.md](AI_AUDIT_TRAIL_SPEC.md) | AI audit trail specification - what is logged per invocation, retention tiers, integrity and immutability, replay procedure, cold-storage cadence |
 | [HITL_POLICY.md](HITL_POLICY.md) | Human-in-the-loop policy - HIGH/CRITICAL triggers, roles, SLA, delegation, override authority, production and per-interview token rotation procedures |
@@ -191,6 +192,7 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 | Activity | Frequency | Next Date |
 |----------|-----------|-----------|
 | Full SSP review | Semi-annual | 2026-09-11 |
+<!-- TODO(et): All three dates below are overdue as of 2026-06-24. Refresh next-review dates before any interview. -->
 | POA&M status review | Quarterly (90-day cycle) | 2026-06-09 |
 | Risk register review | Quarterly | 2026-06-11 |
 | CIS Docker Bench rescan | Monthly | 2026-04-11 |
@@ -199,6 +201,7 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 | Threat model review | Semi-annual | 2026-09-12 |
 | AI threat catalog review | Semi-annual | 2026-09-12 |
 | AI supply chain risk review | Semi-annual | 2026-09-12 |
+<!-- TODO(et): 2026-06-02 is overdue as of 2026-06-24. -->
 | AI adversarial testing | Quarterly | 2026-06-02 |
 | Tabletop exercise | Semi-annual | TBD |
 | Vulnerability writeup review | Semi-annual | 2026-09-12 |
@@ -210,19 +213,20 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 | Squire SSP review | Semi-annual | 2026-10-23 |
 | Squire AI risk assessment | Quarterly | 2026-07-23 |
 | Squire red-team expansion | Quarterly | 2026-07-23 |
+<!-- TODO(et): Both 60-day rotations below are 2 days overdue as of 2026-06-24. -->
 | HITL token rotation audit | 60-day | 2026-06-22 |
 | AI supply chain register review | 60-day | 2026-06-22 |
 
 ## Statistics
 
-All numbers regenerated from filesystem as of 2026-05-25. Commands shown for reproducibility.
+All numbers regenerated from filesystem as of 2026-06-24. Commands shown for reproducibility.
 
 ```bash
 # Document count
-ls docs/grc/*.md | wc -l                                                         # 54
+ls docs/grc/*.md | wc -l                                                         # 58
 
 # Line count
-cat docs/grc/*.md | wc -l                                                        # ~25,458
+cat docs/grc/*.md | wc -l                                                        # ~28,201
 
 # Legacy SSP control rows
 grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SSP_SYSTEM_SECURITY_PLAN.md              # 133
@@ -239,19 +243,21 @@ grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                          
 
 ### Headline counts
 
-- **54 documents** in this library
-- **~27,500 lines** of compliance documentation
+- **58 documents** in this library
+- **~28,201 lines** of compliance documentation
 - **133 NIST 800-53 controls** mapped in the enterprise SSP across 16 families
 - **36 NIST 800-53 control rows** in the Squire scoped SSP
 - **31 Squire controls** cross-walked to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM, NIST 800-61 r3, and NIST AI RMF
+<!-- TODO(et): Verify POA&M legacy disposition split (16 accepted / 10 open / 1 closed legacy vs the 15+15 Phase 17 breakdown). README headline says 15 accepted, 9 open, 6 closed across all 30; EXEC_SECURITY_POSTURE says 16/10/1 for the 30 total. Reconcile against POAM_PLAN_OF_ACTION.md. -->
 - **30 POA&M entries** tracked (15 legacy plus 15 Phase 17: 15 accepted, 9 open, 6 closed)
 - **17 enterprise risk scenarios** plus **10 Squire-specific AI risks** assessed
 - **15 frameworks** covered (NIST 800-53, NIST AI RMF, HIPAA Security Rule, SOC 2, ISO 27001:2022, ISO 42001, ISO 27701, CSA Agentic, OWASP LLM, MITRE ATLAS, NIST 800-154, NIST 800-66, NIST 800-61 r3, CIS Docker Benchmark, FIPS 199)
 
 ### Threat modeling
 
-- **40 data flows** mapped across **10 trust boundaries** (30 legacy plus 10 Phase 17)
+- **40 data flows** mapped across **10 trust boundaries** (7 legacy plus 3 Phase 17)
 - **29 legacy STRIDE threats** plus **Squire STRIDE matrix** covering svc-squire, svc-nemo, and 4 Langfuse containers
+<!-- TODO(et): Verify AI threat catalog count against AI_THREAT_CATALOG.md (claim is 10). -->
 - **10 AI threats** cataloged with Phase 17 mitigation addendum
 - **7 attack paths** decomposed (4 legacy plus 3 Phase 17: prompt injection, RAG poisoning, exfil via inference API)
 - **25 adversarial test cases** planned plus **6 Phase 17 red-team cases** executed with live Langfuse traces
@@ -269,8 +275,10 @@ grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                          
 
 ### Doc categories
 
+<!-- TODO(et): Re-categorize all 58 .md files. The pie below totals 54 across legacy categories; missing 4 newer docs (AGENT_SIGNING, AGENT_TELEMETRY, OWASP_MCP_TOP10_AUDIT, POAM_MCP_2025). Either add new categories or merge into existing ones. -->
+
 ```mermaid
-pie title GRC library by category (54 docs)
+pie title GRC library by category (58 docs)
     "Squire (Phase 17)" : 10
     "Policies" : 10
     "Threat Modeling" : 6

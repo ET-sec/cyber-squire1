@@ -3,8 +3,8 @@
 **System Name:** Organization Security Operations Platform (OSOP)
 **Document Identifier:** EXEC-CMP-001
 **Classification:** Internal Use Only
-**Version:** 1.1 (Phase 17 expansion)
-**Date:** 2026-04-24
+**Version:** 1.2
+**Date:** 2026-05-31
 **Prepared By:** System Owner
 
 ---
@@ -24,9 +24,11 @@
 
 ## GRC Documentation Library
 
-The compliance program is supported by **54 GRC documents** after the 2026-05-25 framework expansion. Three new docs cover HIPAA Security Rule readiness, ePHI handling, and a combined SOC 2 plus ISO 27001:2022 crosswalk. The 10 Phase 17 docs cover AI-specific compliance artifacts: scoped SSP, AI risk assessment, framework crosswalk, guardrails configuration, red-team results, model card, data flow classification, audit trail spec, HITL policy, supply chain register.
+The compliance program is supported by **58 GRC documents** as of 2026-06-24. Three docs from the 2026-05-25 framework expansion cover HIPAA Security Rule readiness, ePHI handling, and a combined SOC 2 plus ISO 27001:2022 crosswalk. The 10 Phase 17 docs cover AI-specific compliance artifacts: scoped SSP, AI risk assessment, framework crosswalk, guardrails configuration, red-team results, model card, data flow classification, audit trail spec, HITL policy, supply chain register. Four newer docs (agent signing, agent telemetry, OWASP MCP Top 10 audit, POAM MCP 2025) cover MCP and agent supply-chain expansions.
 
 ### Document Inventory
+
+<!-- TODO(et): Verify "3 Squire roles" claim in IAM row by reading IAM_RBAC_ROLE_MAP.md. -->
 
 | Category | Count | Documents |
 |----------|-------|-----------|
@@ -42,8 +44,10 @@ The compliance program is supported by **54 GRC documents** after the 2026-05-25
 | **Squire (Phase 17)** | 10 | SSP (scoped), AI Risk Assessment, Framework Crosswalk, Guardrails Configuration, Red-Team Results, Model Card, Data Flow Classification, Audit Trail Spec, HITL Policy, Supply Chain Register |
 | **ADR** | 1 | Embedding Provider decision record |
 | **Framework Crosswalks** | 3 | HIPAA Security Rule, HIPAA ePHI Handling, combined SOC 2 plus ISO 27001:2022 |
+| **MCP and Agent Supply Chain** | 4 | Agent Signing, Agent Telemetry, OWASP MCP Top 10 Audit, POAM MCP 2025 |
+| **Squire Exercises** | 2 | Squire Threat Model, Squire Tabletop Exercise |
 | **README** | 1 | GRC library index and reading guide |
-| **Total** | **54** | |
+| **Total** | **58** | |
 
 ### Framework coverage by doc family
 
@@ -133,6 +137,8 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 ## Review Schedule
 
+<!-- TODO(et): POA&M review (2026-06-09), Risk register review (2026-06-11), and CIS Docker Bench rescan (2026-04-11) are all overdue as of 2026-06-24. Refresh next-review dates. -->
+
 | Activity | Frequency | Next Review |
 |----------|-----------|-------------|
 | Full SSP review | Semi-annual | 2026-09-11 |
@@ -158,12 +164,13 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 | Area | Readiness |
 |------|-----------|
-| **Documentation completeness** | Strong: 54 documents covering all major GRC domains plus Phase 17 AI subsystem |
+| **Documentation completeness** | Strong: 58 documents covering all major GRC domains plus Phase 17 AI subsystem |
 | **Control implementation** | Strong: 86% implemented or partially implemented, plus 36 Squire-specific controls |
 | **Automated evidence** | Strong: continuous collection from 9+ sources, Langfuse trace capture for AI invocations |
 | **Risk management** | Strong: 17 enterprise scenarios plus 10 AI-specific risks, all tracked |
-| **Finding remediation** | Adequate: 0 Critical/High legacy, 7 Medium legacy tracked, 1 HIGH Phase 17 CLOSED in-session |
-| **Exercise program** | Developing: 1 legacy tabletop completed, Squire tabletop scheduled in plan 17-14 |
+| **Finding remediation** | Adequate: 0 Critical/High legacy, 7 Medium legacy tracked, 1 HIGH Phase 17 CLOSED during the exercise |
+<!-- TODO(et): Verify SQUIRE_TABLETOP_EXERCISE.md execution status. File exists; check if it has been run since 17-14. -->
+| **Exercise program** | Developing: 1 legacy tabletop completed, Squire tabletop documented in `SQUIRE_TABLETOP_EXERCISE.md` |
 | **Multi-region resilience** | Gap: single-region deployment, DR plan documented but untested |
 | **AI safety program** | Strong: 6 red-team cases executed with live Langfuse traces, 9-layer defense-in-depth |
 

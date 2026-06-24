@@ -35,8 +35,8 @@ Signing path:
   file matching `.agents/**.card.json` changes, and on manual
   `workflow_dispatch`.
 - The job pins `sigstore/cosign-installer` by 40 character commit SHA and
-  installs Cosign `v2.6.0`, which is the first release that emits the
-  protobuf bundle format used here. Each card is signed by
+  installs a Cosign 2.x release that emits the protobuf bundle format used
+  here. <!-- TODO(et): confirm the exact Cosign version pin in agent-signing.yml; the doc references v2.6.0 but the workflow file is the source of truth. --> Each card is signed by
   `cosign sign-blob --bundle <card>.sigstore.json --new-bundle-format
   --yes <card>`. Bundles are committed back to `main` as
   `github-actions[bot]`.
@@ -98,6 +98,15 @@ rather than legacy JSON.
 - Expired Fulcio certificate: short-lived certs expire quickly. Re-sign by
   triggering `workflow_dispatch` on `agent-signing.yml`, which mints a fresh
   certificate for the run.
+
+## Relationship to the Agent Registry
+
+Each signed card MUST have a matching row in `.agents/registry.yaml`. The
+daily `inventory_scan` (Plan 20-04, surfaced through
+`.github/workflows/agent-inventory.yml`) enforces zero drift between the
+Registry and the cards on disk. AGENT_TELEMETRY.md treats the Registry as
+the single source of truth for `agent_id` values; a card without a
+Registry row would emit telemetry that the dashboard cannot resolve.
 
 ## Key non-rotation policy
 

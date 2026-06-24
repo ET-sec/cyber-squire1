@@ -134,14 +134,14 @@ This playbook provides step-by-step procedures for responding to unauthorized ac
 ## 2. Scope
 
 Applies to all access paths into the Organization infrastructure:
-- **svc-gateway** -- SSH access, session recording, JIT (just-in-time) access requests, certificate-based authentication
-- **svc-identity** -- Identity provider, SSO, user management, role assignments
-- **svc-tunnel** -- Zero-trust tunnel ingress (`automation.example-ops.com`, `ssh.example-ops.com`)
-- **Direct SSH** -- Emergency/break-glass SSH access to `alpha-node`
-- **svc-automation** -- Web UI and API access to the orchestration platform
-- **svc-db** -- Direct database connections
-- **svc-secrets** -- Secrets engine access
-- **Code repository platform** -- Repository access, CI/CD pipeline access
+- **svc-gateway**: SSH access, session recording, JIT (just-in-time) access requests, certificate-based authentication
+- **svc-identity**: Identity provider, SSO, user management, role assignments
+- **svc-tunnel**: Zero-trust tunnel ingress (`n8n.example-ops.com`, `ssh.example-ops.com`, `squire.example-ops.com` for the Phase 17 `/alert` webhook with `X-Squire-Token`, `langfuse.example-ops.com` for the Langfuse web UI)
+- **Direct SSH**: Emergency/break-glass SSH access to `alpha-node`
+- **svc-automation**: Web UI and API access to the orchestration platform
+- **svc-db**: Direct database connections
+- **svc-secrets**: Secrets engine access
+- **Code repository platform**: Repository access, CI/CD pipeline access
 
 ---
 
@@ -160,38 +160,40 @@ Applies to all access paths into the Organization infrastructure:
 
 ### 4.1 svc-gateway (Session and Access Monitoring)
 
-- [ ] **Unexpected session initiated** -- session from unrecognized user, IP, or certificate
-- [ ] **Session from unusual geography** -- login from a country or region with no authorized users
-- [ ] **JIT access request from unknown identity** -- access request submitted by a user not in the approved roster
-- [ ] **Session with suspicious commands** -- commands related to data exfiltration, privilege escalation, or reconnaissance detected in session recording
-- [ ] **Certificate authentication failure** -- attempts to use expired, revoked, or unknown certificates
-- [ ] **Break-glass SSH access used** -- direct root SSH login (bypassing gateway) detected
+- [ ] **Unexpected session initiated**: session from unrecognized user, IP, or certificate <!-- TODO(et): no Sigma rule for `event=session.start AND user NOT IN allowlist`; currently Datadog monitor only. Add Sigma rule. -->
+- [ ] **Session from unusual geography**: login from a country or region with no authorized users
+- [ ] **JIT access request from unknown identity**: access request submitted by a user not in the approved roster <!-- TODO(et): no Sigma rule on Teleport `access_request.create`. Add one. -->
+- [ ] **Session with suspicious commands**: commands related to data exfiltration, privilege escalation, or reconnaissance detected in session recording
+- [ ] **Certificate authentication failure**: attempts to use expired, revoked, or unknown certificates
+- [ ] **Break-glass SSH access used**: direct root SSH login (bypassing gateway) detected <!-- TODO(et): no dedicated Sigma rule for `sshd Accepted publickey for root from <not-allowlisted-ip>`. Add one. -->
+
 
 ### 4.2 svc-identity (Identity Provider Audit Events)
 
-- [ ] **New user account created** -- admin event log shows user creation not initiated by System Owner
-- [ ] **Role escalation** -- user assigned admin or elevated role without a corresponding change request
-- [ ] **Password reset for admin account** -- password change on privileged account not initiated by the account owner
-- [ ] **SSO configuration changed** -- SAML/OIDC provider settings modified
-- [ ] **Brute force attempts** -- multiple failed logins against the same or multiple accounts
+- [ ] **New user account created**: admin event log shows user creation not initiated by System Owner <!-- TODO(et): add a Sigma rule on the Keycloak admin event for user CREATE outside the approved actor list (AC-2 critical). -->
+- [ ] **Role escalation**: user assigned admin or elevated role without a corresponding change request <!-- TODO(et): add a Sigma rule on Keycloak admin events for role-mapping CREATE. -->
+- [ ] **Password reset for admin account**: password change on privileged account not initiated by the account owner
+- [ ] **SSO configuration changed**: SAML/OIDC provider settings modified
+- [ ] **Brute force attempts**: multiple failed logins against the same or multiple accounts
 
 ### 4.3 svc-detection (eBPF Runtime Alerts)
 
-- [ ] **SSH connection to non-standard port** -- svc-detection detects SSH traffic on unexpected ports
-- [ ] **Unauthorized SSH key usage** -- SSH authentication using a key not in the approved key list
-- [ ] **Privilege escalation in container** -- `sudo`, `su`, or capability changes detected within a container
-- [ ] **Unauthorized cron job or at job** -- scheduled task created inside a container or on the host
+- [ ] **SSH connection to non-standard port**: svc-detection detects SSH traffic on unexpected ports <!-- TODO(et): existing container-shell-spawn-restricted.yml does not cover host-level SSH. Add a dedicated Sigma rule. -->
+- [ ] **Unauthorized SSH key usage**: SSH authentication using a key not in the approved key list
+- [ ] **Privilege escalation in container**: `sudo`, `su`, or capability changes detected within a container
+- [ ] **Unauthorized cron job or at job**: scheduled task created inside a container or on the host <!-- TODO(et): no Sigma rule for new cron entries in containers. Add one. -->
+
 
 ### 4.4 Monitoring Platform Alerts
 
-- [ ] **Authentication failure spike** -- multiple failed auth events across services in a short window
-- [ ] **Unusual API access pattern** -- API calls to `svc-automation` or `svc-secrets` at unusual times or frequencies
+- [ ] **Authentication failure spike**: multiple failed auth events across services in a short window
+- [ ] **Unusual API access pattern**: API calls to `svc-automation` or `svc-secrets` at unusual times or frequencies
 
 ### 4.5 External / Manual Detection
 
-- [ ] **User reports account compromise** -- an authorized user reports that their account was accessed without their knowledge
-- [ ] **Code repository platform security alert** -- new SSH key or PAT added to the Organization's repository account
-- [ ] **Third-party notification** -- credential dump or access sale report involving Organization credentials
+- [ ] **User reports account compromise**: an authorized user reports that their account was accessed without their knowledge
+- [ ] **Code repository platform security alert**: new SSH key or PAT added to the Organization's repository account
+- [ ] **Third-party notification**: credential dump or access sale report involving Organization credentials
 
 ---
 
@@ -201,13 +203,13 @@ Applies to all access paths into the Organization infrastructure:
 
 **Objective:** Confirm unauthorized access, identify the affected accounts and systems, and determine severity.
 
-- [ ] **Step 1.1** -- Gather initial information about the alert:
+- [ ] **Step 1.1**: Gather initial information about the alert:
  - Which detection source triggered the alert?
  - What user, IP address, or certificate is involved?
  - What system or service was accessed?
  - When did the access occur?
 
-- [ ] **Step 1.2** -- Verify the access is unauthorized (rule out legitimate activity):
+- [ ] **Step 1.2**: Verify the access is unauthorized (rule out legitimate activity):
 
  **Check gateway session list:**
  ```bash
@@ -229,21 +231,25 @@ Applies to all access paths into the Organization infrastructure:
   --user admin 2>/dev/null | head -50
  ```
 
- **Check direct SSH auth log on the host:**
+ **Check direct SSH auth log on the host. On Ubuntu 24.04, prefer journalctl; `/var/log/auth.log` exists only if rsyslog is installed.**
  ```bash
- ssh root@10.100.1.10 "grep -i 'accepted\|failed\|invalid' /var/log/auth.log | tail -30"
+ # Preferred: journald (always present)
+ ssh root@10.100.1.10 'journalctl -u ssh --since "1h ago" | grep -E "Accepted|Failed|Invalid"'
+
+ # Fallback: rsyslog file
+ ssh root@10.100.1.10 "grep -E 'Accepted|Failed|Invalid' /var/log/auth.log 2>/dev/null | tail -30"
  ```
 
-- [ ] **Step 1.3** -- Cross-reference the source IP against known authorized IPs:
+- [ ] **Step 1.3**: Cross-reference the source IP against known authorized IPs:
  ```bash
  # Check if the IP is from an expected range
  # Compare against authorized user IP list
  whois <suspicious_ip>
  ```
 
-- [ ] **Step 1.4** -- Assign severity per Section 3.
+- [ ] **Step 1.4**: Assign severity per Section 3.
 
-- [ ] **Step 1.5** -- Open an incident ticket:
+- [ ] **Step 1.5**: Open an incident ticket:
  - Incident ID: `INC-YYYY-MM-DD-NNN`
  - Detection source and timestamp
  - User/identity involved
@@ -254,7 +260,7 @@ Applies to all access paths into the Organization infrastructure:
 
 **Objective:** Terminate unauthorized access and prevent further unauthorized sessions.
 
-- [ ] **Step 2.1** -- **Terminate active unauthorized sessions:**
+- [ ] **Step 2.1**: **Terminate active unauthorized sessions:**
 
  **In svc-gateway:**
  ```bash
@@ -267,23 +273,27 @@ Applies to all access paths into the Organization infrastructure:
 
  **On the host (if break-glass SSH):**
  ```bash
- # Find the unauthorized SSH process
+ # List who is currently logged in via SSH, then identify the unauthorized
+ # sshd process. Exclude the grep itself; distinguish the attacker session
+ # from your own by source IP (from `who -u`) and PID.
  ssh root@10.100.1.10 "who -u"
- ssh root@10.100.1.10 "ps aux | grep sshd"
+ ssh root@10.100.1.10 "ps aux | grep '[s]shd:'"
 
  # Kill the session
  ssh root@10.100.1.10 "kill <pid>"
  ```
 
-- [ ] **Step 2.2** -- **Lock the compromised user account:**
+- [ ] **Step 2.2**: **Lock the compromised user account:**
 
- **In svc-gateway:**
+ **In svc-gateway:** use the Teleport Lock resource (the canonical Teleport 14+ mechanism). A Lock persists across cert reissuance, which `tctl users update --set-locked` does not.
  ```bash
- # Lock the user account
- docker exec svc-gateway tctl users update <username> --set-locked
+ # Create a persistent Lock on the user (per POLICY_INCIDENT_RESPONSE.md §6)
+ docker exec svc-gateway tctl lock --user=<username> --message="Incident #<ID>" --ttl=24h
 
- # Revoke all active certificates for the user
- docker exec svc-gateway tctl auth sign --format=openssh --user=<username> --ttl=0
+ # Also force-invalidate any active user certificates immediately. Use a
+ # phased rotation with a zero grace period instead of `tctl auth sign --ttl=0`
+ # (which sets DEFAULT TTL, not "expired").
+ docker exec svc-gateway tctl auth rotate --type=user --grace-period=0
  ```
 
  **In svc-identity:**
@@ -296,7 +306,7 @@ Applies to all access paths into the Organization infrastructure:
   -s enabled=false
  ```
 
-- [ ] **Step 2.3** -- **Block the source IP:**
+- [ ] **Step 2.3**: **Block the source IP:**
 
  **On the host firewall:**
  ```bash
@@ -309,7 +319,7 @@ Applies to all access paths into the Organization infrastructure:
  - Add rule: Block <attacker_ip>
  ```
 
-- [ ] **Step 2.4** -- **If an unauthorized user account was created, disable it immediately:**
+- [ ] **Step 2.4**: **If an unauthorized user account was created, disable it immediately:**
 
  **In svc-gateway:**
  ```bash
@@ -324,35 +334,47 @@ Applies to all access paths into the Organization infrastructure:
   --user admin
  ```
 
-- [ ] **Step 2.5** -- **If SSH keys are compromised, remove them:**
+- [ ] **Step 2.5**: **If SSH keys are compromised, remove them.** `authorized_keys` stores the public key blob; the fingerprint is not in the file. List fingerprints with `ssh-keygen -lf`, then remove by line number or by matching the unique part of the public key blob.
  ```bash
  ssh root@10.100.1.10 << 'EOF'
- # Remove the compromised key from authorized_keys
- # First, identify the key fingerprint
- ssh-keygen -l -f ~/.ssh/authorized_keys
+ # First, list authorized keys with their fingerprints (fingerprint -> key)
+ ssh-keygen -lf ~/.ssh/authorized_keys
 
- # Remove the specific key (by line number or fingerprint)
+ # Remove the specific key by line number (after identifying it)
  sed -i '<line_number>d' ~/.ssh/authorized_keys
+
+ # Or remove by matching a unique substring of the public-key blob
+ # sed -i "/<unique_pubkey_prefix>/d" ~/.ssh/authorized_keys
  EOF
  ```
 
-- [ ] **Step 2.6** -- **If the break-glass SSH path was used without authorization, add additional restrictions:**
+- [ ] **Step 2.6**: **If the break-glass SSH path was used without authorization, add additional restrictions.** On Ubuntu 24.04, cloud-init drops overrides into `/etc/ssh/sshd_config.d/50-cloud-init.conf` which take precedence over `/etc/ssh/sshd_config`. Update both. The service unit is `ssh` on Ubuntu 24.04, not `sshd`.
  ```bash
  ssh root@10.100.1.10 << 'EOF'
- # Restrict SSH to key-only auth (disable password)
+ # Restrict SSH to key-only auth in the main config
  sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
  sed -i 's/^#*PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
- systemctl restart sshd
+
+ # And override in any sshd_config.d snippet that may carry weaker defaults
+ if [ -d /etc/ssh/sshd_config.d ]; then
+   for f in /etc/ssh/sshd_config.d/*.conf; do
+     [ -f "$f" ] || continue
+     sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' "$f"
+     sed -i 's/^#*PermitRootLogin.*/PermitRootLogin prohibit-password/' "$f"
+   done
+ fi
+ systemctl restart ssh
  EOF
  ```
 
-- [ ] **Step 2.7** -- **If lateral movement is suspected, review all active sessions across all services:**
+- [ ] **Step 2.7**: **If lateral movement is suspected, review all active sessions across all services.** Distroless containers (Teleport, Fluentd, Falcosidekick) ship without `ss`. Use `nsenter` from the host so the check is binary-agnostic.
  ```bash
- # Check all container network connections
+ # Check all container network connections from the host
  ssh root@10.100.1.10 << 'EOF'
  for c in $(docker ps --format '{{.Names}}'); do
   echo "=== $c ==="
-  docker exec "$c" ss -tulnp 2>/dev/null || echo "(ss not available)"
+  PID=$(docker inspect -f '{{.State.Pid}}' "$c" 2>/dev/null)
+  [ -n "$PID" ] && nsenter -t "$PID" -n ss -tulnp 2>/dev/null || echo "(nsenter unavailable)"
  done
  EOF
  ```
@@ -361,7 +383,7 @@ Applies to all access paths into the Organization infrastructure:
 
 **Objective:** Determine the full scope of the unauthorized access, what was accessed, and how the attacker gained entry.
 
-- [ ] **Step 3.1** -- **Review gateway session recordings:**
+- [ ] **Step 3.1**: **Review gateway session recordings:**
 
  The gateway records all SSH sessions. This is the primary forensic artifact.
 
@@ -376,14 +398,15 @@ Applies to all access paths into the Organization infrastructure:
  docker exec svc-gateway tctl play <session_id> > /tmp/evidence_session_<session_id>.txt
  ```
 
-- [ ] **Step 3.2** -- **Review JIT access request logs:**
+- [ ] **Step 3.2**: **Review JIT access request logs:**
  ```bash
  # Check access requests (approved and denied)
  docker exec svc-gateway tctl requests ls --format=json | \
   jq '.[] | {id: .id, user: .user, roles: .roles, state: .state, created: .created}'
  ```
 
-- [ ] **Step 3.3** -- **Review identity provider admin audit events:**
+- [ ] **Step 3.3**: **Review identity provider admin audit events:** <!-- TODO(et): verify Keycloak v26 still supports `kcadm.sh get events/admin` as written; Keycloak 22+ moved some admin event APIs. -->
+
  ```bash
  # Check for account creation, role changes, password resets
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh get events/admin \
@@ -394,7 +417,7 @@ Applies to all access paths into the Organization infrastructure:
   jq '.[] | select(.time >= "<incident_start_epoch>") | {operationType, resourceType, representation}'
  ```
 
-- [ ] **Step 3.4** -- **Review Falco alerts for the incident window:**
+- [ ] **Step 3.4**: **Review Falco alerts for the incident window:**
  ```bash
  docker logs --since "<incident_start_time>" svc-detection 2>&1 | \
   grep -i "ssh\|login\|exec\|shell\|privilege\|escalation"
@@ -403,7 +426,7 @@ Applies to all access paths into the Organization infrastructure:
   grep -i "critical\|high"
  ```
 
-- [ ] **Step 3.5** -- **Check host authentication logs:**
+- [ ] **Step 3.5**: **Check host authentication logs:**
  ```bash
  ssh root@10.100.1.10 << 'EOF'
  # SSH authentication events
@@ -418,7 +441,7 @@ Applies to all access paths into the Organization infrastructure:
  EOF
  ```
 
-- [ ] **Step 3.6** -- **Check what the attacker accessed or modified:**
+- [ ] **Step 3.6**: **Check what the attacker accessed or modified:**
  ```bash
  # Check recently modified files on the host
  ssh root@10.100.1.10 "find / -mmin -120 -type f -not -path '/proc/*' -not -path '/sys/*' -not -path '/var/lib/docker/*' 2>/dev/null | head -50"
@@ -433,7 +456,7 @@ Applies to all access paths into the Organization infrastructure:
  ssh root@10.100.1.10 "awk -F: '\$3 >= 1000 {print \$1, \$3, \$7}' /etc/passwd"
  ```
 
-- [ ] **Step 3.7** -- **Check for data exfiltration indicators:**
+- [ ] **Step 3.7**: **Check for data exfiltration indicators.** `pg_stat_statements` is not enabled by default in the pgvector/Postgres 16 image; if `shared_preload_libraries` does not include it, the query returns an error. Verify before relying on this in a live runbook.
  ```bash
  # Check outbound network connections during incident window
  ssh root@10.100.1.10 "ss -tulnp"
@@ -441,33 +464,37 @@ Applies to all access paths into the Organization infrastructure:
  # Check Docker container network activity
  docker logs --since "<incident_start_time>" svc-event-shipper 2>&1 | tail -50
 
- # Check database for unexpected queries
- docker exec svc-db psql -U <admin_user> -c \
-  "SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY calls DESC LIMIT 20;" 2>/dev/null
+ # Confirm pg_stat_statements is loaded before querying it
+ docker exec svc-db psql -U "$CD_DB_USER" -tAc \
+  "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname='pg_stat_statements');"
+ # If true, then:
+ docker exec svc-db psql -U "$CD_DB_USER" -c \
+  "SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY calls DESC LIMIT 20;"
+ # Otherwise fall back to the database log review.
  ```
 
-- [ ] **Step 3.8** -- **Determine the initial access vector:**
+- [ ] **Step 3.8**: **Determine the initial access vector:**
  - Was a credential compromised? (check Playbook IR-PLAY-002)
  - Was a vulnerability exploited? (check container image CVEs)
  - Was social engineering used?
  - Was a valid session hijacked?
  - Was break-glass SSH used with a stolen key?
 
-- [ ] **Step 3.9** -- **Check code repository platform for unauthorized changes:**
+- [ ] **Step 3.9**: **Check code repository platform for unauthorized changes.** Use the `gh` CLI when authenticated for repeatable evidence capture.
  ```bash
- # Check for new deploy keys or PATs
- # Code repository platform > Settings > Deploy keys
- # Code repository platform > Settings > Developer settings > PATs
+ # Deploy keys and user-level keys
+ gh api /repos/<owner>/<repo>/keys
+ gh api /user/keys
 
- # Check recent push events
- # Code repository platform > Repository > Settings > Webhooks > Recent deliveries
+ # Recent webhook deliveries
+ gh api /repos/<owner>/<repo>/hooks
  ```
 
 ### Phase 4: Eradication (30-90 minutes)
 
 **Objective:** Remove all unauthorized access, accounts, keys, and backdoors.
 
-- [ ] **Step 4.1** -- **Remove all unauthorized user accounts:**
+- [ ] **Step 4.1**: **Remove all unauthorized user accounts:**
 
  **From svc-gateway:**
  ```bash
@@ -493,7 +520,7 @@ Applies to all access paths into the Organization infrastructure:
   --user admin
  ```
 
-- [ ] **Step 4.2** -- **Remove unauthorized SSH keys from all locations:**
+- [ ] **Step 4.2**: **Remove unauthorized SSH keys from all locations:**
  ```bash
  ssh root@10.100.1.10 << 'EOF'
  # Review and clean authorized_keys
@@ -509,7 +536,7 @@ Applies to all access paths into the Organization infrastructure:
  EOF
  ```
 
-- [ ] **Step 4.3** -- **Remove unauthorized cron jobs, systemd services, or backdoors:**
+- [ ] **Step 4.3**: **Remove unauthorized cron jobs, systemd services, or backdoors.** `debsums` is not installed by default on Ubuntu 24.04 cloud images; install on demand or skip if unavailable.
  ```bash
  ssh root@10.100.1.10 << 'EOF'
  # Check for rogue cron jobs
@@ -522,17 +549,21 @@ Applies to all access paths into the Organization infrastructure:
  # Check for unusual listening ports
  ss -tulnp | grep -v -E "(docker-proxy|sshd|systemd)"
 
- # Check for modified system binaries
- debsums -c 2>/dev/null | head -20
+ # Check for modified system binaries (install debsums if absent and policy allows)
+ if command -v debsums >/dev/null 2>&1; then
+   debsums -c 2>/dev/null | head -20
+ else
+   echo "(debsums not installed; install with apt-get install debsums if policy permits)"
+ fi
  EOF
  ```
 
-- [ ] **Step 4.4** -- **Rotate SSH host keys if the host was compromised:**
+- [ ] **Step 4.4**: **Rotate SSH host keys if the host was compromised.** The Ubuntu 24.04 service unit is `ssh`, not `sshd`.
  ```bash
  ssh root@10.100.1.10 << 'EOF'
  rm /etc/ssh/ssh_host_*
  ssh-keygen -A
- systemctl restart sshd
+ systemctl restart ssh
  EOF
 
  # Update known_hosts on the management workstation
@@ -540,7 +571,7 @@ Applies to all access paths into the Organization infrastructure:
  ssh-keyscan 10.100.1.10 >> ~/.ssh/known_hosts
  ```
 
-- [ ] **Step 4.5** -- **Rotate gateway CA certificates if the gateway was compromised:**
+- [ ] **Step 4.5**: **Rotate gateway CA certificates if the gateway was compromised.** `tctl auth rotate` initiates a multi-phase rotation: init, update_clients, update_servers, standby. New certs issue during the grace period; old certs are revoked at grace expiry.
  ```bash
  docker exec svc-gateway tctl auth rotate --type=host --grace-period=24h
  docker exec svc-gateway tctl auth rotate --type=user --grace-period=24h
@@ -548,7 +579,7 @@ Applies to all access paths into the Organization infrastructure:
 
  > **WARNING:** CA rotation invalidates all existing certificates. Set an appropriate grace period and re-issue certificates to all authorized users.
 
-- [ ] **Step 4.6** -- **Rotate all credentials that the attacker could have accessed:**
+- [ ] **Step 4.6**: **Rotate all credentials that the attacker could have accessed:**
  - Database passwords (if attacker had access to `svc-db` or `.env`)
  - API keys stored in environment variables
  - Bot tokens
@@ -556,7 +587,7 @@ Applies to all access paths into the Organization infrastructure:
 
  Reference Playbook IR-PLAY-002 for credential rotation procedures.
 
-- [ ] **Step 4.7** -- **If a container was used as an entry point, rebuild it:**
+- [ ] **Step 4.7**: **If a container was used as an entry point, rebuild it:**
  ```bash
  docker compose pull <service_name>
  docker compose up -d --force-recreate <service_name>
@@ -566,13 +597,13 @@ Applies to all access paths into the Organization infrastructure:
 
 **Objective:** Restore normal access controls and verify the integrity of all access paths.
 
-- [ ] **Step 5.1** -- **Verify only authorized users exist in svc-gateway:**
+- [ ] **Step 5.1**: **Verify only authorized users exist in svc-gateway:**
  ```bash
  docker exec svc-gateway tctl users ls
  # Cross-reference against the approved user roster
  ```
 
-- [ ] **Step 5.2** -- **Verify only authorized users exist in svc-identity:**
+- [ ] **Step 5.2**: **Verify only authorized users exist in svc-identity:**
  ```bash
  docker exec svc-identity /opt/svc-identity/bin/kcadm.sh get users \
   --server http://localhost:<identity-port> \
@@ -581,7 +612,7 @@ Applies to all access paths into the Organization infrastructure:
   --format json | jq '.[].username'
  ```
 
-- [ ] **Step 5.3** -- **Verify role assignments are correct:**
+- [ ] **Step 5.3**: **Verify role assignments are correct:**
  ```bash
  # Gateway roles
  docker exec svc-gateway tctl get roles --format=json | \
@@ -592,7 +623,7 @@ Applies to all access paths into the Organization infrastructure:
   jq '.[] | select(.spec.allow.request) | {name: .metadata.name, requestable: .spec.allow.request.roles}'
  ```
 
-- [ ] **Step 5.4** -- **Verify SSH configuration is hardened:**
+- [ ] **Step 5.4**: **Verify SSH configuration is hardened:**
  ```bash
  ssh root@10.100.1.10 << 'EOF'
  sshd -T | grep -E "passwordauthentication|permitrootlogin|pubkeyauthentication|maxauthtries"
@@ -604,50 +635,52 @@ Applies to all access paths into the Organization infrastructure:
  EOF
  ```
 
-- [ ] **Step 5.5** -- **Verify authorized_keys contains only known keys:**
+- [ ] **Step 5.5**: **Verify authorized_keys contains only known keys:**
  ```bash
  ssh root@10.100.1.10 "ssh-keygen -l -f ~/.ssh/authorized_keys"
  # Cross-reference fingerprints against the approved key list
  ```
 
-- [ ] **Step 5.6** -- **Verify svc-detection is monitoring all access paths:**
+- [ ] **Step 5.6**: **Verify svc-detection is monitoring all access paths:**
  ```bash
  docker logs --tail 20 svc-detection 2>&1 | grep -i "ssh\|exec\|shell"
  docker logs --tail 20 svc-detection-router 2>&1
  ```
 
-- [ ] **Step 5.7** -- **Verify Datadog is receiving auth events:**
+- [ ] **Step 5.7**: **Verify Datadog is receiving auth events:**
  Check the Datadog dashboard for:
  - SSH authentication events flowing
  - Gateway session events flowing
  - Identity provider audit events flowing
 
-- [ ] **Step 5.8** -- **Test that authorized access still works correctly:**
+- [ ] **Step 5.8**: **Test that authorized access still works correctly.** Never disable host key checking in a security runbook; `accept-new` is the safer Ubuntu 22.04+ default.
  ```bash
  # Test gateway SSH access
- ssh -o StrictHostKeyChecking=no <authorized_user>@ssh.example-ops.com
+ ssh -o StrictHostKeyChecking=accept-new <authorized_user>@ssh.example-ops.com
 
  # Test automation platform access
- curl -sf -o /dev/null -w "%{http_code}" https://automation.example-ops.com/healthz
+ curl -sf -o /dev/null -w "%{http_code}" https://n8n.example-ops.com/healthz
 
- # Test JIT access request flow (if applicable)
+ # Test JIT access request flow (if applicable). <!-- TODO(et): confirm the
+ # exact request subcommand for the deployed Teleport version (v18+ may
+ # require `tsh request create` from a client rather than `tctl request create`). -->
  docker exec svc-gateway tctl request create --roles=admin --reason="Post-incident access test"
  ```
 
-- [ ] **Step 5.9** -- **Re-enable any services or accounts that were disabled during containment** (only after eradication is confirmed complete).
+- [ ] **Step 5.9**: **Re-enable any services or accounts that were disabled during containment** (only after eradication is confirmed complete).
 
 ### Phase 6: Post-Incident (Within 72 hours)
 
 **Objective:** Document the incident, identify root cause, and strengthen access controls.
 
-- [ ] **Step 6.1** -- Complete the incident timeline:
+- [ ] **Step 6.1**: Complete the incident timeline:
  - When did unauthorized access first occur?
  - When was it detected?
  - Detection-to-containment time (target: <15 minutes)
  - What systems were accessed during the unauthorized session?
  - What data was potentially viewed, copied, or modified?
 
-- [ ] **Step 6.2** -- Identify the initial access vector:
+- [ ] **Step 6.2**: Identify the initial access vector:
  - Compromised credential (how was it obtained?)
  - Stolen SSH key (from where?)
  - Exploited vulnerability (which CVE?)
@@ -655,7 +688,7 @@ Applies to all access paths into the Organization infrastructure:
  - Insider threat (which user?)
  - Misconfigured access control (what was misconfigured?)
 
-- [ ] **Step 6.3** -- Write a post-incident report containing:
+- [ ] **Step 6.3**: Write a post-incident report containing:
  - Executive summary
  - Timeline of events with exact timestamps
  - Access vector and attack chain
@@ -666,16 +699,16 @@ Applies to all access paths into the Organization infrastructure:
  - Lessons learned
  - Action items with owners and due dates
 
-- [ ] **Step 6.4** -- Update access controls and detection:
+- [ ] **Step 6.4**: Update access controls and detection:
  - [ ] Review and tighten gateway role definitions
- - [ ] Review JIT access policies -- are time windows appropriate?
+ - [ ] Review JIT access policies: are time windows appropriate?
  - [ ] Add detection rules for the specific attack pattern
  - [ ] Update svc-detection rules if the activity was not caught
  - [ ] Review SSH hardening (disable password auth, restrict key algorithms)
  - [ ] Implement or review IP allowlisting for admin access
- - [ ] Review certificate TTLs -- are they too long?
+ - [ ] Review certificate TTLs: are they too long?
 
-- [ ] **Step 6.5** -- Conduct an access review:
+- [ ] **Step 6.5**: Conduct an access review:
  - [ ] Audit all users in svc-gateway
  - [ ] Audit all users in svc-identity
  - [ ] Audit all SSH keys on all hosts
@@ -683,14 +716,14 @@ Applies to all access paths into the Organization infrastructure:
  - [ ] Remove any stale or unnecessary accounts/keys
  - [ ] Document the current access roster with justification for each entry
 
-- [ ] **Step 6.6** -- Review and update the break-glass procedure:
+- [ ] **Step 6.6**: Review and update the break-glass procedure: <!-- TODO(et): confirm BREAK_GLASS.md (or equivalent) exists in docs/grc/ or runbooks; if not, this step is aspirational and should be backfilled. -->
  - Is break-glass SSH access properly documented?
  - Is there an alert when break-glass access is used?
  - Is the break-glass key stored securely?
 
-- [ ] **Step 6.7** -- Schedule the next periodic access review (recommend quarterly).
+- [ ] **Step 6.7**: Schedule the next periodic access review (recommend quarterly).
 
-- [ ] **Step 6.8** -- Update this playbook with any lessons learned.
+- [ ] **Step 6.8**: Update this playbook with any lessons learned.
 
 ---
 
@@ -762,13 +795,15 @@ Applies to all access paths into the Organization infrastructure:
 EXTERNAL
   |
   v
-[Edge Security Provider] -- L3/L4/L7 protection, WAF
+[Edge Security Provider]: L3/L4/L7 protection, WAF
   |
   v
-[svc-tunnel] -- Zero-trust tunnel, only public ingress
+[svc-tunnel]: Zero-trust tunnel, only public ingress
   |
-  +--> [automation.example-ops.com] --> [svc-automation]
-  +--> [ssh.example-ops.com] --> [svc-gateway:3080/3023/3025]
+  +--> [n8n.example-ops.com] --> [svc-automation]
+  +--> [ssh.example-ops.com] --> [svc-gateway]
+  +--> [squire.example-ops.com] --> [svc-squire /alert]
+  +--> [langfuse.example-ops.com] --> [svc-langfuse-web]
                     |
                     v
                  [Session Recording]
@@ -778,7 +813,7 @@ EXTERNAL
                 (svc-db, svc-secrets, etc.)
 
 BREAK-GLASS PATH (emergency only):
-  Direct SSH --> root@10.100.1.10:22 (bypasses tunnel and gateway)
+  Direct SSH to root@10.100.1.10 (bypasses tunnel and gateway)
   MUST generate alert when used
 ```
 
@@ -786,37 +821,37 @@ BREAK-GLASS PATH (emergency only):
 
 ## 10. Quick Reference Card
 
-**For use during an active incident -- tear-off summary:**
+**For use during an active incident, tear-off summary:**
 
 ```
 1. CONFIRM: Check gateway sessions: tctl sessions ls
-       Check host auth log: grep sshd /var/log/auth.log
-       Check identity provider admin events
+        Check host auth log: journalctl -u ssh | grep -E "Accepted|Failed|Invalid"
+        Check identity provider admin events
 
-2. KILL:   Terminate session: tctl sessions rm <session_id>
-       Kill host SSH: kill <pid>
+2. KILL:    Terminate session: tctl sessions rm <session_id>
+        Kill host SSH: kill <pid>
 
-3. LOCK:   Lock user in gateway: tctl users update <user> --set-locked
-       Disable user in identity provider
-       Block IP: iptables -I INPUT -s <ip> -j DROP
+3. LOCK:    Persistent Lock: tctl lock --user=<user> --message="Incident #<ID>"
+        Disable user in identity provider
+        Block IP: iptables -I INPUT -s <ip> -j DROP
 
 4. REVIEW:  Play back session recording: tctl play <session_id>
-       Check for new accounts, SSH keys, cron jobs, backdoors
+        Check for new accounts, SSH keys, cron jobs, backdoors
 
 5. REMOVE:  Delete unauthorized accounts, SSH keys, cron jobs
-       Rotate compromised credentials (see IR-PLAY-002)
+        Rotate compromised credentials (see IR-PLAY-002)
 
-6. ROTATE:  SSH host keys (if compromised)
-       Gateway CA (if compromised) -- set grace period!
-       All credentials the attacker could have seen
+6. ROTATE:  SSH host keys (rm then ssh-keygen -A, systemctl restart ssh)
+        Gateway CA (set grace period before running)
+        All credentials the attacker could have seen
 
 7. VERIFY:  Only authorized users remain
-       Only authorized SSH keys remain
-       Roles and permissions are correct
-       Detection and monitoring are active
+        Only authorized SSH keys remain
+        Roles and permissions are correct
+        Detection and monitoring are active
 
 8. REPORT:  Post-incident report within 72 hours
-       Schedule access review
+        Schedule access review
 ```
 
 ---

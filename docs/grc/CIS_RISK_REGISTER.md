@@ -5,6 +5,9 @@
 **Last Scan:** 2026-03-11 (post-remediation)
 **Next Review:** 2026-06-09 (90 days)
 
+<!-- TODO(et): Baseline 2026-03-11 predates Phase 17 additions (svc-squire, svc-nemo, 4x Langfuse, Teleport, Vault, Keycloak, Fluentd). Re-run CIS Docker Bench against current stack and refresh every "Review Date" cell. Next Review 2026-06-09 past due. -->
+<!-- TODO(et): Service-name sanitization inconsistent in 5.3 / 5.12 / 5.13 affected-containers lists (mix of svc-* and real names like Vault, monitoring agent). Pick one convention. -->
+
 ## Overview
 
 This register documents all CIS Docker Bench for Security findings that cannot be remediated
@@ -55,7 +58,7 @@ justification and compensating controls.
 | **Section** | Host Configuration |
 | **Result** | WARN |
 | **Description** | auditd should monitor /var/lib/docker for unauthorized changes |
-| **Business Justification** | Same as 1.5 -- auditd is host-level, not Docker Compose scope |
+| **Business Justification** | Same as 1.5: auditd is host-level, not Docker Compose scope |
 | **Compensating Control** | Runtime detection engine monitors file access patterns across all containers. Custom rules detect sensitive file reads and unauthorized writes. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -68,7 +71,7 @@ justification and compensating controls.
 | **Section** | Host Configuration |
 | **Result** | WARN |
 | **Description** | auditd should monitor /etc/docker for configuration changes |
-| **Business Justification** | Same as 1.5 -- auditd is host-level |
+| **Business Justification** | Same as 1.5: auditd is host-level |
 | **Compensating Control** | Runtime detection engine monitors /etc reads and writes. SSH access is the only administrative path (zero-trust tunnel + ed25519 key). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -81,7 +84,7 @@ justification and compensating controls.
 | **Section** | Host Configuration |
 | **Result** | WARN |
 | **Description** | auditd should monitor the docker.service systemd unit |
-| **Business Justification** | Same as 1.5 -- auditd is host-level |
+| **Business Justification** | Same as 1.5: auditd is host-level |
 | **Compensating Control** | Runtime detection engine detects systemd unit modifications. Datadog process agent monitors dockerd. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -94,7 +97,7 @@ justification and compensating controls.
 | **Section** | Host Configuration |
 | **Result** | WARN |
 | **Description** | auditd should monitor the docker.socket systemd unit |
-| **Business Justification** | Same as 1.5 -- auditd is host-level |
+| **Business Justification** | Same as 1.5: auditd is host-level |
 | **Compensating Control** | Docker socket access monitored by Falco. Only Falco and the monitoring agent containers have socket access (read-only). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -336,7 +339,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | All compose containers + svc-ai-gateway |
 | **Description** | CpuShares should be set (not default 1024) for CPU priority weighting |
-| **Business Justification** | CIS Docker Bench checks CpuShares (relative CPU priority), not NanoCpus (absolute CPU limit). Our containers use deploy.resources.limits.cpus which sets NanoCpus -- a stricter control than CpuShares. CpuShares is only meaningful under contention and is less useful than hard CPU limits. |
+| **Business Justification** | CIS Docker Bench checks CpuShares (relative CPU priority), not NanoCpus (absolute CPU limit). Our containers use deploy.resources.limits.cpus which sets NanoCpus, a stricter control than CpuShares. CpuShares is only meaningful under contention and is less useful than hard CPU limits. |
 | **Compensating Control** | All compose containers have deploy.resources.limits.cpus set (hard CPU limits). NanoCpus verified at runtime. Datadog monitors CPU usage per container. |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -378,7 +381,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | All compose containers + svc-ai-gateway |
 | **Description** | Restart policy should be on-failure with max retry count of 5 |
-| **Business Justification** | CIS requires restart:on-failure:5. We use restart:unless-stopped which provides better availability -- services restart after any failure without a retry limit. For a single-node deployment, availability outweighs the fork-bomb prevention benefit of limited retries. PIDs limits prevent fork bombs. |
+| **Business Justification** | CIS requires restart:on-failure:5. We use restart:unless-stopped which provides better availability; services restart after any failure without a retry limit. For a single-node deployment, availability outweighs the fork-bomb prevention benefit of limited retries. PIDs limits prevent fork bombs. |
 | **Compensating Control** | PIDs limits set on all compose containers (64-512). Datadog monitors container restart counts. Alert triggers on excessive restarts (>3 in 5 minutes). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -406,7 +409,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-detection, svc-ai-gateway |
 | **Description** | All containers should have no-new-privileges security option |
-| **Business Justification** | Falco requires privilege capabilities (SYS_ADMIN) for eBPF kernel tracing -- no-new-privileges would prevent this. AI gateway is standalone and not managed by compose. All other 12 compose containers have no-new-privileges set. |
+| **Business Justification** | Falco requires privilege capabilities (SYS_ADMIN) for eBPF kernel tracing; no-new-privileges would prevent this. AI gateway is standalone and not managed by compose. All other 12 compose containers have no-new-privileges set. |
 | **Compensating Control** | Falco uses cap_drop:ALL then adds only minimum required capabilities. AppArmor set to unconfined only for svc-detection. Resource limits restrict blast radius. |
 | **Risk Level** | Medium |
 | **Review Date** | 2026-06-09 |
@@ -457,10 +460,12 @@ justification and compensating controls.
 
 ## Risk Summary
 
+<!-- TODO(et): Per-finding Medium ratings include 2.8, 4.1, 4.5, 5.3, 5.25, 5.31 (six entries). Count column previously read "4". Confirm whether 5.25 and 5.31 should reclassify or whether table count was wrong. -->
+
 | Risk Level | Count | Findings |
 |------------|-------|----------|
-| **High** | 0 | -- |
-| **Medium** | 4 | 2.8 (user namespace), 4.1 (root user), 4.5 (content trust), 5.3 (capabilities), 5.25 (no-new-privileges), 5.31 (docker socket) |
+| **High** | 0 | none |
+| **Medium** | 6 | 2.8 (user namespace), 4.1 (root user), 4.5 (content trust), 5.3 (capabilities), 5.25 (no-new-privileges), 5.31 (docker socket) |
 | **Low** | 25 | All remaining findings |
 
 ## Compensating Controls Cross-Reference

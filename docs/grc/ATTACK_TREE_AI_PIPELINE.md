@@ -5,8 +5,8 @@
 **Assessor:** System Owner
 **Methodology:** Attack Tree Analysis (Schneier, 1999) with MITRE ATLAS and OWASP LLM Top 10 mapping
 **NIST 800-53 Controls:** RA-3 (Risk Assessment), RA-5 (Vulnerability Monitoring), SA-11 (Developer Testing), SA-15 (Development Process)
-**OWASP LLM Top 10 (2025):** LLM01, LLM02, LLM03, LLM06, LLM08, LLM10
-**MITRE ATLAS:** AML.T0015, AML.T0018, AML.T0040, AML.T0043, AML.T0048, AML.T0051, AML.T0054
+**OWASP LLM Top 10 (2025):** LLM01 (Prompt Injection), LLM02 (Sensitive Information Disclosure), LLM03 (Supply Chain), LLM04 (Data and Model Poisoning), LLM05 (Improper Output Handling), LLM06 (Excessive Agency), LLM07 (System Prompt Leakage), LLM10 (Unbounded Consumption)
+**MITRE ATLAS:** AML.T0010 (ML Supply Chain Compromise), AML.T0018 (Backdoor ML Model), AML.T0020 (Poison Training Data), AML.T0024 (Exfiltration via ML Inference API), AML.T0029 (Denial of ML Service), AML.T0040 (ML-Enabled Lateral Movement), AML.T0043 (Craft Adversarial Data), AML.T0051 (LLM Prompt Injection), AML.T0054 (LLM Jailbreak)
 **Classification:** Internal Use Only
 **Version:** 1.1 (Phase 17 scope extension 2026-04-24)
 
@@ -81,7 +81,7 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 │   │   │           Prob: MEDIUM | Skill: MEDIUM | Detect: LOW
 │   │   │
 │   │   └── [1.1.3] Trigger unintended svc-automation workflow execution
-│   │               AML.T0048 (Adversarial ML Denial of Service)
+│   │               AML.T0051 (LLM Prompt Injection); OWASP 2025 LLM06 (Excessive Agency)
 │   │               Prob: LOW | Skill: MEDIUM | Detect: HIGH
 │   │
 │   ├── [1.2] Indirect Prompt Injection via Data Sources
@@ -291,7 +291,7 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 | System prompt hardening | Prevents | - | - | - |
 | Human approval gates | Mitigates | - | - | - |
 | Trivy CVE scanning | - | Detects | - | - |
-| Cosign image signing | - | Prevents | - | - |
+| Cosign image signing | - | Detects (signature mismatch) | - | - |
 | SBOM tracking | - | Detects | - | - |
 | Docker network segmentation | - | - | - | Mitigates |
 | no-new-privileges | - | - | Mitigates | Prevents (partial) |
@@ -320,7 +320,8 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 | Priority | Attack Path | Mitigation | MITRE ATLAS Defense | Target Date |
 |----------|-------------|-----------|---------------------|-------------|
-| 1 | Path 3 | Restrict environment variable visibility in svc-automation Code nodes; migrate to svc-secrets dynamic credentials | AML.M0015 (Adversarial Input Detection) | 2026-06-12 |
+<!-- TODO(et): P1 through P5 target dates 2026-06-12 / 2026-09-12 are past or approaching. Refresh with closure status or revised targets. -->
+| 1 | Path 3 | Restrict environment variable visibility in svc-automation Code nodes; migrate to svc-secrets dynamic credentials | Not an ATLAS-mitigation; tracked via NIST 800-53 SC-28, SC-12 and CIS Docker Bench 5.10 | 2026-06-12 |
 | 2 | Path 1 | Deploy prompt firewall (input/output classifier) at svc-ai-gateway | AML.M0004 (Restrict Queries) | 2026-06-12 |
 | 3 | Path 4 | Implement micro-segmentation within net-core; restrict AI container network egress to documented endpoints only | AML.M0002 (Passive ML Output Obfuscation) | 2026-09-12 |
 | 4 | Path 2 | Automate model integrity verification with behavioral regression testing against curated baselines | AML.M0014 (Verify ML Artifacts) | 2026-09-12 |
@@ -428,8 +429,7 @@ graph TD
 |----------|-------------|
 | [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md) | STRIDE analysis referencing AI threats T-01, T-02, I-01, E-02, E-04 |
 | [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | Comprehensive AI threat-to-control mapping |
-| [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk register (AI-R01 through AI-R10)) |
-| [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk tolerance statements, lifecycle management, governance structure |
+| [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI risk register (AI-R01 through AI-R10), AI risk tolerance statements, lifecycle management, governance structure |
 | [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md) | Response procedures for Path 4 scenarios |
 | [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md) | Response procedures for Path 3 scenarios |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Control implementations supporting all paths |

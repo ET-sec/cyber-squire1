@@ -31,7 +31,7 @@
 
 ## 1. Purpose
 
-This document classifies every data element that flows through Squire, names the sources and sinks, sets retention windows, and specifies sanitization and encryption controls. It pairs with `docs/grc/diagrams/squire-data-flow.png` (rendered in plan 17-14) which gives the visual topology.
+This document classifies every data element that flows through Squire, names the sources and sinks, sets retention windows, and specifies sanitization and encryption controls. It pairs with `docs/grc/diagrams/squire-data-flow.png` which gives the visual topology.
 
 This is the authoritative source for "where does this data live" questions. POLICY_AI_GOVERNANCE.md references this doc for AI-specific data handling.
 
@@ -46,7 +46,7 @@ Squire handles four primary data classes. Each is covered in its own section bel
 | DC-1 | Alert Payloads | High (may contain secrets in worst case) | Falco shell_in_container event |
 | DC-2 | Investigation Records | Medium | ir_investigations row with severity, citations, recommended actions |
 | DC-3 | Trace Data | Medium | Langfuse span captures per-node latency, tokens, cost |
-| DC-4 | Chunk Embeddings | Low (sanitized GRC corpus) | vector(1536) row with chunk text and source ref |
+| DC-4 | Chunk Embeddings | Low (sanitized GRC corpus) | vector(1024) row with chunk text and source ref |
 
 Sensitivity is ranked relative to the Squire trust boundary. All four classes are classified Internal Use Only at the organization level.
 
@@ -77,6 +77,7 @@ JSON envelope with:
 
 ### 3.4 Retention
 
+<!-- TODO(et): Verify nightly pg_dump cron is currently scheduled and running. -->
 90 days hot in Postgres. Weekly pg_dump to DO Spaces `nightly/` prefix with 14-day retention. Indefinite cold storage via monthly aggregation to DO Spaces `archive/` prefix (Phase 7 procedure preserved).
 
 ### 3.5 Sanitization
@@ -90,6 +91,7 @@ The two layers are deliberate. NeMo v0.21.0 only fronts the nodes configured in 
 
 ### 3.6 Encryption
 
+<!-- TODO(et): DigitalOcean block storage is encrypted at rest by DO by default. Distinguish DO-side encryption from LUKS-on-volume in this line. -->
 - At rest: Postgres filesystem volume on alpha-node, LUKS-capable but not currently encrypted at the block layer; Docker Compose volume permissions are 999:999 mode 700.
 - In transit: Cloudflare Tunnel terminates TLS at the edge; internal hop from tunnel to svc-squire is HTTP on the Docker bridge network (trust boundary: the host itself).
 
@@ -152,6 +154,7 @@ ClickHouse is the long-term trace store. Raw JSON mirrored to DO Spaces `langfus
 
 ### 5.4 Sanitization
 
+<!-- TODO(et): Verify Langfuse v3 mask option is actually configured in squire app code. -->
 Langfuse masks known secret patterns (`sk-ant-`, `sk-oat-`, bearer tokens, `AKIA` prefixes) at ingest via the SDK's built-in masker. Input envelopes referencing DC-1 payloads inherit the DC-1 sanitization chain.
 
 ### 5.5 Encryption
@@ -172,7 +175,7 @@ Row in `ir_chunks`:
 - `chunk_id` (uuid)
 - `doc_id` (source document filename)
 - `chunk_text` (cleartext slice, typically 300-800 tokens)
-- `embedding vector(1536)` (text-embedding-3-large output)
+- `embedding vector(1024)` (voyage-3-large output)
 - `metadata` (section, category, last_embedded)
 
 HNSW index on `embedding` with `vector_cosine_ops`, `m=16, ef_construction=64`.
@@ -200,11 +203,11 @@ Bridge network only. pgvector query surface is svc-squire exclusively.
 | Data Class | Leaves the Host | Destination | Legal Basis |
 |------------|-----------------|-------------|-------------|
 | DC-1 | Yes | Anthropic API (US) as part of prompt context | Anthropic Data Processing Addendum |
-| DC-1 | Yes | OpenAI API (US) as part of embedding request (only if new corpus ingested) | OpenAI Data Processing Addendum |
+| DC-1 | Yes | Voyage AI (US) as part of embedding request (only if new corpus ingested) | Voyage AI Data Processing Addendum (Voyage AI Inc., acquired by MongoDB 2025, US data residency) |
 | DC-1 | Yes | Tavily API (US) for enrich-node web search on the `source` field only | Tavily ToS |
 | DC-2 | No | N/A | N/A |
 | DC-3 | No | N/A (self-hosted Langfuse) | N/A |
-| DC-4 | Yes (during embedding only) | OpenAI API (US) | OpenAI DPA |
+| DC-4 | Yes (during embedding only) | Voyage AI (US) | Voyage AI DPA |
 
 No EU-origin personal data is expected in the current demo operating mode. Any expansion to EU-origin data requires a DPIA update before routing through third-party APIs.
 
@@ -255,13 +258,13 @@ Internal service-to-service traffic on the Docker bridge. No TLS, no token. Trus
 
 ### 10.4 svc-squire to External AI Providers
 
-Outbound HTTPS to api.anthropic.com and api.openai.com. Trust anchored in certificate pinning (Docker base image CA bundle) and provider API key. Defense-in-depth: the pre-graph PII scanner and NeMo rail ensure that even compromised outbound requests do not exfiltrate raw sensitive payloads.
+Outbound HTTPS to api.anthropic.com and api.voyageai.com. Trust anchored in certificate pinning (Docker base image CA bundle) and provider API key. Defense-in-depth: the pre-graph PII scanner and NeMo rail ensure that even compromised outbound requests do not exfiltrate raw sensitive payloads.
 
 ---
 
 ## 11. Cross-References
 
-- `docs/grc/diagrams/squire-data-flow.png` (visual topology, rendered in 17-14)
+- `docs/grc/diagrams/squire-data-flow.png` (visual topology)
 - SQUIRE_MODEL_CARD.md (what the models do with this data)
 - AI_AUDIT_TRAIL_SPEC.md (logging specifics)
 - HITL_POLICY.md (human gates on DC-2 actions)

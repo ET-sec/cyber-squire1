@@ -65,11 +65,13 @@ Squire's output must be reviewed before any operator action in the following cas
 | HIGH | Yes | 4 hours |
 | CRITICAL | Yes, plus secondary approver | 1 hour |
 
+Severity mapping to the canonical priority taxonomy in POL-IR-001 Section 4.1: CRITICAL = P1, HIGH = P2, MEDIUM = P3, LOW = P4.
+
 A HIGH or CRITICAL investigation is marked `hitl_gate_triggered=true` and cannot be closed until a `ir_hitl_events` row with `event_type=approved` is written by a qualified reviewer.
 
 ### 3.2 Cost Ceiling Gates
 
-Any investigation that would exceed the per-invocation cost ceiling of $0.50 is halted at the node boundary. The partial state is persisted and a HITL request is written. Resuming the invocation requires explicit approval.
+Any investigation that would exceed the daily cost ceiling defaulting to $5 USD, configurable via `ANTHROPIC_DAILY_CEILING_USD` in docker-compose.yaml, is halted at the node boundary. The partial state is persisted and a HITL request is written. Resuming the invocation requires explicit approval.
 
 ### 3.3 Rail-Refusal Gates
 
@@ -110,6 +112,7 @@ SLA clock runs on wall time, not business hours. Missed SLAs are themselves logg
 ### 5.2 Escalation Chain
 
 1. `requested` event fires, Telegram notification to `@CDirective_bot` channel
+<!-- TODO(et): Confirm whether an n8n outbound Gmail workflow exists for HITL SLA escalation. Existing n8n Gmail workflows are read-only webhooks. If not built, change this step to a second Telegram bot escalation. -->
 2. After 50% of SLA without response, secondary notification via n8n Gmail workflow
 3. After 100% of SLA without response, `timed_out` event auto-written; investigation remains in `pending_review` state indefinitely until manually closed
 
@@ -198,6 +201,7 @@ doppler secrets set SQUIRE_INTERVIEW_TOKENS="$REMAINING" \
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
 ```
 
+<!-- TODO(et): Confirm whether plan 17-15 (SQUIRE_INTERVIEW_TOKENS consumer in app.py) has shipped. If shipped, rewrite this paragraph as "current state" rather than planned. If not shipped, current state is policy defined, not operational. -->
 Note: the additive allow-list consumer side (`SQUIRE_INTERVIEW_TOKENS` parsing in `app.py`) is planned under plan 17-15, which wires the portfolio-facing interview demo surface. This policy defines the procedure ahead of the mechanism; once 17-15 lands, the above flow activates without policy changes.
 
 ### 6.4 Leak Response

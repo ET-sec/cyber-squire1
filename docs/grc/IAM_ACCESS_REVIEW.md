@@ -2,8 +2,9 @@
 
 Organization Infrastructure Identity and Access Management
 
-**Last Review:** 2026-03-11
-**Next Review:** 2026-04-11
+**Last Review:** 2026-04-24
+**Next Review:** 2026-09-24
+**Cadence:** Quarterly
 **Owner:** System Owner (admin@example-ops.com)
 **NIST 800-53 Controls:** AC-2 (Account Management), AC-6 (Least Privilege), AU-6 (Audit Review)
 
@@ -18,14 +19,14 @@ This document defines the access review process for Organization infrastructure.
 - Administrative access requires an explicit request with business justification
 - All elevated sessions auto-expire after a maximum of 4 hours
 - Every access request, approval, and session is audited
-- Monthly reviews verify no unauthorized access persists
+- Quarterly reviews verify no unauthorized access persists
 
 **Compliance alignment:**
 | Control | Description | Implementation |
 |---------|-------------|----------------|
 | NIST AC-2 | Account Management | Access gateway user lifecycle via `tctl users` commands |
 | NIST AC-6 | Least Privilege | Operator role as default, admin requires JIT request |
-| NIST AU-6 | Audit Review | Monthly review of access requests and session recordings |
+| NIST AU-6 | Audit Review | Quarterly review of access requests and session recordings |
 | NIST AC-2(2) | Automated Temporary Account Removal | `max_session_ttl: 4h` auto-expires admin sessions |
 | NIST AC-6(1) | Authorize Access to Security Functions | Admin role gated behind request/approve workflow |
 
@@ -53,9 +54,9 @@ This document defines the access review process for Organization infrastructure.
 | Service | Database/Resource | Method | Credential Source |
 |---------|------------------|--------|-------------------|
 | svc-automation | svc-db (PostgreSQL) | Internal Docker network | .env (DB_USER/DB_PASS) |
-| svc-monitor | Docker socket | Volume mount | API key in .env |
+| svc-monitor | Docker socket plus filesystem mounts (`/proc`, `/sys/fs/cgroup`, `/etc/os-release`, `/var/log`, observability conf.d) | Docker socket plus filesystem mounts | `DD_API_KEY` env var |
 | svc-detection | Kernel (eBPF) | SYS_ADMIN capability | No credentials |
-| svc-ai-gateway | AI provider API | HTTPS | GATEWAY_API_KEY in .env |
+| svc-ai-gateway | AI provider API | HTTPS | `OPENCLAW_ANTHROPIC_KEY` env var |
 
 ---
 
@@ -86,7 +87,7 @@ The Just-In-Time access model ensures administrative privileges are never persis
 
 ### Step-by-Step Commands
 
-**Step 1 -- Create access request:**
+**Step 1. Create access request:**
 ```bash
 # From local machine or via access gateway proxy
 ssh alpha-node 'docker exec svc-gateway tctl request create \
@@ -96,24 +97,24 @@ ssh alpha-node 'docker exec svc-gateway tctl request create \
 # Returns: request ID (UUID)
 ```
 
-**Step 2 -- List pending requests:**
+**Step 2. List pending requests:**
 ```bash
 ssh alpha-node 'docker exec svc-gateway tctl request ls'
 # Shows: Token, Requestor, Roles, Status, Reason
 ```
 
-**Step 3 -- Approve the request:**
+**Step 3. Approve the request:**
 ```bash
 ssh alpha-node 'docker exec svc-gateway tctl request approve <request-id>'
 ```
 
-**Step 4 -- Verify approval and expiry:**
+**Step 4. Verify approval and expiry:**
 ```bash
 ssh alpha-node 'docker exec svc-gateway tctl request ls --format=json'
 # Verify: state=2 (APPROVED), expires field shows ~4h from approval
 ```
 
-**Step 5 -- Deny a request (if inappropriate):**
+**Step 5. Deny a request (if inappropriate):**
 ```bash
 ssh alpha-node 'docker exec svc-gateway tctl request deny <request-id>'
 ```
@@ -145,6 +146,9 @@ ssh alpha-node 'docker exec svc-gateway tctl get access_request/<request-id> --f
 |------|---------|-------------|--------------|-------------|-------------|
 | **operator** | Daily operations | `env: production` nodes, root login | None | 8h | Can request `admin` |
 | **admin** | Elevated JIT access | All nodes (`*: *`), root login | All resources, all verbs | 4h | Granted via JIT only |
+| **auditor** | Compliance review | `env: production` (read sessions only) | None | 12h | Not requestable; assigned directly |
+
+**Phase 17 Squire roles:** SOC Analyst (HITL Reviewer), Squire Operator, and Interview Presenter are defined in `IAM_RBAC_ROLE_MAP.md` Section 21 and are not duplicated here. The 60-day audit cadence for those roles is covered in Section 5.7 below.
 
 ### Access Gateway Built-in Roles
 
@@ -161,7 +165,7 @@ ssh alpha-node 'docker exec svc-gateway tctl get access_request/<request-id> --f
 | sysadmin | Assigned | Assigned | Assigned | JIT only | Available |
 
 **Key constraints:**
-- `admin` role is never permanently assigned -- only accessible via JIT request
+- `admin` role is never permanently assigned. Access is granted only via JIT request
 - `operator` role includes `request.roles: ['admin']` enabling JIT elevation
 - `forward_agent: false` on all custom roles prevents SSH agent forwarding attacks
 - Session recordings use `node-sync` mode for resilient capture
@@ -170,9 +174,9 @@ ssh alpha-node 'docker exec svc-gateway tctl get access_request/<request-id> --f
 
 ## 5. Review Schedule
 
-### Monthly Access Review Checklist
+### Quarterly Access Review Checklist
 
-Perform on the first business day of each month. Document findings in this file.
+Perform on the first business day of each quarter. Document findings in this file.
 
 **5.1 Access Gateway User Audit**
 ```bash
@@ -207,7 +211,7 @@ ssh alpha-node 'docker exec svc-gateway tctl request ls'
 # Get detailed request information
 ssh alpha-node 'docker exec svc-gateway tctl get access_request/<id> --format=yaml'
 ```
-- [ ] Review all access requests from the past 30 days
+- [ ] Review all access requests from the past 90 days
 - [ ] Verify each request had a valid business justification
 - [ ] Flag any requests without reasons or with suspicious patterns
 - [ ] Verify expired requests were not manually extended
@@ -231,6 +235,7 @@ ssh alpha-node 'docker exec svc-gateway tctl recordings ls'
 - [ ] Verify identity provider admin credentials are current
 - [ ] Review Docker container access (no new privileged containers)
 - [ ] Verify `.env` file permissions remain `chmod 600`: `ssh alpha-node 'stat -c %a /opt/platform/.env'`
+- [ ] Verify n8n MCP token (`N8N_MCP_TOKEN` in Doppler) has been rotated within the past quarter
 
 ### 5.7 Squire Subsystem Access Review (Phase 17, 60-day cadence)
 
@@ -243,6 +248,8 @@ ssh alpha-node 'docker exec svc-gateway tctl recordings ls'
 | Squire actions allow-list audit | 60 days | 2026-06-22 | `actions.yml` git log, change control record |
 | NeMo rail config audit | 60 days | 2026-06-22 | `svc-nemo-config` git log |
 | AI supply chain register review | 60 days | 2026-06-22 | AI_SUPPLY_CHAIN_REGISTER.md |
+
+<!-- TODO(et): verify the `squire` database/user exists in cd-service-db with the credentials referenced in the commands below; confirm gateway-config.yaml on production still has operator request.roles: ['admin']. Last verified 2026-03-11. -->
 
 **5.7.1 Phase 17 token rotation check commands**
 
@@ -292,7 +299,7 @@ ssh alpha-node 'docker exec svc-gateway tctl request rm <request-id>'
 
 ### Emergency Procedures
 
-**Suspected compromise -- immediate lockout:**
+**Suspected compromise (immediate lockout):**
 1. Lock the user account: `tctl lock --user=<username> --message="Suspected compromise"`
 2. Revoke all active sessions (restart access gateway if needed)
 3. Rotate access gateway CA certificates: `tctl auth rotate --type=user`
@@ -300,7 +307,7 @@ ssh alpha-node 'docker exec svc-gateway tctl request rm <request-id>'
 5. Change break-glass SSH key if SSH access may be compromised
 6. Notify security contact (admin@example-ops.com)
 
-**Access gateway service failure -- break-glass access:**
+**Access gateway service failure (break-glass access):**
 1. Use direct SSH via zero-trust tunnel: `ssh alpha-node`
 2. Check access gateway container: `docker logs svc-gateway --tail 50`
 3. Restart access gateway: `docker compose restart svc-gateway`
@@ -324,7 +331,7 @@ The current access gateway Community Edition provides solid JIT access controls.
 
 **Current limitations (Community Edition):**
 - Access requests can only be approved via `tctl` CLI (no web UI approval)
-- Self-approval is possible (single-operator environment) -- mitigated by audit trail
+- Self-approval is possible in the single-operator environment. The audit trail is the compensating control.
 - No OIDC/SAML connector for identity provider integration
 - No dual-approval workflow (requires Enterprise with approval thresholds)
 
@@ -338,6 +345,7 @@ The current access gateway Community Edition provides solid JIT access controls.
 |------|----------|----------|---------------|
 | 2026-03-11 | System Owner | Initial review, baseline established | Created operator/admin/auditor roles, tested JIT workflow, documented process |
 | 2026-04-24 | System Owner | Phase 17 extension, 60-day Squire token rotation audit cadence added | Section 5.7 added. SOC Analyst, Squire Operator, Interview Presenter roles referenced in IAM_RBAC_ROLE_MAP. |
+| 2026-06-24 | System Owner | Review extended pending Phase 17 IAM updates; cadence formalized as quarterly; auditor 12h TTL row, Phase 17 cross-reference, n8n MCP token rotation check, and Doppler-aligned service credential references added | Header updated to 2026-04-24 / Next 2026-09-24; Section 2 svc-monitor and svc-ai-gateway rows aligned to real Doppler key names; double-hyphen patterns replaced; Section 5.6 n8n MCP token line added |
 
 ---
 

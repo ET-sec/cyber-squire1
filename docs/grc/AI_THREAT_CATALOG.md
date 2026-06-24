@@ -61,6 +61,8 @@ related:
 
 ### AI Threat Kill Chain
 
+<!-- TODO(et): Kill chain ASCII below uses OWASP LLM Top 10 (2023) numbering and label set (LLM02 Insecure Output, LLM05 Supply Chain, LLM06 Sensitive Info, LLM07 Insecure Plugin, LLM08 Excessive Agency, LLM09 Overreliance, LLM10 Model Theft). Regenerate using 2025 numbering: LLM01 Prompt Injection, LLM02 Sensitive Info Disclosure, LLM03 Supply Chain, LLM04 Data and Model Poisoning, LLM05 Improper Output Handling, LLM06 Excessive Agency, LLM07 System Prompt Leakage, LLM08 Vector and Embedding Weaknesses, LLM09 Misinformation, LLM10 Unbounded Consumption. -->
+
 The following diagram maps the 10 OWASP LLM Top 10 threats through a kill chain
 progression, showing how threats chain together from initial access through execution
 to final impact.
@@ -163,14 +165,14 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | OWASP ID | Category | Applicability to Organization Platform |
 |----------|----------|---------------------------------------|
 | LLM01 | Prompt Injection | **High** - svc-ai-gateway accepts external user input via Telegram; svc-llm processes internal workflow prompts |
-| LLM02 | Insecure Output Handling | **High** - AI outputs consumed by svc-automation workflows that execute actions on infrastructure |
-| LLM03 | Supply Chain Vulnerabilities | **Medium** - three AI models with different supply chain profiles (API, Ollama registry, Whisper open-weight) |
+| LLM02 | Sensitive Information Disclosure | **High** - prompts to Anthropic API may contain operational context; svc-llm processes sensitive internal data |
+| LLM03 | Supply Chain | **Medium** - three AI models with different supply chain profiles (API, Ollama registry, Whisper open-weight) |
 | LLM04 | Data and Model Poisoning | **Low** - no fine-tuning capability deployed; risk limited to upstream model provider compromise |
-| LLM05 | Improper Output Handling | **Medium** - AI-generated content rendered in messaging platforms without full sanitization |
-| LLM06 | Sensitive Information Disclosure | **High** - prompts to Anthropic API may contain operational context; svc-llm processes sensitive internal data |
-| LLM07 | Insecure Plugin Design | **Medium** - svc-ai-gateway has skills (Tavily search, browser, GitHub, Notion) that interact with external services |
-| LLM08 | Excessive Agency | **High** - AI agent can trigger svc-automation workflows with broad action capabilities (16+ service integrations) |
-| LLM09 | Overreliance | **Medium** - operator may trust AI outputs without verification for routine tasks |
+| LLM05 | Improper Output Handling | **High** - AI outputs consumed by svc-automation workflows that execute actions on infrastructure; messaging platform rendering without full sanitization |
+| LLM06 | Excessive Agency | **High** - AI agent can trigger svc-automation workflows with broad action capabilities (16+ service integrations) |
+| LLM07 | System Prompt Leakage | **Medium** - system prompt exposure via extraction or trace-store retention could give adversaries a roadmap for targeted injection |
+| LLM08 | Vector and Embedding Weaknesses | **Medium** - RAG over `ir_chunks` (pgvector) is a real surface; embedding-space adversarial chunks or poisoned retrievals could affect downstream responses |
+| LLM09 | Misinformation | **Medium** - operator may trust AI outputs without verification for routine tasks (hallucinations, fabricated citations) |
 | LLM10 | Unbounded Consumption | **Medium** - external API budget and compute resource consumption need bounded controls |
 
 ### 2.2 MITRE ATLAS v4
@@ -181,7 +183,8 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | AML.T0018 | Backdoor ML Model | AI-002, AI-003 |
 | AML.T0040 | ML-Enabled Lateral Movement | AI-001, AI-002 |
 | AML.T0043 | Adversarial Data Injection | AI-001, AI-002 |
-| AML.T0048 | Adversarial ML Denial of Service | AI-001, AI-002, AI-003 |
+| AML.T0029 | Denial of ML Service | AI-001, AI-002, AI-003 |
+| AML.T0048 | Erode ML Model Integrity | AI-001, AI-002 |
 | AML.T0051 | LLM Prompt Injection | AI-001, AI-002 |
 | AML.T0054 | LLM Jailbreak | AI-001 |
 
@@ -214,13 +217,13 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 |----|--------|-----------|-------------|-----------|----------------|---------------|
 | ATC-01 | Prompt Injection (Direct) | LLM01 | AML.T0051 | AI-001 | Implemented | Medium |
 | ATC-02 | Prompt Injection (Indirect) | LLM01 | AML.T0043, AML.T0051 | AI-001 | Partial | Medium |
-| ATC-03 | Insecure Output Handling | LLM02 | AML.T0015 | AI-001, AI-002 | Implemented | Medium |
-| ATC-04 | Model Supply Chain Compromise | LLM03 | AML.T0018 | AI-001, AI-002, AI-003 | Partial | Medium |
-| ATC-05 | Sensitive Information Disclosure | LLM06 | - | AI-001 | Partial | Medium |
-| ATC-06 | Insecure Skill/Plugin Execution | LLM07 | AML.T0040 | AI-001 | Implemented | Low |
-| ATC-07 | Excessive Autonomous Agency | LLM08 | - | AI-001 | Implemented | Medium |
-| ATC-08 | Overreliance on AI Outputs | LLM09 | - | AI-001, AI-002 | Partial | Medium |
-| ATC-09 | Unbounded Resource Consumption | LLM10 | AML.T0048 | AI-001, AI-002, AI-003 | Implemented | Low |
+| ATC-03 | Improper Output Handling | LLM05 | AML.T0015 | AI-001, AI-002 | Implemented | Medium |
+| ATC-04 | Model Supply Chain Compromise | LLM03, LLM04 | AML.T0010, AML.T0018, AML.T0020 | AI-001, AI-002, AI-003 | Partial | Medium |
+| ATC-05 | Sensitive Information Disclosure | LLM02 | AML.T0024 | AI-001 | Partial | Medium |
+| ATC-06 | Insecure Skill/Plugin Execution | LLM06 | AML.T0040 | AI-001 | Implemented | Low |
+| ATC-07 | Excessive Autonomous Agency | LLM06 | - | AI-001 | Implemented | Medium |
+| ATC-08 | Misinformation (formerly "Overreliance on AI Outputs") | LLM09 | - | AI-001, AI-002 | Partial | Medium |
+| ATC-09 | Unbounded Resource Consumption | LLM10 | AML.T0029 | AI-001, AI-002, AI-003 | Implemented | Low |
 | ATC-10 | AI-Enabled Lateral Movement | - | AML.T0040 | AI-001, AI-002 | Implemented | Medium |
 
 ### 3.2 Detailed Threat Profiles
@@ -265,12 +268,12 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 
 ---
 
-#### ATC-03: Insecure Output Handling
+#### ATC-03: Improper Output Handling
 
 | Attribute | Detail |
 |-----------|--------|
 | **Description** | AI-generated outputs are passed directly to downstream systems (svc-automation workflows, Telegram message responses, database operations) without adequate validation. A hallucinated or injected output could contain malicious payloads (SQL injection, command injection, XSS) that are executed by the consuming system. |
-| **OWASP LLM** | LLM02 (Insecure Output Handling) |
+| **OWASP LLM** | LLM05 (Improper Output Handling) |
 | **MITRE ATLAS** | AML.T0015 (Evade ML Model) |
 | **Affected Systems** | AI-001 (svc-ai-gateway), AI-002 (svc-llm) - outputs consumed by svc-automation |
 | **NIST AI RMF** | MEASURE 2.6, MANAGE 2.4 |
@@ -289,8 +292,8 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | Attribute | Detail |
 |-----------|--------|
 | **Description** | Upstream AI model weights, container images, or runtime dependencies are tampered with to introduce backdoors, altered behavior, or malicious code. Three distinct supply chains exist: (1) Anthropic API for AI-001, (2) Ollama model registry for AI-002, (3) Whisper open-weight distribution for AI-003. Each has different risk profiles and verification capabilities. |
-| **OWASP LLM** | LLM03 (Supply Chain Vulnerabilities) |
-| **MITRE ATLAS** | AML.T0018 (Backdoor ML Model) |
+| **OWASP LLM** | LLM03 (Supply Chain), LLM04 (Data and Model Poisoning) |
+| **MITRE ATLAS** | AML.T0010 (ML Supply Chain Compromise), AML.T0018 (Backdoor ML Model), AML.T0020 (Poison Training Data) |
 | **Affected Systems** | AI-001, AI-002, AI-003 |
 | **NIST AI RMF** | GOVERN 2.2, MANAGE 1.1 |
 | **ISO 42001** | A.10 (Third-Party Relationships), A.6 (AI System Lifecycle) |
@@ -308,8 +311,8 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | Attribute | Detail |
 |-----------|--------|
 | **Description** | The AI system discloses sensitive information through multiple vectors: (1) PII transmitted in prompts to the external Anthropic API, (2) system prompt contents revealed to users via extraction techniques, (3) operational context (service names, architecture details, credential references) leaked in AI responses, (4) training data memorization reproduced in outputs. |
-| **OWASP LLM** | LLM06 (Sensitive Information Disclosure) |
-| **MITRE ATLAS** | - (mapped as data exfiltration rather than adversarial ML) |
+| **OWASP LLM** | LLM02 (Sensitive Information Disclosure) |
+| **MITRE ATLAS** | AML.T0024 (Exfiltration via ML Inference API) |
 | **Affected Systems** | AI-001 (svc-ai-gateway) - primary risk due to external API data flow |
 | **NIST AI RMF** | MAP 1.5, GOVERN 1.1 |
 | **ISO 42001** | A.8 (Information for Interested Parties) |
@@ -327,7 +330,7 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | Attribute | Detail |
 |-----------|--------|
 | **Description** | The AI agent (AI-001) has access to skills that interact with external services (Tavily search, browser, GitHub, Notion, Gemini). Insecure skill design could allow: (1) SSRF through the browser skill, (2) credential leakage through skill parameters, (3) excessive permission scope granting skills more access than needed, (4) skill output injection into the AI context. |
-| **OWASP LLM** | LLM07 (Insecure Plugin Design) |
+| **OWASP LLM** | LLM06 (Excessive Agency) - skill execution authority is the 2025 framing for what 2023 called "Insecure Plugin Design" |
 | **MITRE ATLAS** | AML.T0040 (ML-Enabled Lateral Movement) |
 | **Affected Systems** | AI-001 (svc-ai-gateway) - skill execution context |
 | **NIST AI RMF** | MANAGE 2.1, GOVERN 2.2 |
@@ -346,7 +349,7 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 | Attribute | Detail |
 |-----------|--------|
 | **Description** | The AI agent, through its integration with svc-automation, has access to 16+ service integrations (PostgreSQL, Telegram, GitHub, Google Drive, Google Sheets, Cloudflare, Notion, Gmail, and others). If the AI misinterprets a user request, hallucinates an action plan, or is manipulated via prompt injection, it could execute a chain of consequential actions without adequate human review - including data modifications, message sending, or infrastructure changes. |
-| **OWASP LLM** | LLM08 (Excessive Agency) |
+| **OWASP LLM** | LLM06 (Excessive Agency) |
 | **MITRE ATLAS** | - (organizational risk rather than adversarial ML technique) |
 | **Affected Systems** | AI-001 (svc-ai-gateway) → svc-automation → all integrated downstream services |
 | **NIST AI RMF** | GOVERN 1.2, MANAGE 2.4 |
@@ -360,12 +363,12 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 
 ---
 
-#### ATC-08: Overreliance on AI Outputs
+#### ATC-08: Misinformation and Overreliance on AI Outputs
 
 | Attribute | Detail |
 |-----------|--------|
-| **Description** | The operator develops excessive trust in AI-generated outputs, reducing manual verification and critical review. This is particularly dangerous for: (1) AI-002 outputs, which have a higher hallucination rate due to the smaller model, (2) AI-001 outputs for security-related decisions (vulnerability assessment, compliance checks, configuration recommendations), and (3) routine tasks where fatigue may reduce review diligence. |
-| **OWASP LLM** | LLM09 (Overreliance) |
+| **Description** | The model produces inaccurate or fabricated information (hallucinations, invented citations, mistaken classifications) and the operator develops excessive trust in those outputs, reducing manual verification and critical review. This is particularly dangerous for: (1) AI-002 outputs, which have a higher hallucination rate due to the smaller model, (2) AI-001 outputs for security-related decisions (vulnerability assessment, compliance checks, configuration recommendations), and (3) routine tasks where fatigue may reduce review diligence. OWASP renamed the 2023 "Overreliance" category to "Misinformation" in 2025 to put the focus on the model behavior. |
+| **OWASP LLM** | LLM09 (Misinformation) |
 | **MITRE ATLAS** | - (human factor, not adversarial ML) |
 | **Affected Systems** | AI-001 (svc-ai-gateway), AI-002 (svc-llm) |
 | **NIST AI RMF** | MAP 2.1, MAP 2.3, MEASURE 2.1 |
@@ -385,7 +388,7 @@ This document complements the STRIDE Threat Model (`THREAT_MODEL_STRIDE.md`) and
 |-----------|--------|
 | **Description** | AI systems consume excessive compute, memory, API budget, or storage through: (1) adversarial input designed to maximize token consumption on AI-001, (2) resource-intensive inference on AI-002 (svc-llm) that starves co-resident services on the single VPS, (3) large audio files submitted to AI-003 (svc-transcription) consuming CPU cycles. All three AI systems share the same 4 vCPU / 8 GB RAM host. |
 | **OWASP LLM** | LLM10 (Unbounded Consumption) |
-| **MITRE ATLAS** | AML.T0048 (Adversarial ML Denial of Service) |
+| **MITRE ATLAS** | AML.T0029 (Denial of ML Service) |
 | **Affected Systems** | AI-001, AI-002, AI-003 |
 | **NIST AI RMF** | MANAGE 3.2 |
 | **ISO 42001** | A.4 (Resources for AI Systems) |

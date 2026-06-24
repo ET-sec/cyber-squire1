@@ -78,6 +78,8 @@ graph TD
 | `cd-operator` | Day-to-day operational access, can manage workflows and containers | Future ops staff | `organization-realm.json` |
 | `cd-auditor` | Read-only access to audit logs, session recordings, and compliance data | Future auditors | `organization-realm.json` |
 
+<!-- TODO(et): confirm SANITIZATION_KEY.md maps the real `coredirective-realm.json` to the sanitized `organization-realm.json` filename used here so external readers can trace the file. -->
+
 ### Access Gateway Roles (gateway-config.yaml)
 
 | Role | Max Session TTL | Node Labels | SSH Login | Audit Access | Use Case |
@@ -291,7 +293,7 @@ spec:
 | **AC-6** | Least Privilege | Operator role is the default working role. Admin access requires JIT request with 4h auto-expiry. Auditor has read-only access only. Root SSH limited to admin role. |
 | **AC-6(1)** | Authorize Access to Security Functions | Only cd-admin can modify identity provider realm settings, access gateway cluster config, detection rules, and secrets engine policies. |
 | **AC-6(2)** | Non-Privileged Access for Non-Security Functions | cd-operator role used for daily automation workflow management and container operations. No security function access. |
-| **AC-7** | Unsuccessful Logon Attempts | Identity provider brute force protection: 5 failures lock for 15 minutes. `failureFactor: 5`, `maxFailureWaitSeconds: 900`. |
+| **AC-7** | Unsuccessful Logon Attempts | Identity provider brute force protection: 5 failures lock for 15 minutes. `failureFactor: 5`, `maxFailureWaitSeconds: 900`. <!-- TODO(et): verify failureFactor and maxFailureWaitSeconds against the deployed realm import; update if drifted --> |
 | **AC-11** | Session Lock | Identity provider SSO idle timeout: 30 minutes (`ssoSessionIdleTimeout: 1800`). Access gateway certificate TTLs enforce session limits. |
 | **AC-12** | Session Termination | Access gateway admin role: 4h max. Operator: 8h max. Identity provider max session: 10h (`ssoSessionMaxLifespan: 36000`). |
 | **IA-2** | Identification and Authentication | Identity provider authenticates via username + password. Access gateway adds TOTP MFA for SSH. Enterprise path adds OIDC for unified authentication. |
@@ -314,7 +316,7 @@ spec:
 
 ---
 
-*Last updated: 2026-03-11 | Phase 08-04*
+*Last updated: 2026-06-24 | Phase 20 (extends Phase 17 scope added 2026-04-24, Phase 08-04 baseline)*
 
 ---
 
@@ -326,7 +328,7 @@ spec:
 
 | Role | Duties | Permissions | Token source | Rotation cadence |
 |------|--------|-------------|--------------|------------------|
-| SOC Analyst (HITL Reviewer) | Review HIGH and CRITICAL severity Squire investigations before external action. Approve or deny routed actions per HITL_POLICY section 3. | Read `ir_alerts`, `ir_investigations`. Write `ir_rotation_events` (via approval API). No direct DB access. | Production HMAC token (long-lived, 60-day rotation) | 60 days |
+| SOC Analyst (HITL Reviewer) | Review HIGH and CRITICAL severity Squire investigations before external action. Approve or deny routed actions per HITL_POLICY section 3. | Read `ir_alerts`, `ir_investigations`. Write `ir_rotation_events` (via approval API). No direct DB access. | Production HMAC token (60-day rotation, no expiry between rotations) | 60 days |
 | Squire Operator | Operate the Squire subsystem. Start or stop svc-squire, svc-nemo, svc-langfuse-*. Rotate tokens. Deploy guardrail changes through change control. | SSH to host (JIT via access gateway), no Prod DB write, read Langfuse traces. | Access gateway admin role (JIT), 4h TTL | per session |
 | Interview Presenter | Ephemeral demo path for showcasing Squire end-to-end without production data. | Access a demo token that grants read-only `/alert` POST with sanitized seed alerts. No DB read. | Per-interview ephemeral HMAC token | per interview, revoked within 24h |
 

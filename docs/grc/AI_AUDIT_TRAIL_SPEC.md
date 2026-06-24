@@ -47,6 +47,7 @@ Per-invocation audit row is written for every call to `/alert`. The row is the j
 | Field | Source | Notes |
 |-------|--------|-------|
 | `investigation_id` | app generated | UUIDv7, monotonic |
+| `agent_id` | telemetry module on import | Matches the Agent Registry row at `.agents/registry.yaml`; required for per-agent attribution per AGENT_TELEMETRY.md |
 | `alert_id` | dedup hash of input | Same alert retrying hits the dedup cache |
 | `trace_id` | Langfuse SDK | Correlation into ClickHouse spans |
 | `backend` | LLMBackend active | `api`, `max`, `ollama` |
@@ -134,8 +135,10 @@ Phase 7 established the immutable log export path. Same path is reused here:
 
 1. Monthly cron dumps `ir_*` tables as SQL to `/var/backups/platform/<month>/`
 2. `aws s3 cp` uploads to DO Spaces `archive/ir/<month>/`
-3. Spaces Object Lock governs the `archive/` prefix with retention set to Retain Until date equal to 7 years from upload
+3. Spaces Object Lock governs the `archive/` prefix with retention set to Retain Until date equal to 7 years from upload. This 7-year window exceeds the HIPAA 6-year documentation floor at 45 CFR 164.530(j) and is the canonical retention figure that HIPAA_EPHI_HANDLING.md and HIPAA_SECURITY_RULE_CROSSWALK.md both reference.
 4. SHA-256 manifest written to `archive/ir/<month>/MANIFEST.sha256` before Object Lock engages
+
+<!-- TODO(et): confirm the monthly cron is actually scheduled on the alpha-node and that the first month's archive has been written; if not yet built, mark this section as design-state and capture the cutover date when the first archive lands. -->
 
 ### 4.2 Deletion
 
@@ -209,7 +212,7 @@ Given an `investigation_id`, a full replay reconstructs every input, every inter
 | Per-node outputs | Yes | Langfuse captures output |
 | Model version | Yes | Langfuse model metadata |
 | Backend mode | Yes | `backend` column |
-| Exact temperature | Not always | Opus 4.7 rejects the parameter; replay shows default |
+| Exact temperature | Not always | Opus 4.7 reasoning mode constrains certain parameter combinations (for example, `temperature` and `top_p` together); replay shows the effective default in those cases |
 
 ### 7.3 Re-Execution
 

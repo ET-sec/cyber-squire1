@@ -65,6 +65,8 @@ Each service has been evaluated for its impact on confidentiality, integrity, av
 | `svc-monitor` (observability agent) | Metrics collection, alerting, dashboard telemetry | Loss of visibility into platform health; degraded incident detection capability |
 | `svc-detection` (eBPF runtime) | Kernel-level syscall monitoring, anomaly detection | Runtime threat detection disabled; container escape or privilege escalation may go undetected |
 | `svc-detection-router` | Alert routing from detection engine to downstream consumers | Detection findings not forwarded; alerts silently dropped |
+| `svc-squire` | Autonomous SOC analyst (advisory, HITL-gated) | AI-assisted alert triage halted; analysts revert to manual investigation |
+| `svc-nemo` | NeMo Guardrails rail engine for svc-squire | svc-squire input/output rails offline; svc-squire must be paused to avoid rail bypass |
 
 #### Tier 3 - Deferrable (Maximum Tolerable Downtime: 24 hours)
 
@@ -75,6 +77,10 @@ Each service has been evaluated for its impact on confidentiality, integrity, av
 | `Fluentd` | Log aggregation and forwarding to object storage | Log export delayed; local logs still written; integrity chain paused but not broken |
 | `svc-event-shipper` | Audit event export from gateway to log pipeline | Audit events queued locally; export resumes on recovery |
 | `svc-ai-gateway` | Standalone AI gateway for external model access | AI-assisted operations unavailable; no impact on core security functions |
+| `svc-langfuse-web` | Langfuse UI for AI trace review | Trace dashboard unavailable; raw traces still ingested via worker |
+| `svc-langfuse-worker` | Background ingestion worker for Langfuse traces | Trace processing pauses; queue backlog builds in Redis until restore |
+| `svc-langfuse-clickhouse` | Langfuse analytics store | Historical trace queries unavailable; reads fail until restored |
+| `svc-langfuse-redis` | Cache and queue for Langfuse worker | Worker cannot dequeue; brings `svc-langfuse-worker` offline as dependency |
 
 ### 4.2 Dependency Map
 
@@ -90,6 +96,10 @@ svc-tunnel (ingress)
 ```
 
 **Key dependency:** `svc-db` is a single point of failure for `svc-automation`, `svc-gateway`, and `svc-identity`. Its recovery is prerequisite to all Tier 1 and Tier 2 services.
+
+**Squire-stack startup ordering:** `svc-langfuse-clickhouse` and `svc-langfuse-redis` must be healthy before `svc-langfuse-worker`. `svc-nemo` must be reachable before `svc-squire` accepts traffic.
+
+**MTD vs RTO clarification:** The Maximum Tolerable Downtime values in this BCP are the hard ceilings beyond which business impact becomes unacceptable. The matching Recovery Time Objective values in GRC-DRP-001 Section 3.1 are tighter operational targets (e.g., 1 hour MTD vs 30-minute RTO for `svc-db`). RTO is the target; MTD is the absolute limit.
 
 ---
 
@@ -192,6 +202,7 @@ If the primary DigitalOcean region is unavailable:
 | Audience | Trigger | Channel | Owner |
 |----------|---------|---------|-------|
 | Dependent service consumers | Extended outage (>1 hour) | Status page or direct notification | System Owner |
+<!-- TODO(et): Verify the DigitalOcean account is on a paid priority support tier. If on the free tier, remove "priority support tier" language from contact tables. -->
 | Cloud provider support | Provider-side incident suspected | Provider support portal | System Owner |
 | Compliance stakeholders | Data loss or integrity event | Written incident report | Information Security Officer |
 

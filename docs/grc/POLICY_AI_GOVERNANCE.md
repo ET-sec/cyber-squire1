@@ -1,7 +1,7 @@
 # AI Governance and Risk Management Policy
 
 **Document ID:** POL-AI-001
-**Version:** 1.0
+**Version:** 1.2
 **Classification:** Internal Use Only
 **Effective Date:** 2026-03-11
 **Review Date:** 2027-03-11
@@ -16,9 +16,9 @@
 |-------|-------|
 | Policy Title | AI Governance and Risk Management Policy |
 | Document ID | POL-AI-001 |
-| Version | 1.0 |
+| Version | 1.2 |
 | Status | Approved |
-| Last Revised | 2026-03-11 |
+| Last Revised | 2026-04-24 |
 | Next Review | 2027-03-11 |
 | Author | Information Security Officer |
 | Approver | System Owner |
@@ -29,12 +29,13 @@
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-11 | Information Security Officer | Initial policy creation |
+| 1.2 | 2026-04-24 | Information Security Officer | Phase 17 plan 17-14 Squire integration added; AI-004 (svc-squire) and AI-005 (svc-nemo) registered in Section 4.1; embedding model claim corrected to voyage-3-large |
 
 ---
 
 ## 1. Purpose
 
-This policy establishes the governance framework for the responsible design, deployment, operation, monitoring, and retirement of artificial intelligence (AI) systems within the Organization security operations platform. It defines risk management processes specific to AI workloads, assigns accountability for AI decisions, and mandates controls that address the unique threat categories introduced by AI systems - including hallucination, prompt injection, data poisoning, model drift, bias propagation, and AI supply chain compromise.
+This policy establishes the governance framework for the responsible design, deployment, operation, monitoring, and retirement of artificial intelligence (AI) systems within the Organization security operations platform. It defines risk management processes specific to AI workloads, assigns accountability for AI decisions, and mandates controls that address the unique threat categories introduced by AI systems, including hallucination, prompt injection, data poisoning, model drift, bias propagation, and AI supply chain compromise.
 
 The Organization operates production AI systems that process operational data, generate automated outputs consumed by downstream workflows, and interact with external users via messaging integrations. These capabilities introduce risks that extend beyond traditional information security and require dedicated governance aligned with international AI management standards.
 
@@ -142,8 +143,11 @@ All AI systems within the authorization boundary are registered in the following
 | ID | System | Service | Model/Engine | Deployment | Data Flow | Risk Tier |
 |----|--------|---------|-------------|------------|-----------|-----------|
 | AI-001 | AI Agent Gateway | `svc-ai-gateway` (OpenClaw) | Claude Opus 4.7 (Anthropic API) | External API | Prompts sent to Anthropic; responses returned to messaging integration and `svc-automation` workflows | **High** |
+<!-- TODO(et): Verify Qwen 3 4B is the actually loaded Ollama model via `docker exec cd-service-ollama ollama list`. Model is pulled at runtime and not pinned in docker-compose.yaml. -->
 | AI-002 | Local LLM Inference | `svc-llm` (Ollama) | Qwen 3 4B | Local (on `alpha-node`) | All processing on-premises; no data leaves the node | **Medium** |
 | AI-003 | Voice Transcription | `svc-transcription` (Whisper) | Whisper base (open-weight) | Local (on `alpha-node`) | Audio processed locally; transcripts stored in workflow state | **Low** |
+| AI-004 | Squire Autonomous SOC Analyst | `svc-squire` | Claude Opus 4.7 (primary) and Sonnet 4.6 (secondary) via Anthropic API; voyage-3-large embeddings (1024-dim) via Voyage AI for pgvector RAG | External API (model and embeddings) | Sanitized alerts ingressed at `/alert`; prompts and retrieval embeddings sent to Anthropic and Voyage AI; responses persisted in `ir_investigations` table; advisory output only per `HITL_POLICY.md` | **High** |
+| AI-005 | NeMo Guardrails | `svc-nemo` | NVIDIA NeMo Guardrails (open-source rail engine) configured per `GUARDRAILS_CONFIGURATION.md` | Local (on `alpha-node`); rail engine invokes upstream model providers only via svc-squire | Pre-graph PII scanner plus input/output rails enforced before model calls; refusals logged to `ir_rail_events` | **High** |
 
 ### 4.2 AI System Classification Criteria
 
@@ -206,6 +210,7 @@ All AI systems within the authorization boundary are registered in the following
 In the current single-operator environment, the System Owner, Information Security Officer, and System Administrator roles are performed by the same individual. The following compensating controls maintain accountability:
 
 1. All AI system configuration changes are tracked through version-controlled infrastructure-as-code, providing an immutable change history.
+<!-- TODO(et): `svc-log-router` is not in SANITIZATION_KEY.md. Confirm whether this is intended as the sanitized alias for Fluentd or rename to `Fluentd` to match the access of other policies. -->
 2. AI interaction logs (prompts, responses, actions taken) are shipped to the monitoring platform via `svc-log-router`, creating an independent audit trail.
 3. Session recordings via `svc-gateway` capture all administrative actions on AI system containers.
 4. The Auditor role is performed through structured self-audit using the documented checklists in Section 15.2 or by an independent external party.
@@ -236,7 +241,7 @@ AI systems introduce threat categories beyond traditional information security r
 |-----------|----------|-------------|-------------------|-----------------|
 | AI-T01 | **Hallucination** | AI generates factually incorrect, fabricated, or nonsensical outputs that are presented as authoritative | AI-001, AI-002 | MAP 2.3, MEASURE 2.6 |
 | AI-T02 | **Prompt Injection** | Adversary crafts inputs that override system instructions, extract sensitive context, or cause unintended actions | AI-001, AI-002 | MANAGE 3.2, MEASURE 2.1 |
-| AI-T03 | **Data Poisoning** | Training data or fine-tuning data is manipulated to alter model behavior in attacker-controlled ways | AI-002 (if fine-tuned) | MAP 3.5, GOVERN 2.2 | *Note: Not assessed - no fine-tuning capability in current deployment. Risk accepted as Not Applicable.* |
+| AI-T03 | **Data Poisoning** | Training data or fine-tuning data is manipulated to alter model behavior in attacker-controlled ways | AI-002 (if fine-tuned) | MAP 3.5, GOVERN 2.2 | *Note: Not assessed. No fine-tuning capability in current deployment. Risk accepted as Not Applicable.* |
 | AI-T04 | **Model Drift** | Model behavior degrades or shifts over time due to changes in input distribution or provider-side model updates | AI-001 | MEASURE 2.6, MANAGE 4.1 |
 | AI-T05 | **Bias and Discrimination** | AI outputs reflect or amplify biases present in training data, producing inequitable or harmful results | AI-001, AI-002, AI-003 | MAP 2.1, MEASURE 2.1 |
 | AI-T06 | **AI Supply Chain Compromise** | Model weights, container images, or dependencies are tampered with, introducing backdoors or altered behavior | AI-001, AI-002, AI-003 | GOVERN 2.2, MANAGE 1.1 |
@@ -269,15 +274,15 @@ AI risks are scored using the same 5x5 semi-quantitative matrix defined in the R
 | AI-R06 | AI-T01 Hallucination | AI-002 | 5 (Very High) | 2 (Low) | 10 (Moderate) | Outputs consumed only by `svc-automation` with validation steps; smaller model restricted to non-critical tasks | 4 (High) | 2 (Low) | 8 (Moderate) | Mitigate |
 | AI-R07 | AI-T02 Prompt Injection | AI-002 | 2 (Low) | 3 (Moderate) | 6 (Low) | No external user input reaches `svc-llm` directly; internal-only access via Docker network | 1 (Very Low) | 2 (Low) | 2 (Low) | Accept |
 | AI-R08 | AI-T06 Supply Chain | AI-002 | 2 (Low) | 4 (High) | 8 (Moderate) | Trivy scanning of Ollama container; model weight checksum verification; no automatic model updates | 2 (Low) | 3 (Moderate) | 6 (Low) | Accept |
-| AI-R09 | AI-T08 Denial of Service | AI-001 | 3 (Moderate) | 2 (Low) | 6 (Low) | Rate limiting at `svc-ai-gateway`; API budget caps; fallback to `svc-llm` for degraded operation | 2 (Low) | 2 (Low) | 4 (Low) | Accept |
+| AI-R09 | AI-T08 Denial of Service | AI-001 | 3 (Moderate) | 2 (Low) | 6 (Low) | Rate limiting at `svc-ai-gateway`; API budget caps (daily ceiling defaulting to $5 USD, configurable via `ANTHROPIC_DAILY_CEILING_USD`); fallback to `svc-llm` for degraded operation | 2 (Low) | 2 (Low) | 4 (Low) | Accept |
 | AI-R10 | AI-T10 Model Extraction | AI-001 | 2 (Low) | 2 (Low) | 4 (Low) | System prompt stored server-side; no prompt reflection in responses; rate limiting prevents mass extraction | 1 (Very Low) | 2 (Low) | 2 (Low) | Accept |
 
 ### 6.4 AI Risk Treatment Strategies
 
 | Treatment | Active Mitigations | Target Date | Owner |
 |-----------|-------------------|-------------|-------|
-| AI-R03 (Supply Chain - AI-001) | Implement automated model version pinning with change detection alerting; formalize Anthropic vendor security review cadence | 2026-06-11 | Information Security Officer |
-| AI-R06 (Hallucination - AI-002) | Deploy output confidence scoring and automated rejection of low-confidence `svc-llm` outputs; restrict `svc-llm` task scope to classification and summarization only | 2026-06-11 | Information Security Officer |
+| AI-R03 (Supply Chain - AI-001) | Implement automated model version pinning with change detection alerting; formalize Anthropic vendor security review cadence | 2026-09-24 | Information Security Officer |
+| AI-R06 (Hallucination - AI-002) | Deploy output confidence scoring and automated rejection of low-confidence `svc-llm` outputs; restrict `svc-llm` task scope to classification and summarization only | 2026-09-24 | Information Security Officer |
 
 ---
 
@@ -421,8 +426,7 @@ No AI system within the Organization platform operates in a fully autonomous mod
 
 | Data Type | Retention Period | Disposal Method | Authority |
 |-----------|-----------------|-----------------|-----------|
-| AI prompt/response logs (monitoring platform) | 15 days (online) | Automatic expiration per monitoring platform retention policy | Monitoring platform SLA |
-| AI prompt/response logs (monitoring platform) | 15 days (online retention) | Monitoring platform default retention; extended archival to object storage planned but not yet operational | Information Security Officer |
+| AI prompt/response logs (monitoring platform) | 15 days (online); extended archival to encrypted object storage planned but not yet operational | Automatic expiration per monitoring platform retention policy | Monitoring platform SLA |
 | AI interaction audit records | 1 year | Manual review before disposal; secure deletion | System Owner |
 | Audio files (pre-transcription) | 0 days (not persisted) | Deleted immediately after transcription completes | Automated |
 | Transcripts | 90 days (workflow state) | Database record expiration | Information Security Officer |
@@ -456,7 +460,7 @@ Users interacting with AI-001 via the messaging integration SHALL be informed th
 
 1. They are communicating with an AI system, not a human.
 2. The AI system has limitations and may produce inaccurate information.
-3. Their messages are processed by a third-party AI provider (Anthropic).
+3. Their messages are processed by third-party AI providers (Anthropic for model inference; Voyage AI for retrieval embeddings in the Squire subsystem).
 4. They should not share sensitive personal information, passwords, or financial details in the conversation.
 5. AI responses do not constitute professional advice (legal, financial, medical, or otherwise).
 
@@ -495,7 +499,7 @@ External AI providers (currently: Anthropic for AI-001) SHALL be assessed using 
 
 | Provider | Service | Assessment Date | Risk Rating | Key Findings | Next Review |
 |----------|---------|-----------------|-------------|--------------|-------------|
-| Anthropic | Claude Opus 4.7 API | 2026-03-11 | **Medium** | No training on API data (confirmed); 30-day retention for abuse monitoring; SOC 2 Type II available; US-based processing; model safety testing documented | 2026-06-11 |
+| Anthropic | Claude Opus 4.7 API | 2026-03-11 | **Medium** | No training on API data (confirmed); 30-day retention for abuse monitoring; SOC 2 Type II available; US-based processing; model safety testing documented | 2026-09-24 |
 
 ### 11.3 AI Model Supply Chain Controls
 
@@ -620,7 +624,7 @@ For AI-002 (local model):
 
 ### 14.1 AI-Specific Incident Types
 
-The following incident types supplement the Incident Response Policy (POL-IR-001, `docs/grc/POLICY_INCIDENT_RESPONSE.md`):
+The following incident types supplement the Incident Response Policy (POL-IR-001, `docs/grc/POLICY_INCIDENT_RESPONSE.md`). Severity labels in this section map to the canonical P1 to P4 taxonomy defined in POL-IR-001 Section 4.1: Severity 1 = P1 (Critical), Severity 2 = P2 (High), Severity 3 = P3 (Medium), Severity 4 = P4 (Low).
 
 | Incident Type | Description | Severity | Reference Playbook |
 |--------------|-------------|----------|-------------------|
@@ -639,7 +643,7 @@ When an AI system exhibits anomalous behavior that does not clearly map to an ex
 2. **Isolate:** If behavior is potentially harmful, disable the AI system's external access by pausing the relevant `svc-automation` workflows. Do NOT delete the container (preserve forensic state).
 3. **Preserve evidence:** Capture current prompt/response logs, container logs, Falco events, and monitoring metrics for the affected time window.
 4. **Analyze:** Review interaction logs to identify the root cause (prompt injection, model drift, configuration error, or provider-side change).
-5. **Remediate:** Apply targeted fix - system prompt update, input filter adjustment, workflow modification, or model version rollback as appropriate.
+5. **Remediate:** Apply targeted fix such as system prompt update, input filter adjustment, workflow modification, or model version rollback as appropriate.
 6. **Validate:** Test the remediation in a controlled manner before restoring production traffic.
 7. **Restore:** Re-enable the AI system and confirm normal operation via monitoring metrics.
 8. **Document:** File an incident report per POL-IR-001 with AI-specific details: root cause, affected outputs, downstream impact, and corrective actions.
@@ -704,7 +708,7 @@ All audit evidence SHALL be collected from the following authoritative sources:
 
 ## 16. Enforcement
 
-Violation of this policy - including but not limited to deploying AI systems without governance review, disabling human oversight controls, injecting credentials into AI prompts, bypassing output validation, or operating AI systems outside approved data flow boundaries - will result in disciplinary action up to and including immediate revocation of all system access.
+Violation of this policy, including but not limited to deploying AI systems without governance review, disabling human oversight controls, injecting credentials into AI prompts, bypassing output validation, or operating AI systems outside approved data flow boundaries, will result in disciplinary action up to and including immediate revocation of all system access.
 
 AI systems found to be operating in violation of this policy SHALL be immediately suspended pending investigation and remediation. Restoration of service requires a fresh governance review per Section 7.3.
 
@@ -760,7 +764,7 @@ All AI-related actions are logged, correlated, and subject to audit. Personnel s
 | **Human-on-the-loop** | An oversight model where AI operates autonomously for routine tasks but a human monitors operations and can intervene |
 | **Human-in-command** | An oversight model where a human retains the ability to override, modify, or shut down the AI system at any time |
 | **Model Inversion** | An attack that reconstructs training data or extracts private information from a model by observing its outputs |
-| **SBOM** | Software Bill of Materials - a formal record of components and dependencies within a software artifact |
+| **SBOM** | Software Bill of Materials: a formal record of components and dependencies within a software artifact |
 | **Cosign** | A container image signing tool that provides cryptographic verification of image provenance and integrity |
 
 ---
@@ -771,7 +775,7 @@ All AI-related actions are logged, correlated, and subject to audit. Personnel s
 
 The Squire autonomous SOC analyst is deployed under the NIST AI RMF and ISO 42001 requirements codified in this policy. The following Squire-scope documents implement the policy for the Squire subsystem:
 
-- `SQUIRE_MODEL_CARD.md` implements model transparency with a Mitchell et al. card covering Opus 4.7 primary, Sonnet 4.6 routing, and text-embedding-3-large for pgvector RAG.
+- `SQUIRE_MODEL_CARD.md` implements model transparency with a Mitchell et al. card covering Opus 4.7 primary, Sonnet 4.6 routing, and voyage-3-large (1024-dim) embeddings via Voyage AI for pgvector RAG.
 - `AI_SUPPLY_CHAIN_REGISTER.md` implements supply chain governance as a living register of 14 components with version, license, hash, and 60-day review cadence.
 - `HITL_POLICY.md` implements human oversight with HIGH and CRITICAL severity gating, action approval flow, and ephemeral token rotation at 60-day production cadence plus per-interview revocation.
 - `SQUIRE_AI_RISK_ASSESSMENT.md` implements AI risk assessment using NIST AI RMF plus CSA Agentic Profile across 10 risks.
