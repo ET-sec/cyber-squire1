@@ -1,0 +1,102 @@
+name: grc_librarian Eval (Promptfoo)
+
+on:
+  push:
+    branches: ["main", "dev"]
+    paths:
+      - "builds/grc_librarian/**"
+      - ".github/workflows/grc-librarian-eval.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "builds/grc_librarian/**"
+      - ".github/workflows/grc-librarian-eval.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  promptfoo-eval:
+    name: Promptfoo Adversarial Eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
+
+      - name: Install Promptfoo
+        run: npm install -g promptfoo@latest
+
+      - name: Run eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        working-directory: builds/grc_librarian
+        run: |
+          set -euo pipefail
+          promptfoo eval \
+            --config promptfoo.yaml \
+            --output ../../promptfoo-results.json \
+            --no-write
+        continue-on-error: true
+
+      - name: Compute pass rate
+        id: passrate
+        run: |
+          set -euo pipefail
+          if [ ! -f promptfoo-results.json ]; then
+            echo "pass_rate=0" >> "$GITHUB_OUTPUT"
+            echo "::error::Promptfoo did not produce results"
+            exit 1
+          fi
+          PASS=$(jq '[.results.results[] | select(.success == true)] | length' promptfoo-results.json)
+          TOTAL=$(jq '.results.results | length' promptfoo-results.json)
+          if [ "$TOTAL" = "0" ]; then
+            echo "pass_rate=0" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          RATE=$(awk "BEGIN { printf \"%.2f\", ($PASS / $TOTAL) * 100 }")
+          echo "pass_rate=$RATE" >> "$GITHUB_OUTPUT"
+          echo "Pass rate: $RATE% ($PASS / $TOTAL)"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: promptfoo-results
+          path: promptfoo-results.json
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const passRate = "${{ steps.passrate.outputs.pass_rate }}";
+            const threshold = 90;
+            const passed = parseFloat(passRate) >= threshold;
+            const emoji = passed ? "PASS" : "FAIL";
+            const body = `## grc_librarian Promptfoo Eval ${emoji}\n\nPass rate: **${passRate}%** (threshold: ${threshold}%)\n\nFull results in the workflow artifact \`promptfoo-results\`.`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      - name: Enforce threshold
+        run: |
+          set -euo pipefail
+          RATE="${{ steps.passrate.outputs.pass_rate }}"
+          THRESHOLD=90
+          if (( $(awk "BEGIN { print ($RATE < $THRESHOLD) }") )); then
+            echo "::error::Pass rate $RATE% below threshold $THRESHOLD%"
+            exit 1
+          fi
+          echo "Pass rate $RATE% meets threshold $THRESHOLD%"

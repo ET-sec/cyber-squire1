@@ -1,0 +1,70 @@
+name: Compose Admission (Conftest + OPA)
+
+on:
+  push:
+    branches: ["main", "dev"]
+    paths:
+      - "COREDIRECTIVE_ENGINE/docker-compose.yaml"
+      - "infra/conftest/**"
+      - ".github/workflows/compose-admission.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "COREDIRECTIVE_ENGINE/docker-compose.yaml"
+      - "infra/conftest/**"
+      - ".github/workflows/compose-admission.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  conftest:
+    name: Conftest Policy Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install Conftest
+        run: |
+          set -euo pipefail
+          CONFTEST_VERSION=0.56.0
+          curl -fsSL "https://github.com/open-policy-agent/conftest/releases/download/v${CONFTEST_VERSION}/conftest_${CONFTEST_VERSION}_Linux_x86_64.tar.gz" \
+            | tar xz conftest
+          sudo mv conftest /usr/local/bin/conftest
+          conftest --version
+
+      - name: Test compose against policy
+        id: conftest-test
+        run: |
+          set -euo pipefail
+          conftest test \
+            COREDIRECTIVE_ENGINE/docker-compose.yaml \
+            --policy infra/conftest/policy/ \
+            --output table \
+            | tee conftest-results.txt
+
+      - name: Upload results artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: conftest-results
+          path: conftest-results.txt
+          retention-days: 30
+
+      - name: Comment on PR with violations
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('conftest-results.txt', 'utf8');
+            const body = `## Compose Admission Policy Failed\n\n\`\`\`\n${results}\n\`\`\`\n\nReview policy at \`infra/conftest/policy/\` and the architecture doc at \`infra/conftest/README.md\`.`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
