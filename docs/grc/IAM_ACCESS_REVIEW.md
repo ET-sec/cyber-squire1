@@ -249,7 +249,7 @@ ssh alpha-node 'docker exec svc-gateway tctl recordings ls'
 | NeMo rail config audit | 60 days | 2026-06-22 | `svc-nemo-config` git log |
 | AI supply chain register review | 60 days | 2026-06-22 | AI_SUPPLY_CHAIN_REGISTER.md |
 
-<!-- TODO(et): verify the `squire` database/user exists in cd-service-db with the credentials referenced in the commands below; confirm gateway-config.yaml on production still has operator request.roles: ['admin']. Last verified 2026-03-11. -->
+<!-- TODO(et): verify the `squire` database/user exists in svc-db with the credentials referenced in the commands below; confirm gateway-config.yaml on production still has operator request.roles: ['admin']. Last verified 2026-03-11. -->
 
 **5.7.1 Phase 17 token rotation check commands**
 

@@ -4,7 +4,7 @@ title: "OWASP MCP Top 10 Audit: grc_mcp_server.py (agent_id fastmcp_grc_corpus)"
 doc_type: security_audit
 classification: PUBLIC
 owasp_framework: "OWASP MCP Top 10 2025 beta v0.1"
-auditor: "CoreDirective Phase 20 (CoSAI Visibility)"
+auditor: "Organization Phase 20 (CoSAI Visibility)"
 audit_date: 2026-05-31
 audit_refreshed: 2026-06-24
 target_file: scripts/grc/grc_mcp_server.py
@@ -19,7 +19,7 @@ related:
 # OWASP MCP Top 10 Audit: grc_mcp_server.py (agent_id fastmcp_grc_corpus)
 
 **Framework:** OWASP MCP Top 10 2025 beta v0.1
-**Auditor:** CoreDirective Phase 20 (CoSAI Visibility)
+**Auditor:** Organization Phase 20 (CoSAI Visibility)
 **Audit date:** 2026-05-31
 **In-scope:** `scripts/grc/grc_mcp_server.py` (5 FastMCP tools, stdio transport, local-only)
 **Agent identity:** `fastmcp_grc_corpus` (per `.agents/registry.yaml`)

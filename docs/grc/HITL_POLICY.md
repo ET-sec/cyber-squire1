@@ -130,7 +130,7 @@ Squire's HITL surface depends on token hygiene. Two distinct token populations a
 
 | Population | Purpose | Consumers | Storage |
 |------------|---------|-----------|---------|
-| Production webhook token (`SQUIRE_WEBHOOK_TOKEN`) | Authenticates svc-n8n, Falco alert router, Datadog forwarder | Internal integrations on alpha-node and in the ops fabric | Doppler `coredirective-engine/prd` |
+| Production webhook token (`SQUIRE_WEBHOOK_TOKEN`) | Authenticates svc-n8n, Falco alert router, Datadog forwarder | Internal integrations on alpha-node and in the ops fabric | Doppler `<SECRETS_PROJECT>/<CONFIG>` |
 | Per-interview ephemeral tokens (`SQUIRE_INTERVIEW_TOKENS` additive allow-list) | Short-lived demo access for interviewers | Human visitors with a signed interview link | Doppler, regenerated per session |
 
 The populations are deliberately separate. A demo token leak during an interview must not compromise the production webhook population.
@@ -151,7 +151,7 @@ Rotation command sequence (run from a Teleport-gated session):
 ```bash
 # Generate and set new production token in Doppler
 doppler secrets set SQUIRE_WEBHOOK_TOKEN="$(openssl rand -hex 48)" \
-  --project coredirective-engine --config prd
+  --project <SECRETS_PROJECT> --config prd
 
 # Reload svc-squire on alpha-node to pick up the new token
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
@@ -185,7 +185,7 @@ TOKEN_INTERVIEW=$(openssl rand -hex 24)
 # Append to the additive allow-list in Doppler
 CURRENT=$(doppler secrets get SQUIRE_INTERVIEW_TOKENS --plain 2>/dev/null)
 doppler secrets set SQUIRE_INTERVIEW_TOKENS="${CURRENT:+${CURRENT},}${TOKEN_INTERVIEW}" \
-  --project coredirective-engine --config prd
+  --project <SECRETS_PROJECT> --config prd
 
 # Reload svc-squire on alpha-node
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
@@ -197,7 +197,7 @@ ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
 REMAINING=$(doppler secrets get SQUIRE_INTERVIEW_TOKENS --plain | \
   tr ',' '\n' | grep -v "^${TOKEN_INTERVIEW}$" | paste -sd, -)
 doppler secrets set SQUIRE_INTERVIEW_TOKENS="$REMAINING" \
-  --project coredirective-engine --config prd
+  --project <SECRETS_PROJECT> --config prd
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
 ```
 

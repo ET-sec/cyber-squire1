@@ -397,7 +397,7 @@ Applies to all 19 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
 
 - [ ] **Step 4.4**: Rotate ALL secrets the compromised container had access to:
  1. Identify all secrets from Step 2.6
- 2. Generate new credentials in the secrets manager (Doppler is the source of truth: `doppler secrets set <KEY> "<new value>" --project coredirective-engine --config prd`)
+ 2. Generate new credentials in the secrets manager (Doppler is the source of truth: `doppler secrets set <KEY> "<new value>" --project <SECRETS_PROJECT> --config prd`)
  3. Update the compose `.env` file on `alpha-node` if a non-Doppler value is involved
  4. Update all consuming services
 
@@ -412,7 +412,7 @@ Applies to all 19 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
  docker exec svc-gateway tctl auth rotate --type=host
  ```
 
-- [ ] **Step 4.6**: Review and harden the container's configuration. Reference CIS_RISK_REGISTER.md for accepted exceptions (e.g., `cd-service-falco` requires SYS_ADMIN and is excepted from no-new-privileges).
+- [ ] **Step 4.6**: Review and harden the container's configuration. Reference CIS_RISK_REGISTER.md for accepted exceptions (e.g., `svc-falco` requires SYS_ADMIN and is excepted from no-new-privileges).
  - Ensure `no-new-privileges` security option is set
  - Verify the container runs as a non-root user where possible
  - Confirm read-only filesystem where applicable

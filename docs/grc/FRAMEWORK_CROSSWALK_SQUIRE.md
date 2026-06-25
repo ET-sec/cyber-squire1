@@ -289,7 +289,7 @@ Primary evidence file: `docs/grc/SQUIRE_SSP.md` Section 6 (Control Implementatio
 - AC family: `builds/squire/src/squire/app.py` (require_token), `builds/squire/docker-compose.yaml` networks
 - AU family: Langfuse trace views and `svc-db` migrations `ir_*` schema. Audit-event emission lives in the graph nodes themselves, not a single `audit.py` module. <!-- TODO(et): if a dedicated `builds/squire/src/squire/audit.py` is added later, update this row. -->
 - CM family: `builds/squire/Dockerfile`, `builds/squire/requirements.txt`, `.github/workflows/squire-ci.yml`
-- IA family: Doppler project `coredirective-engine`, secret audit log
+- IA family: Doppler project `<SECRETS_PROJECT>`, secret audit log
 - IR family: `docs/grc/PLAYBOOK_AI_INCIDENT.md`, Datadog monitor definitions
 - RA family: `docs/grc/SQUIRE_AI_RISK_ASSESSMENT.md`, Trivy CI artifacts
 - SA family: `builds/squire/tests/`, `builds/squire/pyproject.toml`
