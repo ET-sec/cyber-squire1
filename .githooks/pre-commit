@@ -1,64 +1,106 @@
 #!/usr/bin/env bash
-# pre-commit hook: runs the GTA AI-tells sweep against staged markdown files.
+# pre-commit hook: keeps canonical artifacts in sync with source.
 #
-# BLOCKS commits with:
-#   - em dashes (—)
-#   - en dashes (–)
-#   - double-hyphen prose ( -- between words)
-# These are unambiguous voice violations and have a deterministic fix.
+# Two jobs:
 #
-# WARNS (does not block) on:
-#   - AI-tell phrases (leveraging, robust, seamlessly, etc.)
-#   - "not X. Y." juxtaposition
-# These can be legitimate in context. Human review decides.
+# 1. AI-tells sweep on staged markdown
+#    BLOCKS commits with em dashes, en dashes, or double-hyphen prose.
+#    WARNS on AI-tell phrases and "not X. Y." juxtaposition.
+#
+# 2. Canonical metric rebuild
+#    When staged changes touch docs/grc/, terraform/, detections/,
+#    .github/workflows/, or COREDIRECTIVE_ENGINE/docker-compose.yaml,
+#    rerun scripts/build_metrics.py and the GTA build_manifest.py.
+#    Stage the regenerated metrics.yaml + REPO_MAP.yaml so they ride
+#    into the same commit. Metrics drift is impossible by construction.
 #
 # Install: git config core.hooksPath .githooks
 # Bypass:  git commit --no-verify  (NOT recommended)
 
 set -euo pipefail
 
-SWEEP_SCRIPT="${HOME}/.claude/skills/gta/scripts/sweep_ai_tells.py"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+GTA_DIR="${HOME}/.claude/skills/gta"
+SWEEP_SCRIPT="${GTA_DIR}/scripts/sweep_ai_tells.py"
+MANIFEST_SCRIPT="${GTA_DIR}/scripts/build_manifest.py"
+METRICS_SCRIPT="${REPO_ROOT}/scripts/build_metrics.py"
 
-if [ ! -x "$SWEEP_SCRIPT" ]; then
-  echo "pre-commit: GTA sweep script not found at $SWEEP_SCRIPT, skipping"
-  exit 0
+STAGED_ALL=$(git diff --cached --name-only --diff-filter=ACM || true)
+STAGED_MD=$(echo "$STAGED_ALL" | grep -E '\.md$' || true)
+
+# Patterns that should trigger metrics rebuild.
+METRIC_SOURCES_RE='^(docs/grc/|terraform/|detections/|\.github/workflows/|COREDIRECTIVE_ENGINE/docker-compose\.ya?ml$)'
+STAGED_SOURCE=$(echo "$STAGED_ALL" | grep -E "$METRIC_SOURCES_RE" || true)
+
+# ---------------------------------------------------------------------------
+# Job 1: AI-tells sweep
+# ---------------------------------------------------------------------------
+
+if [ -n "$STAGED_MD" ] && [ -x "$SWEEP_SCRIPT" ]; then
+  echo "pre-commit: AI-tells sweep on staged markdown..."
+  OUTPUT=$(python3 "$SWEEP_SCRIPT" $STAGED_MD 2>&1) || true
+
+  if echo "$OUTPUT" | grep -qE 'em=[1-9]|en=[1-9]|dashes=[1-9]'; then
+    echo
+    echo "pre-commit: BLOCKED. Em dashes, en dashes, or double-hyphens in staged files."
+    echo
+    echo "$OUTPUT" | grep -E 'em=|en=|dashes='
+    echo
+    echo "Auto-fix:"
+    echo "  python3 $SWEEP_SCRIPT --apply $STAGED_MD"
+    echo "  git add $STAGED_MD"
+    echo "  git commit"
+    exit 1
+  fi
+
+  if echo "$OUTPUT" | grep -qE 'ai_tells=|juxt='; then
+    echo
+    echo "pre-commit: WARNING. AI-tell phrases or juxtaposition found."
+    echo "$OUTPUT" | grep -E 'ai_tells=|juxt='
+    echo "Review with: python3 $SWEEP_SCRIPT -v $STAGED_MD"
+    echo "Proceeding with commit. Fix later if review confirms violation."
+  fi
+elif [ -n "$STAGED_MD" ] && [ ! -x "$SWEEP_SCRIPT" ]; then
+  echo "pre-commit: sweep script missing at $SWEEP_SCRIPT, skipping AI-tells job"
 fi
 
-STAGED_MD=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.md$' || true)
+# ---------------------------------------------------------------------------
+# Job 2: canonical metric rebuild
+# ---------------------------------------------------------------------------
 
-if [ -z "$STAGED_MD" ]; then
-  exit 0
+if [ -n "$STAGED_SOURCE" ]; then
+  echo "pre-commit: source files touched, rebuilding metrics.yaml..."
+
+  if [ -x "$METRICS_SCRIPT" ]; then
+    if python3 "$METRICS_SCRIPT" >/dev/null; then
+      if ! git diff --quiet -- metrics.yaml 2>/dev/null; then
+        git add metrics.yaml
+        echo "pre-commit: metrics.yaml rebuilt and staged."
+      else
+        echo "pre-commit: metrics.yaml unchanged."
+      fi
+    else
+      echo "pre-commit: BLOCKED. build_metrics.py failed. Fix and retry."
+      exit 1
+    fi
+  else
+    echo "pre-commit: METRICS_SCRIPT missing at $METRICS_SCRIPT, skipping metrics rebuild"
+  fi
+
+  if [ -x "$MANIFEST_SCRIPT" ]; then
+    echo "pre-commit: rebuilding REPO_MAP.yaml..."
+    if python3 "$MANIFEST_SCRIPT" --repo-root "$REPO_ROOT" >/dev/null; then
+      if ! git diff --quiet -- REPO_MAP.yaml 2>/dev/null; then
+        git add REPO_MAP.yaml
+        echo "pre-commit: REPO_MAP.yaml rebuilt and staged."
+      else
+        echo "pre-commit: REPO_MAP.yaml unchanged."
+      fi
+    else
+      echo "pre-commit: WARNING. build_manifest.py failed. Proceeding without REPO_MAP refresh."
+    fi
+  fi
 fi
 
-echo "pre-commit: running AI-tells sweep on staged markdown..."
-OUTPUT=$(python3 "$SWEEP_SCRIPT" $STAGED_MD 2>&1) || true
-
-# Hard block: em dashes, en dashes, double-hyphens
-if echo "$OUTPUT" | grep -qE 'em=[1-9]|en=[1-9]|dashes=[1-9]'; then
-  echo ""
-  echo "pre-commit: BLOCKED. Em dashes, en dashes, or double-hyphens in staged files."
-  echo ""
-  echo "$OUTPUT" | grep -E 'em=|en=|dashes='
-  echo ""
-  echo "Auto-fix:"
-  echo "  python3 $SWEEP_SCRIPT --apply $STAGED_MD"
-  echo "  git add $STAGED_MD"
-  echo "  git commit"
-  exit 1
-fi
-
-# Soft warn: AI-tell phrases and juxtaposition
-if echo "$OUTPUT" | grep -qE 'ai_tells=|juxt='; then
-  echo ""
-  echo "pre-commit: WARNING. AI-tell phrases or juxtaposition found."
-  echo ""
-  echo "$OUTPUT" | grep -E 'ai_tells=|juxt='
-  echo ""
-  echo "These can be legitimate in context. Review with:"
-  echo "  python3 $SWEEP_SCRIPT -v $STAGED_MD"
-  echo ""
-  echo "Proceeding with commit. Fix later if review confirms violation."
-fi
-
-echo "pre-commit: AI-tells sweep done (no hard violations)"
+echo "pre-commit: done."
 exit 0
