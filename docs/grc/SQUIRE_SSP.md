@@ -120,7 +120,7 @@ The authorization boundary encompasses:
 - The `ir_*` schema within `svc-db` (Postgres 16 + pgvector 0.7)
 - The Cloudflare tunnel routes for `squire.example-ops.com` and `langfuse.example-ops.com`
 - `actions.yml` (recommend-only allow-list) and the Colang rail files under `builds/squire/app/rails/`
-- Configuration managed through Doppler project `coredirective-engine`, config `prd`
+- Configuration managed through Doppler project `<SECRETS_PROJECT>`, config `prd`
 
 Out of boundary:
 

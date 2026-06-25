@@ -56,7 +56,7 @@ The reference deployment processes synthetic alerts against a sanitized GRC corp
 
 **Schema migration applied alongside this decision:** `builds/squire/migrations/002_vector_1024.sql` drops the original `vector(1536)` column and replaces it with `vector(1024)`, recreating the HNSW index on the new column. This migration runs before bulk ingest since `ir_chunks` is empty at this point.
 
-<!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `coredirective-engine/prd`. The compose env block on cd-service-squire references this key; missing key causes runtime failure on first embed call. -->
+<!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `<SECRETS_PROJECT>/<CONFIG>`. The compose env block on svc-squire references this key; missing key causes runtime failure on first embed call. -->
 
 ## Consequences for Customer Deployments
 

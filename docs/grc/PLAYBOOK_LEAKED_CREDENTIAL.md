@@ -274,10 +274,10 @@ Applies to all secrets managed by the Organization, including but not limited to
  docker exec svc-gateway tctl auth rotate --type=host --grace-period=12h
  ```
 
-- [ ] **Step 2.2**: Update the new credential in the secrets manager. Doppler is the source of truth (44 secrets in `coredirective-engine/prd`).
+- [ ] **Step 2.2**: Update the new credential in the secrets manager. Doppler is the source of truth (44 secrets in `<SECRETS_PROJECT>/<CONFIG>`).
  ```bash
  # Update the secret in Doppler. Verify without echoing the value.
- doppler secrets set <KEY> "<new value>" --project coredirective-engine --config prd
+ doppler secrets set <KEY> "<new value>" --project <SECRETS_PROJECT> --config prd
  doppler secrets get <KEY> --plain | wc -c   # length sanity check only; never print value
  ```
 
@@ -286,7 +286,7 @@ Applies to all secrets managed by the Organization, including but not limited to
  # Update the .env file on the node
  ssh root@10.100.1.10 "vim /opt/platform/.env"
  # OR run with Doppler injection so the value never lands on disk:
- # doppler run --project coredirective-engine --config prd, docker compose up -d
+ # doppler run --project <SECRETS_PROJECT> --config prd, docker compose up -d
  ```
 
 - [ ] **Step 2.4**: Restart all services that consume the rotated credential:

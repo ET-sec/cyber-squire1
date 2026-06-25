@@ -435,7 +435,7 @@ After the security-scan gate passes, the `container-verification` job verifies c
 | `langfuse/langfuse-worker:3@sha256:f8a...` | langfuse-worker | Docker Hub |
 | `langfuse/langfuse:3@sha256:cdf...` | langfuse-web | Docker Hub |
 
-Two services (`cd-service-nemo` and `cd-service-squire`) build locally from Dockerfiles and are not pulled from public registries; they ship under the `:dev` tag and are signed at promotion time. <!-- TODO(et): when nemo and squire images move to a registry, add Cosign verification rows here. -->
+Two services (`svc-nemo` and `svc-squire`) build locally from Dockerfiles and are not pulled from public registries; they ship under the `:dev` tag and are signed at promotion time. <!-- TODO(et): when nemo and squire images move to a registry, add Cosign verification rows here. -->
 
 **Verification flow:**
 

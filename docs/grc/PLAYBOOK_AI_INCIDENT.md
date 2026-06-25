@@ -148,7 +148,7 @@ Applies to all three AI systems within the authorization boundary and their down
 | AI-002 | Local LLM | svc-llm (Ollama) running `<MODEL_NAME>` | Ollama registry (pulled locally) | Internal |
 | AI-003 | Transcription | svc-transcription (Whisper) | Open-weight (local) | Internal |
 
-<!-- TODO(et): verify deployed Ollama model name via `ssh cd-alpha "docker exec cd-service-ollama ollama list"` and replace <MODEL_NAME> placeholder throughout this playbook -->
+<!-- TODO(et): verify deployed Ollama model name via `ssh engine-host "docker exec svc-ollama ollama list"` and replace <MODEL_NAME> placeholder throughout this playbook -->
 
 **Downstream consumers in scope:**
 - svc-automation: orchestration workflows triggered by AI outputs (16 action types, 14 currently operational; `workspace_admin` and `excel` need OAuth re-auth)
