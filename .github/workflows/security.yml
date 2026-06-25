@@ -17,20 +17,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
 
       # --- Secrets Detection ---
       - name: Gitleaks — Detect hardcoded secrets
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
       # --- Filesystem / Dependency Scan ---
       - name: Trivy — Scan repo for CVEs and misconfigs
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@cf5c088a69634cd13ccddc735d7926162c31f9a6 # master
         with:
           scan-type: "fs"
           scan-ref: "."
@@ -42,14 +42,14 @@ jobs:
           skip-dirs: "DEPRECATED"
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
         if: always()
         with:
           sarif_file: "trivy-results.sarif"
 
       # --- Static Analysis (SAST) ---
       - name: Semgrep — SAST security audit
-        uses: semgrep/semgrep-action@v1
+        uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
           config: >-
             p/security-audit
@@ -76,7 +76,7 @@ jobs:
       - name: Snyk Open Source dependency scan
         if: steps.snyk_token.outputs.present == 'true'
         continue-on-error: true
-        uses: snyk/actions/python@master
+        uses: snyk/actions/python@8e119fbb6c251787721d34ba683ed48eba792766 # master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -85,7 +85,7 @@ jobs:
 
       - name: Upload Snyk SARIF results
         if: steps.snyk_token.outputs.present == 'true' && always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
         with:
           sarif_file: snyk-results.sarif
           category: snyk
@@ -93,7 +93,7 @@ jobs:
       - name: Snyk Container scan (Squire image)
         if: steps.snyk_token.outputs.present == 'true' && hashFiles('builds/squire/Dockerfile') != ''
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@8e119fbb6c251787721d34ba683ed48eba792766 # master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -102,7 +102,7 @@ jobs:
 
       - name: Upload Snyk container SARIF
         if: steps.snyk_token.outputs.present == 'true' && always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
         with:
           sarif_file: snyk-container.sarif
           category: snyk-container
@@ -121,10 +121,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
           terraform_wrapper: false
 
@@ -175,10 +175,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4.0.0
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
       - name: Verify upstream image signatures
         continue-on-error: true
@@ -251,11 +251,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       # --- Repository filesystem SBOM ---
       - name: SBOM — Repository filesystem
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           path: "."
           format: "spdx-json"
@@ -265,7 +265,7 @@ jobs:
 
       # --- Per-image SBOMs ---
       - name: SBOM — postgres:16-alpine
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: postgres:16-alpine
           format: spdx-json
@@ -274,7 +274,7 @@ jobs:
 
 
       - name: SBOM — n8nio/n8n:latest
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: n8nio/n8n:latest
           format: spdx-json
@@ -283,7 +283,7 @@ jobs:
 
 
       - name: SBOM — hashicorp/vault:1.15
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: hashicorp/vault:1.15
           format: spdx-json
@@ -292,7 +292,7 @@ jobs:
 
 
       - name: SBOM — datadog/agent:latest
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: datadog/agent:latest
           format: spdx-json
@@ -301,7 +301,7 @@ jobs:
 
 
       - name: SBOM — cloudflare/cloudflared:latest
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: cloudflare/cloudflared:latest
           format: spdx-json
