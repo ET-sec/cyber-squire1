@@ -94,7 +94,7 @@ scripts/                   Helper scripts (git workflow, etc.)
 
 ## Guidelines for AI Agents
 
-1. Use `cd-*` prefixes for any new components
+1. Use `svc-*` prefixes for new service components (matches the public sanitized naming convention used throughout `docs/grc/`)
 2. Read SECURITY.md for disclosure policy and CONTRIBUTING.md for workflow rules. Compliance context lives in `docs/grc/`.
 3. Never commit `.env`, `*.pem`, `*.key`, `terraform.tfstate`, or any file matching `.gitignore` patterns
 4. Terraform changes go through PR pipeline (fmt, validate, Checkov, OPA)

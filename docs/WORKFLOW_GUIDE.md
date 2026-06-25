@@ -129,16 +129,18 @@ The PR is then reviewed and merged through the standard flow.
 
 ## Follow-up work (separate PRs later)
 
-Each of these is its own scoped PR when ready:
+Already shipped 2026-06-25:
+- CodeQL workflow (PR #18)
+- README badges + issue templates + repo About metadata (PR #19)
+- Hide private folder names via single `CoreDirective/` gitignore rule (PR #20)
+- Pin all GitHub Actions to commit SHAs (PR #21)
 
-- **CI trigger migration**: move existing workflows from `push: main` to `pull_request: main` so CI gates at the PR
-- **Pin action SHAs**: replace `actions/checkout@v4` with commit-SHA-pinned versions for supply chain security
-- **GPG signing setup**: enable signed commits locally, then require signed commits in branch protection
-- **CodeQL workflow**: add GitHub's free code scanning
-- **README badges**: CI status, license, SLSA level, secret scanning
+Still queued, each its own scoped PR when ready:
+
+- **GPG commit signing**: generate a GPG key on the laptop, upload to GitHub, then require signed commits in branch protection
+- **Compose admission + grc_librarian eval workflows**: bundled re-ship (sanitize `infra/conftest/` first, re-include `builds/grc_librarian/` in `.gitignore`, add `ANTHROPIC_API_KEY` secret in GitHub Actions, then track deps and re-open both workflows together)
+- **Branch protection ruleset migration**: move from legacy branch protection to GitHub Rulesets so path-filtered checks can be "required if started" instead of unconditionally required
 - **GitHub Discussions or Wiki**: architecture decision log
-- **Issue templates**: bug, feature, security disclosure, GTA finding
-- **About section**: repo description, topics, homepage link
 
 ## When this discipline pays off
 
