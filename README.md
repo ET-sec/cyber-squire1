@@ -62,11 +62,11 @@ DigitalOcean Droplet (4 vCPU / 8GB RAM) -- Ubuntu 24.04            $48/mo
 | NIST 800-53 Controls Mapped | 133 |
 | Control Coverage | 86% (114/133 implemented or partial) |
 | Monthly Infrastructure | $48 |
-| CI/CD Security Scans | 6 (Trivy, Semgrep, Gitleaks, Checkov, Cosign, SBOM) |
+| CI/CD Security Scans | 10 (Trivy, Semgrep, Gitleaks, Checkov, Snyk OSS, CodeQL, OWASP ZAP DAST, Cosign, SBOM, Container Image Verify) |
 | GRC Documents | 58 policies, plans, playbooks, threat models, and AI security artifacts |
 | GRC Diagrams | 16 PNGs (network topology, data flow, control coverage, risk heat map, AI pipeline) |
 | OPA Policy Rules | 8 Rego policies enforced on every PR |
-| Terraform Files | 16 .tf files managing DigitalOcean + Cloudflare |
+| Terraform Files | 20 .tf files managing DigitalOcean + Cloudflare |
 
 ---
 
@@ -98,7 +98,7 @@ All documents are sanitized for public hosting. Personal identifiers and interna
 
 ## Infrastructure as Code
 
-16 Terraform files in [`terraform/cd-do-infrastructure/`](terraform/cd-do-infrastructure/) managing DigitalOcean and Cloudflare resources.
+20 Terraform files in [`terraform/cd-do-infrastructure/`](terraform/cd-do-infrastructure/) managing DigitalOcean and Cloudflare resources.
 
 - **Providers:** DigitalOcean (compute, networking, storage) + Cloudflare (DNS, tunnel)
 - **Remote state:** DigitalOcean Spaces with encryption at rest
@@ -109,13 +109,19 @@ All documents are sanitized for public hosting. Personal identifiers and interna
 
 ## CI/CD Pipeline
 
-Two workflow files in [`.github/workflows/`](.github/workflows/):
+13 workflow files in [`.github/workflows/`](.github/workflows/) cover the full lifecycle:
 
-**PR pipeline** (`terraform-pr.yml`): fmt, validate, tflint, checkov, terraform plan (posted to PR comments), OPA/conftest policy checks
+**Code security:** `security.yml` (Trivy, Semgrep, Gitleaks, Snyk), `codeql.yml` (CodeQL SAST), `dast-zap.yml` (OWASP ZAP DAST baseline)
 
-**Merge pipeline** (`security.yml`): Trivy (container scan), Semgrep (SAST), Gitleaks (secret detection), terraform apply (from saved plan), Cosign (image signing), SBOM generation
+**Infrastructure:** `terraform-pr.yml` (fmt, validate, tflint, Checkov, plan, OPA), `image-smoke.yml` (container build verification)
 
-Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security violations. OPA deny policies are hard-fail.
+**GRC and compliance:** `grc-validate.yml` (sanitization, link, OSCAL, STIX, Cosign), `grc-reviewer.yml` (LLM-assisted GRC review)
+
+**Agent signing:** `agent-signing.yml`, `agent-verify.yml`, `agent-inventory.yml` (Sigstore signing for agent cards)
+
+**Workflow hygiene:** `auto-label.yml`, `stale.yml`, `pr-agent.yml`
+
+Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security violations. OPA deny policies are hard-fail. CodeQL flags vulnerable code patterns. OWASP ZAP blocks on HIGH or CRITICAL findings.
 
 ---
 
@@ -147,16 +153,16 @@ Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security
 │   │   ├── FRAMEWORK_CROSSWALK_*.md 4 compliance crosswalks (SOC 2, ISO 27001, HIPAA)
 │   │   ├── EXECUTIVE_SUMMARY_*.md   3 executive summaries
 │   │   └── diagrams/                16 PNGs + 7 Python generators
-│   ├── Employment_Proof.md           Professional background
-│   ├── Technical_Vault.md            Technical reference
-│   └── ADHD_Runbook.md              Operational playbook
+│   ├── GROUND_TRUTH_AUDIT_PROTOCOL.md  Repo verification methodology
+│   ├── GTA_SKILL_DESIGN_NOTES.md       GTA build backlog
+│   └── WORKFLOW_GUIDE.md               Branch + PR + merge discipline
 ├── terraform/
-│   ├── cd-do-infrastructure/         16 .tf files + 8 OPA policies
+│   ├── cd-do-infrastructure/         20 .tf files + 8 OPA policies
 │   ├── cd-aws-automation/            Legacy AWS IaC (retained for reference)
 │   └── simple-ec2/                   Legacy quick-start (retained for reference)
-├── .github/workflows/                CI/CD pipelines (security.yml, terraform-pr.yml)
-├── scripts/                          8 operational scripts (health, audit, hardening)
-└── DEPRECATED/                       26 archived AWS-era documents and tools
+├── .github/workflows/                13 CI/CD pipelines
+├── .githooks/                        Pre-commit AI-tells sweep
+└── scripts/                          Operational scripts (health, audit, git workflow)
 ```
 
 ---

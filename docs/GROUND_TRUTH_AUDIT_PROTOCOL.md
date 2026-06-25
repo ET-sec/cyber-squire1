@@ -158,13 +158,13 @@ The GRC library is done. Other repo areas that need a GTA pass, ordered by impac
 **Ground truth:** actual state via `doctl`, current `terraform state list`
 **Time:** 1 day
 
-### 4. .github/workflows/ (MEDIUM priority, 12 workflow files)
+### 4. .github/workflows/ (MEDIUM priority, 13 workflow files)
 **Scope:** all workflow YAML, plus any docs that describe the CI/CD pipeline
-**Why:** SECURE_SDLC.md claims 12 workflows. Those 12 must actually do what is claimed.
+**Why:** SECURE_SDLC.md claims a workflow count. The 13 must actually do what is claimed.
 **Ground truth:** workflow YAML itself, actual recent action runs
 **Time:** half a day
 
-### 5. detections/ Sigma rules (MEDIUM priority, 18 YAML rules)
+### 5. detections/ Sigma rules (MEDIUM priority, 17 YAML rules)
 **Scope:** all Sigma rules, plus the playbooks that reference them
 **Why:** Several playbook TODOs flagged that rules referenced in playbooks do not exist. Closing those gaps either adds the rules or removes the playbook claim.
 **Ground truth:** the actual Sigma rule files, what they cover, what they miss
