@@ -9,7 +9,7 @@
 
 **Production security platform on DigitalOcean, 20 containers, NIST 800-53 compliance, full IaC with Terraform, agentic AI with NeMo Guardrails and Langfuse observability**
 
-Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | AI Security Engineer | CISSP, SecurityX (CASP+), CCNA, Security+ | BA Economics, Andrew Young School (in progress)
+Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | AI Security Engineer | CISSP, SecurityX, CCNA, Security+ | BA Economics, Andrew Young School
 
 ---
 
