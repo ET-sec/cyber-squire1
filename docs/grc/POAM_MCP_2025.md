@@ -9,7 +9,7 @@ source_audit: OWASP_MCP_TOP10_AUDIT.md
 source_code: scripts/grc/grc_mcp_server.py
 date_opened: 2026-05-31
 last_updated: 2026-06-24
-owner: "Emmanuel Tigoue / CoreDirective"
+owner: "Organization"
 agent_id: fastmcp_grc_corpus
 related:
   - OWASP_MCP_TOP10_AUDIT.md
@@ -22,7 +22,7 @@ related:
 **Source Code:** `scripts/grc/grc_mcp_server.py`
 **Framework:** OWASP MCP Top 10 2025 beta v0.1
 **Date opened:** 2026-05-31
-**Owner:** Emmanuel Tigoue / CoreDirective
+**Owner:** Organization
 **Agent identity:** `fastmcp_grc_corpus` (per `.agents/registry.yaml`)
 
 ## Rationale for separate file
@@ -53,7 +53,7 @@ This acceptance MUST be re-evaluated and this POAM row reopened with a concrete 
 
 Re-evaluation date: 2026-09-30 (Phase 22 review).
 
-Signed: Emmanuel Tigoue / CoreDirective, 2026-05-31.
+Signed: Organization, 2026-05-31.
 
 ## Cross-Reference
 

@@ -27,7 +27,7 @@
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-15 | Information Security Officer | Initial release, 5 findings |
-| 1.1 | 2026-06-24 | Information Security Officer | Audit refresh: secret count standardized to 44 (matches Doppler `coredirective-engine/prd` live state). Remediation Tracking section flagged Past Due where target dates have lapsed without confirmed completion. |
+| 1.1 | 2026-06-24 | Information Security Officer | Audit refresh: secret count standardized to 44 (matches Doppler `<SECRETS_PROJECT>/<CONFIG>` live state). Remediation Tracking section flagged Past Due where target dates have lapsed without confirmed completion. |
 
 ---
 
@@ -55,7 +55,7 @@ The single HIGH finding (environment variable credential exposure in svc-automat
 | Artifact | Location | Description |
 |----------|----------|-------------|
 | Docker Compose configuration | `primary-node:/opt/platform/docker-compose.yaml` | 19-service container orchestration definition |
-| Environment file | `primary-node:/opt/platform/.env` | 44 secrets injected at container startup (matches `doppler secrets list` against the live `coredirective-engine/prd` config) |
+| Environment file | `primary-node:/opt/platform/.env` | 44 secrets injected at container startup (matches `doppler secrets list` against the live `<SECRETS_PROJECT>/<CONFIG>` config) |
 | Terraform IaC | Repository: `terraform/infrastructure/` | 19 `.tf` files defining Cloud Provider infrastructure |
 | OPA policies | Repository: `terraform/infrastructure/policies/` | 8 Rego policy files enforcing infrastructure guardrails |
 | CI/CD pipelines | Repository: `.github/workflows/` | 2 workflow files (PR pipeline, merge pipeline) |

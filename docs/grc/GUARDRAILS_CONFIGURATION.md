@@ -369,10 +369,10 @@ Each file has a corresponding test module under `builds/squire/tests/`. The test
 | `LAKERA_API_KEY` | Lakera Guard (placeholder) | On activation |
 | `NEMO_ADMIN_TOKEN` | `svc-nemo` admin API | Quarterly |
 | `ANTHROPIC_API_KEY` | LLM backend | Quarterly + rotate on any 402 |
-| `VOYAGE_API_KEY` | Embeddings for corpus (per ADR 001) | Quarterly <!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `coredirective-engine/prd`; ADR_001_EMBEDDING_PROVIDER.md chose Voyage AI and the compose env block references this key --> |
+| `VOYAGE_API_KEY` | Embeddings for corpus (per ADR 001) | Quarterly <!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `<SECRETS_PROJECT>/<CONFIG>`; ADR_001_EMBEDDING_PROVIDER.md chose Voyage AI and the compose env block references this key --> |
 | `TAVILY_API_KEY` | Enrichment search | Quarterly |
 
-No guardrail secret is committed to Git. All secrets come from Doppler config `coredirective-engine/prd`.
+No guardrail secret is committed to Git. All secrets come from Doppler config `<SECRETS_PROJECT>/<CONFIG>`.
 
 ## 12. Performance Characteristics
 
