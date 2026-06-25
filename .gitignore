@@ -89,25 +89,9 @@ docs/*INTERVIEW_PREP.md
 docs/*FUNDING*
 docs/*FINANCIAL*
 
-# Personal AI agent persona + voice (NEVER public)
-CoreDirective/skills/SOUL.md
-
-# Job pipeline, recruiter intel, interview prep, tailored resumes (NEVER public)
-CoreDirective/career/
-
-# Brand, consulting, business, content production (NEVER public)
-CoreDirective/brand/
-CoreDirective/consulting/
-CoreDirective/products/
-CoreDirective/social/
-CoreDirective/legal/
-CoreDirective/mentorship/
-CoreDirective/linkedin-posts/
-CoreDirective/streaming/
-CoreDirective/video-production/
-CoreDirective/content-tools/
-CoreDirective/school/
-CoreDirective/grammarly/
+# Private working directory. Nothing under here is public by default.
+# Add explicit re-includes (`!CoreDirective/<thing>`) only after review.
+CoreDirective/
 
 # ============================================
 # SECURITY: GRC Unsanitized Copies (local only)
