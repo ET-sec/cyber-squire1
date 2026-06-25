@@ -2,8 +2,12 @@
 
 [![Live Portfolio](https://img.shields.io/badge/Portfolio-Live-00FF41?style=flat-square)](https://et-sec.github.io/portfolio/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![CodeQL](https://github.com/ET-sec/cyber-squire1/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/codeql.yml)
+[![Security Scan](https://github.com/ET-sec/cyber-squire1/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/security.yml)
+[![GRC Validate](https://github.com/ET-sec/cyber-squire1/actions/workflows/grc-validate.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/grc-validate.yml)
+[![DAST ZAP](https://github.com/ET-sec/cyber-squire1/actions/workflows/dast-zap.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/dast-zap.yml)
 
-**Production security platform on DigitalOcean -- 20 containers, NIST 800-53 compliance, full IaC with Terraform, agentic AI with NeMo Guardrails and Langfuse observability**
+**Production security platform on DigitalOcean, 20 containers, NIST 800-53 compliance, full IaC with Terraform, agentic AI with NeMo Guardrails and Langfuse observability**
 
 Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | AI Security Engineer | CISSP, SecurityX (CASP+), CCNA, Security+
 
