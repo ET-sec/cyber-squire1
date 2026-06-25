@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Start n8n staging container
         run: |
@@ -87,7 +87,7 @@ jobs:
           EOF
 
       - name: Run ZAP baseline
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed # v0.14.0
         with:
           target: "http://localhost:5678"
           rules_file_name: ".zap-rules.tsv"
@@ -122,7 +122,7 @@ jobs:
 
       - name: Comment summary on PR
         if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const high = process.env.HIGH || '0';
@@ -162,7 +162,7 @@ jobs:
 
       - name: Upload n8n container logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: n8n-staging-logs
           path: n8n-staging.log
