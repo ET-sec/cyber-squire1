@@ -9,7 +9,7 @@
 
 **Production security platform on DigitalOcean, 20 containers, NIST 800-53 compliance, full IaC with Terraform, agentic AI with NeMo Guardrails and Langfuse observability**
 
-Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | AI Security Engineer | CISSP, SecurityX (CASP+), CCNA, Security+
+Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | AI Security Engineer | CISSP, SecurityX (CASP+), CCNA, Security+ | BA Economics, Andrew Young School (in progress)
 
 ---
 
@@ -127,7 +127,7 @@ Security-first: Gitleaks blocks any hardcoded secrets. Checkov fails on security
 
 ## Observability and Detection
 
-- **Datadog:** Container monitoring, custom dashboard, 7 alert monitors (container down, CPU, memory, disk, n8n errors, health digest, certificate expiry)
+- **Datadog:** Full-stack observability via 2 custom dashboards (SOC, Agent Activity) and 10 alert monitors managed in Terraform: disk usage, container down, SSH failed login, CPU usage, memory usage, Postgres connection saturation, n8n container restarts, Langfuse web down, Langfuse ClickHouse down, Langfuse trace ingestion stall
 - **Falco:** eBPF runtime threat detection with custom rules per container (shell access, sensitive file reads, privilege escalation, network anomalies)
 - **Falcosidekick:** Routes Falco alerts to Datadog for centralized visibility
 - **Teleport:** SSH session recording with JIT access (4-hour TTL), full audit trail
