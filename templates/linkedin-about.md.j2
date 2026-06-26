@@ -29,7 +29,7 @@ What it does:
 . {{ inf.terraform_files }} Terraform files, {{ inf.terraform_resources_approx }} resources across {{ inf.clouds | map(attribute='name') | join(', ') }}. {{ inf.opa_rego_policies }} Open Policy Agent (OPA) Rego gates enforce KMS encryption, key rotation, least privilege, and zero public ingress.
 
 What it runs:
-. {{ inf.containers_running }} containers: PostgreSQL, n8n, Falco, Teleport, Keycloak SSO, HashiCorp Vault, Ollama, OpenClaw AI gateway on Claude Opus 4.7, Cloudflare Tunnel, Datadog, Langfuse.
+. {{ inf.containers_running }} containers: PostgreSQL, n8n, Falco, Teleport, Keycloak SSO, HashiCorp Vault, Ollama, OpenClaw AI gateway on Claude Opus 4.8, Cloudflare Tunnel, Datadog, Langfuse.
 . Shift left Continuous Integration and Continuous Deployment (CI/CD): Trivy, Semgrep, Gitleaks, OPA Conftest, Cosign, Syft Software Bill of Materials (SBOM), OWASP ZAP Dynamic Application Security Testing (DAST). Unsigned images blocked at the registry.
 
 GRC: {{ grc.total_documents }} sanitized documents covering {{ grc.ssp.total_controls }} NIST 800-53 controls across the main System Security Plan (SSP) and Squire AI SSP. Frameworks: {{ frameworks_short | join(', ') }}. {{ grc.ir_playbooks }} Incident Response (IR) playbooks with a Promptfoo eval harness.

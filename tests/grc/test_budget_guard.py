@@ -57,7 +57,7 @@ def test_pricing_math_with_cache():
 
 def test_pricing_opus_and_haiku():
     opus_cost = spend_ledger.compute_cost(
-        "claude-opus-4-7",
+        "claude-opus-4-8",
         {"input_tokens": 1_000_000, "output_tokens": 1_000_000},
     )
     haiku_cost = spend_ledger.compute_cost(

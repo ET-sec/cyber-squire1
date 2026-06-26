@@ -152,7 +152,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 ### R-04: Runaway Cost
 
-**Description.** A pathological input (large retrieval result, aggressive critique iteration) or an attack loop causes the graph to consume far more tokens than budgeted. At Opus 4.7 pricing, a single runaway call can exceed $5.
+**Description.** A pathological input (large retrieval result, aggressive critique iteration) or an attack loop causes the graph to consume far more tokens than budgeted. At Opus 4.8 pricing, a single runaway call can exceed $5.
 
 **Category.** LLM10 Unbounded Consumption; CSA Agentic MG-3.1 (cost governance).
 
@@ -292,7 +292,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 ### R-11: Model Endpoint Downgrade
 
-**Description.** An attacker coerces Squire into using the cheaper classifier model (Sonnet 4.6) for a call that should use Opus 4.7, exploiting model confusion or routing logic.
+**Description.** An attacker coerces Squire into using the cheaper classifier model (Sonnet 4.6) for a call that should use Opus 4.8, exploiting model confusion or routing logic.
 
 **Category.** LLM05 Improper Output Handling; NIST AI RMF MG-1.1.
 
@@ -302,7 +302,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 - Model routing is hard-coded per node in `builds/squire/app/graph/<node>.py`. There is no dynamic model field from user input.
 - Pydantic schema rejects any request containing a `model` field.
-- Regression test `tests/test_model_routing.py` enforces that `investigate`, `draft`, `critique` use `claude-opus-4-7` and `classify` uses `claude-sonnet-4-6`. CI fails if the map changes without an ADR.
+- Regression test `tests/test_model_routing.py` enforces that `investigate`, `draft`, `critique` use `claude-opus-4-8` and `classify` uses `claude-sonnet-4-6`. CI fails if the map changes without an ADR.
 
 **Residual.** L=1, I=2, score=2 (LOW). Accepted.
 

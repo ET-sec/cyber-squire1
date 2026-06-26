@@ -1,7 +1,7 @@
 """Plan 19-06 Task 2: golden-set generator for the GRC reviewer eval harness.
 
 Generates 10 synthetic PR fixtures against the schema the eval harness
-consumes. Each fixture is one Opus 4.7 call with cached system prompt;
+consumes. Each fixture is one Opus 4.8 call with cached system prompt;
 running cost is tracked in the local spend ledger and the script halts at
 a hard $2.00 internal cap.
 
@@ -46,7 +46,7 @@ from scripts.grc.spend_ledger import record_call  # noqa: E402
 logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(message)s")
 log = logging.getLogger("build_golden_set")
 
-MODEL = "claude-opus-4-7"
+MODEL = "claude-opus-4-8"
 HARD_CAP_USD = 2.00
 MAX_TOKENS = 2048
 GOLDEN_DIR = REPO_ROOT / "scripts" / "grc" / "golden_prs"

@@ -20,12 +20,12 @@ log = logging.getLogger("squire.llm")
 
 
 # Approximate cost per 1K tokens (USD) as of 2026-04.
-# Anthropic pricing for Claude Opus 4.7 / Sonnet 4.6. Update when pricing moves.
+# Anthropic pricing for Claude Opus 4.8 / Sonnet 4.6. Update when pricing moves.
 COST_PER_1K: dict[str, dict[str, float]] = {
-    "anthropic/claude-opus-4-7": {"in": 0.015, "out": 0.075},
+    "anthropic/claude-opus-4-8": {"in": 0.015, "out": 0.075},
     "anthropic/claude-sonnet-4-6": {"in": 0.003, "out": 0.015},
     # bare (un-prefixed) forms for resilience
-    "claude-opus-4-7": {"in": 0.015, "out": 0.075},
+    "claude-opus-4-8": {"in": 0.015, "out": 0.075},
     "claude-sonnet-4-6": {"in": 0.003, "out": 0.015},
 }
 

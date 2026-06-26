@@ -172,7 +172,7 @@ Most documents include cross-references to related documents in their final sect
 ### Squire (Phase 17)
 
 <!-- TODO(et): Sonnet 4.6 is used for classification, not routing. Either change "routing" to "classification" or confirm intended meaning. -->
-Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state machine with pgvector RAG, Opus 4.7 primary and Sonnet 4.6 routing, NeMo Guardrails v0.21.0 sidecar, Langfuse v3 observability. Ten documents covering compliance, risk, red-team, and governance.
+Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state machine with pgvector RAG, Opus 4.8 primary and Sonnet 4.6 routing, NeMo Guardrails v0.21.0 sidecar, Langfuse v3 observability. Ten documents covering compliance, risk, red-team, and governance.
 
 | Document | Description |
 |----------|-------------|
@@ -181,7 +181,7 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 | [FRAMEWORK_CROSSWALK_SQUIRE.md](FRAMEWORK_CROSSWALK_SQUIRE.md) | Cross-framework control mapping - 31 Squire controls mapped to NIST 800-53, CSF 2.0, MITRE ATT&CK, CSA Agentic MANAGE, OWASP LLM 2025, NIST 800-61 r3, and NIST AI RMF |
 | [GUARDRAILS_CONFIGURATION.md](GUARDRAILS_CONFIGURATION.md) | Guardrail layer configuration - pre-graph regex scan, NeMo input and output Colang rails, presidio PII detection, rail-by-rail test coverage, failure modes, change control |
 | [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) | Red team test results - 6 executed cases covering prompt injection, severity manipulation, and PII exfiltration with live Langfuse trace IDs and post-remediation verification |
-| [SQUIRE_MODEL_CARD.md](SQUIRE_MODEL_CARD.md) | Mitchell et al. model card - Opus 4.7 primary plus Sonnet 4.6 classifier plus Voyage AI voyage-3-large embeddings, intended use, evaluation data, ethical considerations, limitations, provenance |
+| [SQUIRE_MODEL_CARD.md](SQUIRE_MODEL_CARD.md) | Mitchell et al. model card - Opus 4.8 primary plus Sonnet 4.6 classifier plus Voyage AI voyage-3-large embeddings, intended use, evaluation data, ethical considerations, limitations, provenance |
 | [SQUIRE_DATA_FLOW_CLASSIFICATION.md](SQUIRE_DATA_FLOW_CLASSIFICATION.md) | Data flow classification - alert payloads, investigation records, trace data, chunk embeddings, per-class source and storage and retention and sanitization and encryption and access rules |
 | [AI_AUDIT_TRAIL_SPEC.md](AI_AUDIT_TRAIL_SPEC.md) | AI audit trail specification - what is logged per invocation, retention tiers, integrity and immutability, replay procedure, cold-storage cadence |
 | [HITL_POLICY.md](HITL_POLICY.md) | Human-in-the-loop policy - HIGH/CRITICAL triggers, roles, SLA, delegation, override authority, production and per-interview token rotation procedures |

@@ -225,7 +225,7 @@ def test_diff_file_flag_bypasses_gh_pr_diff(fake_anthropic, monkeypatch, capsys)
 # ---------------------------------------------------------------------------
 
 def test_model_escalates_on_large_diff(fake_anthropic, tmp_path, monkeypatch):
-    """60KB diff -> escalate to claude-opus-4-7 (still under 100KB skip)."""
+    """60KB diff -> escalate to claude-opus-4-8 (still under 100KB skip)."""
     large = tmp_path / "large.diff"
     large.write_text(
         "diff --git a/docs/grc/foo.md b/docs/grc/foo.md\n"
@@ -239,7 +239,7 @@ def test_model_escalates_on_large_diff(fake_anthropic, tmp_path, monkeypatch):
     )
     grc_reviewer.review_pr(diff_file=str(large), dry_run=True)
     kwargs = fake_anthropic.messages.create.call_args.kwargs
-    assert kwargs["model"] == "claude-opus-4-7"
+    assert kwargs["model"] == "claude-opus-4-8"
 
 
 # ---------------------------------------------------------------------------

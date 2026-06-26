@@ -56,7 +56,7 @@ related:
 
 Squire is an autonomous Security Operations Center analyst deployed at `squire.example-ops.com`. It ingests raw alert payloads, classifies them against a sanitized Governance, Risk, and Compliance (GRC) corpus held in pgvector, retrieves relevant policy and playbook passages, calls external enrichment APIs, and drafts an analyst-style investigation report with explicit framework citations (NIST 800-53, CSF 2.0, MITRE ATT&CK, NIST AI RMF, OWASP LLM Top 10).
 
-The system is a seven-node LangGraph state machine running on top of Anthropic Claude Opus 4.7 (draft, critique, investigate) and Claude Sonnet 4.6 (classification), with Voyage AI `voyage-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
+The system is a seven-node LangGraph state machine running on top of Anthropic Claude Opus 4.8 (draft, critique, investigate) and Claude Sonnet 4.6 (classification), with Voyage AI `voyage-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
 
 Squire never performs remediation. It issues recommendations in a controlled vocabulary defined by `actions.yml` (recommend-only mode, see Annex A). Every response carries a citation block pinned to document identifiers retrieved during the RAG step (see Annex B). The system is categorized FIPS 199 LOW for availability and confidentiality of transient alert data. Audit trail integrity is the single MODERATE control family.
 
@@ -160,9 +160,9 @@ Squire runs as a deterministic state machine. Each incoming `/alert` request exe
 |  | classify  (Sonnet 4.6)          |  |
 |  | retrieve  (pgvector, top-k=6)   |  |
 |  | enrich    (Tavily optional)     |  |
-|  | investigate (Opus 4.7)          |  |
-|  | draft     (Opus 4.7)            |  |
-|  | critique  (Opus 4.7, bounded)   |  |
+|  | investigate (Opus 4.8)          |  |
+|  | draft     (Opus 4.8)            |  |
+|  | critique  (Opus 4.8, bounded)   |  |
 |  +----+------------+--------+------+  |
 +-------|------------|--------|---------+
         |            |        |
@@ -214,9 +214,9 @@ Model routing per node:
 | classify | `anthropic/claude-sonnet-4-6` | Cheap, fast, structured output |
 | retrieve | n/a (pgvector) | Local cosine similarity |
 | enrich | `anthropic/claude-sonnet-4-6` | Web search summarization |
-| investigate | `anthropic/claude-opus-4-7` | Multi-step reasoning over retrieved chunks |
-| draft | `anthropic/claude-opus-4-7` | Final narrative composition |
-| critique | `anthropic/claude-opus-4-7` | Citation validator + severity sanity check |
+| investigate | `anthropic/claude-opus-4-8` | Multi-step reasoning over retrieved chunks |
+| draft | `anthropic/claude-opus-4-8` | Final narrative composition |
+| critique | `anthropic/claude-opus-4-8` | Citation validator + severity sanity check |
 | embeddings | `voyage/voyage-3-large` | 1024-dim vectors (see ADR 001) |
 
 ## 4. Security Categorization
@@ -392,7 +392,7 @@ The following control families are inherited without modification from SSP-OPS-0
 
 | External System | Purpose | Data Direction | Protocol | Authentication |
 |-----------------|---------|----------------|----------|----------------|
-| Anthropic API | LLM inference (Opus 4.7, Sonnet 4.6) | Outbound | HTTPS | Bearer API key from Doppler `ANTHROPIC_API_KEY` |
+| Anthropic API | LLM inference (Opus 4.8, Sonnet 4.6) | Outbound | HTTPS | Bearer API key from Doppler `ANTHROPIC_API_KEY` |
 | Voyage AI API | Embeddings for RAG (`voyage-3-large`, 1024 dim) | Outbound, corpus only | HTTPS | Bearer API key from Doppler `VOYAGE_API_KEY` |
 | Tavily | Enrichment web search (optional, skippable) | Outbound | HTTPS | Bearer API key from Doppler `TAVILY_API_KEY` |
 | DO Spaces | Nightly Postgres backups | Outbound | HTTPS | S3 access key from Doppler `SPACES_ACCESS_KEY` / `SPACES_SECRET_KEY` |

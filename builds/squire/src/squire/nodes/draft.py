@@ -1,4 +1,4 @@
-"""draft node - Opus 4.7 IR report drafter with citation allow-list retry.
+"""draft node - Opus 4.8 IR report drafter with citation allow-list retry.
 
 Implements ROADMAP criterion #17: any fabricated framework code triggers one
 automatic retry with a corrective prompt; if the retry still carries invalid
@@ -140,8 +140,8 @@ def _invoke_drafter(
 
 
 def draft_report(state: dict) -> dict:
-    """Opus 4.7 draft node with citation allow-list retry (criterion #17)."""
-    model = settings.claude_model_primary  # Opus 4.7
+    """Opus 4.8 draft node with citation allow-list retry (criterion #17)."""
+    model = settings.claude_model_primary  # Opus 4.8
     ctx = _build_context(state)
 
     # --- First draft --------------------------------------------------

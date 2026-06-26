@@ -2,7 +2,7 @@
 # Each alert is run twice against the live /alert endpoint:
 #   max_iters=0  (critique loop disabled, control)
 #   max_iters=3  (critique loop enabled, treatment)
-# Two judges (Opus 4.7 primary, Sonnet 4.6 secondary) score each candidate pair.
+# Two judges (Opus 4.8 primary, Sonnet 4.6 secondary) score each candidate pair.
 # Families intentionally span EDR, network, identity, container, application,
 # data, supply chain, IaC, AI, and false positive shapes so any per family
 # regression in critique behavior surfaces in the per case agreement matrix.

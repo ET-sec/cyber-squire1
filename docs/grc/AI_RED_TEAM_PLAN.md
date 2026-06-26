@@ -410,10 +410,10 @@ This plan is scoped to adversarial testing of AI systems only. Infrastructure pe
 
 | System ID | Service | Technology | Trust Zone | Primary Risk Profile |
 |-----------|---------|------------|------------|---------------------|
-| AI-001 | svc-ai-gateway | OpenClaw (Claude Opus 4.7) | DMZ | External user input via Telegram; 16+ svc-automation integrations; Anthropic API data flow |
+| AI-001 | svc-ai-gateway | OpenClaw (Claude Opus 4.8) | DMZ | External user input via Telegram; 16+ svc-automation integrations; Anthropic API data flow |
 | AI-002 | svc-llm | Ollama (Qwen 3 4B) | Internal (net-ai) | Local inference; no internet egress; internal workflow consumer |
 | AI-003 | svc-transcription | Whisper | Internal (net-ai) | Audio input processing; local CPU inference; no external API calls |
-| AI-004 | svc-squire | Anthropic Claude (Opus 4.7 primary, Sonnet 4.6 classifier) plus NeMo Guardrails | Internal (net-core) with pgvector and Langfuse on net-ai | Authenticated `/alert` webhook ingest; LangGraph pipeline with pre-graph PII scanner; covered in `REDTEAM_RESULTS.md` cycles 1 (2026-04-23) and 2 (2026-04-24) |
+| AI-004 | svc-squire | Anthropic Claude (Opus 4.8 primary, Sonnet 4.6 classifier) plus NeMo Guardrails | Internal (net-core) with pgvector and Langfuse on net-ai | Authenticated `/alert` webhook ingest; LangGraph pipeline with pre-graph PII scanner; covered in `REDTEAM_RESULTS.md` cycles 1 (2026-04-23) and 2 (2026-04-24) |
 
 <!-- TODO(et): AI-004 was added in the 2026-06-24 audit refresh to reflect actual red-team execution evidence in REDTEAM_RESULTS.md. The original plan only enumerated AI-001 through AI-003; cycles 1 and 2 targeted svc-squire exclusively. Future plan revisions should either rebaseline scope around Squire or split this into a Squire-specific sub-plan. -->
 

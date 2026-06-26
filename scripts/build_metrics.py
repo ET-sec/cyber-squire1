@@ -34,8 +34,8 @@ OWNER_APPROVED = {
     # n8n workflows: behind an HTTP API, not on disk. Owner-confirmed 14 active.
     "workflows_n8n_active": 14,
     # AI engine identifiers come from droplet config files, not always synced locally.
-    "openclaw_model": "Claude Opus 4.7",
-    "openclaw_model_id": "claude-opus-4-7",
+    "openclaw_model": "Claude Opus 4.8",
+    "openclaw_model_id": "claude-opus-4-8",
     "ollama_model": "Qwen 3 8B",
     "whisper_engine": "faster-whisper",
 }
