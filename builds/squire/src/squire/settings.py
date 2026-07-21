@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     anthropic_api_key: SecretStr = Field(..., alias="ANTHROPIC_API_KEY")
     openclaw_anthropic_key: SecretStr | None = Field(None, alias="OPENCLAW_ANTHROPIC_KEY")
     openclaw_gateway_url: str = Field("http://172.17.0.1:18789", alias="OPENCLAW_GATEWAY_URL")
-    claude_model_primary: str = Field("anthropic/claude-opus-4-8", alias="SQUIRE_MODEL_PRIMARY")
+    claude_model_primary: str = Field("anthropic/claude-fable-5", alias="SQUIRE_MODEL_PRIMARY")
     claude_model_secondary: str = Field("anthropic/claude-sonnet-4-6", alias="SQUIRE_MODEL_SECONDARY")
 
     # Webhook auth

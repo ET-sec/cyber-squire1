@@ -212,7 +212,7 @@ Given an `investigation_id`, a full replay reconstructs every input, every inter
 | Per-node outputs | Yes | Langfuse captures output |
 | Model version | Yes | Langfuse model metadata |
 | Backend mode | Yes | `backend` column |
-| Exact temperature | Not always | Opus 4.8 reasoning mode constrains certain parameter combinations (for example, `temperature` and `top_p` together); replay shows the effective default in those cases |
+| Exact temperature | Not always | Fable 5 reasoning mode constrains certain parameter combinations (for example, `temperature` and `top_p` together); replay shows the effective default in those cases |
 
 ### 7.3 Re-Execution
 

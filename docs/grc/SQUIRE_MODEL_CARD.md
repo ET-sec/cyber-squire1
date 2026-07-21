@@ -26,7 +26,7 @@
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| 1.0 | 2026-04-23 | Information Security Officer | Initial model card covering Opus 4.8 primary, Sonnet 4.6 classifier, Voyage AI voyage-3-large retriever |
+| 1.0 | 2026-04-23 | Information Security Officer | Initial model card covering Fable 5 primary, Sonnet 4.6 classifier, Voyage AI voyage-3-large retriever |
 
 ---
 
@@ -38,7 +38,7 @@ Squire is a composite AI system, not a single model. Three foundation models are
 
 | Role | Model | Provider | Version | License | Nodes |
 |------|-------|----------|---------|---------|-------|
-| Primary reasoning | Claude Opus 4.8 | Anthropic PBC | claude-opus-4-8 (2026 release) | Proprietary (API ToS) | investigate, draft, critique |
+| Primary reasoning | Claude Fable 5 | Anthropic PBC | claude-fable-5 (2026 release) | Proprietary (API ToS) | investigate, draft, critique |
 | Classifier | Claude Sonnet 4.6 | Anthropic PBC | claude-sonnet-4-6 | Proprietary (API ToS) | classify |
 | Embeddings | voyage-3-large | Voyage AI | v3-large, 1024 dim | Proprietary (API ToS) | retrieve (ingest side) |
 
@@ -62,9 +62,9 @@ Backend selection is driven by `SQUIRE_BACKEND` environment variable with runtim
 classify (Sonnet 4.6)
   -> retrieve (pgvector HNSW, vector(1024))
   -> enrich (Tavily search, no LLM)
-  -> investigate (Opus 4.8)
-  -> draft (Opus 4.8)
-  -> critique (Opus 4.8, loops up to 3x)
+  -> investigate (Fable 5)
+  -> draft (Fable 5)
+  -> critique (Fable 5, loops up to 3x)
 <!-- TODO(et): Critique loop count contradicts SQUIRE_SSP SQ-ITER-1 which says "hard loop cap of 2". Pick one. -->
   -> route_severity (deterministic)
 ```
@@ -73,7 +73,7 @@ Full data flow with trust boundaries is in SQUIRE_DATA_FLOW_CLASSIFICATION.md.
 
 ### 1.4 Model Routing Rationale
 
-Splitting the classifier onto Sonnet 4.6 while keeping the investigate, draft, and critique nodes on Opus 4.8 is deliberate. The classify step is a short, highly structured call that outputs a small JSON envelope. Running Opus 4.8 on that step wastes budget; Sonnet 4.6 returns the same classification at a fraction of the token cost. The downstream three nodes each take multi-paragraph reasoning inputs and must maintain citation fidelity across the critique loop, which is where Opus 4.8 earns its cost.
+Splitting the classifier onto Sonnet 4.6 while keeping the investigate, draft, and critique nodes on Fable 5 is deliberate. The classify step is a short, highly structured call that outputs a small JSON envelope. Running Fable 5 on that step wastes budget; Sonnet 4.6 returns the same classification at a fraction of the token cost. The downstream three nodes each take multi-paragraph reasoning inputs and must maintain citation fidelity across the critique loop, which is where Fable 5 earns its cost.
 
 The enrich node runs no LLM. Tavily's search API returns a structured result set that the investigate node consumes directly. Wrapping Tavily in an LLM summarizer was evaluated and rejected because the summarization step itself was a citation-fabrication risk. Investigate can reason over raw Tavily results more reliably than over an LLM-summarized version.
 
@@ -155,7 +155,7 @@ Observed on the current 62-test suite plus 10 canonical integration fixtures, ca
 <!-- TODO(et): REDTEAM_RESULTS.md shows 6 executed cases. Update pass rate with actual result. -->
 | Red-team pass rate (17-11, pending) | > 85% | deferred until credit restored | deferred |
 
-Per-node timing (Opus 4.8 primary, API backend):
+Per-node timing (Fable 5 primary, API backend):
 
 | Node | p50 | p95 |
 |------|-----|-----|
@@ -234,8 +234,8 @@ Squire's outputs describe attack techniques, which could in theory assist an att
 - **No continuous re-embedding.** Corpus drift is a manual catch today.
 - **NeMo rails partial.** Presidio PII rail is live. PolicyAI self-check is commented out pending the next provider-access rotation cycle. GLiNER and PINT v2 deferred.
 - **Cost ceiling is best-effort.** Two concurrent sub-ceiling reads can both pass; Redis atomic counter upgrade is Phase 18+.
-- **Temperature quirk.** Opus 4.8 rejects the `temperature` parameter. APIBackend omits it for that model. Downstream code that relies on deterministic sampling should account for this.
-- **Citation contract is model-dependent.** Opus 4.8 and Sonnet 4.6 respect the structured citation format in prompts. Local models under the `ollama` backend follow the contract inconsistently. Citation validity rate of 45% on Ollama is the dominant limitation of the degraded path.
+- **Temperature quirk.** Fable 5 rejects the `temperature` parameter. APIBackend omits it for that model. Downstream code that relies on deterministic sampling should account for this.
+- **Citation contract is model-dependent.** Fable 5 and Sonnet 4.6 respect the structured citation format in prompts. Local models under the `ollama` backend follow the contract inconsistently. Citation validity rate of 45% on Ollama is the dominant limitation of the degraded path.
 - **Critique loop is self-scoring.** The critique node evaluates its own prior draft. Adversarial pressure that survives the critique loop is possible. The red-team suite in plan 17-11 is the primary evidence that the loop catches common failure modes; the suite runs in the next validation cycle.
 - **Cost telemetry is post-hoc.** Token costs are read back from provider response metadata. A sustained provider pricing change between the token count and the cost calculation could under-report cost. The cost ceiling is still enforced on the model-reported token count, which is the reliable figure.
 
@@ -252,7 +252,7 @@ Squire's outputs describe attack techniques, which could in theory assist an att
 
 | Aspect | Detail |
 |--------|--------|
-| Foundation models | Anthropic (Opus 4.8, Sonnet 4.6), Voyage AI (voyage-3-large) |
+| Foundation models | Anthropic (Fable 5, Sonnet 4.6), Voyage AI (voyage-3-large) |
 | Orchestration | LangGraph 0.2+, LangChain 1.0+, langchain-anthropic 0.3+ |
 | Observability | Langfuse v3 self-hosted at langfuse.example-ops.com |
 | Guardrails | NeMo Guardrails v0.21.0, presidio PII via `[sdd]` extra |

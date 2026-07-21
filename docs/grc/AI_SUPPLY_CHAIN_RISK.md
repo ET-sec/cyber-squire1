@@ -36,7 +36,7 @@ AI supply chain risk is fundamentally different from traditional software supply
 
 This assessment evaluates the supply chain risk posture of all three AI systems within the Organization authorization boundary:
 
-1. **AI-001** (svc-ai-gateway) - Claude Opus 4.8 via Anthropic API, a vendor-hosted model accessed over HTTPS where the Organization has zero visibility into model internals
+1. **AI-001** (svc-ai-gateway) - Claude Fable 5 via Anthropic API, a vendor-hosted model accessed over HTTPS where the Organization has zero visibility into model internals
 2. **AI-002** (svc-llm) - Qwen 3 4B via Ollama registry, a self-hosted model pulled from a public registry and stored locally in llm-model-volume
 3. **AI-003** (svc-transcription) - `fedirz/faster-whisper-server` (CTranslate2 reimplementation of OpenAI's Whisper model architecture). Open-weight model served by a CTranslate2 runtime, distributed as a Docker container image with weights downloaded into a HuggingFace cache volume at first startup.
 
@@ -52,7 +52,7 @@ This assessment supports NIST SP 800-161r1 Cyber Supply Chain Risk Management (C
 
 | ID | System | Container | Model | Provider | Delivery Method | Update Frequency | License |
 |----|--------|-----------|-------|----------|----------------|-----------------|---------|
-| AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) | Claude Opus 4.8 | Anthropic PBC | REST API (provider-hosted) | Vendor-controlled (no notice) | Proprietary (API ToS) |
+| AI-001 | AI Agent Gateway | svc-ai-gateway (OpenClaw) | Claude Fable 5 | Anthropic PBC | REST API (provider-hosted) | Vendor-controlled (no notice) | Proprietary (API ToS) |
 | AI-002 | Local LLM Inference | svc-llm (Ollama) | Qwen 3 4B | Alibaba Cloud (via Ollama registry) | Registry pull (self-hosted) | Manual (`ollama pull`) | Apache 2.0 |
 | AI-003 | Voice Transcription | svc-transcription (`fedirz/faster-whisper-server`) | Whisper model weights, CTranslate2 runtime | OpenAI (model architecture), fedirz (container packager), HuggingFace (weight hosting) | Container image, weights downloaded to HuggingFace cache volume at first run | Image rebuild | MIT (model), Apache 2.0 (CTranslate2) |
 
@@ -68,7 +68,7 @@ This assessment supports NIST SP 800-161r1 Cyber Supply Chain Risk Management (C
 
 ## 3. Supply Chain Component Analysis
 
-### 3.1 AI-001: Anthropic API (Claude Opus 4.8)
+### 3.1 AI-001: Anthropic API (Claude Fable 5)
 
 #### Supply Chain Profile
 
@@ -94,14 +94,14 @@ svc-ai-gateway (OpenClaw container)
 │   └── Skills: tavily-search, browser, python-interpreter, notion, gemini, github
 ├── Network dependency: HTTPS to api.anthropic.com (external)
 ├── Authentication: API key (ANTHROPIC_API_KEY from secrets manager)
-└── Model: Claude Opus 4.8 (hosted by Anthropic - no local artifact)
+└── Model: Claude Fable 5 (hosted by Anthropic - no local artifact)
 ```
 
 #### Identified Risks
 
 | Risk | Description | MITRE ATLAS |
 |------|-------------|-------------|
-| **Vendor model change** | Anthropic can update Claude Opus 4.8 behavior, capabilities, or safety filters without notice. A model update could alter response quality, introduce new failure modes, or change the model's handling of edge cases the Organization depends on. | - |
+| **Vendor model change** | Anthropic can update Claude Fable 5 behavior, capabilities, or safety filters without notice. A model update could alter response quality, introduce new failure modes, or change the model's handling of edge cases the Organization depends on. | - |
 | **API endpoint compromise** | Man-in-the-middle attack on the API endpoint, DNS hijacking of `api.anthropic.com`, or BGP route manipulation could redirect API traffic to an attacker-controlled endpoint. | AML.T0043 |
 | **Vendor data breach** | Prompts sent to Anthropic contain operational context. A breach of Anthropic's infrastructure could expose Organization operational data. | - |
 | **Vendor business continuity** | Anthropic is a venture-funded company. Service discontinuation, pricing changes, or API deprecation would eliminate the Organization's primary AI capability. | - |
@@ -305,11 +305,11 @@ Risk scores use the same 5x5 matrix defined in the Risk Assessment (`RISK_ASSESS
 
 An ML Bill of Materials extends the concept of a Software Bill of Materials (SBOM) to cover model-specific artifacts that traditional SBOMs cannot enumerate. While the CI/CD pipeline generates container SBOMs (via Trivy and SBOM workflows), model weights, training data provenance, and model-specific metadata are not captured. This section defines the ML-BOM for each AI system.
 
-### 6.1 AI-001: Claude Opus 4.8 (Anthropic API)
+### 6.1 AI-001: Claude Fable 5 (Anthropic API)
 
 | Field | Value |
 |-------|-------|
-| **Model name** | Claude Opus 4.8 |
+| **Model name** | Claude Fable 5 |
 | **Model version** | Vendor-managed (no version pinning available to consumer) |
 | **Model format** | API-hosted (no local artifact) |
 | **Model creator** | Anthropic PBC |

@@ -20,12 +20,12 @@ log = logging.getLogger("squire.llm")
 
 
 # Approximate cost per 1K tokens (USD) as of 2026-04.
-# Anthropic pricing for Claude Opus 4.8 / Sonnet 4.6. Update when pricing moves.
+# Anthropic pricing for Claude Fable 5 / Sonnet 4.6. Update when pricing moves.
 COST_PER_1K: dict[str, dict[str, float]] = {
-    "anthropic/claude-opus-4-8": {"in": 0.015, "out": 0.075},
+    "anthropic/claude-fable-5": {"in": 0.015, "out": 0.075},
     "anthropic/claude-sonnet-4-6": {"in": 0.003, "out": 0.015},
     # bare (un-prefixed) forms for resilience
-    "claude-opus-4-8": {"in": 0.015, "out": 0.075},
+    "claude-fable-5": {"in": 0.015, "out": 0.075},
     "claude-sonnet-4-6": {"in": 0.003, "out": 0.015},
 }
 
@@ -92,7 +92,7 @@ def make_llm(model: str | None = None):
 
 
 def estimate_cost(model: str, in_tokens: int, out_tokens: int) -> float:
-    """USD cost estimate. Unknown models fall back to an Opus-ish approximation."""
+    """USD cost estimate. Unknown models fall back to a Fable-ish approximation."""
     c = COST_PER_1K.get(model) or COST_PER_1K.get(model.replace("anthropic/", "")) or {
         "in": 0.01,
         "out": 0.05,

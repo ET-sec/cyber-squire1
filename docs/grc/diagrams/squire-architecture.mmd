@@ -3,7 +3,7 @@ title: Squire Deployed Architecture - host-alpha topology
 ---
 flowchart TB
     subgraph EXT["EXTERNAL"]
-        AN["Anthropic<br/>Opus 4.8 / Sonnet 4.6"]
+        AN["Anthropic<br/>Fable 5 / Sonnet 4.6"]
         TV["Tavily<br/>search enrichment"]
         TG["Telegram<br/>operator bot"]
         N8C["n8n webhook<br/>consumers"]
@@ -44,7 +44,7 @@ flowchart TB
         end
 
         subgraph GW["Gateway"]
-            OC["openclaw-gateway<br/>Claude Opus 4.8 agent"]
+            OC["openclaw-gateway<br/>Claude Fable 5 agent"]
         end
     end
 
@@ -60,7 +60,7 @@ flowchart TB
     SVC --> DB
     SVC --> LW
     SVC --> LK
-    SVC -.->|Opus 4.8 draft/critique,<br/>Sonnet 4.6 classify| AN
+    SVC -.->|Fable 5 draft/critique,<br/>Sonnet 4.6 classify| AN
     SVC -.->|enrichment| TV
 
     N8 -->|alert dispatch| SVC

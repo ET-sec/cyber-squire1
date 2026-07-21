@@ -3,7 +3,7 @@
 # Pre-commit hook auto-runs this when source dirs change.
 # Do not hand-edit: changes will be overwritten.
 
-generated_at: '2026-06-26T05:57:51+00:00'
+generated_at: '2026-07-21T12:19:24+00:00'
 generator: build_metrics.py
 version: 1
 
@@ -44,8 +44,8 @@ grc:
   data_flows_cataloged: 40
 
 ai:
-  openclaw_model: "Claude Opus 4.8"
-  openclaw_model_id: "claude-opus-4-8"
+  openclaw_model: "Claude Fable 5"
+  openclaw_model_id: "claude-fable-5"
   ollama_model: "Qwen 3 8B"
   whisper_engine: "faster-whisper"
 

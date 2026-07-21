@@ -55,7 +55,7 @@ In scope:
 - svc-db (Postgres + pgvector) chunk store
 - cloudflare-tunnel (squire.example-ops.com, langfuse.example-ops.com)
 - Telegram bot egress (n8n routing only)
-- Anthropic (Opus 4.8, Sonnet 4.6) and Tavily inference egress
+- Anthropic (Fable 5, Sonnet 4.6) and Tavily inference egress
 
 Out of scope (covered by [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) and [THREAT_MODEL_STRIDE.md](THREAT_MODEL_STRIDE.md)):
 
@@ -275,7 +275,7 @@ ATLAS ID references per the AML.T code set as of 2026-04. Each tactic below has 
 - SBOM generated on every svc-squire image build via Trivy in `.github/workflows/security.yml`; delta reviewed on every release.
 - Cosign signature on every release image; pull blocked on signature mismatch at the cluster level.
 - Renovate with pinned update cadence and manual approval on major bumps.
-- Model weights for Anthropic (Opus 4.8, Sonnet 4.6) are vendor-controlled; transparency depends on Anthropic policy updates, which are tracked in the register.
+- Model weights for Anthropic (Fable 5, Sonnet 4.6) are vendor-controlled; transparency depends on Anthropic policy updates, which are tracked in the register.
 
 **Residual risk: MEDIUM.** Several entries in the register carry `[TBD]` flags for reproducible-build attestation and upstream signing keys, tracked as POAM-P17-10. Zero-day in a pinned transitive dependency remains an accepted residual until SBOM-plus-runtime-attestation is in place (roadmap item post-Phase 17).
 
@@ -395,7 +395,7 @@ sequenceDiagram
         else Rail allows
             API->>LLM: classify (Sonnet 4.6)
             LLM-->>API: severity
-            API->>LLM: draft + critique loop (Opus 4.8, max 3)
+            API->>LLM: draft + critique loop (Fable 5, max 3)
             LLM-->>API: approved report
             API->>Rail: Output rail scan
             Rail-->>API: masked or pass

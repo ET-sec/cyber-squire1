@@ -178,8 +178,8 @@ grc:
   poam_findings_accepted_risk: 15
 
 ai:
-  openclaw_model: "Claude Opus 4.8"
-  openclaw_model_id: "claude-opus-4-8"
+  openclaw_model: "Claude Fable 5"
+  openclaw_model_id: "claude-fable-5"
   ollama_model: "Qwen 3 8B"
   whisper_engine: "faster-whisper"
 

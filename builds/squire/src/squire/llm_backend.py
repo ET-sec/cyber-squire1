@@ -101,9 +101,9 @@ class APIBackend:
         from .settings import settings
 
         model = model_hint.replace("anthropic/", "") if model_hint else ""
-        # Opus 4.8+ rejects the `temperature` parameter. For those models we
+        # Fable 5+ rejects the `temperature` parameter. For those models we
         # fall back to the Anthropic default by omitting the kwarg entirely.
-        supports_temperature = not model.startswith("claude-opus-4-8")
+        supports_temperature = not model.startswith("claude-fable-5")
         kwargs = {
             "model": model,
             "api_key": settings.anthropic_api_key.get_secret_value(),
@@ -234,7 +234,7 @@ class OllamaBackend:
     name = "ollama"
 
     OLLAMA_MODEL_MAP: dict[str, str] = {
-        "anthropic/claude-opus-4-8": "llama3.3:70b",
+        "anthropic/claude-fable-5": "llama3.3:70b",
         "anthropic/claude-sonnet-4-6": "llama3.1:8b",
     }
 

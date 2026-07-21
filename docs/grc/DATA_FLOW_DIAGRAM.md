@@ -247,7 +247,7 @@ Legend: [TB-N] = Trust Boundary | [AI-0N] = AI System | ──► = Data Flow
       ▼
 ┌─ DMZ ─────────────────────────────────────────────────────────────────────┐
 │                                                                           │
-│  [P-04] svc-ai-gateway (OpenClaw - Claude Opus 4.8) [AI-001]               │
+│  [P-04] svc-ai-gateway (OpenClaw - Claude Fable 5) [AI-001]               │
 │  ├── System prompt + conversation context                                 │
 │  ├── Skills: Tavily search, browser, GitHub, Notion, python-interpreter   │
 │  │                                                                        │
@@ -482,7 +482,7 @@ flowchart LR
         LR[(Redis dedup)]
     end
     subgraph LLM [External LLM zone]
-        ANT[Anthropic Opus 4.8 / Sonnet 4.6]
+        ANT[Anthropic Fable 5 / Sonnet 4.6]
         TAV[Tavily search]
         OC[OpenClaw gateway]
     end
@@ -560,7 +560,7 @@ flowchart LR
 
 | ID | Entity | Purpose | Auth |
 |----|--------|---------|------|
-| E-12 | Anthropic API | Primary Opus 4.8 and Sonnet 4.6 inference | API key, 60-day rotation |
+| E-12 | Anthropic API | Primary Fable 5 and Sonnet 4.6 inference | API key, 60-day rotation |
 | E-13 | Tavily API | Enrichment search | API key |
 <!-- TODO(et): Clarify production state of OpenClaw OAuth bearer. "pending" status needs an explicit owner and ETA. -->
 | E-14 | OpenClaw gateway | Agent dispatch path | OAuth bearer, pending |

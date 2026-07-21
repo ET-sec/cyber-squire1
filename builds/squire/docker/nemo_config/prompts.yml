@@ -4,7 +4,7 @@
 # The prompts intentionally force a one-token yes/no answer so the output
 # parser can coerce it deterministically and the judge call stays cheap.
 #
-# Model target: claude-sonnet-4-5 via Anthropic direct. Opus is overkill
+# Model target: claude-sonnet-4-5 via Anthropic direct. Fable is overkill
 # for a binary safety judge.
 
 prompts:
