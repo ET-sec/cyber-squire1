@@ -1,21 +1,43 @@
-# Pre-commit hooks for Terraform quality gates
+# Pre-commit hooks for Terraform quality gates + sanitization tripwires
 # Install: pre-commit install
 # Manual run: pre-commit run --all-files
 #
-# Scoped to terraform/cd-do-infrastructure/ only.
-# Legacy directories (simple-ec2, cd-aws-automation) are suspended
-# and excluded to avoid blocking active development.
+# Terraform hooks cover cd-do-infrastructure (legacy) and
+# cd-oci-infrastructure (active). Suspended dirs (simple-ec2,
+# cd-aws-automation) are excluded to avoid blocking active development.
+#
+# Gitleaks runs REPO-WIDE with the custom tripwire rules (.gitleaks.toml).
+# Lesson from Phase 20.1-04: CI caught sanitization misses only after the
+# push, and on a public repo a pushed branch is already public. This hook
+# moves that boundary to the laptop, before anything leaves.
 repos:
+  - repo: local
+    hooks:
+      - id: gitleaks-tripwires
+        name: Gitleaks (default rules + tripwires, staged changes)
+        entry: gitleaks git --pre-commit --staged --redact --verbose --config .gitleaks.toml
+        language: system
+        pass_filenames: false
+      # Second net at push time: catches commits that dodged the commit hook
+      # (--no-verify, commits created through APIs or other tools). Scans
+      # every local commit not yet on any remote.
+      - id: gitleaks-unpushed
+        name: Gitleaks (all unpushed commits, push-time net)
+        entry: bash -c 'gitleaks git --redact --config .gitleaks.toml --log-opts "--branches --not --remotes"'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.105.0
     hooks:
       - id: terraform_fmt
-        files: terraform/cd-do-infrastructure/
+        files: terraform/(cd-do-infrastructure|cd-oci-infrastructure)/
         args:
           - --args=-diff
           - --args=-write=true
       - id: terraform_validate
-        files: terraform/cd-do-infrastructure/
+        files: terraform/(cd-do-infrastructure|cd-oci-infrastructure)/
       - id: terraform_tflint
         files: terraform/cd-do-infrastructure/
         args:
