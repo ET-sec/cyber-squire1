@@ -3,13 +3,14 @@
 # Pre-commit hook auto-runs this when source dirs change.
 # Do not hand-edit: changes will be overwritten.
 
-generated_at: '2026-07-21T12:19:24+00:00'
+generated_at: '2026-08-31T15:28:07+00:00'
 generator: build_metrics.py
 version: 1
 
 sources:
   detections_source: 'detections/'
   filesystem_root: '/Users/et/cyber-squire-ops'
+  poam_auto_source: 'docs/grc/POAM_AUTO_FINDINGS.md'
   poam_source: 'docs/grc/POAM_PLAN_OF_ACTION.md'
   ssp_source: 'docs/grc/SSP_*.md'
   terraform_source: 'terraform/cd-do-infrastructure/'
@@ -18,11 +19,11 @@ sources:
 stack:
   containers_public: 20
   workflows_n8n_active: 14
-  workflows_github_actions: 13
+  workflows_github_actions: 14
 
 grc:
   total_documents: 57
-  total_files_including_index: 58
+  total_files_including_index: 59
   nist_800_53_controls_cited: 133
   policies: 10
   ir_playbooks: 5
@@ -53,10 +54,17 @@ detection:
   sigma_rules: 17
 
 infra:
-  terraform_files: 20
+  terraform_files: 21
   opa_policies: 8
   datadog_monitors: 10
   datadog_dashboards: 2
+
+governance:
+  drift_check_scheduled: true
+  poam_auto_findings_total: 75
+  poam_auto_findings_open: 75
+  poam_auto_findings_closed: 0
+  ci_actions_unpinned: 0
 
 contact:
   email: "etigoue@tigouetheory.com"

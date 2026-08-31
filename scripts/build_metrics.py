@@ -50,6 +50,7 @@ class Metrics:
     ai: dict = field(default_factory=dict)
     detection: dict = field(default_factory=dict)
     infra: dict = field(default_factory=dict)
+    governance: dict = field(default_factory=dict)
     contact: dict = field(default_factory=dict)
 
 
@@ -91,7 +92,13 @@ def list_files(directory: Path, pattern: str) -> list[Path]:
 def compute_grc() -> dict:
     grc_dir = REPO_ROOT / "docs" / "grc"
     md_files = list_files(grc_dir, "*.md")
-    content_docs = [p for p in md_files if p.name != "README.md"]
+    # POAM_AUTO_FINDINGS.md is machine-generated scanner intake (poam_sync.py),
+    # not a curated GRC document; it gets its own counts under governance:.
+    content_docs = [
+        p
+        for p in md_files
+        if p.name not in ("README.md", "POAM_AUTO_FINDINGS.md")
+    ]
 
     policies = list_files(grc_dir, "POLICY_*.md")
     playbooks = list_files(grc_dir, "PLAYBOOK_*.md")
@@ -221,6 +228,47 @@ def compute_stack() -> dict:
     }
 
 
+def compute_governance() -> dict:
+    """Phase 20.1-04: drift detection + auto-POA&M pipeline counts.
+
+    The auto ledger is script-owned (scripts/poam_sync.py); rows here are
+    scanner intake, distinct from the curated POAM_PLAN_OF_ACTION.md register.
+    """
+    ledger = REPO_ROOT / "docs" / "grc" / "POAM_AUTO_FINDINGS.md"
+    rows = []
+    if ledger.exists():
+        rows = [
+            line
+            for line in ledger.read_text(encoding="utf-8").splitlines()
+            if line.startswith("| POAM-AUTO-")
+        ]
+    open_n = sum(1 for r in rows if "| Open |" in r)
+    closed_n = sum(1 for r in rows if "| Closed |" in r)
+
+    drift_wf = REPO_ROOT / ".github" / "workflows" / "drift-check.yml"
+    drift_scheduled = drift_wf.exists() and "cron:" in drift_wf.read_text(
+        encoding="utf-8"
+    )
+
+    wf_dir = REPO_ROOT / ".github" / "workflows"
+    unpinned = 0
+    for wf in sorted(wf_dir.glob("*.yml")) + sorted(wf_dir.glob("*.yaml")):
+        for line in wf.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped.startswith("#") or "uses:" not in stripped:
+                continue
+            if not re.search(r"@[0-9a-f]{40}", stripped):
+                unpinned += 1
+
+    return {
+        "drift_check_scheduled": drift_scheduled,
+        "poam_auto_findings_total": len(rows),
+        "poam_auto_findings_open": open_n,
+        "poam_auto_findings_closed": closed_n,
+        "ci_actions_unpinned": unpinned,
+    }
+
+
 def compute_ai() -> dict:
     return {
         "openclaw_model": OWNER_APPROVED["openclaw_model"],
@@ -266,11 +314,14 @@ def emit_yaml(m: Metrics) -> str:
         ("ai", m.ai),
         ("detection", m.detection),
         ("infra", m.infra),
+        ("governance", m.governance),
         ("contact", m.contact),
     ):
         out.append(f"{section_name}:")
         for k, v in section.items():
-            if isinstance(v, str):
+            if isinstance(v, bool):
+                out.append(f"  {k}: {str(v).lower()}")
+            elif isinstance(v, str):
                 if any(c in v for c in ":#'\""):
                     v_repr = '"' + v.replace('"', '\\"') + '"'
                 else:
@@ -293,12 +344,14 @@ def main() -> int:
         "terraform_source": "terraform/cd-do-infrastructure/",
         "detections_source": "detections/",
         "workflows_source": ".github/workflows/",
+        "poam_auto_source": "docs/grc/POAM_AUTO_FINDINGS.md",
     }
     m.stack = compute_stack()
     m.grc = compute_grc()
     m.ai = compute_ai()
     m.detection = compute_detection()
     m.infra = compute_infra()
+    m.governance = compute_governance()
     m.contact = compute_contact()
 
     yaml_text = emit_yaml(m)

@@ -1,0 +1,70 @@
+{
+  "resource_changes": [
+    {
+      "address": "digitalocean_firewall.cd_alpha",
+      "type": "digitalocean_firewall",
+      "change": {
+        "actions": ["update"],
+        "after": {
+          "name": "cd-alpha-firewall",
+          "inbound_rule": [
+            {
+              "protocol": "tcp",
+              "port_range": "443",
+              "source_addresses": ["0.0.0.0/0", "::/0"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "digitalocean_droplet.cd_alpha",
+      "type": "digitalocean_droplet",
+      "change": {
+        "actions": ["update"],
+        "after": {
+          "name": "cd-alpha-engine",
+          "size": "s-4vcpu-8gb",
+          "tags": ["production", "coredirective"],
+          "backups": true
+        }
+      }
+    },
+    {
+      "address": "digitalocean_ssh_key.et_deploy",
+      "type": "digitalocean_ssh_key",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "et-deploy-key",
+          "public_key": "ssh-ed25519 AAAA..."
+        }
+      }
+    },
+    {
+      "address": "digitalocean_spaces_bucket.backups",
+      "type": "digitalocean_spaces_bucket",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "cd-backups",
+          "region": "nyc3",
+          "versioning": [{"enabled": true}]
+        }
+      }
+    },
+    {
+      "address": "digitalocean_volume.data",
+      "type": "digitalocean_volume",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "cd-data-vol",
+          "region": "nyc1",
+          "size": 100,
+          "filesystem_type": "ext4"
+        }
+      }
+    }
+  ]
+}

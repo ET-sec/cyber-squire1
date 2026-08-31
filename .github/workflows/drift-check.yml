@@ -1,0 +1,168 @@
+name: drift-check
+
+# Phase 20.1-04: nightly infrastructure drift detection.
+# Authenticates to OCI with the GitHub OIDC token exchange (no stored cloud
+# keys, see .github/workflows/oidc-spike.yml lineage), then runs a read-only
+# terraform plan against live infrastructure. Exit 0 = reality matches code.
+# Exit 2 = drift: a Telegram alert fires with the resource list, and the full
+# plan goes to Telegram as a private document. The plan output is NEVER
+# printed to this public log and never uploaded as an artifact: it can
+# contain resource identifiers and network detail that stay private.
+# The CI principal (cd-ci) holds a read-only policy; this job cannot mutate
+# anything, and the plan runs with -lock=false so it also cannot wedge the
+# state lock.
+
+on:
+  schedule:
+    - cron: "23 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: drift-check
+  cancel-in-progress: false
+
+env:
+  TF_DIR: terraform/cd-oci-infrastructure
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Request GitHub OIDC token
+        run: |
+          RESP=$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL")
+          JWT=$(echo "$RESP" | jq -r .value)
+          echo "::add-mask::$JWT"
+          echo "JWT=$JWT" >> "$GITHUB_ENV"
+
+      - name: Generate session keypair (UPST is bound to it)
+        run: |
+          openssl genrsa -out session.pem 2048 2>/dev/null
+          openssl rsa -in session.pem -pubout -outform DER 2>/dev/null | base64 -w0 > session_pub.b64
+
+      - name: Exchange JWT for OCI UPST (RFC 8693)
+        env:
+          CID: ${{ secrets.OCI_XCHG_CLIENT_ID }}
+          CSECRET: ${{ secrets.OCI_XCHG_CLIENT_SECRET }}
+          IDCS: ${{ secrets.OCI_IDCS_URL }}
+        run: |
+          B64=$(printf '%s:%s' "$CID" "$CSECRET" | base64 -w0)
+          HTTP=$(curl -sS -o resp.json -w '%{http_code}' -X POST "$IDCS/oauth2/v1/token" \
+            -H "Authorization: Basic $B64" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
+            --data-urlencode "requested_token_type=urn:oci:token-type:oci-upst" \
+            --data-urlencode "public_key=$(cat session_pub.b64)" \
+            --data-urlencode "subject_token=$JWT" \
+            --data-urlencode "subject_token_type=jwt")
+          echo "exchange HTTP status: $HTTP"
+          if [ "$HTTP" != "200" ]; then
+            jq 'del(.access_token, .token)' resp.json || true
+            exit 1
+          fi
+          printf '%s' "$(jq -r '.token // .access_token' resp.json)" > upst.token
+          chmod 600 upst.token session.pem
+          echo "::add-mask::$(cat upst.token)"
+
+      - name: Configure OCI session auth for Terraform
+        env:
+          TENANCY: ${{ secrets.OCI_TENANCY_OCID }}
+        run: |
+          mkdir -p ~/.oci
+          # The Go SDK (Terraform's oci backend/provider) validates that a
+          # fingerprint is present even for SecurityToken auth; the CLI does
+          # not. Use the session key's real fingerprint.
+          FP=$(openssl rsa -in session.pem -pubout -outform DER 2>/dev/null | openssl md5 -c | awk '{print $NF}')
+          printf '[DEFAULT]\nregion=us-ashburn-1\ntenancy=%s\nfingerprint=%s\nsecurity_token_file=%s/upst.token\nkey_file=%s/session.pem\n' \
+            "$TENANCY" "$FP" "$PWD" "$PWD" > ~/.oci/config
+          chmod 600 ~/.oci/config
+
+      - name: Provide SSH public key for plan context
+        env:
+          PUBKEY: ${{ secrets.SSH_PUBLIC_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$PUBKEY" > ~/.ssh/id_ed25519.pub
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init (remote state, session auth)
+        run: |
+          terraform -chdir=$TF_DIR init -input=false \
+            -backend-config="bucket=${{ secrets.OCI_STATE_BUCKET }}" \
+            -backend-config="namespace=${{ secrets.OCI_STATE_NAMESPACE }}" \
+            -backend-config="region=us-ashburn-1" \
+            -backend-config="key=${{ secrets.OCI_STATE_KEY }}" \
+            -backend-config="auth=SecurityToken" \
+            -backend-config="config_file_profile=DEFAULT" > init.log 2>&1 \
+            || { echo "::error::terraform init failed"; tail -5 init.log; exit 1; }
+          echo "init OK"
+
+      - name: Terraform Plan (read-only drift check)
+        id: plan
+        env:
+          TF_VAR_oci_auth: SecurityToken
+          TF_VAR_oci_tenancy_ocid: ${{ secrets.OCI_TENANCY_OCID }}
+          TF_VAR_ssh_allowed_cidrs: ${{ secrets.TF_VAR_SSH_ALLOWED_CIDRS }}
+          TF_VAR_tfstate_bucket_name: ${{ secrets.OCI_STATE_BUCKET }}
+          TF_IN_AUTOMATION: "true"
+        run: |
+          set +e
+          terraform -chdir=$TF_DIR plan -detailed-exitcode -input=false \
+            -lock=false -no-color -out=drift.tfplan > plan.log 2>&1
+          CODE=$?
+          set -e
+          echo "exitcode=$CODE" >> "$GITHUB_OUTPUT"
+          echo "plan exit code: $CODE (0=clean, 2=drift, 1=error)"
+          # Error headlines only (class + resource address); full detail
+          # goes to Telegram, never to this public log.
+          [ "$CODE" = "1" ] && grep -m3 "Error:" plan.log || true
+
+      - name: Report clean
+        if: steps.plan.outputs.exitcode == '0'
+        run: echo "NO DRIFT — live infrastructure matches code."
+
+      - name: Alert on drift (Telegram, details stay private)
+        if: steps.plan.outputs.exitcode == '2'
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          SUMMARY=$(terraform -chdir=$TF_DIR show -json drift.tfplan \
+            | jq -r '[.resource_changes[] | select(.change.actions != ["no-op"]) | "\(.change.actions | join("+")) \(.address)"] | join("\n")')
+          echo "drifted resources (addresses only):"
+          echo "$SUMMARY"
+          TEXT=$(printf 'DRIFT DETECTED (drift-check, run %s)\nLive infrastructure no longer matches Terraform:\n%s\nFull plan attached. Codify or revert, never ignore.' \
+            "${{ github.run_id }}" "$SUMMARY")
+          curl -sS -o /dev/null -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+            --data-urlencode "chat_id=$TG_CHAT" --data-urlencode "text=$TEXT"
+          curl -sS -o /dev/null -X POST "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
+            -F "chat_id=$TG_CHAT" -F "document=@plan.log;filename=drift-plan-${{ github.run_id }}.txt" \
+            -F "caption=drift-check full plan output"
+          echo "Telegram alert sent."
+          echo "::error::Drift detected: live infrastructure was changed outside Terraform."
+          exit 1
+
+      - name: Alert on plan error
+        if: steps.plan.outputs.exitcode != '0' && steps.plan.outputs.exitcode != '2'
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -sS -o /dev/null -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+            --data-urlencode "chat_id=$TG_CHAT" \
+            --data-urlencode "text=drift-check FAILED to run (run ${{ github.run_id }}): terraform plan errored. Log attached."
+          curl -sS -o /dev/null -X POST "https://api.telegram.org/bot$TG_TOKEN/sendDocument" \
+            -F "chat_id=$TG_CHAT" -F "document=@plan.log;filename=drift-error-${{ github.run_id }}.txt"
+          echo "::error::terraform plan errored; log sent to Telegram."
+          exit 1

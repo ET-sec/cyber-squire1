@@ -33,6 +33,32 @@ METRIC_SOURCES_RE='^(docs/grc/|terraform/|detections/|\.github/workflows/|COREDI
 STAGED_SOURCE=$(echo "$STAGED_ALL" | grep -E "$METRIC_SOURCES_RE" || true)
 
 # ---------------------------------------------------------------------------
+# Job 0: secrets + sanitization gate (gitleaks: default rules + tripwires)
+# Runs FIRST and blocks. Added 2026-08-31 (Phase 20.1) after CI caught
+# sanitization misses only post-push, when a public repo branch is already
+# public. Note .gitleaks.toml needs [extend] useDefault = true: a custom
+# config REPLACES the built-in secret rules without it, which means real
+# API keys were passing unscanned. Fail-closed: no scanner, no commit.
+# ---------------------------------------------------------------------------
+
+if [ -n "$STAGED_ALL" ]; then
+  if command -v gitleaks >/dev/null 2>&1; then
+    if ! gitleaks git --pre-commit --staged --redact --config "$REPO_ROOT/.gitleaks.toml" >/dev/null 2>&1; then
+      echo "pre-commit: BLOCKED. gitleaks found a secret or sanitization tripwire in staged changes:"
+      gitleaks git --pre-commit --staged --redact --config "$REPO_ROOT/.gitleaks.toml" 2>&1 \
+        | grep -E "RuleID:|File:|Line:" | head -12 || true
+      echo "Fix the content (do not allowlist around it), restage, retry."
+      exit 1
+    fi
+    echo "pre-commit: gitleaks clean."
+  else
+    echo "pre-commit: BLOCKED. gitleaks not installed (brew install gitleaks)."
+    echo "Refusing to commit unscanned to a public repo."
+    exit 1
+  fi
+fi
+
+# ---------------------------------------------------------------------------
 # Job 1: AI-tells sweep
 # ---------------------------------------------------------------------------
 

@@ -1,5 +1,13 @@
 title = "Gitleaks config — cyber-squire-ops"
 
+# CRITICAL: a custom config REPLACES gitleaks' built-in ruleset unless it
+# extends it. Without this block, only the custom tripwires below ran and a
+# real AWS/GitHub/Slack key would pass undetected (proven live 2026-08-31,
+# Phase 20.1 hardening). useDefault pulls in the full default ruleset;
+# the tripwires below are additions on top, not the whole defense.
+[extend]
+useDefault = true
+
 # Custom rules: block infrastructure details from public commits
 [[rules]]
 id = "droplet-ip"

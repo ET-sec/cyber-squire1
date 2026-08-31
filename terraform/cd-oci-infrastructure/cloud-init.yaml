@@ -1,0 +1,25 @@
+#cloud-config
+# Bootstrap the OCI Ampere A1 host for the CoreDirective Compose stack.
+# Installs Docker + compose (arm64) from Ubuntu's own repo. We deliberately
+# do NOT use download.docker.com: on OCI that host's DNS resolution flaps
+# during first boot and breaks unattended provisioning. Ubuntu's docker.io
+# comes from the ports mirror that is always reachable, so rebuilds are
+# reproducible. The `packages` module runs after the network is up and
+# retries apt, which avoids the boot-time DNS race that runcmd hits.
+package_update: true
+package_upgrade: false
+
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - docker.io
+  - docker-compose-v2
+
+runcmd:
+  - usermod -aG docker ubuntu
+  - systemctl enable --now docker
+  - mkdir -p /opt/coredirective
+  - chown ubuntu:ubuntu /opt/coredirective
+
+final_message: "CoreDirective host ready after $UPTIME s."

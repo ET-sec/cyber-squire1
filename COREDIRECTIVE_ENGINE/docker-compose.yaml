@@ -33,6 +33,51 @@
 # Full rollback: git revert <commit> && scp + docker compose up -d
 # Detailed runbook: docs/runbook/image-rollback.md
 # ============================================================================
+#
+# ============================================================================
+# ORACLE CLOUD (OCI) MIGRATION — 2026-08-19  (read before deploying this file)
+# ============================================================================
+# This full 19-service stack was authored on x86 (AWS, then DigitalOcean).
+# The active host is now OCI Ampere A1, which is ARM (aarch64). Before this
+# file runs unchanged on the new host, four things must be handled:
+#
+# 1. ARCHITECTURE — every `image:` here is pinned by `@sha256:<digest>`. Those
+#    digests were resolved on amd64 and pin to a SINGLE-ARCH manifest. On ARM
+#    they pull the wrong arch or fail. Fix: strip the `@sha256:...` suffix so
+#    Docker resolves the correct arch from each tag's multi-arch index, then
+#    re-pin to the ARM digest once verified. Confirm every image publishes an
+#    arm64 variant (all the third-party ones do; the local builds must be
+#    rebuilt for arm64).
+#
+# 2. SECRETS — do NOT feed secrets through compose `${VAR}` interpolation from
+#    a top-level `.env`. Several values (the 229-char n8n keys) contain `$`,
+#    which compose expands and corrupts (symptom: warning `The "Wn8n" variable
+#    is not set`). Use `env_file:` with the container's target var names so
+#    values pass through literally. See docker-compose.oci-core.yaml for the
+#    working pattern and stack.env.template for the variable names.
+#
+# 3. STACK CHANGES decided for the OCI rebuild:
+#      - DROP cd-service-whisper (removed from scope).
+#      - Keep cd-service-falco as the sensor, but reroute cd-service-
+#        falcosidekick output from Datadog to Splunk HEC (Splunk = SIEM).
+#      - cd-service-nemo -> a smaller model to fit the 24GB ARM budget.
+#
+# 4. HOST PERMISSIONS — n8n runs as uid 1000; its bind-mounted data dir must be
+#    `chown -R 1000:1000 CD_VOL_N8N` or it crashes with EACCES on
+#    /home/node/.n8n/config. Postgres (uid 999) self-initializes fine.
+#
+# CURRENTLY LIVE ON OCI (via docker-compose.oci-core.yaml, NOT this file yet):
+#   cd-service-db + cd-service-n8n + tunnel-cyber-squire, ARM-clean, fronted
+#   by the Cloudflare Access gate through the tunnel.
+# The remaining 15 services in THIS file are pending the four fixes above.
+#
+# STATE + BACKUPS (updated 2026-08-31, Phase 20.1): Terraform state lives in
+# versioned OCI Object Storage with native locking (Cloudflare R2 remains the
+# eventual home for vendor decoupling, pending a one-time R2 enable in the CF
+# dashboard). Nightly backups of PostgreSQL + the n8n volume upload to a
+# retention-locked bucket via instance principal, with a monthly timed restore
+# test. See terraform/cd-oci-infrastructure/README.md for the full state.
+# ============================================================================
 
 services:
   cd-service-db:
