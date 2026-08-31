@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# pre-push hook: second secrets net at the last exit before public.
+#
+# The pre-commit gate scans staged changes, but commits can dodge it:
+# --no-verify, commits created through APIs (GraphQL createCommitOnBranch)
+# or other tools. This scans EVERY local commit not yet on any remote with
+# the full ruleset (gitleaks defaults + custom tripwires) and blocks the
+# push if anything is found. History is the attack surface: a secret in a
+# pushed commit stays fetchable by SHA even after a force-push (Phase 20.1
+# hiccup log, entry 13).
+#
+# Install: git config core.hooksPath .githooks   (already the global default)
+# Bypass:  git push --no-verify   (do not)
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-push: BLOCKED. gitleaks not installed (brew install gitleaks)."
+  echo "Refusing to push unscanned commits to a public repo."
+  exit 1
+fi
+
+if ! gitleaks git --redact --config "$REPO_ROOT/.gitleaks.toml" \
+    --log-opts "--branches --not --remotes" >/dev/null 2>&1; then
+  echo "pre-push: BLOCKED. gitleaks found a secret or tripwire in unpushed commits:"
+  gitleaks git --redact --config "$REPO_ROOT/.gitleaks.toml" \
+    --log-opts "--branches --not --remotes" 2>&1 \
+    | grep -E "RuleID:|File:|Commit:|Line:" | head -16 || true
+  echo "The finding is in COMMIT HISTORY, not just the working tree:"
+  echo "amend or rewrite the offending commit before pushing."
+  exit 1
+fi
+
+echo "pre-push: gitleaks clean on all unpushed commits."
+exit 0
