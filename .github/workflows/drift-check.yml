@@ -76,9 +76,20 @@ jobs:
           TENANCY: ${{ secrets.OCI_TENANCY_OCID }}
         run: |
           mkdir -p ~/.oci
-          printf '[DEFAULT]\nregion=us-ashburn-1\ntenancy=%s\nsecurity_token_file=%s/upst.token\nkey_file=%s/session.pem\n' \
-            "$TENANCY" "$PWD" "$PWD" > ~/.oci/config
+          # The Go SDK (Terraform's oci backend/provider) validates that a
+          # fingerprint is present even for SecurityToken auth; the CLI does
+          # not. Use the session key's real fingerprint.
+          FP=$(openssl rsa -in session.pem -pubout -outform DER 2>/dev/null | openssl md5 -c | awk '{print $NF}')
+          printf '[DEFAULT]\nregion=us-ashburn-1\ntenancy=%s\nfingerprint=%s\nsecurity_token_file=%s/upst.token\nkey_file=%s/session.pem\n' \
+            "$TENANCY" "$FP" "$PWD" "$PWD" > ~/.oci/config
           chmod 600 ~/.oci/config
+
+      - name: Provide SSH public key for plan context
+        env:
+          PUBKEY: ${{ secrets.SSH_PUBLIC_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$PUBKEY" > ~/.ssh/id_ed25519.pub
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
@@ -113,6 +124,9 @@ jobs:
           set -e
           echo "exitcode=$CODE" >> "$GITHUB_OUTPUT"
           echo "plan exit code: $CODE (0=clean, 2=drift, 1=error)"
+          # Error headlines only (class + resource address); full detail
+          # goes to Telegram, never to this public log.
+          [ "$CODE" = "1" ] && grep -m3 "Error:" plan.log || true
 
       - name: Report clean
         if: steps.plan.outputs.exitcode == '0'
