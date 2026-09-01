@@ -14,6 +14,7 @@ on:
     branches: [main]
     paths:
       - 'terraform/cd-oci-infrastructure/**'
+      - 'terraform/cd-aws-security-plane/**'
       - '.github/workflows/terraform-pr.yml'
 
 permissions:
@@ -21,13 +22,20 @@ permissions:
   pull-requests: write
 
 env:
-  TF_DIR: terraform/cd-oci-infrastructure
   TF_IN_AUTOMATION: true
 
 jobs:
   terraform-checks:
-    name: Terraform Checks (OCI)
+    name: Terraform Checks (${{ matrix.dir }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - terraform/cd-oci-infrastructure
+          - terraform/cd-aws-security-plane
+    env:
+      TF_DIR: ${{ matrix.dir }}
 
     steps:
       - name: Checkout
@@ -55,7 +63,7 @@ jobs:
         id: checkov
         uses: bridgecrewio/checkov-action@fa9edf8f0a491c59a924ea6accd5bdcf07752cff # master
         with:
-          directory: terraform/cd-oci-infrastructure
+          directory: ${{ matrix.dir }}
           output_format: cli
           soft_fail: false
 
@@ -70,6 +78,10 @@ jobs:
       - name: OPA Policy Self-Test (fixtures)
         id: conftest
         run: |
+          if [ ! -d "$TF_DIR/policy/testdata" ]; then
+            echo "no OPA fixture pack in $TF_DIR, skipping self-test"
+            exit 0
+          fi
           echo "## OPA Policy Self-Test" >> $GITHUB_STEP_SUMMARY
           # No pipes here: the default runner shell has no pipefail, so a
           # piped conftest exit code would be swallowed by tee.
@@ -103,7 +115,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const marker = '<!-- terraform-plan-comment -->';
+            const marker = '<!-- terraform-plan-comment-${{ matrix.dir }} -->';
             const fmt = '${{ steps.fmt.outcome }}';
             const init = '${{ steps.init.outcome }}';
             const validate = '${{ steps.validate.outcome }}';
@@ -112,7 +124,7 @@ jobs:
             const icon = (s) => s === 'success' ? '`pass`' : '`FAIL`';
             const body = [
               marker,
-              '## Terraform PR Validation (OCI)',
+              '## Terraform PR Validation (${{ matrix.dir }})',
               '',
               '| Check | Status |',
               '|-------|--------|',

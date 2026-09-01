@@ -1,0 +1,11 @@
+# Copy to backend.hcl (gitignored) and fill in, then:
+#   terraform init -backend-config=backend.hcl
+#
+# Backend blocks cannot read variables, so the bucket identifiers would
+# have to be hardcoded in a public file. Partial config keeps them out.
+
+bucket       = "your-tf-state-bucket"
+key          = "cd-aws-security-plane/terraform.tfstate"
+region       = "us-east-1"
+encrypt      = true
+use_lockfile = true

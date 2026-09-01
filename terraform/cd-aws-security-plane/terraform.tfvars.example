@@ -1,0 +1,10 @@
+# Copy to terraform.tfvars (gitignored) and fill in.
+
+# Globally unique. Pick your own; the real name is never committed.
+evidence_bucket_name = "your-evidence-vault-name"
+
+# Defaults below are fine for a fresh replication; override as needed.
+# aws_region              = "us-east-1"
+# github_repo             = "your-gh-user/your-repo"
+# github_branch           = "main"
+# evidence_retention_days = 30

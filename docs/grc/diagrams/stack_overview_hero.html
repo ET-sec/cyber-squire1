@@ -56,7 +56,7 @@
   <div>
     <div class="eyebrow">SECURITY ENGINEERING REFERENCE STACK</div>
     <h1>THE PLATFORM <span class="green">AT A GLANCE</span></h1>
-    <div class="thesis">Two clouds in production: Oracle for compute, storage, and keys; Cloudflare for the zero trust edge. Keyless pipeline, immutable backups, self-auditing infrastructure. <b>Every control verified by making it fail.</b></div>
+    <div class="thesis">Two clouds in production, a third gated and scheduled: Oracle runs the workloads, Cloudflare runs the zero trust edge, AWS takes custody of evidence and break-glass. Keyless pipeline, immutable backups, self-auditing infrastructure. <b>Every control verified by making it fail.</b></div>
   </div>
   <div class="cost">
     <div class="amt">$0/MO</div>
@@ -101,6 +101,15 @@
     <span class="ptag">Vault</span><span class="ptag">Keycloak</span><span class="ptag">Teleport</span>
     <span class="ptag">Falco</span><span class="ptag">Datadog</span><span class="ptag">Langfuse</span>
     <span class="ptag">Ollama</span><span class="ptag">NeMo Guardrails</span><span class="ptag">Squire agent</span>
+  </div>
+</div>
+
+<div class="pending">
+  <div class="ptitle">AWS SECURITY PLANE: DESIGNED, APPLY SCHEDULED</div>
+  <div class="psub">Terraform public and gate-checked. The watcher does not live in the house it watches: evidence, backup replicas, and break-glass move off the workload cloud.</div>
+  <div class="ptags">
+    <span class="ptag">S3 Object Lock evidence vault</span><span class="ptag">Cross-cloud break-glass + alert-on-use</span>
+    <span class="ptag">Native OIDC federation</span><span class="ptag">CloudTrail + KMS</span><span class="ptag">Region guard</span>
   </div>
 </div>
 
