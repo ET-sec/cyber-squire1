@@ -31,7 +31,7 @@ jobs:
             echo "images=[]" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          ADDED=$(git diff "$BASE_SHA" "$HEAD_SHA" -- "$COMPOSE" | grep -E '^\+\s+image:' | sed -E 's/^\+\s+image:\s+//' | sort -u)
+          ADDED=$(git diff "$BASE_SHA" "$HEAD_SHA" -- "$COMPOSE" | { grep -E '^\+\s+image:' || true; } | sed -E 's/^\+\s+image:\s+//' | sort -u)
           if [ -z "$ADDED" ]; then
             echo "images=[]" >> "$GITHUB_OUTPUT"
             exit 0

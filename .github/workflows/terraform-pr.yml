@@ -71,14 +71,17 @@ jobs:
         id: conftest
         run: |
           echo "## OPA Policy Self-Test" >> $GITHUB_STEP_SUMMARY
+          # No pipes here: the default runner shell has no pipefail, so a
+          # piped conftest exit code would be swallowed by tee.
           set +e
           conftest test $TF_DIR/policy/testdata/plan_clean.json \
-            --policy $TF_DIR/policy/ --no-color 2>&1 | tee clean.txt
+            --policy $TF_DIR/policy/ --no-color > clean.txt 2>&1
           CLEAN_EXIT=$?
           conftest test $TF_DIR/policy/testdata/plan_violations.json \
-            --policy $TF_DIR/policy/ --no-color 2>&1 | tee violations.txt
+            --policy $TF_DIR/policy/ --no-color > violations.txt 2>&1
           VIOL_EXIT=$?
           set -e
+          cat clean.txt violations.txt
           {
             echo '```'
             cat clean.txt violations.txt
