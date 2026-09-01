@@ -36,13 +36,24 @@ Production today spans two clouds, each holding a different trust boundary:
 tunnel); **GitHub** acts as the pipeline's identity issuer via OIDC. No single
 vendor holds both the front door and the data.
 
-The platform's first generation ran on **AWS**, and that infrastructure code
-(VPC, EC2, NAT, security groups) ships in this repository as an archived,
-readable reference alongside the second-generation DigitalOcean configuration.
-Portability is not a slide-deck claim here: the design has survived two live
-cross-cloud migrations because every piece of it is code. The next planned
-split moves Terraform state to Cloudflare R2 so state and compute never share
-a vendor failure domain.
+AWS is coming back into the picture as the **security and evidence plane**:
+S3 Object Lock evidence vault, cross-cloud break-glass with alert-on-use,
+native OIDC federation, and a region-guarded, least-privilege footprint
+where nothing runs that is not a security control. The Terraform is public
+in [`terraform/cd-aws-security-plane/`](terraform/cd-aws-security-plane/)
+and passes the same PR gate as everything else; it deploys the moment the
+account activates, and per house rules nothing gets a "running" label until
+its forced-failure receipt exists ([DR-05](docs/architecture/decisions/DR-05-aws-security-plane.md)
+has the design and the receipt checklist). The rule it implements: the
+watcher does not live in the house it watches.
+
+The platform's first generation also ran on AWS, and that original
+infrastructure code (VPC, EC2, NAT, security groups) ships in this
+repository as archived reference alongside the second-generation
+DigitalOcean configuration. Portability is not a slide-deck claim here: the
+design has survived two live cross-cloud migrations because every piece of
+it is code. The R2 state split is queued for the same reason, so Terraform
+state and the compute it describes never share a vendor failure domain.
 
 ## Find your way (pick your lane)
 
