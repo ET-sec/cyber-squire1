@@ -7,7 +7,7 @@
 [![Drift Check](https://github.com/ET-sec/cyber-squire1/actions/workflows/drift-check.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/drift-check.yml)
 [![GRC Validate](https://github.com/ET-sec/cyber-squire1/actions/workflows/grc-validate.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/grc-validate.yml)
 
-**A security platform built, broken, and rebuilt in public: cloud IAM with zero standing credentials, ransomware-proof backups, nightly drift detection, and a compliance library that updates itself. Runs on a $0/month cloud footprint.**
+**A multi-cloud security platform built, broken, and rebuilt in public: cloud IAM with zero standing credentials, ransomware-proof backups, nightly drift detection, and a compliance library that updates itself. Runs across two clouds on a $0/month footprint, with a third generation of infrastructure code in the repo.**
 
 Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | AI Security Engineer | CISSP, SecurityX, CCNA, Security+ | BA Economics, Andrew Young School
 
@@ -27,6 +27,22 @@ pipelines that cannot leak credentials, infrastructure that reports when
 someone changes it by hand, compliance paperwork that stays current by
 itself) can be designed, built, tested, and documented by one operator, and
 that every claim can be traced to evidence.
+
+## Multi-cloud, on purpose
+
+Production today spans two clouds, each holding a different trust boundary:
+**Oracle Cloud** runs compute, object storage, and the key management service;
+**Cloudflare** runs the zero trust edge (Access, WAF, DNS, outbound-only
+tunnel); **GitHub** acts as the pipeline's identity issuer via OIDC. No single
+vendor holds both the front door and the data.
+
+The platform's first generation ran on **AWS**, and that infrastructure code
+(VPC, EC2, NAT, security groups) ships in this repository as an archived,
+readable reference alongside the second-generation DigitalOcean configuration.
+Portability is not a slide-deck claim here: the design has survived two live
+cross-cloud migrations because every piece of it is code. The next planned
+split moves Terraform state to Cloudflare R2 so state and compute never share
+a vendor failure domain.
 
 ## Find your way (pick your lane)
 

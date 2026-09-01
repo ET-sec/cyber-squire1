@@ -5,7 +5,7 @@ Examples:
   fix(grc): GTA-applied corrections, embedding provider drift
   docs(roe): expand rules of engagement with multi-agent discipline
   security(sanitize): replace net-core with internal-net in playbooks
-  chore(deps): bump langchain to 1.3.9 in dropzone takehome
+  chore(deps): bump langchain to 1.3.9 in the takehome exercise
 -->
 
 ## Summary

@@ -29,22 +29,22 @@ from scripts.grc import budget_guard, spend_ledger  # noqa: E402
 # spend_ledger pricing math
 # ---------------------------------------------------------------------------
 
-def test_pricing_math_sonnet_basic():
-    # 1M input + 1M output Sonnet = $3 + $15 = $18
+def test_pricing_math_opus5_basic():
+    # 1M input + 1M output Opus 5 = $5 + $25 = $30
     cost = spend_ledger.compute_cost(
-        "claude-sonnet-4-6",
+        "claude-opus-5",
         {"input_tokens": 1_000_000, "output_tokens": 1_000_000},
     )
-    assert cost == pytest.approx(18.0, abs=1e-6)
+    assert cost == pytest.approx(30.0, abs=1e-6)
 
 
 def test_pricing_math_with_cache():
-    # Sonnet: 100k input ($0.30) + 50k output ($0.75)
-    #       + 200k cache write at 1.25x base in (200k * 3/M * 1.25 = $0.75)
-    #       + 500k cache read at 0.1x base in (500k * 3/M * 0.1 = $0.15)
-    # Total = 0.30 + 0.75 + 0.75 + 0.15 = $1.95
+    # Opus 5: 100k input ($0.50) + 50k output ($1.25)
+    #       + 200k cache write at 1.25x base in (200k * 5/M * 1.25 = $1.25)
+    #       + 500k cache read at 0.1x base in (500k * 5/M * 0.1 = $0.25)
+    # Total = 0.50 + 1.25 + 1.25 + 0.25 = $3.25
     cost = spend_ledger.compute_cost(
-        "claude-sonnet-4-6",
+        "claude-opus-5",
         {
             "input_tokens": 100_000,
             "output_tokens": 50_000,
@@ -52,7 +52,7 @@ def test_pricing_math_with_cache():
             "cache_read_input_tokens": 500_000,
         },
     )
-    assert cost == pytest.approx(1.95, abs=1e-6)
+    assert cost == pytest.approx(3.25, abs=1e-6)
 
 
 def test_pricing_opus_and_haiku():
@@ -82,19 +82,19 @@ def test_record_call_and_total(tmp_path, monkeypatch):
     monkeypatch.setenv("GRC_SPEND_DB", str(db))
 
     cost1 = spend_ledger.record_call(
-        "claude-sonnet-4-6",
+        "claude-opus-5",
         {"input_tokens": 100_000, "output_tokens": 0},
     )
     cost2 = spend_ledger.record_call(
-        "claude-sonnet-4-6",
+        "claude-opus-5",
         {"input_tokens": 0, "output_tokens": 50_000},
     )
     total = spend_ledger.today_total_usd()
     assert db.exists()
-    # 100k @ $3/M = $0.30; 50k @ $15/M = $0.75
-    assert cost1 == pytest.approx(0.30, abs=1e-6)
-    assert cost2 == pytest.approx(0.75, abs=1e-6)
-    assert total == pytest.approx(1.05, abs=1e-6)
+    # 100k @ $5/M = $0.50; 50k @ $25/M = $1.25
+    assert cost1 == pytest.approx(0.50, abs=1e-6)
+    assert cost2 == pytest.approx(1.25, abs=1e-6)
+    assert total == pytest.approx(1.75, abs=1e-6)
 
 
 # ---------------------------------------------------------------------------
@@ -109,8 +109,8 @@ def test_budget_guard_under_limit(tmp_path, monkeypatch, capsys):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
     spend_ledger.record_call(
-        "claude-sonnet-4-6",
-        {"input_tokens": 50_000, "output_tokens": 0},  # $0.15
+        "claude-opus-5",
+        {"input_tokens": 50_000, "output_tokens": 0},  # $0.25
     )
     rc = budget_guard.main()
     out = capsys.readouterr()
@@ -127,8 +127,8 @@ def test_budget_guard_over_limit(tmp_path, monkeypatch, capsys):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
     spend_ledger.record_call(
-        "claude-sonnet-4-6",
-        {"input_tokens": 100_000, "output_tokens": 0},  # $0.30 > $0.10
+        "claude-opus-5",
+        {"input_tokens": 100_000, "output_tokens": 0},  # $0.50 > $0.10
     )
     rc = budget_guard.main()
     out = capsys.readouterr()
@@ -147,7 +147,7 @@ def test_budget_guard_admin_api_404_falls_back(tmp_path, monkeypatch, capsys):
     monkeypatch.delenv("EVAL_MODE", raising=False)
 
     spend_ledger.record_call(
-        "claude-sonnet-4-6",
+        "claude-opus-5",
         {"input_tokens": 10_000, "output_tokens": 0},  # $0.03
     )
 

@@ -6,7 +6,7 @@ Runs each canonical alert twice through the live /alert endpoint:
 
 Each candidate pair is scored independently by two Anthropic judges:
   primary   = claude-fable-5
-  secondary = claude-sonnet-4-6
+  secondary = claude-opus-5
 
 Five dimensions per candidate (0 to 10):
   accuracy, completeness, citation_quality, specificity, actionability
@@ -50,7 +50,7 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 JUDGES = [
     {"name": "fable-5", "model": "claude-fable-5"},
-    {"name": "sonnet-4-6", "model": "claude-sonnet-4-6"},
+    {"name": "opus-5", "model": "claude-opus-5"},
 ]
 
 DIMENSIONS = ["accuracy", "completeness", "citation_quality", "specificity", "actionability"]

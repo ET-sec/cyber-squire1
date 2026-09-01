@@ -235,7 +235,7 @@ class OllamaBackend:
 
     OLLAMA_MODEL_MAP: dict[str, str] = {
         "anthropic/claude-fable-5": "llama3.3:70b",
-        "anthropic/claude-sonnet-4-6": "llama3.1:8b",
+        "anthropic/claude-opus-5": "llama3.1:8b",
     }
 
     def invoke(

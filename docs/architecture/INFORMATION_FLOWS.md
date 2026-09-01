@@ -49,12 +49,12 @@ flowchart TB
 
   subgraph GRAPH["LangGraph state machine (7 nodes) · pending ARM rebuild"]
     direction TB
-    N1["classify<br/>Sonnet 4.6 · 12 s p95"]:::node
+    N1["classify<br/>Opus 5 · 12 s p95"]:::node
     N2["retrieve<br/>pgvector cosine search<br/>top-k=8 · 1.5 s p95"]:::node
     N3["enrich<br/>2.5 s p95"]:::node
-    N4["investigate<br/>Opus · 29 s p95"]:::node
-    N5["draft<br/>Opus · 70 s p95"]:::node
-    N6{{"critique<br/>Opus · 12 s p95<br/>APPROVED / LOOP verdict"}}:::node
+    N4["investigate<br/>Fable 5 · 29 s p95"]:::node
+    N5["draft<br/>Fable 5 · 70 s p95"]:::node
+    N6{{"critique<br/>Fable 5 · 12 s p95<br/>APPROVED / LOOP verdict"}}:::node
     N7["route_severity<br/>0.1 s"]:::node
   end
 
@@ -69,8 +69,8 @@ flowchart TB
 
   subgraph MODELS["Models · external"]
     direction LR
-    OPUS["Anthropic API<br/>Opus tier<br/>investigate · draft · critique"]:::model
-    SONNET["Anthropic API<br/>Sonnet tier<br/>classify"]:::model
+    FABLE["Anthropic API<br/>Fable 5 tier<br/>investigate · draft · critique"]:::model
+    OPUS5["Anthropic API<br/>Opus 5 tier<br/>classify"]:::model
     OLLM["Ollama local<br/>fallback when degraded<br/>(pending ARM rebuild)"]:::pending
     VOYE["Voyage<br/>voyage-3-large 1024-dim"]:::model
   end
@@ -113,10 +113,10 @@ flowchart TB
   N6 -->|validate| CITE
   N6 -->|enforce caps| LOOP
 
-  N1 --> SONNET
-  N4 --> OPUS
-  N5 --> OPUS
-  N6 --> OPUS
+  N1 --> OPUS5
+  N4 --> FABLE
+  N5 --> FABLE
+  N6 --> FABLE
   N4 -->|fallback| OLLM
 
   DEDUP <--> REDIS
@@ -204,7 +204,7 @@ flowchart TB
 
   subgraph DOCAGENT["**GRC reviewer agent** (docs/grc/** only)"]
     direction TB
-    GRCREV["scripts/grc/grc_reviewer.py<br/>Sonnet default<br/>Opus escalation<br/>(over 50 KB or over 5 files)"]:::agent
+    GRCREV["scripts/grc/grc_reviewer.py<br/>Opus 5 default<br/>Fable 5 escalation<br/>(over 50 KB or over 5 files)"]:::agent
     PCACHE["**Prompt caching**<br/>cached system block<br/>cache_control: ephemeral"]:::agent
     GRCREF["scripts/grc/grc_reference.md<br/>NIST + POA&M reference tokens"]:::store
     SAN["sanitize_output.py<br/>10 patterns · POA&M/NIST passthrough"]:::gate
@@ -212,7 +212,7 @@ flowchart TB
 
   subgraph CODEAGENT["**PR-Agent** (code paths only)"]
     direction TB
-    PRA["qodo-ai/pr-agent<br/>pinned by 40-char SHA<br/>Sonnet default<br/>Opus fallback"]:::agent
+    PRA["qodo-ai/pr-agent<br/>pinned by 40-char SHA<br/>Opus 5 default<br/>Fable 5 fallback"]:::agent
     PRACONF[".pr_agent.toml<br/>describe + review + improve<br/>100k token cap"]:::store
   end
 
@@ -246,7 +246,7 @@ flowchart TB
     LEDGER[("local SQLite spend ledger<br/>+ Anthropic admin API")]:::store
   end
 
-  ANTH["Anthropic API<br/>Sonnet / Opus"]:::model
+  ANTH["Anthropic API<br/>Opus 5 / Fable 5"]:::model
   COMMENT["**PR comment**<br/>NIST mapping + POA&M deltas<br/>+ residual_risk required"]:::out
 
   PR --> PATH
@@ -314,7 +314,7 @@ Since Phase 20.1 this flow gained a sibling: scanner findings (Trivy, Checkov, G
 
 | Self-hosted piece | Enterprise analog |
 |-------------------|-------------------|
-| Custom GRC reviewer (Sonnet with Opus escalation) | ServiceNow GRC + Drata workflow checklists |
+| Custom GRC reviewer (Opus 5 with Fable 5 escalation) | ServiceNow GRC + Drata workflow checklists |
 | Qodo PR-Agent | CodeRabbit |
 | Cosign + Rekor on OSCAL | Chainguard supply-chain attestation |
 | OPA + conftest on frontmatter | ServiceNow workflow gates / policy-as-code |

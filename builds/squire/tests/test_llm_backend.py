@@ -180,7 +180,7 @@ def test_fallback_max_walks_full_chain(monkeypatch):
         "api": lambda: api_instance,
         "ollama": lambda: ollama_instance,
     })
-    resp = invoke_with_fallback("max", [{"role": "user", "content": "hi"}], "anthropic/claude-sonnet-4-6")
+    resp = invoke_with_fallback("max", [{"role": "user", "content": "hi"}], "anthropic/claude-opus-5")
     assert resp.content == "last_resort"
     assert resp.backend == "ollama"
     assert resp.degraded is True

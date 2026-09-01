@@ -1,5 +1,5 @@
 [config]
-model = "anthropic/claude-sonnet-4-6"
+model = "anthropic/claude-opus-5"
 fallback_models = ["anthropic/claude-fable-5"]
 publish_output = true
 max_model_tokens = 100000
