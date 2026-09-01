@@ -31,10 +31,10 @@ The platform processes API keys, operational credentials, workflow automation lo
 | **Framework** | NIST SP 800-53 Rev. 5, Moderate Baseline |
 | **Control Families** | 16 |
 | **Total Controls Mapped** | 133 |
-| **Fully Implemented** | 87 (65%) |
-| **Partially Implemented** | 27 (21%) |
+| **Fully Implemented** | 88 (66%) |
+| **Partially Implemented** | 26 (20%) |
 | **Implemented + Partial** | 114 (86%) |
-| **Planned / Not Implemented** | 19 (14%) |
+| **Inherited / Not Applicable / Planned** | 19 (6 inherited, 10 N/A, 3 planned) |
 
 ![Control Coverage](diagrams/control_coverage.png)
 
@@ -132,7 +132,7 @@ The platform design spans **20 containerized services**; the current OCI instanc
 
 ## Key Strengths
 
-1. **Zero Critical/High findings** across all assessment sources
+1. **Zero open Critical/High findings** across all assessment sources; both High-severity register entries are closed
 2. **86% control implementation rate** against NIST 800-53 Moderate baseline
 3. **Full defense-in-depth stack** from network perimeter through runtime detection
 4. **Automated evidence collection** via Falco, Datadog, and CI/CD scanners reduces manual audit burden
@@ -147,7 +147,7 @@ The platform design spans **20 containerized services**; the current OCI instanc
 2. **User namespace remapping** - not yet enabled on Docker daemon (POAM-001, Medium)
 3. **Automated backup testing** - PostgreSQL backups exist but restore testing is manual
 4. **OAuth credential lifecycle** - several Google OAuth integrations pending reconnection
-5. **Remaining 14% of controls** - 19 controls planned but not yet implemented
+5. **Planned controls** - 3 controls remain planned; the other 16 non-implemented rows are inherited (6) or not applicable (10)
 6. **Tabletop exercise cadence** - first exercise completed, semi-annual schedule needs second iteration
 
 ---

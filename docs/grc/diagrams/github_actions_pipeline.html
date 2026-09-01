@@ -1,0 +1,91 @@
+<meta charset="utf-8">
+<!-- Source of truth: .github/workflows/ (14 files, verified 2026-09-01).
+     PR gates from terraform-pr.yml, merge gates from security.yml jobs, scheduled from drift-check.yml and friends.
+     metrics.yaml: workflows_github_actions 14, governance.ci_actions_unpinned 0. Render: node render.mjs -->
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:2160px; background:#0a0a0a; color:#e8e8e8; font-family:'Inter','Helvetica Neue',Arial,sans-serif; padding:80px 80px 60px; }
+  .eyebrow { font-family:'JetBrains Mono',monospace; font-size:38px; color:#00FF41; letter-spacing:6px; }
+  h1 { font-family:'JetBrains Mono',monospace; font-size:92px; letter-spacing:2px; margin-top:16px; }
+  h1 .green { color:#00FF41; }
+  .sub { font-size:40px; color:#a8b0b8; margin-top:18px; max-width:1700px; line-height:1.4; }
+
+  .lane { border:3px solid #2c3138; border-radius:22px; padding:40px 44px; background:#101216; margin-top:44px; }
+  .lt { display:flex; align-items:baseline; gap:26px; }
+  .ltitle { font-family:'JetBrains Mono',monospace; font-size:46px; }
+  .lsub { font-family:'JetBrains Mono',monospace; font-size:27px; color:#78828c; }
+  .l-pr { border-color:rgba(77,163,255,.6); } .l-pr .ltitle { color:#4DA3FF; }
+  .l-mg { border-color:rgba(0,255,65,.6); }  .l-mg .ltitle { color:#00FF41; }
+  .l-sc { border-color:rgba(255,176,32,.6); } .l-sc .ltitle { color:#FFB020; }
+
+  .flow { display:flex; align-items:center; flex-wrap:wrap; gap:14px; margin-top:32px; }
+  .step { font-family:'JetBrains Mono',monospace; font-size:31px; color:#e8e8e8; border:2px solid #3a404a;
+          background:#0a0a0a; border-radius:12px; padding:18px 26px; }
+  .step b { font-weight:700; }
+  .arrow { font-family:'JetBrains Mono',monospace; font-size:34px; color:#78828c; }
+  .l-pr .step b { color:#4DA3FF; } .l-mg .step b { color:#00FF41; } .l-sc .step b { color:#FFB020; }
+
+  .fan { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:26px; }
+  .fanbox { border:2px dashed #3a404a; border-radius:12px; padding:20px 24px;
+            font-family:'JetBrains Mono',monospace; font-size:29px; color:#c8ced4; line-height:1.5; }
+  .fanbox b { color:#00FF41; }
+
+  .also { margin-top:28px; display:flex; flex-wrap:wrap; gap:14px; align-items:center;
+          font-family:'JetBrains Mono',monospace; font-size:26px; color:#78828c; }
+  .chip { border:2px solid #2c3138; border-radius:10px; padding:10px 18px; color:#a8b0b8; background:#0d0f13; }
+
+  .keyless { margin-top:44px; border:3px solid #00FF41; border-radius:22px; padding:36px 44px; background:rgba(0,255,65,.04);
+             font-family:'JetBrains Mono',monospace; font-size:34px; color:#c8ced4; line-height:1.6; }
+  .keyless b { color:#00FF41; }
+
+  .footer { margin-top:48px; font-family:'JetBrains Mono',monospace; font-size:28px; color:#78828c; line-height:1.5; }
+</style>
+
+<div class="eyebrow">SECURE SDLC // GITHUB ACTIONS</div>
+<h1>CI/CD SECURITY <span class="green">PIPELINE</span></h1>
+<div class="sub">14 workflows, three lanes: gates that block a pull request, gates that run at merge, and scheduled jobs that watch the live cloud. Every third-party action is SHA-pinned.</div>
+
+<div class="lane l-pr">
+  <div class="lt"><div class="ltitle">PULL REQUEST</div><div class="lsub">terraform-pr.yml, credential-free: runs with zero cloud access</div></div>
+  <div class="flow">
+    <div class="step"><b>fmt</b> format check</div><span class="arrow">&rarr;</span>
+    <div class="step"><b>init</b> backendless</div><span class="arrow">&rarr;</span>
+    <div class="step"><b>validate</b></div><span class="arrow">&rarr;</span>
+    <div class="step"><b>Checkov</b> IaC scan</div><span class="arrow">&rarr;</span>
+    <div class="step"><b>OPA</b> fixture self-test</div><span class="arrow">&rarr;</span>
+    <div class="step"><b>PR comment</b> gate report</div>
+  </div>
+  <div class="also">Also on PRs, path-filtered:
+    <span class="chip">CodeQL</span><span class="chip">ZAP DAST</span><span class="chip">GRC validate</span>
+    <span class="chip">GRC reviewer</span><span class="chip">agent verify</span><span class="chip">image smoke</span>
+  </div>
+</div>
+
+<div class="lane l-mg">
+  <div class="lt"><div class="ltitle">MERGE TO MAIN</div><div class="lsub">security.yml: the scan job is a hard gate, three jobs fan out behind it</div></div>
+  <div class="flow">
+    <div class="step"><b>Gitleaks</b> secrets</div><span class="arrow">&rarr;</span>
+    <div class="step"><b>Trivy</b> CVE + misconfig</div><span class="arrow">&rarr;</span>
+    <div class="step"><b>Semgrep</b> SAST</div><span class="arrow">&rarr;</span>
+    <div class="step" style="border-color:#00FF41;"><b>GATE PASSES</b></div>
+  </div>
+  <div class="fan">
+    <div class="fanbox"><b>poam-sync</b><br>scanner findings auto-populate the POA&amp;M ledger (75 rows, 0 open)</div>
+    <div class="fanbox"><b>Cosign verify</b><br>container signatures checked against the pinned digest manifest</div>
+    <div class="fanbox"><b>SBOM</b><br>Syft software bill of materials, 90-day retention</div>
+  </div>
+</div>
+
+<div class="lane l-sc">
+  <div class="lt"><div class="ltitle">SCHEDULED</div><div class="lsub">the pipeline keeps auditing after the merge</div></div>
+  <div class="flow">
+    <div class="step"><b>drift-check</b> nightly: live Terraform plan against the real cloud, alerts to Telegram</div>
+    <div class="step"><b>agent-signing</b> Sigstore keyless on main</div>
+    <div class="step"><b>CodeQL</b> weekly sweep</div>
+    <div class="step"><b>ZAP DAST</b> recurring</div>
+  </div>
+</div>
+
+<div class="keyless"><b>Zero stored cloud keys.</b> CI reaches the cloud through GitHub OIDC token exchange: short-lived sessions, trust pinned to this repo and the main branch. A stolen cloud key is not a thing, because none is stored.</div>
+
+<div class="footer">Source: .github/workflows/ (14 files) and metrics.yaml, verified 2026-09-01. Sanitized public view. Rebuilt 2026-09-01.</div>

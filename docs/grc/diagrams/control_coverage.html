@@ -1,0 +1,97 @@
+<meta charset="utf-8">
+<!-- Source of truth: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md Section 5 control table (133 rows, verified 2026-09-01)
+     Reconciles with metrics.yaml grc.nist_800_53_controls_cited = 133.
+     Render: node render.mjs -->
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:2160px; background:#0a0a0a; color:#e8e8e8; font-family:'Inter','Helvetica Neue',Arial,sans-serif; padding:80px 80px 60px; }
+  .mono { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; }
+  .eyebrow { font-family:'JetBrains Mono',monospace; font-size:38px; color:#00FF41; letter-spacing:6px; }
+  h1 { font-family:'JetBrains Mono',monospace; font-size:92px; letter-spacing:2px; margin-top:16px; }
+  h1 .green { color:#00FF41; }
+  .sub { font-size:40px; color:#a8b0b8; margin-top:18px; }
+
+  .tiles { display:grid; grid-template-columns:repeat(6,1fr); gap:24px; margin-top:56px; }
+  .tile { border:3px solid #2c3138; border-radius:18px; padding:28px 24px; text-align:center; background:#101216; }
+  .tile .n { font-family:'JetBrains Mono',monospace; font-size:76px; font-weight:700; }
+  .tile .l { font-family:'JetBrains Mono',monospace; font-size:26px; color:#a8b0b8; margin-top:10px; letter-spacing:1px; }
+  .t-total { border-color:#e8e8e8; } .t-total .n { color:#ffffff; }
+  .t-imp  { border-color:#00FF41; } .t-imp .n  { color:#00FF41; }
+  .t-inh  { border-color:#B48CFF; } .t-inh .n  { color:#B48CFF; }
+  .t-par  { border-color:#FFB020; } .t-par .n  { color:#FFB020; }
+  .t-pla  { border-color:#4DA3FF; } .t-pla .n  { color:#4DA3FF; }
+  .t-na   { border-color:#78828c; } .t-na .n   { color:#9aa5b1; }
+
+  .legend { display:flex; gap:44px; margin-top:52px; font-family:'JetBrains Mono',monospace; font-size:30px; color:#c8ced4; flex-wrap:wrap; }
+  .legend span { display:flex; align-items:center; gap:14px; }
+  .sw { width:34px; height:34px; border-radius:6px; display:inline-block; }
+
+  .rows { margin-top:44px; }
+  .row { display:flex; align-items:center; gap:28px; padding:10px 0; }
+  .fam { font-family:'JetBrains Mono',monospace; font-size:36px; width:120px; color:#ffffff; font-weight:700; flex:none; }
+  .tot { font-family:'JetBrains Mono',monospace; font-size:30px; width:80px; color:#78828c; flex:none; text-align:right; }
+  .track { flex:1; }
+  .bar { display:flex; gap:4px; height:58px; }
+  .seg { border-radius:6px; display:flex; align-items:center; justify-content:center;
+         font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:#0a0a0a; }
+  .s-imp { background:#00FF41; } .s-inh { background:#B48CFF; } .s-par { background:#FFB020; }
+  .s-pla { background:#4DA3FF; } .s-na  { background:#78828c; color:#0a0a0a; }
+
+  .footer { margin-top:56px; font-family:'JetBrains Mono',monospace; font-size:28px; color:#78828c; line-height:1.5; }
+</style>
+
+<div class="eyebrow">GRC LIBRARY // SYSTEM SECURITY PLAN</div>
+<h1>NIST 800-53 <span class="green">CONTROL COVERAGE</span></h1>
+<div class="sub">133 controls mapped across 16 families. Status from the SSP control table, not an estimate.</div>
+
+<div class="tiles">
+  <div class="tile t-total"><div class="n">133</div><div class="l">CONTROLS</div></div>
+  <div class="tile t-imp"><div class="n">88</div><div class="l">IMPLEMENTED</div></div>
+  <div class="tile t-par"><div class="n">26</div><div class="l">PARTIAL</div></div>
+  <div class="tile t-na"><div class="n">10</div><div class="l">NOT APPLICABLE</div></div>
+  <div class="tile t-inh"><div class="n">6</div><div class="l">INHERITED</div></div>
+  <div class="tile t-pla"><div class="n">3</div><div class="l">PLANNED</div></div>
+</div>
+
+<div class="legend">
+  <span><i class="sw" style="background:#00FF41"></i>Implemented</span>
+  <span><i class="sw" style="background:#B48CFF"></i>Inherited</span>
+  <span><i class="sw" style="background:#FFB020"></i>Partially implemented</span>
+  <span><i class="sw" style="background:#4DA3FF"></i>Planned</span>
+  <span><i class="sw" style="background:#78828c"></i>Not applicable</span>
+</div>
+
+<div class="rows" id="rows"></div>
+
+<div class="footer">Source: SSP v1.2 control mapping, reconciled with metrics.yaml (133). Bars scaled to the largest family (SC, 21 controls).<br>Sanitized public view. Rebuilt 2026-09-01.</div>
+
+<script>
+// family, implemented, inherited, partial, planned, na  (SSP Section 5, counted 2026-09-01)
+const DATA = [
+  ['AC', 8, 0, 3, 1, 0],
+  ['AU',10, 0, 2, 0, 0],
+  ['CA', 5, 0, 1, 0, 0],
+  ['CM', 8, 0, 0, 0, 0],
+  ['CP', 3, 0, 5, 0, 0],
+  ['IA', 7, 0, 2, 0, 1],
+  ['IR', 5, 0, 3, 0, 0],
+  ['MA', 4, 0, 2, 0, 0],
+  ['MP', 3, 2, 1, 0, 0],
+  ['PE', 0, 1, 0, 0, 0],
+  ['PL', 2, 0, 0, 1, 0],
+  ['PS', 0, 0, 2, 1, 5],
+  ['RA', 4, 0, 0, 0, 0],
+  ['SA', 8, 0, 1, 0, 0],
+  ['SC',13, 3, 2, 0, 3],
+  ['SI', 8, 0, 2, 0, 1],
+];
+const MAX = 21;
+const CLS = ['s-imp','s-inh','s-par','s-pla','s-na'];
+const rows = document.getElementById('rows');
+for (const [fam, ...counts] of DATA) {
+  const total = counts.reduce((a,b)=>a+b,0);
+  const segs = counts.map((c,i)=> c ? `<div class="seg ${CLS[i]}" style="width:${(c/total*100).toFixed(2)}%">${c}</div>` : '').join('');
+  rows.insertAdjacentHTML('beforeend',
+    `<div class="row"><div class="fam">${fam}</div><div class="track"><div class="bar" style="width:${(total/MAX*100).toFixed(2)}%">${segs}</div></div><div class="tot">${total}</div></div>`);
+}
+</script>
