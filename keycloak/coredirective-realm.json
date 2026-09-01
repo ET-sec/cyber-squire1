@@ -184,10 +184,10 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
-        "https://teleport.tigouetheory.com/v1/webapi/oidc/callback"
+        "https://teleport.example-ops.com/v1/webapi/oidc/callback"
       ],
       "webOrigins": [
-        "https://teleport.tigouetheory.com"
+        "https://teleport.example-ops.com"
       ],
       "defaultClientScopes": [
         "openid",
@@ -324,7 +324,7 @@
     {
       "clientId": "drift-detector",
       "name": "Drift Detector - stack drift agent",
-      "description": "Runs verify-facts.py, diffs stack-facts.yaml against filesystem and droplet, writes drift events to Notion ChangeLog, alerts via Telegram on HIGH severity drift.",
+      "description": "Runs verify-facts.py, diffs stack-facts.yaml against filesystem and host, writes drift events to Notion ChangeLog, alerts via Telegram on HIGH severity drift.",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,

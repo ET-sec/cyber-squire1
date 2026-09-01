@@ -1,0 +1,100 @@
+%%{init: {'theme':'base', 'themeVariables': {
+  'primaryColor':'#0d1117',
+  'primaryTextColor':'#7CFFB2',
+  'primaryBorderColor':'#39d98a',
+  'lineColor':'#39d98a',
+  'secondaryColor':'#161b22',
+  'tertiaryColor':'#1f2933',
+  'fontFamily':'JetBrains Mono, Menlo, monospace',
+  'fontSize':'13px'
+}}}%%
+flowchart TB
+
+  classDef user fill:#1f2933,stroke:#7CFFB2,color:#7CFFB2,stroke-width:2px
+  classDef live fill:#161b22,stroke:#39d98a,color:#cdd9e5
+  classDef edge fill:#1c2c3a,stroke:#58a6ff,color:#cdd9e5
+  classDef data fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
+  classDef sec fill:#1c2c3a,stroke:#f97583,color:#f97583,stroke-width:2px
+  classDef ci fill:#1f2933,stroke:#a371f7,color:#cdd9e5
+  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+
+  OPERATOR["OPERATOR (human)"]:::user
+  ENDUSER["Browser users"]:::user
+  TG["Telegram<br/>(alert delivery)"]:::user
+
+  subgraph LOCALBOX["LOCAL · Mac workstation"]
+    direction TB
+    CC["Claude Code CLI<br/>Doppler-injected secrets<br/>terraform CLI"]:::live
+    HOOK1["pre-commit hook<br/>gitleaks (defaults + tripwires)<br/>AI-tell sweep · metric rebuild<br/>fail-closed"]:::sec
+    HOOK2["pre-push hook<br/>gitleaks over every unpushed commit<br/>catches no-verify and API commits<br/>fail-closed"]:::sec
+  end
+
+  GH["GitHub public repo<br/>branch protection on main<br/>server-side push protection"]:::sec
+
+  subgraph CIBOX["CI · GitHub Actions (14 workflows, SHA-pinned, least-privilege permissions)"]
+    direction TB
+    OIDC["OIDC token exchange<br/>GitHub JWT to OCI UPST<br/>minutes-lived · pinned to repo + main<br/>read-only principal · zero stored cloud keys"]:::sec
+    DRIFT["Nightly drift check<br/>read-only terraform plan vs live cloud<br/>exit 2 = drift alert"]:::ci
+    SCAN["Scanners in CI<br/>Trivy · Semgrep · Gitleaks · CodeQL<br/>OPA (8 Rego policies on IaC)"]:::ci
+    POAM["poam_sync.py<br/>findings to POA&M ledger<br/>fingerprint-deduplicated · idempotent"]:::ci
+  end
+
+  subgraph EDGEBOX["EDGE · Cloudflare"]
+    direction TB
+    ACCESS["Access (ZTNA)<br/>SSO gate for humans<br/>trust boundary 1: end users"]:::edge
+    WAF["WAF + DNS"]:::edge
+    TUN["Tunnel<br/>outbound-only connector<br/>origin exposes nothing inbound"]:::edge
+  end
+
+  subgraph OCIBOX["COMPUTE · OCI Ampere A1 Always Free (ARM · 4 OCPU / 24 GB · $0/month)"]
+    direction TB
+    subgraph LIVEBOX["LIVE (3 containers)"]
+      direction LR
+      PG[("PostgreSQL 16<br/>+ pgvector")]:::live
+      N8N["n8n<br/>workflow engine"]:::live
+      CFD["cloudflared<br/>tunnel sidecar"]:::live
+    end
+    subgraph PENDBOX["DESIGNED · pending ARM rebuild (16 of 19 compose services)"]
+      direction LR
+      VAULT2["HashiCorp Vault"]:::pending
+      KC["Keycloak"]:::pending
+      TP["Teleport<br/>+ event handler"]:::pending
+      FALCO["Falco + Falcosidekick<br/>(rerouting to Splunk)"]:::pending
+      DDP["Datadog agent<br/>+ Fluentd"]:::pending
+      LFP["Langfuse<br/>web · worker · ClickHouse · Redis"]:::pending
+      NEMO["NeMo Guardrails"]:::pending
+      SQ["Squire<br/>LangGraph SOC agent"]:::pending
+      OLL["Ollama<br/>+ Whisper (slated for removal)"]:::pending
+    end
+  end
+
+  subgraph STOREBOX["DATA · OCI Object Storage + KMS"]
+    direction TB
+    KMS["OCI Vault KMS<br/>customer-managed key<br/>envelope encryption: rotation re-wraps"]:::sec
+    STATE[("State bucket<br/>versioned · native locking<br/>R2 migration queued")]:::data
+    BAK[("Backup bucket<br/>30-day retention lock<br/>deletes refused, even for admin")]:::data
+  end
+
+  OPERATOR --> CC
+  CC --> HOOK1
+  HOOK1 --> HOOK2
+  HOOK2 -->|git push| GH
+  GH --> CIBOX
+  OIDC --> DRIFT
+  DRIFT -->|state read| STATE
+  DRIFT -->|"plan vs live (read-only)"| OCIBOX
+  DRIFT -->|drift + failure alerts| TG
+  SCAN --> POAM
+  CC -->|terraform apply<br/>Doppler creds| STATE
+
+  ENDUSER --> ACCESS
+  ACCESS --> TUN
+  WAF --> TUN
+  TUN --> CFD
+  CFD --> N8N
+  N8N --> PG
+
+  LIVEBOX -->|"nightly pg_dump + n8n volume<br/>instance principal (no keys on host)"| BAK
+  BAK -->|monthly timed restore test| LIVEBOX
+  KMS -->|wraps| STATE
+  KMS -->|wraps| BAK

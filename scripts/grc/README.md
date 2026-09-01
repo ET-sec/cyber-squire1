@@ -12,7 +12,7 @@ GRC corpus tooling for the AI-Native GRC Pipeline (Phase 19).
 | `spend_ledger.py` | SQLite ledger with pinned per-model pricing | 19-02 |
 | `sanitize_patterns.py` | 10 ordered regex patterns (IP, RFC1918, container names, tokens, etc.) | 19-02 |
 | `sanitize_output.py` | Idempotent `sanitize(text)` function | 19-02 |
-| `grc_reviewer.py` | PR reviewer agent (Sonnet 4.6 default, Opus 4.7 escalation) | 19-02 |
+| `grc_reviewer.py` | PR reviewer agent (Sonnet 4.6 default, Fable 5 escalation) | 19-02 |
 | `grc_mcp_server.py` | FastMCP stdio server exposing 5 read-only tools to Claude Desktop | 19-03 |
 | `build_oscal.py` | OSCAL artifact emitter with optional cosign keyless signing | 19-05 |
 
@@ -119,7 +119,7 @@ The server file at `scripts/grc/grc_mcp_server.py` stays in the repo; nothing el
 
 - Read-only by construction. Every tool carries `readOnlyHint: True` and there is no write path in the module.
 - Path-traversal blocked: `is_relative_to(GRC_DIR.resolve())` plus symlink rejection on both pre-resolve and post-resolve paths.
-- Output sanitized on every return through `scripts/grc/sanitize_output.sanitize()` (Plan 19-02): production IP `161.35.0.184`, RFC1918, `cd-service-*`, `tigouetheory.com`, `/root/...`, Doppler tokens, Anthropic keys, GitHub PATs, AWS keys, Bearer tokens.
+- Output sanitized on every return through `scripts/grc/sanitize_output.sanitize()` (Plan 19-02): host-specific public IPs (env-supplied via `GRC_REDACT_IPS`), RFC1918, `cd-service-*`, `tigouetheory.com`, `/root/...`, Doppler tokens, Anthropic keys, GitHub PATs, AWS keys, Bearer tokens.
 - Stdio pure: all logs go to stderr via `logging.basicConfig(stream=sys.stderr)`. Zero `print()` calls (CI-greppable).
 - Size capped: 100KB hard ceiling on any single tool response; truncation marked with `[TRUNCATED]`.
 - Tool exceptions trapped: every tool body wrapped in try/except, structured error returned, server stays alive.

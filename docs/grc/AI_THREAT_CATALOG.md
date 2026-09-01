@@ -26,6 +26,8 @@ related:
   - POAM-OPS-001
 ---
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 # AI Threat Catalog
 
 **Organization:** Organization Security Operations Platform
@@ -560,7 +562,7 @@ The following matrix documents which monitoring and detection systems can identi
 | AI-T05 | Supply Chain Vulnerabilities | SBOM, container signing | 14-component living register (AI_SUPPLY_CHAIN_REGISTER) with version plus hash plus review cadence | 60-day register review |
 | AI-T06 | Insecure Output Handling | Output sanitization | NeMo output rail, critique node, action allow-list, HITL gate on HIGH/CRITICAL | GUARDRAILS_CONFIGURATION rail coverage |
 | AI-T07 | Excessive Agency | Human approval on destructive ops | Actions allow-list (typed schema, deny-by-default), HITL policy for HIGH/CRITICAL severity, 60-day token rotation | HITL_POLICY sections 2-6 |
-| AI-T08 | Overreliance (hallucinated output) | Human review spot-check | Critique node gates draft, citation validator requires source match, Ollama fallback when Opus unavailable | SQUIRE_MODEL_CARD limitations |
+| AI-T08 | Overreliance (hallucinated output) | Human review spot-check | Critique node gates draft, citation validator requires source match, Ollama fallback when Fable unavailable | SQUIRE_MODEL_CARD limitations |
 | AI-T09 | Model Denial of Service | Rate limit | Cost ceiling (hard stop at per-alert budget), Cloudflare rate limit, Redis dedup | SQUIRE_SSP SC-5 |
 | AI-T10 | Sensitive Info Disclosure (logs or traces) | Log hygiene | SDK redaction, Langfuse classification policy, per-class retention in SQUIRE_DATA_FLOW_CLASSIFICATION | AI_AUDIT_TRAIL_SPEC |
 

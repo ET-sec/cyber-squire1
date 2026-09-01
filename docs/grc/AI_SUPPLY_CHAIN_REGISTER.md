@@ -9,6 +9,8 @@
 **Distinct From:** AI_SUPPLY_CHAIN_RISK.md (the policy). This document is the living asset register that the policy references.
 **NIST 800-53 Controls:** CM-8 (System Component Inventory), SR-4 (Provenance), SR-11 (Component Authenticity)
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 ---
 
 ## Document Control
@@ -74,7 +76,7 @@ Risk Score rubric:
 
 | Component | Version | Provider | License | Hash / Digest | Updated | Next Review | Risk Score | Notes |
 |-----------|---------|----------|---------|---------------|---------|-------------|------------|-------|
-| claude-opus-4-7 | claude-opus-4-7 (2026 release) | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 5 | Primary reasoning on investigate, draft, critique. Temperature param rejected by this model, APIBackend handles. |
+| claude-fable-5 | claude-fable-5 (2026 release) | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 5 | Primary reasoning on investigate, draft, critique. Temperature param rejected by this model, APIBackend handles. |
 | claude-sonnet-4-6 | claude-sonnet-4-6 | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 4 | Classifier on classify node. Temperature accepted. |
 | text-embedding-3-large | v3-large, 1536 dim | OpenAI | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 4 | Used at corpus embed time, not at runtime. Corpus rebuild required on provider drift. |
 

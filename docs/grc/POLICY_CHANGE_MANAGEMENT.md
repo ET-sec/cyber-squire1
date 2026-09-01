@@ -8,6 +8,8 @@
 **Owner:** Information Security Officer
 **NIST 800-53 Controls:** CM-1, CM-2, CM-3, CM-4, CM-5, CM-6, CM-7, CM-8
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 ---
 
 ## 1. Purpose

@@ -1,0 +1,31 @@
+title: Cloudflare WAF Block Burst From Single Source
+id: 4f2e8c1d-9a7b-4d3e-8c0a-2b5e7d9c1f3a
+status: stable
+description: |
+  Detects a single source IP triggering 50 or more WAF block events in a
+  5 minute window across either the managed Cloudflare Ruleset or the
+  custom WAF ruleset. Indicates an active attacker running a multi-vector
+  scan, not a stray probe. At this volume the source should be promoted
+  from per-rule blocking to an outright zone level IP ban.
+references:
+  - https://attack.mitre.org/techniques/T1190/
+  - https://developers.cloudflare.com/waf/managed-rules/
+author: Organization Security Engineering
+date: 2026-04-28
+tags:
+  - attack.initial_access
+  - attack.t1190
+  - cd.cloudflare
+  - cd.waf
+logsource:
+  product: cloudflare
+  service: firewall
+detection:
+  selection:
+    Action: 'block'
+  timeframe: 5m
+  condition: selection | count() by ClientIP > 50
+falsepositives:
+  - Authorized red team exercise. Coordinate timing and add scanner IP to the WAF exception list for the engagement.
+  - Aggressive bug bounty hunter on a third party scope; confirm by checking program inclusion before alerting.
+level: high

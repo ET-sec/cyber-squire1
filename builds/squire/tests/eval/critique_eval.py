@@ -5,7 +5,7 @@ Runs each canonical alert twice through the live /alert endpoint:
   - X-Squire-Max-Iterations: 3  (critique loop enabled, treatment)
 
 Each candidate pair is scored independently by two Anthropic judges:
-  primary   = claude-opus-4-7
+  primary   = claude-fable-5
   secondary = claude-sonnet-4-6
 
 Five dimensions per candidate (0 to 10):
@@ -49,7 +49,7 @@ RESULTS_DIR = HERE / "results"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 JUDGES = [
-    {"name": "opus-4-7", "model": "claude-opus-4-7"},
+    {"name": "fable-5", "model": "claude-fable-5"},
     {"name": "sonnet-4-6", "model": "claude-sonnet-4-6"},
 ]
 

@@ -18,6 +18,8 @@ related:
   - SSP-SQUIRE-001
 ---
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 # System Security Plan (SSP)
 
 ## Organization Security Operations Platform
@@ -697,7 +699,7 @@ Open findings and planned remediations are tracked in the Plan of Action and Mil
 |------------|---------|
 | `SQUIRE_SSP.md` | 36-control scoped SSP with inheritance annotations |
 | `GUARDRAILS_CONFIGURATION.md` | Rail-by-rail test coverage, failure modes, change control |
-| `SQUIRE_MODEL_CARD.md` | Mitchell et al. model card for Opus 4.7, Sonnet 4.6, Voyage AI voyage-3-large |
+| `SQUIRE_MODEL_CARD.md` | Mitchell et al. model card for Fable 5, Sonnet 4.6, Voyage AI voyage-3-large |
 | `AI_AUDIT_TRAIL_SPEC.md` | Per-invocation logging, retention tiers, immutability, replay procedure |
 | `HITL_POLICY.md` | Human-in-the-loop triggers, SLA, 60-day ephemeral token rotation |
 | `SQUIRE_DATA_FLOW_CLASSIFICATION.md` | Data classification, storage, retention, sanitization rules |
@@ -725,7 +727,7 @@ The Squire subsystem introduces the following external interconnections, each su
 
 | Connection | Direction | Purpose | Control reference |
 |------------|-----------|---------|-------------------|
-| Anthropic API | Outbound HTTPS from svc-squire | Sonnet 4.6 classify, Opus 4.7 draft + critique | SA-9, SC-7, SC-8 |
+| Anthropic API | Outbound HTTPS from svc-squire | Sonnet 4.6 classify, Fable 5 draft + critique | SA-9, SC-7, SC-8 |
 | Tavily API | Outbound HTTPS from svc-squire | Optional enrichment query | SA-9, SC-7, SC-8 |
 <!-- TODO(et): Verify Telegram notifier is live for HIGH/CRITICAL severity. n8n Telegram credential is verified, but the Squire-side webhook path needs evidence. -->
 | Telegram Bot API | Outbound via n8n route | Operator notification of severity HIGH + CRITICAL alerts | SA-9, IR-6 |

@@ -1,0 +1,75 @@
+# metrics.yaml: canonical numeric facts derived from filesystem.
+# Regenerate via: python3 scripts/build_metrics.py
+# Pre-commit hook auto-runs this when source dirs change.
+# Do not hand-edit: changes will be overwritten.
+
+generated_at: '2026-09-01T10:37:43+00:00'
+generator: build_metrics.py
+version: 1
+
+sources:
+  detections_source: 'detections/'
+  filesystem_root: '/Users/et/cyber-squire-ops'
+  poam_auto_source: 'docs/grc/POAM_AUTO_FINDINGS.md'
+  poam_source: 'docs/grc/POAM_PLAN_OF_ACTION.md'
+  ssp_source: 'docs/grc/SSP_*.md'
+  terraform_source: 'terraform/cd-oci-infrastructure/ (active); terraform/cd-do-infrastructure/ (archived)'
+  workflows_source: '.github/workflows/'
+
+stack:
+  containers_live: 3
+  containers_designed: 19
+  workflows_n8n_active: 14
+  workflows_github_actions: 14
+
+grc:
+  total_documents: 57
+  total_files_including_index: 59
+  nist_800_53_controls_cited: 133
+  policies: 10
+  ir_playbooks: 5
+  threat_model_docs: 6
+  tabletop_exercises: 2
+  executive_summaries: 3
+  poam_findings_total: 42
+  poam_findings_base_cis_checkov_ra: 27
+  poam_findings_squire_ai: 15
+  poam_findings_open: 20
+  poam_findings_closed: 7
+  poam_findings_accepted_risk: 15
+  stride_threats: 29
+  ai_threats_cataloged: 10
+  attack_paths_total: 7
+  attack_paths_base: 4
+  attack_paths_squire_ai: 3
+  trust_boundaries_defined: 7
+  data_flows_cataloged: 40
+
+ai:
+  openclaw_model: "Claude Fable 5"
+  openclaw_model_id: "claude-fable-5"
+  ollama_model: "Qwen 3 8B"
+  whisper_engine: "faster-whisper"
+
+detection:
+  sigma_rules: 17
+
+infra:
+  terraform_files: 7
+  terraform_files_archived_do: 21
+  opa_policies: 8
+  datadog_monitors: 10
+  datadog_dashboards: 2
+
+governance:
+  drift_check_scheduled: true
+  poam_auto_findings_total: 75
+  poam_auto_findings_open: 0
+  poam_auto_findings_closed: 75
+  ci_actions_unpinned: 0
+
+contact:
+  email: "etigoue@tigouetheory.com"
+  github: "ET-sec"
+  portfolio_url: "https://et-sec.github.io/portfolio/"
+  linkedin: "https://www.linkedin.com/in/emmanuel-tigoue"

@@ -1,0 +1,35 @@
+title: Cloudflare Access Brute Force
+id: 7a4e2d1f-3b9c-4e8a-9c2f-1d5b8a7e4f0c
+status: stable
+description: |
+  Detects repeated Cloudflare Access authentication failures from a single
+  source IP against any protected admin subdomain. Cloudflare Access guards
+  n8n, Langfuse, Squire FastAPI, and SSH. A burst of denials indicates either
+  a brute force attempt against the One-Time PIN flow or a compromised email
+  attempting to authenticate without inbox access. Threshold: 10 denials in
+  5 minutes from one IP.
+references:
+  - https://attack.mitre.org/techniques/T1110/
+  - https://developers.cloudflare.com/cloudflare-one/insights/logs/
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/IAM_POLICY.md
+author: Organization Security Engineering
+date: 2026-04-28
+tags:
+  - attack.credential_access
+  - attack.t1110
+  - attack.t1110.003
+  - cd.cloudflare
+  - cd.access
+logsource:
+  product: cloudflare
+  service: access
+detection:
+  selection:
+    Action: 'denied'
+    AppDomain|endswith: '.example-ops.com'
+  timeframe: 5m
+  condition: selection | count() by ClientIP > 10
+falsepositives:
+  - Operator typing the wrong PIN repeatedly while testing. Coordinate with the operator and suppress for the test window.
+  - Email delivery latency causing PIN expiry retries. Investigate Cloudflare and Gmail logs.
+level: high

@@ -1,9 +1,9 @@
-"""investigate node - Opus 4.7 investigation synthesis with Tavily follow-up.
+"""investigate node - Fable 5 investigation synthesis with Tavily follow-up.
 
 After classification + retrieval + enrichment, this node:
   1. Pulls additional targeted threat intel via tools.tavily (when the
      classifier produced IoCs or a distinctive rule) - fail-open.
-  2. Asks Opus 4.7 to synthesize an investigation plan: what's been checked,
+  2. Asks Fable 5 to synthesize an investigation plan: what's been checked,
      what hypotheses are live, what evidence is still needed.
 
 The output is written to state["evidence"] as an investigation row rather than
@@ -113,7 +113,7 @@ def _coerce_json(raw: str) -> dict[str, Any]:
 
 
 def investigate(state: dict) -> dict:
-    """Opus 4.7 investigation synthesis node.
+    """Fable 5 investigation synthesis node.
 
     Produces an evidence row tagged node='investigate' containing:
       - elapsed_ms, backend, model, cost, tokens (for criterion #26)
@@ -136,7 +136,7 @@ def investigate(state: dict) -> dict:
     ctx = _build_investigation_context(state)
     ctx["tavily_followup"] = followup_envelope
 
-    model = settings.claude_model_primary  # Opus 4.7
+    model = settings.claude_model_primary  # Fable 5
 
     resp = llm_invoke(
         messages=[

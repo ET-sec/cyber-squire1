@@ -38,7 +38,7 @@ LEAKY_REVIEW = {
     # Note: leak embedded in a question (which is allowed in schema). The
     # sanitizer must scrub it before comment posting.
     "poam_deltas": [],
-    "reviewer_questions": ["Why is 161.35.0.184 referenced in this row?"],
+    "reviewer_questions": ["Why is 10.100.1.10 referenced in this row?"],
     "residual_risk_required": False,
     "sanitization_violations": [],
 }
@@ -128,8 +128,8 @@ def test_sanitizer_scrubs_leaks_in_comment_body(fake_anthropic, monkeypatch, cap
     review = grc_reviewer.review_pr(diff_file=str(FIXTURE), dry_run=True)
     grc_reviewer.post_comment(0, review, dry_run=True)
     out = capsys.readouterr().out
-    assert "161.35.0.184" not in out
-    assert "[REDACTED-IP]" in out
+    assert "10.100.1.10" not in out
+    assert "[INTERNAL-IP]" in out
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +225,7 @@ def test_diff_file_flag_bypasses_gh_pr_diff(fake_anthropic, monkeypatch, capsys)
 # ---------------------------------------------------------------------------
 
 def test_model_escalates_on_large_diff(fake_anthropic, tmp_path, monkeypatch):
-    """60KB diff -> escalate to claude-opus-4-7 (still under 100KB skip)."""
+    """60KB diff -> escalate to claude-fable-5 (still under 100KB skip)."""
     large = tmp_path / "large.diff"
     large.write_text(
         "diff --git a/docs/grc/foo.md b/docs/grc/foo.md\n"
@@ -239,7 +239,7 @@ def test_model_escalates_on_large_diff(fake_anthropic, tmp_path, monkeypatch):
     )
     grc_reviewer.review_pr(diff_file=str(large), dry_run=True)
     kwargs = fake_anthropic.messages.create.call_args.kwargs
-    assert kwargs["model"] == "claude-opus-4-7"
+    assert kwargs["model"] == "claude-fable-5"
 
 
 # ---------------------------------------------------------------------------

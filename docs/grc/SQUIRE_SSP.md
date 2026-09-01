@@ -22,6 +22,8 @@ related:
   - POAM-OPS-001
 ---
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 # System Security Plan: Squire Autonomous SOC Analyst
 
 **Document Identifier:** SSP-SQUIRE-001
@@ -56,7 +58,7 @@ related:
 
 Squire is an autonomous Security Operations Center analyst deployed at `squire.example-ops.com`. It ingests raw alert payloads, classifies them against a sanitized Governance, Risk, and Compliance (GRC) corpus held in pgvector, retrieves relevant policy and playbook passages, calls external enrichment APIs, and drafts an analyst-style investigation report with explicit framework citations (NIST 800-53, CSF 2.0, MITRE ATT&CK, NIST AI RMF, OWASP LLM Top 10).
 
-The system is a seven-node LangGraph state machine running on top of Anthropic Claude Opus 4.7 (draft, critique, investigate) and Claude Sonnet 4.6 (classification), with Voyage AI `voyage-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
+The system is a seven-node LangGraph state machine running on top of Anthropic Claude Fable 5 (draft, critique, investigate) and Claude Sonnet 4.6 (classification), with Voyage AI `voyage-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
 
 Squire never performs remediation. It issues recommendations in a controlled vocabulary defined by `actions.yml` (recommend-only mode, see Annex A). Every response carries a citation block pinned to document identifiers retrieved during the RAG step (see Annex B). The system is categorized FIPS 199 LOW for availability and confidentiality of transient alert data. Audit trail integrity is the single MODERATE control family.
 
@@ -160,9 +162,9 @@ Squire runs as a deterministic state machine. Each incoming `/alert` request exe
 |  | classify  (Sonnet 4.6)          |  |
 |  | retrieve  (pgvector, top-k=6)   |  |
 |  | enrich    (Tavily optional)     |  |
-|  | investigate (Opus 4.7)          |  |
-|  | draft     (Opus 4.7)            |  |
-|  | critique  (Opus 4.7, bounded)   |  |
+|  | investigate (Fable 5)          |  |
+|  | draft     (Fable 5)            |  |
+|  | critique  (Fable 5, bounded)   |  |
 |  +----+------------+--------+------+  |
 +-------|------------|--------|---------+
         |            |        |
@@ -214,9 +216,9 @@ Model routing per node:
 | classify | `anthropic/claude-sonnet-4-6` | Cheap, fast, structured output |
 | retrieve | n/a (pgvector) | Local cosine similarity |
 | enrich | `anthropic/claude-sonnet-4-6` | Web search summarization |
-| investigate | `anthropic/claude-opus-4-7` | Multi-step reasoning over retrieved chunks |
-| draft | `anthropic/claude-opus-4-7` | Final narrative composition |
-| critique | `anthropic/claude-opus-4-7` | Citation validator + severity sanity check |
+| investigate | `anthropic/claude-fable-5` | Multi-step reasoning over retrieved chunks |
+| draft | `anthropic/claude-fable-5` | Final narrative composition |
+| critique | `anthropic/claude-fable-5` | Citation validator + severity sanity check |
 | embeddings | `voyage/voyage-3-large` | 1024-dim vectors (see ADR 001) |
 
 ## 4. Security Categorization
@@ -299,7 +301,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | AU-2 | Implemented | Four audit event types: (1) every `/alert` call emits a Langfuse trace with cost, latency, rail outcomes; (2) every pre-graph block writes a row to `ir_pregraph_blocks`; (3) every recommend-only rewrite writes to `ir_sanitization_events`; (4) every replay writes to `ir_replay_events`. | `builds/squire/app/audit.py` |
 | AU-3 | Implemented | Audit records include: timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms. | Langfuse schema + `ir_*` DDL in migrations/002 |
-| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to Telegram `@Coredirective_bot`. Weekly human review of red-team regression runs. | `builds/squire/scripts/daily_audit.py` |
+| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to the operations Telegram bot. Weekly human review of red-team regression runs. | `builds/squire/scripts/daily_audit.py` |
 | AU-9 | Implemented | Langfuse writes are append-only from the worker's perspective. The Postgres table holding traces has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly `pg_dump` to DO Spaces (14-day retention). | `svc-db` role `langfuse_rw` grants INSERT, SELECT only |
 | AU-12 | Implemented | Audit generation is immutable at the code path: every graph node is instrumented with `@observe()` from `langfuse.decorators`. Removing the decorator breaks CI because `tests/test_trace_coverage.py` enumerates nodes. | `builds/squire/tests/test_trace_coverage.py` |
 
@@ -392,7 +394,7 @@ The following control families are inherited without modification from SSP-OPS-0
 
 | External System | Purpose | Data Direction | Protocol | Authentication |
 |-----------------|---------|----------------|----------|----------------|
-| Anthropic API | LLM inference (Opus 4.7, Sonnet 4.6) | Outbound | HTTPS | Bearer API key from Doppler `ANTHROPIC_API_KEY` |
+| Anthropic API | LLM inference (Fable 5, Sonnet 4.6) | Outbound | HTTPS | Bearer API key from Doppler `ANTHROPIC_API_KEY` |
 | Voyage AI API | Embeddings for RAG (`voyage-3-large`, 1024 dim) | Outbound, corpus only | HTTPS | Bearer API key from Doppler `VOYAGE_API_KEY` |
 | Tavily | Enrichment web search (optional, skippable) | Outbound | HTTPS | Bearer API key from Doppler `TAVILY_API_KEY` |
 | DO Spaces | Nightly Postgres backups | Outbound | HTTPS | S3 access key from Doppler `SPACES_ACCESS_KEY` / `SPACES_SECRET_KEY` |
@@ -530,7 +532,7 @@ Incidents against Squire are handled per `docs/grc/PLAYBOOK_AI_INCIDENT.md`. The
 
 ### C.4 Capacity Planning
 
-Sustained load target: 20 alerts per hour. Burst target: 120 alerts per hour for 10 minutes. The constraint is Anthropic rate limits (organization-level 4000 RPM Opus) rather than container capacity. `svc-squire` uses asyncio and can handle 50 concurrent `/alert` calls on the current 4-vCPU droplet.
+Sustained load target: 20 alerts per hour. Burst target: 120 alerts per hour for 10 minutes. The constraint is Anthropic rate limits (organization-level 4000 RPM Fable) rather than container capacity. `svc-squire` uses asyncio and can handle 50 concurrent `/alert` calls on the current 4-vCPU droplet.
 
 ---
 

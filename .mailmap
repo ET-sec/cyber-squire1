@@ -1,7 +1,7 @@
 # Consolidate all commit identities under a single canonical contributor.
 # History is untouched; this is a display-only remap honored by GitHub's
 # Contributors view and by `git log` / `git shortlog`.
-Emmanuel Tigoue <157398893+ET-sec@users.noreply.github.com> <emmanueltigoue@gmail.com>
+Emmanuel Tigoue <157398893+ET-sec@users.noreply.github.com> <etigoue@tigouetheory.com>
 Emmanuel Tigoue <157398893+ET-sec@users.noreply.github.com> <et@Emmanuels-MacBook-Air.local>
 Emmanuel Tigoue <157398893+ET-sec@users.noreply.github.com> <noreply@anthropic.com>
 Emmanuel Tigoue <157398893+ET-sec@users.noreply.github.com> <41898282+github-actions[bot]@users.noreply.github.com>

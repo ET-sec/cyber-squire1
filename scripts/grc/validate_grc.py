@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -75,18 +76,25 @@ OSCAL_OUTPUT_FILES = [
     "squire-component.oscal.json",
 ]
 
+# Base list contains only tokens that are safe to name in a public file.
+# Host-specific literals (retired host IPs, host filesystem paths) are
+# injected at runtime via GRC_UNSANITIZED_EXTRA (comma-separated) so the
+# concrete values never live in this tracked file. The repo-level gitleaks
+# tripwires independently block those literals in any tracked file.
 UNSANITIZED_TOKENS = [
-    "161.35.0.184",
     "tigouetheory.com",
     "CoreDirective",
     "Tigoue Theory",
-    "/root/COREDIRECTIVE_ENGINE",
     "cd-service-",
     "tunnel-cyber-squire",
     "CD_VOL_POSTGRES",
     "CD_VOL_FALCO",
     "etigoue@tigouetheory.com",
     "cd-alpha",
+] + [
+    t.strip()
+    for t in os.environ.get("GRC_UNSANITIZED_EXTRA", "").split(",")
+    if t.strip()
 ]
 
 

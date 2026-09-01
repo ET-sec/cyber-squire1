@@ -7,14 +7,16 @@
 
 ## Platform
 
-DigitalOcean droplet (s-4vcpu-8gb, 4 vCPU, 8GB RAM, 160GB disk, Ubuntu 24.04).
+Oracle Cloud (OCI) Always Free Ampere A1 ARM instance (Ubuntu 24.04).
 Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 
 ## Stack
 
+Currently running on the instance: PostgreSQL 16 with pgvector, n8n, and the Cloudflare tunnel client. The rest of the 19-service design below is pending ARM rebuild.
+
 | Container | Service |
 |-----------|---------|
-| svc-db | PostgreSQL 16 |
+| svc-db | PostgreSQL 16 + pgvector |
 | svc-n8n | n8n SOAR orchestrator |
 | svc-datadog | Datadog Agent (logs, metrics, monitors) |
 | svc-falco | Falco eBPF runtime detection |
@@ -27,7 +29,7 @@ Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 | svc-event-handler | Teleport audit log shipper |
 | svc-fluentd | Fluentd (audit logs to Datadog) |
 | tunnel-cyber-squire | Cloudflare Tunnel (zero exposed ports) |
-| openclaw-gateway | OpenClaw (Claude Opus 4.7 proxy) |
+| openclaw-gateway | OpenClaw (Claude Fable 5 proxy) |
 
 All containers communicate on internal Docker network only.
 
@@ -41,10 +43,11 @@ All services accessed via Cloudflare Tunnel (no direct SSH or exposed endpoints)
 
 ## IaC: Terraform
 
-- **Active:** `terraform/cd-do-infrastructure/` (DigitalOcean + Cloudflare providers)
-- **Policies:** OPA/Rego policies in `terraform/cd-do-infrastructure/policy/`
-- **Remote state:** DigitalOcean Spaces (S3-compatible, nyc3 region)
-- **Legacy (suspended):** `terraform/simple-ec2/`, `terraform/cd-aws-automation/`
+- **Active:** `terraform/cd-oci-infrastructure/` (OCI + Cloudflare providers)
+- **Policies:** OPA/Rego policies in `terraform/cd-oci-infrastructure/policy/`
+- **Archived reference:** `terraform/cd-do-infrastructure/` (DigitalOcean era)
+- **Remote state:** OCI Object Storage (versioned bucket, locked)
+- **Legacy (archived):** `terraform/simple-ec2/`, `terraform/cd-aws-automation/`
 
 ## CI/CD: GitHub Actions
 
@@ -70,7 +73,7 @@ Diagram generators in `docs/grc/diagrams/`.
 ```
 Container prefixes:  svc-*
 Network:             cd-automation-net
-Volumes:             CD_VOL_* (on droplet)
+Volumes:             CD_VOL_* (on the instance)
 Environment vars:    CD_* (e.g., CD_DB_PASS, CD_N8N_KEY)
 ```
 
@@ -86,7 +89,7 @@ docs/
   GROUND_TRUTH_AUDIT_PROTOCOL.md   repo verification methodology
 
 COREDIRECTIVE_ENGINE/      Local Docker Compose copy
-terraform/                 IaC (DigitalOcean active, legacy suspended)
+terraform/                 IaC (OCI active, DO and AWS archived)
 .github/workflows/         CI/CD pipelines
 .githooks/                 Pre-commit checks (AI-tells sweep)
 scripts/                   Helper scripts (git workflow, etc.)

@@ -1,0 +1,32 @@
+title: Squire Cost Ceiling Hit Or Approaching
+id: bb84e1a5-79b6-4d5f-b0d9-1d4f55c6f110
+status: stable
+description: |
+  Detects breach of the per call or daily cost ceiling enforced by the Squire
+  cost middleware. Per call ceiling is 0.75 USD. Daily ceiling is 10 USD,
+  enforced via Redis counter keyed on UTC date. An isolated breach is
+  informational. Repeated breaches indicate a denial of wallet attempt or an
+  upstream bug producing high token alerts.
+references:
+  - https://atlas.mitre.org/techniques/AML.T0029
+  - https://genai.owasp.org/llmrisk/llm10
+  - https://github.com/ET-sec/cyber-squire1/blob/main/builds/squire/src/squire/cost_ceiling.py
+author: Organization Security Engineering
+date: 2026-04-24
+tags:
+  - cd.atlas_aml_t0029
+  - cd.owasp_llm10
+  - cd.ai_security
+logsource:
+  product: squire
+  category: ai_cost_event
+detection:
+  selection_breach:
+    event_type:
+      - 'cost_ceiling_per_call'
+      - 'cost_ceiling_daily'
+    outcome: 'block'
+  condition: selection_breach | count() by alert_source > 3
+falsepositives:
+  - Misconfigured upstream that produces unusually long alerts. Tune by alert source.
+level: medium

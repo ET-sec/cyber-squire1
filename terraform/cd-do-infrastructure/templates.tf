@@ -5,10 +5,10 @@
 # Render Docker Compose from template
 locals {
   rendered_docker_compose = templatefile("${path.module}/templates/docker-compose.yml.tftpl", {
-    n8n_hostname = "n8n.tigouetheory.com"
+    n8n_hostname = "n8n.example-ops.com"
     n8n_port     = "5678"
     dd_hostname  = var.do_droplet_name
-    dd_site      = "us5.datadoghq.com"
+    dd_site      = "datadoghq.com"
   })
 }
 

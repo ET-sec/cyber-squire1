@@ -1,0 +1,118 @@
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    width:2160px; background:#0a0a0a; color:#e8e8e8;
+    font-family:'Inter','Helvetica Neue',Arial,sans-serif;
+    padding:80px 80px 60px;
+  }
+  .mono { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; }
+  .green { color:#00FF41; }
+
+  .eyebrow { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:38px; color:#00FF41; letter-spacing:6px; }
+  h1 { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:100px; letter-spacing:2px; margin-top:16px; }
+  .thesis { font-size:46px; color:#c8ced4; margin-top:24px; line-height:1.35; max-width:1500px; }
+  .thesis b { color:#00FF41; font-weight:600; }
+
+  .hero-head { display:flex; align-items:flex-start; justify-content:space-between; }
+  .cost { flex:none; text-align:center; border:4px solid #00FF41; border-radius:24px; padding:34px 44px; margin-left:60px; }
+  .cost .amt { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:96px; color:#00FF41; font-weight:700; }
+  .cost .lbl { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:32px; color:#a8b0b8; margin-top:10px; line-height:1.35; }
+
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:70px; }
+  .card { border-radius:26px; padding:38px 42px; background:#101216; border:3px solid #2c3138; }
+  .chead { display:flex; align-items:center; gap:22px; margin-bottom:26px; }
+  .ctitle { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:56px; }
+  .c-edge  { border-color:#F6821F; } .c-edge .ctitle { color:#FF9C42; }
+  .c-comp  { border-color:#00FF41; } .c-comp .ctitle { color:#00FF41; }
+  .c-data  { border-color:#4DA3FF; } .c-data .ctitle { color:#7CBAFF; }
+  .c-ci    { border-color:#B48CFF; } .c-ci .ctitle { color:#C9ABFF; }
+
+  .item { font-size:36px; color:#dde3e8; line-height:1.4; padding:12px 0 12px 40px; position:relative; }
+  .item::before { content:""; position:absolute; left:0; top:30px; width:16px; height:16px; border-radius:4px; background:#00FF41; }
+  .c-edge .item::before { background:#F6821F; }
+  .c-data .item::before { background:#4DA3FF; }
+  .c-ci   .item::before { background:#B48CFF; }
+  .item b { color:#fff; font-weight:600; }
+
+  .pending { margin-top:40px; border:3px dashed #FFB020; border-radius:26px; padding:38px 42px; background:rgba(255,176,32,.04); }
+  .ptitle { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:56px; color:#FFB020; }
+  .psub { font-size:36px; color:#c9a45c; margin-top:12px; line-height:1.4; }
+  .ptags { display:flex; flex-wrap:wrap; gap:16px; margin-top:26px; }
+  .ptag { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:34px; color:#e8cf9a;
+          border:2px solid #5a4b26; background:#15130d; border-radius:12px; padding:12px 22px; }
+
+  .receipts { margin-top:40px; border:3px solid #00FF41; border-radius:26px; padding:38px 42px; background:rgba(0,255,65,.04); }
+  .rtitle { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:56px; color:#00FF41; }
+  .rsub { font-size:36px; color:#a8b0b8; margin-top:12px; line-height:1.4; }
+  .rgrid { display:grid; grid-template-columns:1fr 1fr; gap:22px 26px; margin-top:30px; }
+  .rchip { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:34px; color:#7dffA3;
+           border:2px solid #00FF41; background:rgba(0,255,65,.06); border-radius:14px; padding:18px 24px; line-height:1.4; }
+
+  .footer { margin-top:48px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#78828c; line-height:1.5; }
+</style>
+
+<div class="hero-head">
+  <div>
+    <div class="eyebrow">SECURITY ENGINEERING REFERENCE STACK</div>
+    <h1>THE PLATFORM <span class="green">AT A GLANCE</span></h1>
+    <div class="thesis">Zero trust edge, keyless pipeline, immutable backups, self-auditing infrastructure. <b>Every control verified by making it fail.</b></div>
+  </div>
+  <div class="cost">
+    <div class="amt">$0/MO</div>
+    <div class="lbl">ORACLE CLOUD<br>ALWAYS FREE ARM</div>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card c-edge">
+    <div class="chead"><div class="ctitle">EDGE</div></div>
+    <div class="item"><b>Cloudflare Access:</b> single sign-on gate in front of every app; humans never reach the origin directly</div>
+    <div class="item"><b>WAF + DDoS + DNS:</b> only the edge hostname is public</div>
+    <div class="item"><b>Outbound-only tunnel:</b> the origin dials out; zero inbound service ports</div>
+  </div>
+
+  <div class="card c-comp">
+    <div class="chead"><div class="ctitle">COMPUTE</div></div>
+    <div class="item"><b>Ampere A1 ARM instance</b> in a deny-by-default VCN, fully Terraform-managed</div>
+    <div class="item"><b>Live containers:</b> PostgreSQL 16 + pgvector, n8n, tunnel client</div>
+    <div class="item"><b>SSH:</b> break-glass only, from allow-listed operator CIDRs</div>
+  </div>
+
+  <div class="card c-data">
+    <div class="chead"><div class="ctitle">DATA PROTECTION</div></div>
+    <div class="item"><b>Customer-managed key</b> in OCI Vault; envelope encryption on both buckets, rotation re-wraps instead of re-encrypting</div>
+    <div class="item"><b>Backups:</b> nightly, uploaded by instance principal with no delete permission, into a 30-day retention-locked bucket</div>
+    <div class="item"><b>Restore-tested monthly:</b> latest run, 76 tables in 5 seconds</div>
+  </div>
+
+  <div class="card c-ci">
+    <div class="chead"><div class="ctitle">CI + GOVERNANCE</div></div>
+    <div class="item"><b>Keyless pipeline:</b> GitHub OIDC token exchange for short-lived, read-only cloud sessions; zero stored keys</div>
+    <div class="item"><b>Nightly drift plan:</b> hand-made cloud changes alert to Telegram within 24 hours</div>
+    <div class="item"><b>Six-layer defense</b> from laptop commit hook to branch protection; scanner findings auto-populate the POA&amp;M ledger</div>
+  </div>
+</div>
+
+<div class="pending">
+  <div class="ptitle">AI SECURITY LAYER: DESIGNED, PENDING ARM REBUILD</div>
+  <div class="psub">Codified in Docker Compose, not running yet. Returns as images are re-pinned and rebuilt for arm64.</div>
+  <div class="ptags">
+    <span class="ptag">Vault</span><span class="ptag">Keycloak</span><span class="ptag">Teleport</span>
+    <span class="ptag">Falco</span><span class="ptag">Datadog</span><span class="ptag">Langfuse</span>
+    <span class="ptag">Ollama</span><span class="ptag">NeMo Guardrails</span><span class="ptag">Squire agent</span>
+  </div>
+</div>
+
+<div class="receipts">
+  <div class="rtitle">THE RECEIPTS</div>
+  <div class="rsub">A control that has never refused anything is a hypothesis. Each of these was proven by forcing the failure and keeping the rejection.</div>
+  <div class="rgrid">
+    <div class="rchip">Concurrent state run refused: HTTP 412 lock conflict</div>
+    <div class="rchip">Wrong-branch CI token exchange refused: HTTP 401</div>
+    <div class="rchip">Owner backup delete refused: 30-day retention rule held</div>
+    <div class="rchip">Drift lifecycle proven: hand change detected, alerted, reverted, clean</div>
+  </div>
+</div>
+
+<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Verified 2026-08-31.</div>

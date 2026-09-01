@@ -1,0 +1,35 @@
+title: Modification Of /etc Inside Application Container
+id: 7d3a8e3a-3b22-4f11-9c0e-58c7b1f3d2cc
+status: stable
+description: |
+  Detects writes under /etc inside an application container. Configuration is
+  baked into the image at build time and mounted read only at runtime. A write
+  here indicates either a misconfiguration in the compose file or an attempt to
+  persist a backdoor configuration.
+references:
+  - https://attack.mitre.org/techniques/T1565/
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/AI_AUDIT_TRAIL_SPEC.md
+author: Organization Security Engineering
+date: 2026-04-24
+tags:
+  - attack.impact
+  - attack.t1565
+  - falco.parity
+logsource:
+  category: file_event
+  product: linux
+detection:
+  selection_container:
+    Image|startswith: 'svc-'
+  selection_path:
+    TargetFilename|startswith: '/etc/'
+    EventType: 'write'
+  filter_runtime_state:
+    TargetFilename|contains:
+      - '/etc/hosts'
+      - '/etc/resolv.conf'
+      - '/etc/hostname'
+  condition: selection_container and selection_path and not filter_runtime_state
+falsepositives:
+  - Container DNS update from the docker engine on container start. Excluded by the runtime state filter.
+level: high

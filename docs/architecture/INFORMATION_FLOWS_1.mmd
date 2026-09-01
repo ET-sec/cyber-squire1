@@ -1,0 +1,121 @@
+%%{init: {'theme':'base', 'themeVariables': {
+  'primaryColor':'#0d1117',
+  'primaryTextColor':'#7CFFB2',
+  'primaryBorderColor':'#39d98a',
+  'lineColor':'#39d98a',
+  'secondaryColor':'#161b22',
+  'tertiaryColor':'#1f2933',
+  'fontFamily':'JetBrains Mono, Menlo, monospace',
+  'fontSize':'13px'
+}}}%%
+flowchart TB
+
+  classDef src fill:#1f2933,stroke:#7CFFB2,color:#7CFFB2,stroke-width:2px
+  classDef rail fill:#1c2c3a,stroke:#f97583,color:#f97583,stroke-width:2px
+  classDef node fill:#161b22,stroke:#39d98a,color:#cdd9e5
+  classDef model fill:#1c2c3a,stroke:#7CFFB2,color:#7CFFB2,stroke-width:2px
+  classDef store fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
+  classDef obs fill:#1f2933,stroke:#a371f7,color:#cdd9e5
+  classDef out fill:#1f2933,stroke:#58a6ff,color:#cdd9e5
+  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+
+  STATUS["STATUS: flow verified end to end in Phase 17 on the previous x86 host.<br/>Squire and its dashed dependencies are DESIGNED, pending the ARM rebuild.<br/>Live today: PostgreSQL, n8n webhook delivery, Telegram."]:::rail
+
+  SRC["Falco eBPF event<br/>kernel-level container detection<br/>· root shell · cred file read · escape attempt<br/>(sensor pending ARM rebuild)"]:::pending
+  WEB["POST /alert<br/>Squire edge hostname<br/>(Cloudflare Tunnel ingress)"]:::pending
+
+  subgraph BREAKERS["Pre-graph breakers (run BEFORE any LLM call) · pending ARM rebuild"]
+    direction LR
+    AUTH["Auth check<br/>webhook token<br/>+ interview-token list"]:::rail
+    DEDUP["Dedup<br/>Redis 5-min sliding window<br/>verified: dedup = $0 / 0 ms"]:::rail
+    COST["Cost ceiling<br/>daily rolling spend on ir_investigations<br/>verified: 503 + Retry-After"]:::rail
+    PII1["Pre-graph PII regex<br/>SSN · CC · email · phone scrub"]:::rail
+  end
+
+  subgraph GRAPH["LangGraph state machine (7 nodes) · pending ARM rebuild"]
+    direction TB
+    N1["classify<br/>Sonnet 4.6 · 12 s p95"]:::node
+    N2["retrieve<br/>pgvector cosine search<br/>top-k=8 · 1.5 s p95"]:::node
+    N3["enrich<br/>2.5 s p95"]:::node
+    N4["investigate<br/>Opus · 29 s p95"]:::node
+    N5["draft<br/>Opus · 70 s p95"]:::node
+    N6{{"critique<br/>Opus · 12 s p95<br/>APPROVED / LOOP verdict"}}:::node
+    N7["route_severity<br/>0.1 s"]:::node
+  end
+
+  subgraph RAILS["Per-node guardrails · pending ARM rebuild"]
+    direction LR
+    NEMOIN["NeMo input rail<br/>presidio PII"]:::rail
+    NEMOOUT["NeMo output rail<br/>presidio PII"]:::rail
+    CITE["Citation allow-list<br/>ATT&CK + 800-53 ID regex<br/>verified: 97.2% citation validity"]:::rail
+    LOOP["Critique loop cap<br/>max 3 iters · max $0.50 · max 30 s wall<br/>verified: 28% loop rate (target under 35%)"]:::rail
+    ACT["Recommend-only allow-list<br/>actions.yml rewrites forbidden verbs<br/>(docker stop, kubectl delete, rm, etc)<br/>to RECOMMEND: advisories"]:::rail
+  end
+
+  subgraph MODELS["Models · external"]
+    direction LR
+    OPUS["Anthropic API<br/>Opus tier<br/>investigate · draft · critique"]:::model
+    SONNET["Anthropic API<br/>Sonnet tier<br/>classify"]:::model
+    OLLM["Ollama local<br/>fallback when degraded<br/>(pending ARM rebuild)"]:::pending
+    VOYE["Voyage<br/>voyage-3-large 1024-dim"]:::model
+  end
+
+  subgraph STORES["Stores · retrieval"]
+    PG[("pgvector (LIVE container)<br/>RAG corpus re-ingest pending:<br/>chunks died with the old host")]:::store
+    REDIS[("Redis<br/>dedup keys · TTL 300 s<br/>(pending ARM rebuild)")]:::pending
+  end
+
+  subgraph TRACE["Observability"]
+    LFTRACE["Langfuse<br/>1 trace per /alert · 1 span per node<br/>prompt + tokens + latency + cost<br/>(pending ARM rebuild)"]:::pending
+  end
+
+  subgraph DELIVER["Delivery (LIVE)"]
+    direction LR
+    N8NWH["n8n<br/>command webhook"]:::out
+    TGAPI["Telegram Bot API<br/>fallback if n8n 404"]:::out
+    HUMAN["Analyst<br/>(Telegram chat)"]:::out
+  end
+
+  SRC --> WEB
+  WEB --> AUTH
+  AUTH --> DEDUP
+  DEDUP --> COST
+  COST --> PII1
+  PII1 --> N1
+
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5
+  N5 --> N6
+  N6 -->|APPROVED| N7
+  N6 -->|LOOP back to draft| N5
+
+  N1 -->|embed query| VOYE
+  N2 -->|cosine search| PG
+  N1 -->|text in/out| NEMOIN
+  N1 -->|text in/out| NEMOOUT
+  N6 -->|validate| CITE
+  N6 -->|enforce caps| LOOP
+
+  N1 --> SONNET
+  N4 --> OPUS
+  N5 --> OPUS
+  N6 --> OPUS
+  N4 -->|fallback| OLLM
+
+  DEDUP <--> REDIS
+
+  N1 -->|span| LFTRACE
+  N2 -->|span| LFTRACE
+  N3 -->|span| LFTRACE
+  N4 -->|span| LFTRACE
+  N5 -->|span| LFTRACE
+  N6 -->|span| LFTRACE
+  N7 -->|span| LFTRACE
+
+  N7 --> ACT
+  ACT --> N8NWH
+  N8NWH -->|if 404| TGAPI
+  TGAPI --> HUMAN
+  N8NWH --> HUMAN

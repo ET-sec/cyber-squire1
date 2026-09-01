@@ -155,7 +155,7 @@ The GRC library is done. Other repo areas that need a GTA pass, ordered by impac
 ### 3. terraform/cd-do-infrastructure/ (MEDIUM priority)
 **Scope:** terraform code, OPA policies, READMEs in the IaC folder
 **Why:** Drift between Terraform claims and actual cloud state is a real risk.
-**Ground truth:** actual state via `doctl`, current `terraform state list`
+**Ground truth:** actual state via the OCI CLI (`oci`), current `terraform state list`
 **Time:** 1 day
 
 ### 4. .github/workflows/ (MEDIUM priority, 13 workflow files)

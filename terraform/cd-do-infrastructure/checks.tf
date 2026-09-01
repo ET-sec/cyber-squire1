@@ -6,26 +6,26 @@
 
 check "n8n_reachable" {
   data "http" "n8n_health" {
-    url = "https://n8n.tigouetheory.com/healthz"
+    url = "https://n8n.example-ops.com/healthz"
 
     request_timeout_ms = 5000
   }
 
   assert {
     condition     = data.http.n8n_health.status_code == 200
-    error_message = "n8n dashboard is not responding at https://n8n.tigouetheory.com/healthz (HTTP ${data.http.n8n_health.status_code})."
+    error_message = "n8n dashboard is not responding at https://n8n.example-ops.com/healthz (HTTP ${data.http.n8n_health.status_code})."
   }
 }
 
 check "ssh_tunnel_reachable" {
   data "http" "ssh_tunnel_check" {
-    url = "https://ssh.tigouetheory.com"
+    url = "https://ssh.example-ops.com"
 
     request_timeout_ms = 5000
   }
 
   assert {
     condition     = data.http.ssh_tunnel_check.status_code > 0
-    error_message = "SSH tunnel endpoint ssh.tigouetheory.com is not reachable."
+    error_message = "SSH tunnel endpoint ssh.example-ops.com is not reachable."
   }
 }

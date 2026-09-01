@@ -305,7 +305,7 @@ def test_chat_via_nemo_sends_correct_payload(monkeypatch):
 
     out = chat_via_nemo(
         messages=[{"role": "user", "content": "hi"}],
-        model="anthropic/claude-opus-4-7",
+        model="anthropic/claude-fable-5",
         temperature=0.15,
         max_tokens=128,
         base_url="http://cd-service-nemo:8000/v1",
@@ -316,7 +316,7 @@ def test_chat_via_nemo_sends_correct_payload(monkeypatch):
     assert captured["url"] == "http://cd-service-nemo:8000/v1/chat/completions"
     assert captured["json"]["config_id"] == "default"
     # Strips the anthropic/ prefix.
-    assert captured["json"]["model"] == "claude-opus-4-7"
+    assert captured["json"]["model"] == "claude-fable-5"
     assert captured["json"]["temperature"] == 0.15
     assert captured["json"]["max_tokens"] == 128
     assert captured["headers"]["X-Squire-Rails"] == "default"

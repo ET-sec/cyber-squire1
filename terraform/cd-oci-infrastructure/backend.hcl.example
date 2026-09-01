@@ -1,0 +1,10 @@
+# Copy to backend.hcl (gitignored) and fill in your values, then:
+#   terraform init -backend-config=backend.hcl
+#
+# The backend address (bucket + namespace) is kept out of the public repo:
+# the namespace is the only thing standing between a bucket name and a
+# reachable object URL, so both travel together in this private file.
+bucket    = "your-terraform-state-bucket"
+namespace = "your-object-storage-namespace"   # oci os ns get
+region    = "us-ashburn-1"
+key       = "cd-oci-infrastructure/terraform.tfstate"

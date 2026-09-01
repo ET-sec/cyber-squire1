@@ -1,0 +1,45 @@
+title: Known Scanner User Agent Blocked by WAF
+id: 2d6f8a1c-4b3e-4c8a-9f2d-1e5c8b7a4d3f
+status: stable
+description: |
+  Detects WAF block events triggered by the custom user agent block rule.
+  The rule blocks known offensive security tools and empty user agents:
+  sqlmap, nikto, masscan, nuclei, acunetix, nessus, openvas, wpscan, zgrab.
+  A hit indicates an active scan. While a single block is low value on its
+  own, an aggregate of more than 5 hits in 10 minutes from the same IP is
+  high signal and merits IP ban.
+references:
+  - https://attack.mitre.org/techniques/T1595.002/
+  - https://developers.cloudflare.com/ruleset-engine/rules-language/fields/
+author: Organization Security Engineering
+date: 2026-04-28
+tags:
+  - attack.reconnaissance
+  - attack.t1595.002
+  - cd.cloudflare
+  - cd.waf
+logsource:
+  product: cloudflare
+  service: firewall
+detection:
+  selection:
+    Action: 'block'
+    UserAgent|contains:
+      - 'sqlmap'
+      - 'nikto'
+      - 'masscan'
+      - 'nuclei'
+      - 'acunetix'
+      - 'nessus'
+      - 'openvas'
+      - 'wpscan'
+      - 'zgrab'
+  selection_empty:
+    Action: 'block'
+    UserAgent: ''
+  timeframe: 10m
+  condition: (selection or selection_empty) | count() by ClientIP > 5
+falsepositives:
+  - Authorized internal scanner running against the perimeter. Whitelist the source IP in the WAF exception list for the scan window.
+  - Misbehaving health check probe with empty UA. Update the probe to send a CoreDirective UA string.
+level: medium

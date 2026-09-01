@@ -54,7 +54,7 @@
       ],
       "system-name": "Squire Autonomous SOC Analyst",
       "system-name-short": "svc-squire",
-      "description": "FastAPI plus LangGraph runtime that triages security alerts through seven nodes: classify, retrieve, enrich, investigate, draft, critique, route. NeMo Guardrails sidecar provides input and output rails. Langfuse provides observability. Inference via Anthropic Opus 4.7 and Sonnet 4.6 with Ollama fallback.",
+      "description": "FastAPI plus LangGraph runtime that triages security alerts through seven nodes: classify, retrieve, enrich, investigate, draft, critique, route. NeMo Guardrails sidecar provides input and output rails. Langfuse provides observability. Inference via Anthropic Fable 5 and Sonnet 4.6 with Ollama fallback.",
       "security-sensitivity-level": "low",
       "system-information": {
         "information-types": [

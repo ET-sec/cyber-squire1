@@ -72,17 +72,17 @@ systemctl start fail2ban
 # 5. Create directory structure
 # ==========================================
 echo "Creating CoreDirective Engine directory structure..."
-mkdir -p /root/COREDIRECTIVE_ENGINE/{CD_VOL_POSTGRES,CD_VOL_N8N,CD_VOL_OLLAMA,CD_VOL_WHISPER,CD_VOL_VAULT/{config,data,logs},CD_BACKUPS}
+mkdir -p /root/platform-engine/{CD_VOL_POSTGRES,CD_VOL_N8N,CD_VOL_OLLAMA,CD_VOL_WHISPER,CD_VOL_VAULT/{config,data,logs},CD_BACKUPS}
 
 # Set ownership for services that run as non-root
-chown -R 1000:1000 /root/COREDIRECTIVE_ENGINE/CD_VOL_N8N
-chown -R 999:999 /root/COREDIRECTIVE_ENGINE/CD_VOL_POSTGRES
+chown -R 1000:1000 /root/platform-engine/CD_VOL_N8N
+chown -R 999:999 /root/platform-engine/CD_VOL_POSTGRES
 
 # ==========================================
 # 6. Write Docker Compose file
 # ==========================================
 echo "Writing docker-compose.yaml..."
-cat > /root/COREDIRECTIVE_ENGINE/docker-compose.yaml << 'COMPOSE_EOF'
+cat > /root/platform-engine/docker-compose.yaml << 'COMPOSE_EOF'
 ${docker_compose_content}
 COMPOSE_EOF
 
@@ -110,7 +110,7 @@ echo "Completed: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""
 echo "Next steps:"
 echo "  1. Configure Doppler: doppler login && doppler setup"
-echo "  2. Start the stack: cd /root/COREDIRECTIVE_ENGINE && doppler run -- docker compose up -d"
+echo "  2. Start the stack: cd /root/platform-engine && doppler run -- docker compose up -d"
 echo "  3. Verify services: docker ps"
 echo "  4. Check n8n: curl -s http://localhost:5678/healthz"
 echo ""

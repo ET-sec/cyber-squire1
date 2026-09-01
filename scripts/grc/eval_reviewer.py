@@ -40,7 +40,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(message)s")
 log = logging.getLogger("eval_reviewer")
 
 GOLDEN_DIR = REPO_ROOT / "scripts" / "grc" / "golden_prs"
-LANGFUSE_HOST_DEFAULT = "https://langfuse.tigouetheory.com"
+LANGFUSE_HOST_DEFAULT = "http://localhost:3000"
 HEALTH_TIMEOUT_SECONDS = 5
 EXPERIMENT_NAME = "Squire-GRC-Reviewer baseline"
 

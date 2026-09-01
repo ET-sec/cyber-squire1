@@ -6,12 +6,19 @@
 # Output format: Docker Bench produces text logs (not JSON).
 # Each line is tagged [PASS], [WARN], [INFO], or [NOTE].
 #
-# Usage: /root/scripts/docker-bench-weekly.sh
+# Usage: docker-bench-weekly.sh
 # Cron:  0 6 * * 0  (every Sunday 6 AM UTC)
+#
+# Host-agnostic: output dir, env file, Datadog site, and host tag are
+# environment-driven with safe defaults (originally ran on the retired DO
+# host; works on any Docker host).
 set -euo pipefail
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-BENCH_DIR="/root/COREDIRECTIVE_ENGINE/CD_BACKUPS/bench"
+BENCH_DIR="${BENCH_DIR:-/opt/engine/backups/bench}"
+ENGINE_ENV_FILE="${ENGINE_ENV_FILE:-/opt/engine/.env}"
+DD_SITE="${DD_SITE:-datadoghq.com}"
+DD_HOST_TAG="${DD_HOST_TAG:-engine-host}"
 RESULT_FILE="${BENCH_DIR}/bench-${TIMESTAMP}.log"
 
 mkdir -p "${BENCH_DIR}"
@@ -62,17 +69,17 @@ echo "{\"timestamp\":\"${TIMESTAMP}\",\"pass\":${PASS},\"warn\":${WARN},\"info\"
   >> "${BENCH_DIR}/trend.jsonl"
 
 # Ship pass/warn/info counts to Datadog as custom metrics
-DD_API_KEY="${DD_API_KEY:-$(grep DATADOG_API_KEY /root/COREDIRECTIVE_ENGINE/.env 2>/dev/null | cut -d= -f2 || true)}"
+DD_API_KEY="${DD_API_KEY:-$(grep DATADOG_API_KEY "${ENGINE_ENV_FILE}" 2>/dev/null | cut -d= -f2 || true)}"
 if [ -n "${DD_API_KEY:-}" ]; then
   DD_NOW=$(date +%s)
-  curl -s -X POST "https://api.us5.datadoghq.com/api/v2/series" \
+  curl -s -X POST "https://api.${DD_SITE}/api/v2/series" \
     -H "DD-API-KEY: ${DD_API_KEY}" \
     -H "Content-Type: application/json" \
     -d "{
       \"series\": [
-        {\"metric\": \"cis.docker_bench.pass\", \"type\": 1, \"points\": [{\"timestamp\": ${DD_NOW}, \"value\": ${PASS}}], \"tags\": [\"env:production\", \"host:cd-alpha-engine\", \"source:docker-bench\"]},
-        {\"metric\": \"cis.docker_bench.warn\", \"type\": 1, \"points\": [{\"timestamp\": ${DD_NOW}, \"value\": ${WARN}}], \"tags\": [\"env:production\", \"host:cd-alpha-engine\", \"source:docker-bench\"]},
-        {\"metric\": \"cis.docker_bench.info\", \"type\": 1, \"points\": [{\"timestamp\": ${DD_NOW}, \"value\": ${INFO}}], \"tags\": [\"env:production\", \"host:cd-alpha-engine\", \"source:docker-bench\"]}
+        {\"metric\": \"cis.docker_bench.pass\", \"type\": 1, \"points\": [{\"timestamp\": ${DD_NOW}, \"value\": ${PASS}}], \"tags\": [\"env:production\", \"host:${DD_HOST_TAG}\", \"source:docker-bench\"]},
+        {\"metric\": \"cis.docker_bench.warn\", \"type\": 1, \"points\": [{\"timestamp\": ${DD_NOW}, \"value\": ${WARN}}], \"tags\": [\"env:production\", \"host:${DD_HOST_TAG}\", \"source:docker-bench\"]},
+        {\"metric\": \"cis.docker_bench.info\", \"type\": 1, \"points\": [{\"timestamp\": ${DD_NOW}, \"value\": ${INFO}}], \"tags\": [\"env:production\", \"host:${DD_HOST_TAG}\", \"source:docker-bench\"]}
       ]
     }" > /dev/null 2>&1 || echo "WARNING: Failed to ship metrics to Datadog (non-fatal)"
 else

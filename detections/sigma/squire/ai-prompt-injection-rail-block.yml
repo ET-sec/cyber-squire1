@@ -1,0 +1,38 @@
+title: NeMo Guardrails Input Rail Blocked Suspected Prompt Injection
+id: 6fa3eb87-9b3a-4c97-b72d-43f1d5a6c2ee
+status: stable
+description: |
+  Detects an event where the NeMo Guardrails input rail blocked a request before
+  it reached the LangGraph draft node. A single block is informational. Volume
+  or repetition from one source is the signal that warrants triage. The Squire
+  application emits a structured JSON line with rail_name input_rail and
+  reason_code containing INJECTION when the rail fires.
+references:
+  - https://atlas.mitre.org/techniques/AML.T0051
+  - https://genai.owasp.org/llmrisk/llm01
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/GUARDRAILS_CONFIGURATION.md
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/REDTEAM_RESULTS.md
+author: Organization Security Engineering
+date: 2026-04-24
+tags:
+  - cd.atlas_aml_t0051
+  - cd.owasp_llm01
+  - cd.ai_security
+logsource:
+  product: squire
+  category: ai_guardrail_event
+detection:
+  selection_block:
+    rail_name: 'input_rail'
+    outcome: 'block'
+  selection_reason:
+    reason_code|contains:
+      - 'INJECTION'
+      - 'JAILBREAK'
+      - 'ROLE_HIJACK'
+  timeframe: 5m
+  condition: selection_block and selection_reason | count() by source_ip > 5
+falsepositives:
+  - Authorized red team exercises. Suppress for the duration of the cycle window.
+  - Operator training sessions that intentionally probe the rail.
+level: high

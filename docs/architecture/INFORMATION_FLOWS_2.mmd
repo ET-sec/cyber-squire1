@@ -1,0 +1,115 @@
+%%{init: {'theme':'base', 'themeVariables': {
+  'primaryColor':'#0d1117',
+  'primaryTextColor':'#7CFFB2',
+  'primaryBorderColor':'#39d98a',
+  'lineColor':'#39d98a',
+  'secondaryColor':'#161b22',
+  'tertiaryColor':'#1f2933',
+  'fontFamily':'JetBrains Mono, Menlo, monospace',
+  'fontSize':'13px'
+}}}%%
+flowchart TB
+
+  classDef src fill:#1f2933,stroke:#7CFFB2,color:#7CFFB2,stroke-width:2px
+  classDef gate fill:#1c2c3a,stroke:#f97583,color:#f97583,stroke-width:2px
+  classDef agent fill:#161b22,stroke:#39d98a,color:#cdd9e5
+  classDef model fill:#1c2c3a,stroke:#7CFFB2,color:#7CFFB2,stroke-width:2px
+  classDef store fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
+  classDef obs fill:#1f2933,stroke:#a371f7,color:#cdd9e5
+  classDef out fill:#1f2933,stroke:#58a6ff,color:#cdd9e5
+  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+
+  PR["**Pull request opens**<br/>cyber-squire1 repo"]:::src
+
+  PATH{"path filter<br/>**docs/grc/** OR code"}:::gate
+
+  subgraph BUDGET["**Pre-call kill switches**"]
+    direction LR
+    BG["**budget_guard.py**<br/>$1/day enforced cap<br/>· dual-source ledger<br/>· admin API + local SQLite"]:::gate
+    KILL["repo vars<br/>GRC_REVIEWER_DISABLED<br/>PR_AGENT_DISABLED<br/>(executable in under 10 s)"]:::gate
+    SIZE["diff size guard<br/>100 KB hard skip<br/>· concurrency cancel-in-progress<br/>· timeout 5/8 min"]:::gate
+  end
+
+  subgraph DOCAGENT["**GRC reviewer agent** (docs/grc/** only)"]
+    direction TB
+    GRCREV["scripts/grc/grc_reviewer.py<br/>Sonnet default<br/>Opus escalation<br/>(over 50 KB or over 5 files)"]:::agent
+    PCACHE["**Prompt caching**<br/>cached system block<br/>cache_control: ephemeral"]:::agent
+    GRCREF["scripts/grc/grc_reference.md<br/>NIST + POA&M reference tokens"]:::store
+    SAN["sanitize_output.py<br/>10 patterns · POA&M/NIST passthrough"]:::gate
+  end
+
+  subgraph CODEAGENT["**PR-Agent** (code paths only)"]
+    direction TB
+    PRA["qodo-ai/pr-agent<br/>pinned by 40-char SHA<br/>Sonnet default<br/>Opus fallback"]:::agent
+    PRACONF[".pr_agent.toml<br/>describe + review + improve<br/>100k token cap"]:::store
+  end
+
+  subgraph MCP["**MCP server** (Claude Desktop access)"]
+    MCPSRV["grc_mcp_server.py<br/>**5 tools** over stdio<br/>list_docs · read_doc · search_corpus<br/>get_poam · get_threat_model_entry"]:::agent
+  end
+
+  subgraph MERGE["**On merge to main only**"]
+    direction TB
+    MGUARD["bot-actor exclusion<br/>github.actor != github-actions[bot]"]:::gate
+    BUILDOSCAL["build_oscal.py<br/>3 artifacts:<br/>· SSP · POA&M · Component-Definition"]:::agent
+    COSIGN["**cosign sign-blob**<br/>keyless OIDC<br/>(GitHub Actions identity)"]:::agent
+    REKOR["**Rekor public log**<br/>transparency entry<br/>verifiable by any 3rd party"]:::out
+    UPLOAD["upload-artifact<br/>oscal bundle per merge SHA<br/>**90-day retention**"]:::out
+  end
+
+  subgraph PRGATE["**On every PR**"]
+    direction TB
+    OPA["**OPA conftest**<br/>3 Rego policies<br/>required_frontmatter · classification · poam_id_integrity<br/>soft_fail = true (rollout)"]:::gate
+    DDLOAD["download-artifact<br/>verify cosign bundle<br/>tolerance: warn if no artifact"]:::gate
+  end
+
+  subgraph EVAL["**Eval harness** (self-hosted; reruns paused pending ARM rebuild)"]
+    direction LR
+    GOLDEN["**12-fixture golden set**<br/>10 LLM-generated + 2 hand-crafted"]:::store
+    LFEXP["Langfuse experiment<br/>Squire-GRC-Reviewer baseline<br/>(Phase 19 scores landed; host pending ARM rebuild)"]:::pending
+    EVALS["**4 evaluators × 12 fixtures = 48 scores**<br/>control_coverage · poam_id_accuracy<br/>sanitization_catch_rate · hallucination_rate"]:::obs
+  end
+
+  subgraph BUDGETLEDGER["**Spend ledger**"]
+    LEDGER[("local SQLite spend ledger<br/>+ Anthropic admin API")]:::store
+  end
+
+  ANTH["Anthropic API<br/>Sonnet / Opus"]:::model
+  COMMENT["**PR comment**<br/>NIST mapping + POA&M deltas<br/>+ residual_risk required"]:::out
+
+  PR --> PATH
+  PATH -->|docs/grc/**| BG
+  PATH -->|code paths| BG
+  BG --> KILL
+  KILL --> SIZE
+  SIZE -->|docs path| GRCREV
+  SIZE -->|code path| PRA
+
+  GRCREV --> PCACHE
+  PCACHE -->|cached system| GRCREF
+  GRCREV --> ANTH
+  GRCREV --> SAN
+  SAN --> COMMENT
+  PRA --> ANTH
+  PRA --> COMMENT
+  COMMENT --> PR
+
+  BG <--> LEDGER
+
+  PR --> OPA
+  OPA -->|merge gate| PR
+  PR --> DDLOAD
+  DDLOAD --> COMMENT
+
+  PR -->|if merged to main| MGUARD
+  MGUARD --> BUILDOSCAL
+  BUILDOSCAL --> COSIGN
+  COSIGN --> REKOR
+  COSIGN --> UPLOAD
+  UPLOAD --> DDLOAD
+
+  GRCREV -->|"nightly (paused pending rebuild)"| EVALS
+  EVALS --> LFEXP
+  GOLDEN --> EVALS
+
+  MCPSRV -->|stdio| GRCREV

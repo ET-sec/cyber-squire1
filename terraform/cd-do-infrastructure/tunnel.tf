@@ -10,7 +10,7 @@ resource "cloudflare_tunnel_config" "cd_alpha" {
 
   config {
     ingress_rule {
-      hostname = "n8n.tigouetheory.com"
+      hostname = "n8n.example-ops.com"
       service  = "http://localhost:5678"
       origin_request {
         connect_timeout        = "30s"
@@ -28,7 +28,7 @@ resource "cloudflare_tunnel_config" "cd_alpha" {
     }
 
     ingress_rule {
-      hostname = "ssh.tigouetheory.com"
+      hostname = "ssh.example-ops.com"
       service  = "ssh://localhost:22"
     }
 

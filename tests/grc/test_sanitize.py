@@ -19,8 +19,28 @@ from scripts.grc.sanitize_output import sanitize  # noqa: E402
 
 # --- per-pattern coverage --------------------------------------------------
 
-def test_pattern_1_production_droplet_ip():
-    assert sanitize("Hit 161.35.0.184 today") == "Hit [REDACTED-IP] today"
+def test_pattern_1_env_supplied_host_ip(monkeypatch):
+    """Host-specific public IPs come from GRC_REDACT_IPS at import time.
+
+    Uses a TEST-NET-2 documentation IP; the real value is env-injected in
+    production and never appears in tracked files.
+    """
+    import importlib
+
+    from scripts.grc import sanitize_output, sanitize_patterns
+
+    monkeypatch.setenv("GRC_REDACT_IPS", "198.51.100.7")
+    importlib.reload(sanitize_patterns)
+    importlib.reload(sanitize_output)
+    try:
+        assert (
+            sanitize_output.sanitize("Hit 198.51.100.7 today")
+            == "Hit [REDACTED-IP] today"
+        )
+    finally:
+        monkeypatch.delenv("GRC_REDACT_IPS")
+        importlib.reload(sanitize_patterns)
+        importlib.reload(sanitize_output)
 
 
 def test_pattern_2_rfc1918_10():
@@ -40,12 +60,12 @@ def test_pattern_3_cd_service_container_name():
 
 
 def test_pattern_4_internal_domain():
-    assert sanitize("ssh.tigouetheory.com") == "ssh.[INTERNAL-DOMAIN]"
+    assert sanitize("docs.tigouetheory.com") == "docs.[INTERNAL-DOMAIN]"
 
 
 def test_pattern_5_root_path():
     assert (
-        sanitize("/root/COREDIRECTIVE_ENGINE/.env was modified")
+        sanitize("/root/platform/.env was modified")
         == "[INTERNAL-PATH] was modified"
     )
 
@@ -88,8 +108,8 @@ def test_pattern_10_bearer_token():
 # --- multi-pattern combo --------------------------------------------------
 
 def test_multi_pattern_combo():
-    src = "Hit 161.35.0.184 from cd-service-n8n at /root/CD/.env (P17-15, AC-2)"
-    expected = "Hit [REDACTED-IP] from [INTERNAL-SVC] at [INTERNAL-PATH] (P17-15, AC-2)"
+    src = "Hit 10.100.1.10 from cd-service-n8n at /root/CD/.env (P17-15, AC-2)"
+    expected = "Hit [INTERNAL-IP] from [INTERNAL-SVC] at [INTERNAL-PATH] (P17-15, AC-2)"
     assert sanitize(src) == expected
 
 
@@ -118,7 +138,7 @@ def test_nist_control_ids_pass_through_unchanged():
 
 
 def test_idempotent():
-    src = "/root/x was 161.35.0.184 from cd-service-db"
+    src = "/root/x was 10.100.1.10 from cd-service-db"
     once = sanitize(src)
     twice = sanitize(once)
     assert once == twice

@@ -1,0 +1,81 @@
+# ============================================================================
+# OCI CORE STACK: the minimal live environment on Oracle Ampere A1 (ARM)
+# ============================================================================
+# This is the trimmed, ARM-clean subset that is actually running on the OCI
+# host as of 2026-08-19: database + n8n + Cloudflare tunnel. It exists so the
+# environment is reachable while the full docker-compose.yaml (all 19 services)
+# is ported to ARM. Deployed to the host at /opt/coredirective/.
+#
+# DESIGN NOTES (differences from the master docker-compose.yaml, on purpose):
+#   - Images are UNPINNED (no @sha256): lets Docker pull the correct arch from
+#     each tag's multi-arch index on ARM. Re-pin to arm64 digests once stable.
+#   - Secrets come from `env_file: stack.env` using the CONTAINER'S target var
+#     names (POSTGRES_USER, N8N_ENCRYPTION_KEY, TUNNEL_TOKEN, ...), NOT compose
+#     ${VAR} interpolation. The n8n keys contain `$`, which compose corrupts.
+#     env_file passes values literally. Generate stack.env from Doppler; it is
+#     chmod 600 on the host and never committed. See stack.env.template.
+#   - n8n data dir must be chown 1000:1000 on the host (n8n runs as uid 1000).
+#   - Tunnel is token-based; its ingress routing lives in the Cloudflare
+#     dashboard and reconnects automatically wherever cloudflared runs.
+#
+# DEPLOY:
+#   scp this + stack.env to host:/opt/coredirective/
+#   ssh host 'cd /opt/coredirective && sudo chown -R 1000:1000 CD_VOL_N8N \
+#             && sudo docker compose -f docker-compose.oci-core.yaml up -d'
+# VERIFY:  curl -s -o /dev/null -w '%{http_code}' https://<your-edge-hostname>
+#          -> 302 (Cloudflare Access gate in front of a live origin) = success
+# ============================================================================
+name: coredirective
+services:
+  cd-service-db:
+    image: pgvector/pgvector:pg16
+    container_name: cd-service-db
+    restart: unless-stopped
+    env_file: [ stack.env ]
+    environment:
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - ./CD_VOL_POSTGRES:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt: [ "no-new-privileges:true" ]
+    networks: [ net-core ]
+
+  cd-service-n8n:
+    image: n8nio/n8n:2.17.5
+    container_name: cd-service-n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    env_file: [ stack.env ]
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=cd-service-db
+      - DB_POSTGRESDB_PORT=5432
+      # N8N_HOST, WEBHOOK_URL, N8N_EDITOR_BASE_URL come from stack.env:
+      # the edge hostname is deployment-specific and stays out of the repo.
+      - N8N_PROTOCOL=https
+      - N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true
+    volumes:
+      - ./CD_VOL_N8N:/home/node/.n8n
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    security_opt: [ "no-new-privileges:true" ]
+    networks: [ net-core ]
+
+  tunnel-cyber-squire:
+    image: cloudflare/cloudflared:2026.3.0
+    container_name: tunnel-cyber-squire
+    network_mode: host
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    env_file: [ stack.env ]
+    security_opt: [ "no-new-privileges:true" ]
+
+networks:
+  net-core:
+    name: net-core

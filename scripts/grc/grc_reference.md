@@ -91,7 +91,7 @@ Field types:
 
 Comments MUST contain structured fields only. The reviewer NEVER echoes verbatim diff content into its output. The following tokens are forbidden inside any reviewer field:
 
-- Internal IPs (example forbidden form: `<INTERNAL_IP>` placeholder for the platform droplet IP).
+- Internal IPs (example forbidden form: `<INTERNAL_IP>` placeholder for the platform host IP).
 - Internal container or service names matching `<CONTAINER_NAME>` patterns prefixed `cd-service-*`.
 - The internal operator domain `<INTERNAL_DOMAIN>`.
 - Filesystem paths beginning with `/root/`.

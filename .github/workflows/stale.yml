@@ -34,4 +34,6 @@ jobs:
             Closed due to inactivity. Reopen if still relevant.
           stale-issue-label: stale
           exempt-issue-labels: pinned,blocked,security
-          delete-branch: true
+          # delete-branch stays off: the close pass on 2026-08-31 deleted the
+          # remote branch backing active local work. Branch cleanup is manual.
+          delete-branch: false

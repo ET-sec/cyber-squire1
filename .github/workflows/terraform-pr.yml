@@ -1,11 +1,19 @@
 name: Terraform PR Validation
 
+# Phase 20.1-05: gate rewritten from the retired DigitalOcean pipeline to the
+# active OCI directory. Every check here is credential-free by design: the
+# OIDC trust that mints cloud tokens is pinned to main, so PR branches cannot
+# authenticate (that is the control, not a limitation). The live plan and the
+# OPA check against a real plan run post-merge in drift-check.yml. What a PR
+# CAN prove without credentials: formatting, validity, Checkov policy
+# compliance, and that the committed OPA policies still catch the violation
+# fixtures and pass the clean fixture.
+
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'terraform/cd-do-infrastructure/**'
-      - 'terraform/cd-do-infrastructure/policy/**'
+      - 'terraform/cd-oci-infrastructure/**'
       - '.github/workflows/terraform-pr.yml'
 
 permissions:
@@ -13,12 +21,12 @@ permissions:
   pull-requests: write
 
 env:
-  TF_DIR: terraform/cd-do-infrastructure
+  TF_DIR: terraform/cd-oci-infrastructure
   TF_IN_AUTOMATION: true
 
 jobs:
   terraform-checks:
-    name: Terraform Checks
+    name: Terraform Checks (OCI)
     runs-on: ubuntu-latest
 
     steps:
@@ -28,58 +36,28 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
         with:
-          terraform_wrapper: true
-
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6
+          terraform_version: "1.12.2"
+          terraform_wrapper: false
 
       - name: Terraform Format Check
         id: fmt
-        continue-on-error: true
         run: terraform -chdir=$TF_DIR fmt -check -diff
 
-      - name: Terraform Init
+      - name: Terraform Init (no backend, no credentials)
         id: init
-        env:
-          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-        run: |
-          terraform -chdir=$TF_DIR init \
-            -backend-config="access_key=${{ secrets.SPACES_ACCESS_KEY }}" \
-            -backend-config="secret_key=${{ secrets.SPACES_SECRET_KEY }}"
+        run: terraform -chdir=$TF_DIR init -backend=false -input=false
 
       - name: Terraform Validate
         id: validate
         run: terraform -chdir=$TF_DIR validate -no-color
 
-      - name: TFLint Init
-        run: cd $TF_DIR && tflint --init --config=.tflint.hcl
-
-      - name: TFLint
-        id: tflint
-        run: cd $TF_DIR && tflint --config=.tflint.hcl --no-color
-
       - name: Checkov
         id: checkov
         uses: bridgecrewio/checkov-action@fa9edf8f0a491c59a924ea6accd5bdcf07752cff # master
         with:
-          directory: terraform/cd-do-infrastructure
-          config_file: terraform/cd-do-infrastructure/.checkov.yaml
+          directory: terraform/cd-oci-infrastructure
           output_format: cli
           soft_fail: false
-
-      - name: Terraform Plan
-        id: plan
-        continue-on-error: true
-        env:
-          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-        run: |
-          terraform -chdir=$TF_DIR plan -no-color -input=false \
-            -detailed-exitcode \
-            -var="cf_zone_id=${{ vars.CF_ZONE_ID }}" \
-            -var="cf_account_id=${{ vars.CF_ACCOUNT_ID }}" \
-            -var="cf_tunnel_id=${{ vars.CF_TUNNEL_ID }}"
 
       - name: Install Conftest
         run: |
@@ -89,118 +67,81 @@ jobs:
           sudo mv conftest /usr/local/bin/
           conftest --version
 
-      - name: Generate Plan JSON
-        id: planjson
-        if: steps.plan.outcome == 'success'
-        env:
-          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-        run: |
-          terraform -chdir=$TF_DIR plan -out=tfplan.binary -input=false \
-            -var="cf_zone_id=${{ vars.CF_ZONE_ID }}" \
-            -var="cf_account_id=${{ vars.CF_ACCOUNT_ID }}" \
-            -var="cf_tunnel_id=${{ vars.CF_TUNNEL_ID }}"
-          terraform -chdir=$TF_DIR show -json tfplan.binary > $TF_DIR/plan.json
-
-      - name: OPA Policy Check (conftest)
+      - name: OPA Policy Self-Test (fixtures)
         id: conftest
-        if: steps.planjson.outcome == 'success'
         run: |
-          echo "## OPA Policy Results" >> $GITHUB_STEP_SUMMARY
-          conftest test $TF_DIR/plan.json \
-            --policy $TF_DIR/policy/ \
-            --no-color 2>&1 | tee conftest-output.txt
-          CONFTEST_EXIT=$?
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          cat conftest-output.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          exit $CONFTEST_EXIT
+          echo "## OPA Policy Self-Test" >> $GITHUB_STEP_SUMMARY
+          # No pipes here: the default runner shell has no pipefail, so a
+          # piped conftest exit code would be swallowed by tee.
+          set +e
+          conftest test $TF_DIR/policy/testdata/plan_clean.json \
+            --policy $TF_DIR/policy/ --no-color > clean.txt 2>&1
+          CLEAN_EXIT=$?
+          conftest test $TF_DIR/policy/testdata/plan_violations.json \
+            --policy $TF_DIR/policy/ --no-color > violations.txt 2>&1
+          VIOL_EXIT=$?
+          set -e
+          cat clean.txt violations.txt
+          {
+            echo '```'
+            cat clean.txt violations.txt
+            echo '```'
+          } >> $GITHUB_STEP_SUMMARY
+          # The clean fixture must pass; the violation fixture must FAIL.
+          # A policy set that accepts the violation fixture is broken.
+          if [ "$CLEAN_EXIT" -ne 0 ]; then
+            echo "::error::OPA policies reject the clean fixture"; exit 1
+          fi
+          if [ "$VIOL_EXIT" -eq 0 ]; then
+            echo "::error::OPA policies no longer catch the violation fixture"; exit 1
+          fi
+          echo "policies pass clean fixture and catch violation fixture"
 
       - name: Post PR Comment
         if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
-        env:
-          PLAN_STDOUT: ${{ steps.plan.outputs.stdout }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const marker = '<!-- terraform-plan-comment -->';
-
-            // Collect step outcomes
             const fmt = '${{ steps.fmt.outcome }}';
             const init = '${{ steps.init.outcome }}';
             const validate = '${{ steps.validate.outcome }}';
-            const tflint = '${{ steps.tflint.outcome }}';
             const checkov = '${{ steps.checkov.outcome }}';
-            const plan = '${{ steps.plan.outcome }}';
             const conftest = '${{ steps.conftest.outcome }}';
-
-            const icon = (s) => s === 'success' ? '\\`pass\\`' : '\\`FAIL\\`';
-
-            // Get plan output safely via env var (avoids JS injection from backticks/${ in output)
-            let planOutput = process.env.PLAN_STDOUT || '';
-            if (planOutput.trim() === '') {
-              planOutput = 'No plan output captured.';
-            }
-
-            // Truncate if too large (GitHub comment limit is 65536 chars)
-            const maxLen = 60000;
-            if (planOutput.length > maxLen) {
-              planOutput = planOutput.substring(0, maxLen) + '\n\n... (truncated, output exceeded 60000 chars)';
-            }
-
+            const icon = (s) => s === 'success' ? '`pass`' : '`FAIL`';
             const body = [
               marker,
-              '## Terraform PR Validation',
+              '## Terraform PR Validation (OCI)',
               '',
               '| Check | Status |',
               '|-------|--------|',
               '| Format | ' + icon(fmt) + ' |',
-              '| Init | ' + icon(init) + ' |',
+              '| Init (backendless) | ' + icon(init) + ' |',
               '| Validate | ' + icon(validate) + ' |',
-              '| TFLint | ' + icon(tflint) + ' |',
               '| Checkov | ' + icon(checkov) + ' |',
-              '| Plan | ' + icon(plan) + ' |',
-              '| OPA Policies | ' + icon(conftest) + ' |',
+              '| OPA policy self-test | ' + icon(conftest) + ' |',
               '',
-              '<details><summary>Show Plan Output</summary>',
-              '',
-              '```',
-              planOutput,
-              '```',
-              '',
-              '</details>',
+              'Live plan + OPA against the real plan run post-merge in `drift-check.yml`',
+              '(the OIDC trust is pinned to main, so PR branches hold no cloud identity).',
               '',
               '*Triggered by @' + context.actor + ' on `' + context.eventName + '`*',
               '*Commit: ' + context.sha.substring(0, 7) + '*',
             ].join('\n');
-
-            // Find existing comment with marker
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-
             const existing = comments.find(c => c.body.includes(marker));
-
             if (existing) {
               await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body: body,
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body: body,
               });
             } else {
               await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: body,
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: context.issue.number, body: body,
               });
             }
-
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1

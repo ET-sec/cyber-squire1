@@ -159,7 +159,7 @@ def log(evt: str, level: int = logging.INFO, **fields: Any) -> None:
 # SSH option helpers (regex-gated target)
 # ---------------------------------------------------------------------------
 def ssh_opts(target: str) -> list[str]:
-    if not re.fullmatch(r"^cd-alpha$", target):
+    if not re.fullmatch(r"^cd-(alpha|oci)$", target):
         sys.exit(2)
     return [
         "ssh",

@@ -9,6 +9,8 @@
 **Pairs With:** HIPAA-001 (HIPAA Security Rule Crosswalk)
 **NIST 800-53 Controls:** SC-8 (Transmission Confidentiality), SC-13 (Cryptographic Protection), SC-28 (Protection of Information at Rest), SC-28(1) (Cryptographic Protection), MP-6 (Media Sanitization), MP-7 (Media Use), AU-2 (Event Logging), AU-3 (Content of Audit Records), AU-9 (Protection of Audit Information), AU-11 (Audit Record Retention), AC-2 (Account Management), AC-3 (Access Enforcement), AC-6 (Least Privilege), IA-2 (Identification and Authentication)
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 ---
 
 ## Document Control

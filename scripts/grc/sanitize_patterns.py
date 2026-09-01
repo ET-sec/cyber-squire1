@@ -2,10 +2,10 @@ r"""Sanitization patterns applied in order to any LLM-generated text before
 posting to a public PR comment / issue / log.
 
 Order matters: more specific patterns must run before more general ones.
-For example the production droplet IP (161.35.0.184) gets the more
-informative `[REDACTED-IP]` token before the generic RFC1918 pattern
-would have caught it (it would not, but the ordering rule still applies
-to future additions).
+Host-specific public IPs (supplied via the GRC_REDACT_IPS environment
+variable, comma-separated) get the more informative `[REDACTED-IP]` token
+before the generic RFC1918 pattern runs. The literals live in the runtime
+environment (Doppler / CI secrets), never in this public file.
 
 Each entry is `(compiled_regex, replacement_string)`. Replacements are
 literal strings (no backrefs).
@@ -21,13 +21,23 @@ reviewer's ability to talk about findings. Add a passthrough test.
 
 from __future__ import annotations
 
+import os
 import re
 from typing import List, Tuple
 
+# Host-specific public IPs to redact, injected at runtime so the concrete
+# values never appear in this tracked file. Set in Doppler / CI, e.g.
+#   GRC_REDACT_IPS="198.51.100.7" (comma-separated for multiple).
+_REDACT_IPS: List[str] = [
+    ip.strip()
+    for ip in os.environ.get("GRC_REDACT_IPS", "").split(",")
+    if ip.strip()
+]
+
 # Order is intentional. Specific tokens first, generic later.
 PATTERNS: List[Tuple[re.Pattern[str], str]] = [
-    # 1. Production droplet IP (most specific)
-    (re.compile(r"161\.35\.0\.184"), "[REDACTED-IP]"),
+    # 1. Host-specific public IPs (most specific, env-supplied)
+    *[(re.compile(re.escape(ip)), "[REDACTED-IP]") for ip in _REDACT_IPS],
     # 2. RFC1918 private IPs
     (
         re.compile(

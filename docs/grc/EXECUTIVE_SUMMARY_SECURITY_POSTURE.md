@@ -7,6 +7,8 @@
 **Date:** 2026-05-25
 **Prepared By:** System Owner
 
+> **Status note (2026-08-31):** infrastructure has since migrated to Oracle Cloud (OCI); see docs/architecture/ for the current stack. Container counts and hosting details below reflect the platform as of the document date.
+
 ---
 
 ## Security Categorization
@@ -61,16 +63,14 @@ The platform processes API keys, operational credentials, workflow automation lo
 
 ### Disposition (consolidated POA&M register)
 
-<!-- TODO(et): Reconcile legacy disposition (16/10/1 totaling 27 across 15 legacy POA&M entries) with the README's 15/9/6 across all 30 entries. Source of truth: POAM_PLAN_OF_ACTION.md grep returns 30 register entries. -->
-
 | Status | Count |
 |--------|-------|
-| Accepted Risk (with compensating controls) | 16 |
-| Open (remediation tracked) | 10 |
-| Closed | 1 |
-| **Total POA&M register entries** | **30** |
+| Accepted Risk (with compensating controls) | 15 |
+| Open (remediation tracked) | 20 |
+| Closed | 7 |
+| **Total POA&M register entries** | **42** |
 
-The 37 figure above is raw findings across all assessment sources. The 30 figure is consolidated POA&M register entries (POAM_PLAN_OF_ACTION.md). Multiple raw findings collapse into a single register entry where compensating controls overlap.
+The 37 figure above is raw findings across all assessment sources. The 42 figure is consolidated POA&M register entries (POAM_PLAN_OF_ACTION.md): 27 base entries plus 15 Phase 17 Squire entries. Multiple raw findings collapse into a single register entry where compensating controls overlap.
 
 ![POA&M Summary](diagrams/poam_summary.png)
 
@@ -79,10 +79,8 @@ The 37 figure above is raw findings across all assessment sources. The 30 figure
 ## Risk Assessment Overview
 
 - **17 threat scenarios** assessed using NIST SP 800-30 Rev. 1 methodology with a 5x5 risk matrix
-<!-- TODO(et): Verify the 35% figure against RISK_ASSESSMENT.md residual risk math. If not derivable, remove or replace. -->
-- **35% average risk reduction** achieved through implemented controls
+- **Roughly 35% average risk reduction** through implemented controls at the time of assessment
 - All scenarios mapped to MITRE ATT&CK techniques
-<!-- TODO(et): Verify against current 5x5 matrix in RISK_ASSESSMENT.md. -->
 - Zero scenarios rated Critical or High after control application
 
 ![Risk Heat Map](diagrams/risk_heat_map.png)
@@ -107,7 +105,7 @@ Layer 9: Audit trail                 [Langfuse+pgvector]  ███████�
 
 **Key Point:** The 2026-04-23 red-team exercise validated Layers 5 through 9 against 6 attack scenarios. Layer 6 (pre-graph scanner) was added during the exercise as remediation for a BYPASSED PII case. Evidence in `REDTEAM_RESULTS.md`. Full Squire SSP in `SQUIRE_SSP.md` (36 additional controls).
 
-The platform runs **20 containers** protected by layered security controls:
+The platform design spans **20 containerized services**; the current OCI instance runs a 3-container core while the remainder is rebuilt for ARM. The design is protected by layered security controls:
 
 | Layer | Implementation |
 |-------|---------------|
@@ -140,8 +138,7 @@ The platform runs **20 containers** protected by layered security controls:
 4. **Automated evidence collection** via Falco, Datadog, and CI/CD scanners reduces manual audit burden
 5. **Immutable audit chain** from Teleport session recording through Fluentd log shipping to Datadog
 6. **Zero exposed ports** to the public internet - all ingress through Cloudflare zero-trust tunnel
-7. **Comprehensive GRC library** (58 documents after Phase 17 expansion plus subsequent additions) with defined review cadences
-<!-- TODO(et): Verify "1 HIGH remediation" claim against REDTEAM_RESULTS.md. -->
+7. **Comprehensive GRC library** (57 documents after Phase 17 expansion plus subsequent additions) with defined review cadences
 8. **Squire subsystem live** (Phase 17) with 36 additional controls, 9-layer defense-in-depth, 6 executed red-team cases, 1 HIGH remediation closed during the exercise
 
 ## Areas for Improvement
@@ -161,7 +158,7 @@ The platform runs **20 containers** protected by layered security controls:
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Full NIST 800-53 control mapping (16 families, 133 controls) |
 | [SQUIRE_SSP.md](SQUIRE_SSP.md) | Squire subsystem SSP, 36 additional controls |
-| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | All POA&M entries with remediation plans (30 total including 15 Phase 17) |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | All POA&M entries with remediation plans (42 total including 15 Phase 17) |
 | [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) | 6 executed red-team cases with Langfuse trace IDs |
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | 17 threat scenarios with MITRE ATT&CK mapping |
 | [CIS_RISK_REGISTER.md](CIS_RISK_REGISTER.md) | CIS Docker Bench findings with compensating controls |

@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
-# daily-health-digest.sh — Query Datadog API for 24h system summary, post to Telegram via n8n
-# Runs via cron at 9 AM ET daily on the droplet
+# daily-health-digest.sh: Query Datadog API for 24h system summary, post to Telegram via n8n
+#
+# ARCHIVED (DO era, host retired 2026-08-19): kept as reference, not wired to
+# any current job. Host tags, Datadog site, and env file path are now
+# environment-driven placeholders; set them to run against a live host.
+#
+# Ran via cron at 9 AM ET daily on the old host.
 # Requires: DD_API_KEY, DD_APP_KEY env vars (or source from .env)
 #
 # Install cron:
 #   CRON_TZ=America/New_York
-#   0 9 * * * /root/scripts/daily-health-digest.sh >> /var/log/health-digest.log 2>&1
+#   0 9 * * * daily-health-digest.sh >> /var/log/health-digest.log 2>&1
 
 set -euo pipefail
 
+ENGINE_ENV_FILE="${ENGINE_ENV_FILE:-/opt/engine/.env}"
+
 # Load secrets from .env if not already set
 if [ -z "${DD_API_KEY:-}" ] || [ -z "${DD_APP_KEY:-}" ]; then
-  if [ -f /root/COREDIRECTIVE_ENGINE/.env ]; then
+  if [ -f "${ENGINE_ENV_FILE}" ]; then
     # shellcheck disable=SC1091
     set -a
-    source /root/COREDIRECTIVE_ENGINE/.env
+    source "${ENGINE_ENV_FILE}"
     set +a
     # Map Doppler-style names to DD-style names
     DD_API_KEY="${DATADOG_API_KEY:-${DD_API_KEY:-}}"
@@ -27,7 +34,8 @@ if [ -z "${DD_API_KEY:-}" ] || [ -z "${DD_APP_KEY:-}" ]; then
   exit 1
 fi
 
-DD_SITE="${DD_SITE:-us5.datadoghq.com}"
+DD_SITE="${DD_SITE:-datadoghq.com}"
+DD_HOST_TAG="${DD_HOST_TAG:-engine-host}"
 N8N_WEBHOOK="${N8N_WEBHOOK_URL}"
 CHAT_ID="${TELEGRAM_CHAT_ID}"
 
@@ -40,7 +48,7 @@ DAY_AGO=$((NOW - 86400))
 DOCKER_STATUS=$(curl -sf \
   -H "DD-API-KEY: ${DD_API_KEY}" \
   -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
-  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:docker.containers.running{host:cd-alpha-engine-do}" \
+  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:docker.containers.running{host:${DD_HOST_TAG}}" \
   2>/dev/null || echo '{"series":[]}')
 
 CONTAINER_COUNT=$(echo "${DOCKER_STATUS}" | python3 -c "
@@ -60,7 +68,7 @@ except:
 CPU_DATA=$(curl -sf \
   -H "DD-API-KEY: ${DD_API_KEY}" \
   -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
-  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:system.cpu.user{host:cd-alpha-engine-do}" \
+  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:system.cpu.user{host:${DD_HOST_TAG}}" \
   2>/dev/null || echo '{"series":[]}')
 
 CPU_AVG=$(echo "${CPU_DATA}" | python3 -c "
@@ -81,7 +89,7 @@ except:
 MEM_DATA=$(curl -sf \
   -H "DD-API-KEY: ${DD_API_KEY}" \
   -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
-  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:system.mem.pct_usable{host:cd-alpha-engine-do}" \
+  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:system.mem.pct_usable{host:${DD_HOST_TAG}}" \
   2>/dev/null || echo '{"series":[]}')
 
 MEM_USED=$(echo "${MEM_DATA}" | python3 -c "
@@ -103,7 +111,7 @@ except:
 DISK_DATA=$(curl -sf \
   -H "DD-API-KEY: ${DD_API_KEY}" \
   -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
-  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:system.disk.in_use{host:cd-alpha-engine-do,device:/dev/vda1}" \
+  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:system.disk.in_use{host:${DD_HOST_TAG},device:/dev/vda1}" \
   2>/dev/null || echo '{"series":[]}')
 
 DISK_PCT=$(echo "${DISK_DATA}" | python3 -c "
@@ -147,7 +155,7 @@ except:
 PG_DATA=$(curl -sf \
   -H "DD-API-KEY: ${DD_API_KEY}" \
   -H "DD-APPLICATION-KEY: ${DD_APP_KEY}" \
-  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:postgresql.connections{host:cd-alpha-engine-do}" \
+  "https://api.${DD_SITE}/api/v1/query?from=${DAY_AGO}&to=${NOW}&query=avg:postgresql.connections{host:${DD_HOST_TAG}}" \
   2>/dev/null || echo '{"series":[]}')
 
 PG_CONNS=$(echo "${PG_DATA}" | python3 -c "
@@ -170,7 +178,7 @@ TIME_STR=$(TZ="America/New_York" date +"%I:%M %p ET" 2>/dev/null || date -u +"%H
 MSG="<b>Daily Health Digest</b> | ${DATE_STR}
 <i>${TIME_STR}</i>
 
-<b>Host:</b> cd-alpha-engine-do (DO s-4vcpu-8gb)
+<b>Host:</b> ${DD_HOST_TAG}
 
 <b>Resources (24h avg):</b>
   CPU: ${CPU_AVG}

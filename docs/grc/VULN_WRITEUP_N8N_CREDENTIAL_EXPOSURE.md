@@ -8,6 +8,8 @@
 **Classification:** Internal Use Only
 **Version:** 1.0
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 ---
 
 ## Document Control
@@ -79,7 +81,7 @@ svc-automation operates within the `net-core` Docker bridge network, which conne
 | `net-core` | svc-automation, svc-db, svc-secrets, svc-identity, svc-tunnel, svc-monitor, svc-detection, svc-detection-router, svc-log-shipper, svc-event-shipper | Core platform services |
 | `net-ai` | svc-automation, svc-llm, svc-transcription, svc-ai-gateway | AI inference pipeline |
 
-svc-automation is the only container that bridges both `net-core` and `net-ai`. This dual-network position means secrets exposed through svc-automation could be leveraged to attack services in either network segment.
+svc-automation is the only container that bridges both `net-core` and `net-ai`. This dual-network position means secrets exposed through svc-automation could be abused to attack services in either network segment.
 
 ### 3.2 Access Path
 

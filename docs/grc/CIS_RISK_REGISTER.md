@@ -1,12 +1,11 @@
 # CIS Docker Benchmark Risk Register
 
-**Environment:** Organization Platform (DigitalOcean VPS alpha-node)
+**Environment:** Organization Platform (DigitalOcean VPS alpha-node, as scanned at baseline)
 **Baseline Date:** 2026-03-11
+
+> **Status note (2026-08-31):** infrastructure has since migrated to Oracle Cloud (OCI); see docs/architecture/ for the current stack. This register reflects the environment as scanned on the baseline date.
 **Last Scan:** 2026-03-11 (post-remediation)
 **Next Review:** 2026-06-09 (90 days)
-
-<!-- TODO(et): Baseline 2026-03-11 predates Phase 17 additions (svc-squire, svc-nemo, 4x Langfuse, Teleport, Vault, Keycloak, Fluentd). Re-run CIS Docker Bench against current stack and refresh every "Review Date" cell. Next Review 2026-06-09 past due. -->
-<!-- TODO(et): Service-name sanitization inconsistent in 5.3 / 5.12 / 5.13 affected-containers lists (mix of svc-* and real names like Vault, monitoring agent). Pick one convention. -->
 
 ## Overview
 
@@ -193,7 +192,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Description** | Docker daemon should set no-new-privileges by default for all containers |
 | **Business Justification** | Setting daemon-wide no-new-privileges would break Falco (needs SYS_ADMIN for eBPF). Applied per-container instead of daemon-wide. |
-| **Compensating Control** | no-new-privileges:true set explicitly on 12 of 13 compose-managed containers. Only svc-detection (Falco) exempted (requires capability escalation for eBPF kernel tracing). |
+| **Compensating Control** | no-new-privileges:true set explicitly on 12 of 13 compose-managed containers (the 13 containers present at the baseline scan; the compose design later grew to 19). Only svc-detection (Falco) exempted (requires capability escalation for eBPF kernel tracing). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
 
@@ -311,7 +310,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-tunnel |
 | **Description** | Containers should not use host network namespace |
-| **Business Justification** | Zero-trust tunnel requires host networking to forward traffic to localhost services (automation platform on , SSH on :22). Without host networking, the tunnel cannot reach host-bound services. |
+| **Business Justification** | Zero-trust tunnel requires host networking to forward traffic to internal services (the automation platform and SSH). Without host networking, the tunnel cannot reach host-bound services. |
 | **Compensating Control** | Tunnel container is read-only rootfs. no-new-privileges set. Resource limits applied. Runtime detection engine monitors all network connections. Tunnel only routes pre-configured hostnames (automation.example-ops.com, ssh.example-ops.com). |
 | **Risk Level** | Low |
 | **Review Date** | 2026-06-09 |
@@ -409,7 +408,7 @@ justification and compensating controls.
 | **Result** | WARN |
 | **Affected containers** | svc-detection, svc-ai-gateway |
 | **Description** | All containers should have no-new-privileges security option |
-| **Business Justification** | Falco requires privilege capabilities (SYS_ADMIN) for eBPF kernel tracing; no-new-privileges would prevent this. AI gateway is standalone and not managed by compose. All other 12 compose containers have no-new-privileges set. |
+| **Business Justification** | Falco requires privilege capabilities (SYS_ADMIN) for eBPF kernel tracing; no-new-privileges would prevent this. AI gateway is standalone and not managed by compose. The other 12 of the 13 compose containers present at the baseline scan have no-new-privileges set. |
 | **Compensating Control** | Falco uses cap_drop:ALL then adds only minimum required capabilities. AppArmor set to unconfined only for svc-detection. Resource limits restrict blast radius. |
 | **Risk Level** | Medium |
 | **Review Date** | 2026-06-09 |
@@ -459,8 +458,6 @@ justification and compensating controls.
 ---
 
 ## Risk Summary
-
-<!-- TODO(et): Per-finding Medium ratings include 2.8, 4.1, 4.5, 5.3, 5.25, 5.31 (six entries). Count column previously read "4". Confirm whether 5.25 and 5.31 should reclassify or whether table count was wrong. -->
 
 | Risk Level | Count | Findings |
 |------------|-------|----------|

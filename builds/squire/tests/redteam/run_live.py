@@ -1,6 +1,6 @@
 """Live async red-team runner for Squire cycle 2 (2026-04-24).
 
-Fires every case in cases.yaml against https://squire.tigouetheory.com/alert
+Fires every case in cases.yaml against https://squire.example-ops.com/alert
 with 5 concurrent requests, per-call timeout 120s, 1-shot retry on 429, and a
 hard spend ceiling of $3.50 as a technical engineering control (the ceiling is
 a rate-limit-style guard, not a scarcity signal).
@@ -9,7 +9,7 @@ Usage:
 
     cd builds/squire
     python tests/redteam/run_live.py \
-        --endpoint https://squire.tigouetheory.com/alert \
+        --endpoint https://squire.example-ops.com/alert \
         --out tests/redteam/results/cycle2-$(date -u +%Y-%m-%d).json
 
 Environment:
@@ -56,7 +56,7 @@ import httpx
 import yaml
 
 
-DEFAULT_ENDPOINT = "https://squire.tigouetheory.com/alert"
+DEFAULT_ENDPOINT = "https://squire.example-ops.com/alert"
 DEFAULT_TIMEOUT = 120.0
 DEFAULT_CONCURRENCY = 5
 DEFAULT_CEILING_USD = 3.50

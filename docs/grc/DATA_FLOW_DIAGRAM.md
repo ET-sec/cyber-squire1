@@ -8,6 +8,8 @@
 **Classification:** Internal Use Only
 **Version:** 1.1
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 ---
 
 ## Document Control
@@ -247,7 +249,7 @@ Legend: [TB-N] = Trust Boundary | [AI-0N] = AI System | ──► = Data Flow
       ▼
 ┌─ DMZ ─────────────────────────────────────────────────────────────────────┐
 │                                                                           │
-│  [P-04] svc-ai-gateway (OpenClaw - Claude Opus 4.7) [AI-001]               │
+│  [P-04] svc-ai-gateway (OpenClaw - Claude Fable 5) [AI-001]               │
 │  ├── System prompt + conversation context                                 │
 │  ├── Skills: Tavily search, browser, GitHub, Notion, python-interpreter   │
 │  │                                                                        │
@@ -482,7 +484,7 @@ flowchart LR
         LR[(Redis dedup)]
     end
     subgraph LLM [External LLM zone]
-        ANT[Anthropic Opus 4.7 / Sonnet 4.6]
+        ANT[Anthropic Fable 5 / Sonnet 4.6]
         TAV[Tavily search]
         OC[OpenClaw gateway]
     end
@@ -560,7 +562,7 @@ flowchart LR
 
 | ID | Entity | Purpose | Auth |
 |----|--------|---------|------|
-| E-12 | Anthropic API | Primary Opus 4.7 and Sonnet 4.6 inference | API key, 60-day rotation |
+| E-12 | Anthropic API | Primary Fable 5 and Sonnet 4.6 inference | API key, 60-day rotation |
 | E-13 | Tavily API | Enrichment search | API key |
 <!-- TODO(et): Clarify production state of OpenClaw OAuth bearer. "pending" status needs an explicit owner and ETA. -->
 | E-14 | OpenClaw gateway | Agent dispatch path | OAuth bearer, pending |

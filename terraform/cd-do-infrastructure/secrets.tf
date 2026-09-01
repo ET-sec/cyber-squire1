@@ -11,7 +11,7 @@
 #
 # Doppler is the runtime secrets manager. 1Password is the source of truth for rotation.
 # No .tfvars files contain secrets. No secrets are hardcoded in .tf files.
-# State is remote on DO Spaces (cd-terraform-state bucket, nyc3, versioning enabled).
+# State is remote on DO Spaces (tf-state-bucket bucket, nyc3, versioning enabled).
 #
 # Backend init command:
 #   terraform init \

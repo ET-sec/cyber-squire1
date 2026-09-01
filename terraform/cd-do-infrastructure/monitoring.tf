@@ -64,7 +64,7 @@ resource "datadog_monitor" "disk_usage_high" {
     **Device:** {{device.name}}
 
     **Remediation:**
-    - Check large files: `ssh cd-alpha 'du -sh /root/COREDIRECTIVE_ENGINE/CD_VOL_*'`
+    - Check large files: `ssh cd-alpha 'du -sh /root/platform-engine/CD_VOL_*'`
     - Prune Docker images: `ssh cd-alpha 'docker system prune -f'`
     - Check logs: `ssh cd-alpha 'du -sh /var/log/*'`
 
@@ -104,7 +104,7 @@ resource "datadog_monitor" "container_down" {
 
     **Remediation:**
     1. Check containers: `ssh cd-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}"'`
-    2. Restart failed service: `ssh cd-alpha 'cd /root/COREDIRECTIVE_ENGINE && docker compose restart <name>'`
+    2. Restart failed service: `ssh cd-alpha 'cd /root/platform-engine && docker compose restart <name>'`
     3. Check logs: `ssh cd-alpha 'docker logs --tail 50 <container>'`
 
     NOTE: NEVER run 'docker compose down' via Cloudflare tunnel.
@@ -298,7 +298,7 @@ resource "datadog_monitor" "n8n_container_restarts" {
     **Remediation:**
     - Check n8n logs: `ssh cd-alpha 'docker logs --tail 100 cd-service-n8n'`
     - Check container status: `ssh cd-alpha 'docker inspect cd-service-n8n --format "{{.State.Status}} restarts={{.RestartCount}}"'`
-    - Manual restart: `ssh cd-alpha 'cd /root/COREDIRECTIVE_ENGINE && docker compose restart cd-service-n8n'`
+    - Manual restart: `ssh cd-alpha 'cd /root/platform-engine && docker compose restart cd-service-n8n'`
 
     ${local.telegram_notify}
   EOT
@@ -348,7 +348,7 @@ resource "datadog_monitor" "langfuse_web_down" {
     **Remediation:**
     - Status: `ssh cd-alpha 'docker inspect cd-service-langfuse-web --format "{{.State.Status}} health={{.State.Health.Status}}"'`
     - Logs: `ssh cd-alpha 'docker logs --tail 100 cd-service-langfuse-web'`
-    - Restart: `ssh cd-alpha 'cd /root/COREDIRECTIVE_ENGINE && docker compose restart cd-service-langfuse-web'`
+    - Restart: `ssh cd-alpha 'cd /root/platform-engine && docker compose restart cd-service-langfuse-web'`
 
     ${local.telegram_notify}
   EOT
@@ -387,7 +387,7 @@ resource "datadog_monitor" "langfuse_clickhouse_down" {
     - Status: `ssh cd-alpha 'docker inspect cd-service-langfuse-clickhouse --format "{{.State.Status}} health={{.State.Health.Status}}"'`
     - Logs: `ssh cd-alpha 'docker logs --tail 100 cd-service-langfuse-clickhouse'`
     - Free memory check: `ssh cd-alpha 'free -h'`
-    - Restart: `ssh cd-alpha 'cd /root/COREDIRECTIVE_ENGINE && docker compose restart cd-service-langfuse-clickhouse cd-service-langfuse-worker cd-service-langfuse-web'`
+    - Restart: `ssh cd-alpha 'cd /root/platform-engine && docker compose restart cd-service-langfuse-clickhouse cd-service-langfuse-worker cd-service-langfuse-web'`
 
     ${local.telegram_notify}
   EOT

@@ -62,7 +62,7 @@ output "ssh_command" {
 
 output "n8n_url" {
   description = "n8n dashboard URL (via Cloudflare Tunnel)"
-  value       = "https://n8n.tigouetheory.com"
+  value       = "https://n8n.example-ops.com"
 }
 
 # --- SERVICE URLS ---
@@ -71,10 +71,10 @@ output "service_urls" {
   description = "All service access URLs"
   sensitive   = true
   value = {
-    n8n_dashboard = "https://n8n.tigouetheory.com"
-    ssh_tunnel    = "ssh.tigouetheory.com (via cloudflared)"
+    n8n_dashboard = "https://n8n.example-ops.com"
+    ssh_tunnel    = "ssh.example-ops.com (via cloudflared)"
     openclaw_api  = "http://${digitalocean_droplet.cd_alpha.ipv4_address}:18789/v1/chat/completions"
-    datadog       = "https://us5.datadoghq.com"
+    datadog       = "https://datadoghq.com"
     website       = "https://tigouetheory.com"
   }
 }
@@ -115,9 +115,9 @@ output "verification_commands" {
     ssh root@${digitalocean_droplet.cd_alpha.ipv4_address} 'hostname && uptime'
 
     # Verify n8n via tunnel
-    curl -sI https://n8n.tigouetheory.com | head -1
+    curl -sI https://n8n.example-ops.com | head -1
 
     # Check Docker stack
-    ssh root@${digitalocean_droplet.cd_alpha.ipv4_address} 'cd /root/COREDIRECTIVE_ENGINE && docker compose ps'
+    ssh root@${digitalocean_droplet.cd_alpha.ipv4_address} 'cd /root/platform-engine && docker compose ps'
   EOT
 }

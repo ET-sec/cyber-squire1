@@ -182,7 +182,7 @@ def redact_for_public(s: str) -> str:
             out = out.replace(sec, "[REDACTED]")
     out = IP_RE.sub("[IP]", out)
     out = out.replace("tigouetheory.com", "[DOMAIN]")
-    out = out.replace("cd-alpha", "[HOST]")
+    out = out.replace("cd-alpha", "[HOST]").replace("cd-oci", "[HOST]")
     return out
 
 
@@ -192,7 +192,7 @@ def redact_for_public(s: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Drift detector for stack-facts.yaml")
     parser.add_argument("--facts", type=Path, default=FACTS_FILE)
-    parser.add_argument("--ssh-target", default="cd-alpha")
+    parser.add_argument("--ssh-target", default="cd-oci")
     parser.add_argument("--json", action="store_true", help="emit JSON drift report")
     parser.add_argument("--public", action="store_true", help="redact secrets/IPs from stdout")
     parser.add_argument("--skip-remote", action="store_true", help="skip ssh/postgres checks")
@@ -208,7 +208,7 @@ def main() -> int:
     except (PermissionError, FileNotFoundError) as e:
         log("input.validation.failed", logging.ERROR, error=str(e))
         return 2
-    if not re.fullmatch(r"^cd-alpha$", args.ssh_target):
+    if not re.fullmatch(r"^cd-(alpha|oci)$", args.ssh_target):
         return 2
 
     data, sha = load_facts(facts_path)

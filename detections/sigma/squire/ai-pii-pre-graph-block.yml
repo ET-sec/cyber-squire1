@@ -1,0 +1,34 @@
+title: Pre Graph PII Scanner Blocked Alert Body
+id: ab2d7f1e-44dc-4a5e-bf18-2f1f3c4f9c8a
+status: stable
+description: |
+  Detects a Squire event where the pre graph PII scanner blocked an alert body
+  before any LLM call. Patterns covered are US SSN, Luhn valid credit card
+  numbers, email, and US phone. A block is correct behavior; the value of this
+  detection is upstream attribution. Repeated blocks from one source mean an
+  upstream log pipeline is leaking regulated data into Squire.
+references:
+  - https://atlas.mitre.org/techniques/AML.T0041
+  - https://genai.owasp.org/llmrisk/llm06
+  - https://github.com/ET-sec/cyber-squire1/blob/main/builds/squire/src/squire/pre_graph_pii.py
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/REDTEAM_RESULTS.md
+author: Organization Security Engineering
+date: 2026-04-24
+tags:
+  - cd.atlas_aml_t0041
+  - cd.owasp_llm06
+  - cd.ai_security
+logsource:
+  product: squire
+  category: ai_guardrail_event
+detection:
+  selection_block:
+    rail_name: 'pre_graph'
+    outcome: 'block'
+  selection_reason:
+    reason_code: 'PII_DETECTED_PRE_GRAPH'
+  condition: selection_block and selection_reason | count() by upstream_system > 1
+falsepositives:
+  - Synthetic alerts during a red team cycle. Suppress for the cycle window.
+  - Authorized canary alerts produced by the QA pipeline.
+level: high

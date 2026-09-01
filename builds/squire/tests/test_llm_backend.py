@@ -148,7 +148,7 @@ def test_fallback_primary_succeeds(monkeypatch):
         "api": lambda: api_instance,
         "ollama": lambda: _StubResponding("ollama", "should_not_run"),
     })
-    resp = invoke_with_fallback("api", [{"role": "user", "content": "hi"}], "anthropic/claude-opus-4-7")
+    resp = invoke_with_fallback("api", [{"role": "user", "content": "hi"}], "anthropic/claude-fable-5")
     assert resp.content == "primary_ok"
     assert resp.backend == "api"
     assert resp.degraded is False
@@ -162,7 +162,7 @@ def test_fallback_falls_through_to_ollama(monkeypatch):
         "api": lambda: api_instance,
         "ollama": lambda: ollama_instance,
     })
-    resp = invoke_with_fallback("api", [{"role": "user", "content": "hi"}], "anthropic/claude-opus-4-7")
+    resp = invoke_with_fallback("api", [{"role": "user", "content": "hi"}], "anthropic/claude-fable-5")
     assert resp.content == "degraded_content"
     assert resp.backend == "ollama"
     assert resp.degraded is True
@@ -196,13 +196,13 @@ def test_fallback_raises_when_all_fail(monkeypatch):
         "ollama": lambda: _StubFailing("ollama", RuntimeError("ollama_down")),
     })
     with pytest.raises(RuntimeError, match="all backends in chain"):
-        invoke_with_fallback("api", [{"role": "user", "content": "hi"}], "anthropic/claude-opus-4-7")
+        invoke_with_fallback("api", [{"role": "user", "content": "hi"}], "anthropic/claude-fable-5")
 
 
 def test_fallback_ollama_primary_has_no_fallback(monkeypatch):
     ollama_instance = _StubResponding("ollama", "ollama_only")
     _patch_registry(monkeypatch, {"ollama": lambda: ollama_instance})
-    resp = invoke_with_fallback("ollama", [{"role": "user", "content": "hi"}], "anthropic/claude-opus-4-7")
+    resp = invoke_with_fallback("ollama", [{"role": "user", "content": "hi"}], "anthropic/claude-fable-5")
     assert resp.content == "ollama_only"
     # When ollama IS the primary, degraded should NOT be set by the chain
     # (individual OllamaBackend sets its own degraded flag on real invokes, but

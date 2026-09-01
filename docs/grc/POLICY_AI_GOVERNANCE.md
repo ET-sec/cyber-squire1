@@ -53,7 +53,7 @@ This policy satisfies requirements from three complementary frameworks:
 
 This policy governs all AI and machine learning (ML) systems deployed within or integrated with the Organization security operations platform, including:
 
-- The AI gateway service (`svc-ai-gateway`) providing Claude Opus 4.7 model access via the Anthropic API for production agent interactions
+- The AI gateway service (`svc-ai-gateway`) providing Claude Fable 5 model access via the Anthropic API for production agent interactions
 - The local LLM inference service (`svc-llm`) running Ollama with Qwen 3 4B for on-premises language model processing
 - The voice transcription service (`svc-transcription`) running Whisper for speech-to-text conversion
 - AI-augmented automation workflows within `svc-automation` that consume, route, or act upon AI-generated outputs
@@ -142,11 +142,11 @@ All AI systems within the authorization boundary are registered in the following
 
 | ID | System | Service | Model/Engine | Deployment | Data Flow | Risk Tier |
 |----|--------|---------|-------------|------------|-----------|-----------|
-| AI-001 | AI Agent Gateway | `svc-ai-gateway` (OpenClaw) | Claude Opus 4.7 (Anthropic API) | External API | Prompts sent to Anthropic; responses returned to messaging integration and `svc-automation` workflows | **High** |
+| AI-001 | AI Agent Gateway | `svc-ai-gateway` (OpenClaw) | Claude Fable 5 (Anthropic API) | External API | Prompts sent to Anthropic; responses returned to messaging integration and `svc-automation` workflows | **High** |
 <!-- TODO(et): Verify Qwen 3 4B is the actually loaded Ollama model via `docker exec svc-ollama ollama list`. Model is pulled at runtime and not pinned in docker-compose.yaml. -->
 | AI-002 | Local LLM Inference | `svc-llm` (Ollama) | Qwen 3 4B | Local (on `alpha-node`) | All processing on-premises; no data leaves the node | **Medium** |
 | AI-003 | Voice Transcription | `svc-transcription` (Whisper) | Whisper base (open-weight) | Local (on `alpha-node`) | Audio processed locally; transcripts stored in workflow state | **Low** |
-| AI-004 | Squire Autonomous SOC Analyst | `svc-squire` | Claude Opus 4.7 (primary) and Sonnet 4.6 (secondary) via Anthropic API; voyage-3-large embeddings (1024-dim) via Voyage AI for pgvector RAG | External API (model and embeddings) | Sanitized alerts ingressed at `/alert`; prompts and retrieval embeddings sent to Anthropic and Voyage AI; responses persisted in `ir_investigations` table; advisory output only per `HITL_POLICY.md` | **High** |
+| AI-004 | Squire Autonomous SOC Analyst | `svc-squire` | Claude Fable 5 (primary) and Sonnet 4.6 (secondary) via Anthropic API; voyage-3-large embeddings (1024-dim) via Voyage AI for pgvector RAG | External API (model and embeddings) | Sanitized alerts ingressed at `/alert`; prompts and retrieval embeddings sent to Anthropic and Voyage AI; responses persisted in `ir_investigations` table; advisory output only per `HITL_POLICY.md` | **High** |
 | AI-005 | NeMo Guardrails | `svc-nemo` | NVIDIA NeMo Guardrails (open-source rail engine) configured per `GUARDRAILS_CONFIGURATION.md` | Local (on `alpha-node`); rail engine invokes upstream model providers only via svc-squire | Pre-graph PII scanner plus input/output rails enforced before model calls; refusals logged to `ir_rail_events` | **High** |
 
 ### 4.2 AI System Classification Criteria
@@ -164,7 +164,7 @@ All AI systems within the authorization boundary are registered in the following
 | Attribute | Detail |
 |-----------|--------|
 | **Purpose** | Production AI agent serving external users via Telegram messaging integration; autonomous task execution via `svc-automation` workflows |
-| **Model provider** | Anthropic (Claude Opus 4.7) |
+| **Model provider** | Anthropic (Claude Fable 5) |
 | **Data classification** | May process user queries containing PII, operational context, and system state |
 | **Output consumers** | External users (Telegram), `svc-automation` workflows, `svc-db` (state persistence) |
 | **Known limitations** | Hallucination risk on factual claims; prompt injection vulnerability surface; latency dependent on external API availability; no real-time knowledge beyond model training cutoff |
@@ -499,7 +499,7 @@ External AI providers (currently: Anthropic for AI-001) SHALL be assessed using 
 
 | Provider | Service | Assessment Date | Risk Rating | Key Findings | Next Review |
 |----------|---------|-----------------|-------------|--------------|-------------|
-| Anthropic | Claude Opus 4.7 API | 2026-03-11 | **Medium** | No training on API data (confirmed); 30-day retention for abuse monitoring; SOC 2 Type II available; US-based processing; model safety testing documented | 2026-09-24 |
+| Anthropic | Claude Fable 5 API | 2026-03-11 | **Medium** | No training on API data (confirmed); 30-day retention for abuse monitoring; SOC 2 Type II available; US-based processing; model safety testing documented | 2026-09-24 |
 
 ### 11.3 AI Model Supply Chain Controls
 
@@ -775,7 +775,7 @@ All AI-related actions are logged, correlated, and subject to audit. Personnel s
 
 The Squire autonomous SOC analyst is deployed under the NIST AI RMF and ISO 42001 requirements codified in this policy. The following Squire-scope documents implement the policy for the Squire subsystem:
 
-- `SQUIRE_MODEL_CARD.md` implements model transparency with a Mitchell et al. card covering Opus 4.7 primary, Sonnet 4.6 routing, and voyage-3-large (1024-dim) embeddings via Voyage AI for pgvector RAG.
+- `SQUIRE_MODEL_CARD.md` implements model transparency with a Mitchell et al. card covering Fable 5 primary, Sonnet 4.6 routing, and voyage-3-large (1024-dim) embeddings via Voyage AI for pgvector RAG.
 - `AI_SUPPLY_CHAIN_REGISTER.md` implements supply chain governance as a living register of 14 components with version, license, hash, and 60-day review cadence.
 - `HITL_POLICY.md` implements human oversight with HIGH and CRITICAL severity gating, action approval flow, and ephemeral token rotation at 60-day production cadence plus per-interview revocation.
 - `SQUIRE_AI_RISK_ASSESSMENT.md` implements AI risk assessment using NIST AI RMF plus CSA Agentic Profile across 10 risks.

@@ -8,6 +8,8 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** AC-3 (Access Enforcement), AC-6 (Least Privilege), CA-7 (Continuous Monitoring), IR-4 (Incident Handling), SI-4 (System Monitoring)
 
+> **Status note (2026-09-01):** this policy describes the DO-era baseline; that environment was retired in 2026-08. A re-baseline against the current OCI stack is queued.
+
 ---
 
 ## Document Control
@@ -111,8 +113,7 @@ SLA clock runs on wall time, not business hours. Missed SLAs are themselves logg
 
 ### 5.2 Escalation Chain
 
-1. `requested` event fires, Telegram notification to `@CDirective_bot` channel
-<!-- TODO(et): Confirm whether an n8n outbound Gmail workflow exists for HITL SLA escalation. Existing n8n Gmail workflows are read-only webhooks. If not built, change this step to a second Telegram bot escalation. -->
+1. `requested` event fires, Telegram notification to the primary agent Telegram bot channel
 2. After 50% of SLA without response, secondary notification via n8n Gmail workflow
 3. After 100% of SLA without response, `timed_out` event auto-written; investigation remains in `pending_review` state indefinitely until manually closed
 
@@ -157,8 +158,9 @@ doppler secrets set SQUIRE_WEBHOOK_TOKEN="$(openssl rand -hex 48)" \
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
 
 # Verify the old token is rejected and the new token is accepted
+# (OLD_TOKEN holds the pre-rotation value captured before the rotation step)
 curl -s -o /dev/null -w "%{http_code}\n" \
-  -H "x-squire-token: OLD_TOKEN_VALUE" \
+  -H "x-squire-token: ${OLD_TOKEN}" \
   https://squire.example-ops.com/alert -X POST -d '{}'
 # Expected: 401
 
@@ -201,7 +203,6 @@ doppler secrets set SQUIRE_INTERVIEW_TOKENS="$REMAINING" \
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
 ```
 
-<!-- TODO(et): Confirm whether plan 17-15 (SQUIRE_INTERVIEW_TOKENS consumer in app.py) has shipped. If shipped, rewrite this paragraph as "current state" rather than planned. If not shipped, current state is policy defined, not operational. -->
 Note: the additive allow-list consumer side (`SQUIRE_INTERVIEW_TOKENS` parsing in `app.py`) is planned under plan 17-15, which wires the portfolio-facing interview demo surface. This policy defines the procedure ahead of the mechanism; once 17-15 lands, the above flow activates without policy changes.
 
 ### 6.4 Leak Response

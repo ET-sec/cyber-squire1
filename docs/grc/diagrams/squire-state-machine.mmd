@@ -7,9 +7,9 @@ flowchart TD
     CL["classify<br/>Sonnet 4.6<br/>severity LOW/MED/HIGH/CRITICAL"]
     RT["retrieve<br/>deterministic<br/>pgvector top-k on ir_chunks"]
     EN["enrich<br/>deterministic<br/>Tavily optional"]
-    IN["investigate<br/>Opus 4.7<br/>context synthesis"]
-    DR["draft<br/>Opus 4.7<br/>report + recommendations"]
-    CR["critique<br/>Opus 4.7<br/>consistency + severity override"]
+    IN["investigate<br/>Fable 5<br/>context synthesis"]
+    DR["draft<br/>Fable 5<br/>report + recommendations"]
+    CR["critique<br/>Fable 5<br/>consistency + severity override"]
     RS["route_severity<br/>deterministic<br/>LOW/MED/HIGH/CRITICAL path"]
     END_N(["END<br/>response + trace"])
     BLOCK(["BLOCK<br/>PII_DETECTED<br/>400 return"])

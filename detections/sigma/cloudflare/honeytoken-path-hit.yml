@@ -1,0 +1,44 @@
+title: Cloudflare Honeytoken Path Hit
+id: c8f3e1a2-7d4b-4a3e-8c1f-9b2d5e7c0a3f
+status: stable
+description: |
+  Detects any HTTP request against honeytoken paths blocked by the custom WAF
+  ruleset. These paths are not part of the application surface and exist only
+  as scanner bait. A single hit is high signal: anyone touching these paths
+  is automated and probing for legacy stack vulnerabilities (PHP, WordPress,
+  exposed git config, leaked .env files). Auto IP ban on first hit is the
+  recommended response.
+references:
+  - https://attack.mitre.org/techniques/T1595/
+  - https://attack.mitre.org/techniques/T1595.003/
+  - https://developers.cloudflare.com/waf/custom-rules/
+author: Organization Security Engineering
+date: 2026-04-28
+tags:
+  - attack.reconnaissance
+  - attack.t1595
+  - attack.t1595.003
+  - cd.cloudflare
+  - cd.waf
+  - cd.honeytoken
+logsource:
+  product: cloudflare
+  service: firewall
+detection:
+  selection:
+    Action: 'block'
+    RuleID|contains: 'honeytoken'
+  selection_path:
+    RequestURI|contains:
+      - '.env'
+      - '.git/config'
+      - 'wp-admin'
+      - 'wp-login'
+      - 'phpmyadmin'
+      - '/admin.php'
+      - '/xmlrpc.php'
+  condition: selection or selection_path
+falsepositives:
+  - Internal vulnerability scan from an authorized scanner. Add the scanner source IP to the WAF exception list.
+  - Misconfigured monitoring probe. Identify and reconfigure.
+level: high

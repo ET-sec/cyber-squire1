@@ -3,23 +3,23 @@
 # ============================================================================
 # Four tiers by criticality and update behavior.
 #
-# Tier 1 — security boundary and identity (digest pinned)
+# Tier 1: security boundary and identity (digest pinned)
 #   Vault, Keycloak, Teleport, Teleport event handler, cloudflared.
 #   Format: image: name:semver@sha256:digest
 #   Update path: Renovate PR. Review every bump. No automerge.
 #
-# Tier 2 — state bearing or business critical (semver, optional digest)
+# Tier 2: state bearing or business critical (semver, optional digest)
 #   pgvector, n8n, langfuse, redis, clickhouse, datadog, falco, falcosidekick.
 #   Format: image: name:major.minor.patch (digest optional)
 #   Update path: Renovate PR. Patch bumps auto-merge after smoke test green.
 #   Major bumps require manual review.
 #
-# Tier 3 — stateless or signature-driven (latest acceptable)
+# Tier 3: stateless or signature-driven (latest acceptable)
 #   Ollama, Whisper.
 #   Format: image: name:latest (or pinned if already done)
 #   Update path: pulled on container restart. No PRs. Accepted drift.
 #
-# Tier 0 — locally built images (separate pipeline)
+# Tier 0: locally built images (separate pipeline)
 #   cd-service-nemo, cd-service-squire, cd-service-fluentd.
 #   Format: image: name:tag with `build:` block above.
 #   Update path: Dockerfile change + rebuild + tag bump in this file.
@@ -33,10 +33,55 @@
 # Full rollback: git revert <commit> && scp + docker compose up -d
 # Detailed runbook: docs/runbook/image-rollback.md
 # ============================================================================
+#
+# ============================================================================
+# ORACLE CLOUD (OCI) MIGRATION: 2026-08-19  (read before deploying this file)
+# ============================================================================
+# This full 19-service stack was authored on x86 (AWS, then DigitalOcean).
+# The active host is now OCI Ampere A1, which is ARM (aarch64). Before this
+# file runs unchanged on the new host, four things must be handled:
+#
+# 1. ARCHITECTURE: every `image:` here is pinned by `@sha256:<digest>`. Those
+#    digests were resolved on amd64 and pin to a SINGLE-ARCH manifest. On ARM
+#    they pull the wrong arch or fail. Fix: strip the `@sha256:...` suffix so
+#    Docker resolves the correct arch from each tag's multi-arch index, then
+#    re-pin to the ARM digest once verified. Confirm every image publishes an
+#    arm64 variant (all the third-party ones do; the local builds must be
+#    rebuilt for arm64).
+#
+# 2. SECRETS: do NOT feed secrets through compose `${VAR}` interpolation from
+#    a top-level `.env`. Several values (the 229-char n8n keys) contain `$`,
+#    which compose expands and corrupts (symptom: warning `The "Wn8n" variable
+#    is not set`). Use `env_file:` with the container's target var names so
+#    values pass through literally. See docker-compose.oci-core.yaml for the
+#    working pattern and stack.env.template for the variable names.
+#
+# 3. STACK CHANGES decided for the OCI rebuild:
+#      - DROP cd-service-whisper (removed from scope).
+#      - Keep cd-service-falco as the sensor, but reroute cd-service-
+#        falcosidekick output from Datadog to Splunk HEC (Splunk = SIEM).
+#      - cd-service-nemo -> a smaller model to fit the 24GB ARM budget.
+#
+# 4. HOST PERMISSIONS: n8n runs as uid 1000; its bind-mounted data dir must be
+#    `chown -R 1000:1000 CD_VOL_N8N` or it crashes with EACCES on
+#    /home/node/.n8n/config. Postgres (uid 999) self-initializes fine.
+#
+# CURRENTLY LIVE ON OCI (via docker-compose.oci-core.yaml, NOT this file yet):
+#   cd-service-db + cd-service-n8n + tunnel-cyber-squire, ARM-clean, fronted
+#   by the Cloudflare Access gate through the tunnel.
+# The remaining 15 services in THIS file are pending the four fixes above.
+#
+# STATE + BACKUPS (updated 2026-08-31, Phase 20.1): Terraform state lives in
+# versioned OCI Object Storage with native locking (Cloudflare R2 remains the
+# eventual home for vendor decoupling, pending a one-time R2 enable in the CF
+# dashboard). Nightly backups of PostgreSQL + the n8n volume upload to a
+# retention-locked bucket via instance principal, with a monthly timed restore
+# test. See terraform/cd-oci-infrastructure/README.md for the full state.
+# ============================================================================
 
 services:
   cd-service-db:
-    # Tier 2 — data store. Pinned to pg16 base + digest.
+    # Tier 2: data store. Pinned to pg16 base + digest.
     image: pgvector/pgvector:pg16@sha256:7d400e340efb42f4d8c9c12c6427adb253f726881a9985d2a471bf0eed824dff
     container_name: cd-service-db
     restart: unless-stopped
@@ -165,7 +210,7 @@ services:
   # - Keeps voice data private (no external API)
   #
   cd-service-whisper:
-    # Tier 3 — stateless inference. :latest-cpu acceptable. Pulled on restart.
+    # Tier 3: stateless inference. :latest-cpu acceptable. Pulled on restart.
     image: fedirz/faster-whisper-server:latest-cpu
     container_name: cd-service-whisper
     restart: unless-stopped
@@ -208,14 +253,14 @@ services:
   # ==========================================
   # HashiCorp Vault (Secrets Management)
   # ==========================================
-  # Purpose: Centralized secrets management — eliminates hardcoded .env values
+  # Purpose: Centralized secrets management: eliminates hardcoded .env values
   # - AppRole auth for n8n, Keycloak, and services to fetch creds at runtime
   # - Short-lived leases (1hr TTL) for Postgres dynamic credentials
   # - Full audit log of every secret access
   # - Init/unseal MUST be done OFF-STREAM (root token exposed)
   #
   cd-service-vault:
-    # Tier 1 — secrets boundary. Digest pinned. NOTE: v1.15 reached EOL.
+    # Tier 1: secrets boundary. Digest pinned. NOTE: v1.15 reached EOL.
     # Renovate will surface 1.18+ LTS upgrade as a major bump PR.
     image: hashicorp/vault:1.15@sha256:0450896c43b13879b19442b204ce29dd19b5a10fce43d5cf38af17da20f56f4d
     container_name: cd-service-vault
@@ -258,7 +303,7 @@ services:
   # ==========================================
   # Keycloak v26 (Identity & SSO)
   # ==========================================
-  # Purpose: Centralized identity — SSO for n8n, Vault UI, and future services
+  # Purpose: Centralized identity: SSO for n8n, Vault UI, and future services
   # - Realm: coredirective (imported from CD_VOL_KEYCLOAK_IMPORT)
   # - Roles: cd-admin, cd-operator, cd-auditor
   # - OIDC client for Teleport (Enterprise upgrade path)
@@ -267,7 +312,7 @@ services:
   # - In production: switch command to `start` (remove start-dev)
   #
   cd-service-keycloak:
-    # Tier 1 — identity provider. Digest pinned.
+    # Tier 1: identity provider. Digest pinned.
     image: quay.io/keycloak/keycloak:26.5.2@sha256:fb31a59deb46f746f2aaa25adc5da39ceccac4fd22d36a519562b0bf02e8df20
     container_name: cd-service-keycloak
     restart: unless-stopped
@@ -321,13 +366,13 @@ services:
   # - Session recording: node-sync (records at the node, syncs to auth)
   # - MFA: TOTP second factor for all users
   # - Foundation for JIT access (08-02) and audit log shipping (08-03)
-  # - Admin UI: https://teleport.tigouetheory.com:3080
+  # - Admin UI: served on the Teleport web port behind the edge (hostname and port set per deployment)
   #
   cd-service-teleport:
-    # Tier 1 — PAM and audit. Digest pinned.
+    # Tier 1: PAM and audit. Digest pinned.
     image: public.ecr.aws/gravitational/teleport-distroless:18.7.2@sha256:d66c30cae352a3a07d0207f42cb0e392f09e6cdc2a7e286875f9b76802d31eab
     container_name: cd-service-teleport
-    hostname: teleport.tigouetheory.com
+    hostname: ${TELEPORT_HOSTNAME:-teleport.internal}
     restart: unless-stopped
     ports:
       - "127.0.0.1:3080:3080"
@@ -361,7 +406,7 @@ services:
   # ==========================================
   # Datadog Agent (Observability & Security Signals)
   # ==========================================
-  # Purpose: Unified visibility across EC2 + DO K8s — security signals feed from GuardDuty
+  # Purpose: Unified visibility across EC2 + DO K8s: security signals feed from GuardDuty
   # - Collects container logs, process metrics, Docker stats
   # - Security Signals: GuardDuty findings → Datadog (Episode 3 stream demo)
   # - API key in 1Password → Core Infra → "Datadog Core_Automation API Key"
@@ -382,7 +427,7 @@ services:
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
       - DD_APM_ENABLED=false
       - DD_PROCESS_AGENT_ENABLED=true
-      - DD_HOSTNAME=cd-alpha-engine
+      - DD_HOSTNAME=${DD_HOST_TAG:-cd-engine}
       - DD_CONTAINER_LABELS_AS_TAGS=true
       - CD_DB_USER=${CD_DB_USER}
       - CD_DB_PASS=${CD_DB_PASS}
@@ -426,7 +471,7 @@ services:
   # is NOT applied (CIS 5.25 accepted risk for this container only)
   #
   cd-service-falco:
-    # Tier 2 — runtime detection. Semver with digest.
+    # Tier 2: runtime detection. Semver with digest.
     image: falcosecurity/falco:0.43.0@sha256:88c01fa17bcc03c990a2691d08e7d43d746e32b07dbe9c6eb77bfdb3646cec41
     container_name: cd-service-falco
     restart: unless-stopped
@@ -483,7 +528,7 @@ services:
   # - Minimum priority: notice
   #
   cd-service-falcosidekick:
-    # Tier 2 — alert router. Semver with digest.
+    # Tier 2: alert router. Semver with digest.
     image: falcosecurity/falcosidekick:2.32.0@sha256:1976da72151850aae4436f33a5ed94bdef469f42a9b61c182b4feeb5441fb081
     container_name: cd-service-falcosidekick
     restart: unless-stopped
@@ -531,7 +576,7 @@ services:
   # - mTLS: client_cert_auth for Event Handler connections
   #
   cd-service-fluentd:
-    # Tier 0 — locally built (fluent-plugin-datadog wrapped). Renovate cannot watch.
+    # Tier 0: locally built (fluent-plugin-datadog wrapped). Renovate cannot watch.
     # Rebuild: docker compose build cd-service-fluentd
     # See docs/runbook/image-rollback.md for the versioning convention.
     build: ./CD_VOL_FLUENTD
@@ -574,7 +619,7 @@ services:
   # - Events: session.start, session.end, user.login, access_request
   #
   cd-service-teleport-event-handler:
-    # Tier 1 — audit log shipper. Digest pinned.
+    # Tier 1: audit log shipper. Digest pinned.
     image: public.ecr.aws/gravitational/teleport-plugin-event-handler:18.7.2@sha256:4887da85cc7dfa1065b5e599bbc33bed6ff064589113aef7d7d03e46f4d545a7
     container_name: cd-service-teleport-event-handler
     restart: unless-stopped
@@ -638,13 +683,15 @@ services:
         max-file: "3"
 
   # ============================================================================
-  # LANGFUSE v3 (Phase 17-04) — LLM tracing + observability for Squire agent
+  # LANGFUSE v3 (Phase 17-04): LLM tracing + observability for Squire agent
   # 4 containers (~2.75 GiB cap). Shares cd-service-db (new `langfuse` database).
-  # Blob store: DO Spaces bucket cd-langfuse (nyc3, path-style, versioned).
+  # Blob store: S3-compatible bucket via LANGFUSE_S3_* env vars. The original
+  # DO Spaces bucket died with that account (2026-08); point these at OCI
+  # Object Storage's S3 compat layer or Cloudflare R2 during the ARM rebuild.
   # ============================================================================
 
   cd-service-langfuse-clickhouse:
-    # Tier 2 — analytics store. Semver with digest for current pin.
+    # Tier 2: analytics store. Semver with digest for current pin.
     image: clickhouse/clickhouse-server:24.11-alpine@sha256:3cc74316c30c18d8349f6b870e3eda96095e93a2abf035b0bb0439737370d9ee
     container_name: cd-service-langfuse-clickhouse
     restart: unless-stopped
@@ -684,7 +731,7 @@ services:
       - net-core
 
   cd-service-langfuse-redis:
-    # Tier 2 — cache. Semver with digest for current pin.
+    # Tier 2: cache. Semver with digest for current pin.
     image: redis:7-alpine@sha256:7aec734b2bb298a1d769fd8729f13b8514a41bf90fcdd1f38ec52267fbaa8ee6
     container_name: cd-service-langfuse-redis
     restart: unless-stopped
@@ -716,7 +763,7 @@ services:
       - net-core
 
   cd-service-langfuse-worker:
-    # Tier 2 — worker. Was on floating :3 tag. Pinned to current digest.
+    # Tier 2: worker. Was on floating :3 tag. Pinned to current digest.
     image: langfuse/langfuse-worker:3@sha256:f8a9eb480b31cc513ad9ed9869eeb3416cb7bdf00c598665c008c460566115d1
     container_name: cd-service-langfuse-worker
     restart: unless-stopped
@@ -741,15 +788,15 @@ services:
       REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD}
       LANGFUSE_S3_EVENT_UPLOAD_ENABLED: "true"
       LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
-      LANGFUSE_S3_EVENT_UPLOAD_REGION: nyc3
-      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: ${LANGFUSE_S3_REGION}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: ${LANGFUSE_S3_ENDPOINT}
       LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
       LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
       LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
       LANGFUSE_S3_MEDIA_UPLOAD_ENABLED: "true"
       LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
-      LANGFUSE_S3_MEDIA_UPLOAD_REGION: nyc3
-      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: ${LANGFUSE_S3_REGION}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_ENDPOINT}
       LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
       LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
       LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
@@ -771,7 +818,7 @@ services:
       - net-core
 
   cd-service-langfuse-web:
-    # Tier 2 — web UI. Was on floating :3 tag. Pinned to current digest.
+    # Tier 2: web UI. Was on floating :3 tag. Pinned to current digest.
     image: langfuse/langfuse:3@sha256:cdfdca609912edffd616503e43427395fcf135423422440d74c89d9d552b74f9
     container_name: cd-service-langfuse-web
     restart: unless-stopped
@@ -786,7 +833,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${CD_DB_USER}:${CD_DB_PASS}@cd-service-db:5432/langfuse
-      NEXTAUTH_URL: https://langfuse.tigouetheory.com
+      NEXTAUTH_URL: ${LANGFUSE_PUBLIC_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}
       SALT: ${LANGFUSE_SALT}
       ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY}
@@ -800,15 +847,15 @@ services:
       REDIS_AUTH: ${LANGFUSE_REDIS_PASSWORD}
       LANGFUSE_S3_EVENT_UPLOAD_ENABLED: "true"
       LANGFUSE_S3_EVENT_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
-      LANGFUSE_S3_EVENT_UPLOAD_REGION: nyc3
-      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: ${LANGFUSE_S3_REGION}
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: ${LANGFUSE_S3_ENDPOINT}
       LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
       LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
       LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
       LANGFUSE_S3_MEDIA_UPLOAD_ENABLED: "true"
       LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: ${LANGFUSE_S3_BUCKET}
-      LANGFUSE_S3_MEDIA_UPLOAD_REGION: nyc3
-      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: https://nyc3.digitaloceanspaces.com
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: ${LANGFUSE_S3_REGION}
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: ${LANGFUSE_S3_ENDPOINT}
       LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: ${SPACES_ACCESS_KEY}
       LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${SPACES_SECRET_KEY}
       LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
@@ -845,7 +892,7 @@ services:
   # pushed to GHCR (GLiNER + PINT baked in => ~2-3 GB). mem_limit 500M
   # (temp-bump to 1G allowed during first model-load warmup, then drop back).
   cd-service-nemo:
-    # Tier 0 — locally built. Renovate cannot watch this image.
+    # Tier 0: locally built. Renovate cannot watch this image.
     # Rebuild: docker compose build cd-service-nemo
     # Versioning: bump tag to YYYYMMDD-<short-sha> on each ship (currently :dev).
     # Rollback: retag a prior image (`docker tag cd-service-nemo:<prev> cd-service-nemo:dev`)
@@ -901,7 +948,7 @@ services:
 
   # Squire Autonomous SOC Analyst (Phase 17-09)
   cd-service-squire:
-    # Tier 0 — locally built. Renovate cannot watch this image.
+    # Tier 0: locally built. Renovate cannot watch this image.
     # Rebuild from builds/squire/. Versioning: YYYYMMDD-<short-sha> on each ship.
     # Rollback: retag prior cd-service-squire image and `docker compose up -d --no-deps cd-service-squire`.
     # See docs/runbook/image-rollback.md for the full procedure.
@@ -934,7 +981,7 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
-      LANGFUSE_HOST: https://langfuse.tigouetheory.com
+      LANGFUSE_HOST: ${LANGFUSE_PUBLIC_URL:-http://cd-service-langfuse-web:3000}
       LANGFUSE_REDIS_PASSWORD: ${LANGFUSE_REDIS_PASSWORD}
       SQUIRE_DEDUP_REDIS_URL: redis://cd-service-langfuse-redis:6379/1
       SQUIRE_WEBHOOK_TOKEN: ${SQUIRE_WEBHOOK_TOKEN}

@@ -86,7 +86,7 @@ def test_sanitizer_fires_on_each_fixture(monkeypatch, tmp_path):
     f1 = {
         "name": "x",
         "category": "test",
-        "diff": "leak: 161.35.0.184",
+        "diff": "leak: 10.100.1.10",
         "expected": {"controls": [], "poams": [], "sanitization_violations": [], "residual_risk_required": False},
     }
     (fixture_dir / "pr_001.json").write_text(json.dumps(f1))
@@ -96,7 +96,7 @@ def test_sanitizer_fires_on_each_fixture(monkeypatch, tmp_path):
     items = eval_reviewer._load_fixtures()
     assert len(items) == 1
     # Sanitizer must have transformed the raw IP into the redaction placeholder.
-    assert "161.35.0.184" not in items[0]["input"]
+    assert "10.100.1.10" not in items[0]["input"]
     assert items[0]["metadata"]["fixture"] == "pr_001.json"
 
 
@@ -137,7 +137,7 @@ def test_sanitization_catch_rate_zero_when_missed():
     out = eval_reviewer.sanitization_catch_rate(
         input="diff",
         output={"sanitization_violations": []},
-        expected_output={"sanitization_violations": [{"pattern": "161.35.0.184", "snippet": "..."}]},
+        expected_output={"sanitization_violations": [{"pattern": "cd-service-n8n", "snippet": "..."}]},
         metadata={},
     )
     assert out.value == pytest.approx(0.0)

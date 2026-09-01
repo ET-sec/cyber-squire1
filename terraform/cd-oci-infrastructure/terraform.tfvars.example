@@ -1,0 +1,21 @@
+# Copy to terraform.tfvars (gitignored) and fill in your values.
+# Nothing in this file is required to be secret in YOUR environment;
+# this repo gitignores the real file so the maintainer's values stay private.
+
+# OCI region to build in.
+oci_region = "us-ashburn-1"
+
+# Name for the Terraform state bucket (created by data_protection.tf,
+# referenced by your backend.hcl).
+tfstate_bucket_name = "your-terraform-state-bucket"
+
+# Root compartment is fine on the free tier: leave empty to use the tenancy.
+compartment_ocid = ""
+
+# CIDRs allowed to reach SSH directly (day-to-day access should go through
+# your zero-trust tunnel instead). Example uses a documentation address;
+# replace with your own /32.
+ssh_allowed_cidrs = ["203.0.113.7/32"]
+
+# Path to the SSH public key baked into the instance at first boot.
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
