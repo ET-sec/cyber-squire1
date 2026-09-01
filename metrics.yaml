@@ -3,7 +3,7 @@
 # Pre-commit hook auto-runs this when source dirs change.
 # Do not hand-edit: changes will be overwritten.
 
-generated_at: '2026-09-01T10:26:44+00:00'
+generated_at: '2026-09-01T10:27:27+00:00'
 generator: build_metrics.py
 version: 1
 

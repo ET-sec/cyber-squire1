@@ -1,68 +1,175 @@
 {
+  "format_version": "1.2",
+  "terraform_version": "1.14.3",
   "resource_changes": [
     {
-      "address": "digitalocean_firewall.cd_alpha",
-      "type": "digitalocean_firewall",
+      "address": "oci_core_vcn.main",
+      "mode": "managed",
+      "type": "oci_core_vcn",
+      "name": "main",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
-        "actions": ["update"],
+        "actions": ["no-op"],
+        "before": null,
         "after": {
-          "name": "cd-alpha-firewall",
-          "inbound_rule": [
+          "cidr_blocks": ["10.0.0.0/16"],
+          "display_name": "cd-vcn",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
+        }
+      }
+    },
+    {
+      "address": "oci_core_security_list.main",
+      "mode": "managed",
+      "type": "oci_core_security_list",
+      "name": "main",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "display_name": "cd-sl",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "egress_security_rules": [
             {
-              "protocol": "tcp",
-              "port_range": "443",
-              "source_addresses": ["0.0.0.0/0", "::/0"]
+              "description": "",
+              "destination": "0.0.0.0/0",
+              "destination_type": "CIDR_BLOCK",
+              "icmp_options": [],
+              "protocol": "all",
+              "stateless": false,
+              "tcp_options": [],
+              "udp_options": []
+            }
+          ],
+          "ingress_security_rules": [
+            {
+              "description": "",
+              "icmp_options": [],
+              "protocol": "6",
+              "source": "76.17.120.27/32",
+              "source_type": "CIDR_BLOCK",
+              "stateless": false,
+              "tcp_options": [
+                {
+                  "max": 22,
+                  "min": 22,
+                  "source_port_range": []
+                }
+              ],
+              "udp_options": []
             }
           ]
         }
       }
     },
     {
-      "address": "digitalocean_droplet.cd_alpha",
-      "type": "digitalocean_droplet",
+      "address": "oci_core_instance.cd_alpha",
+      "mode": "managed",
+      "type": "oci_core_instance",
+      "name": "cd_alpha",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
-        "actions": ["update"],
+        "actions": ["no-op"],
+        "before": null,
         "after": {
-          "name": "cd-alpha-engine",
-          "size": "s-4vcpu-8gb",
-          "tags": ["production", "coredirective"],
-          "backups": true
+          "display_name": "cd-alpha-engine",
+          "shape": "VM.Standard.A1.Flex",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "instance_options": [
+            {
+              "are_legacy_imds_endpoints_disabled": true
+            }
+          ],
+          "metadata": {
+            "ssh_authorized_keys": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyMaterial ops@example.com\n"
+          },
+          "shape_config": [
+            {
+              "memory_in_gbs": 24,
+              "ocpus": 4,
+              "vcpus": 4
+            }
+          ]
         }
       }
     },
     {
-      "address": "digitalocean_ssh_key.et_deploy",
-      "type": "digitalocean_ssh_key",
+      "address": "oci_kms_vault.cd",
+      "mode": "managed",
+      "type": "oci_kms_vault",
+      "name": "cd",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
-        "actions": ["create"],
+        "actions": ["no-op"],
+        "before": null,
         "after": {
-          "name": "et-deploy-key",
-          "public_key": "ssh-ed25519 AAAA..."
+          "display_name": "cd-vault",
+          "vault_type": "DEFAULT",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
         }
       }
     },
     {
-      "address": "digitalocean_spaces_bucket.backups",
-      "type": "digitalocean_spaces_bucket",
+      "address": "oci_kms_key.storage",
+      "mode": "managed",
+      "type": "oci_kms_key",
+      "name": "storage",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
-        "actions": ["create"],
+        "actions": ["no-op"],
+        "before": null,
         "after": {
+          "display_name": "cd-storage-cmk",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
+        }
+      }
+    },
+    {
+      "address": "oci_objectstorage_bucket.backups",
+      "mode": "managed",
+      "type": "oci_objectstorage_bucket",
+      "name": "backups",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "access_type": "NoPublicAccess",
           "name": "cd-backups",
-          "region": "nyc3",
-          "versioning": [{"enabled": true}]
-        }
-      }
-    },
-    {
-      "address": "digitalocean_volume.data",
-      "type": "digitalocean_volume",
-      "change": {
-        "actions": ["create"],
-        "after": {
-          "name": "cd-data-vol",
-          "region": "nyc1",
-          "size": 100,
-          "filesystem_type": "ext4"
+          "namespace": "example",
+          "kms_key_id": "ocid1.key.oc1.iad.exampleexampleexample",
+          "versioning": "Disabled",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "retention_rules": [
+            {
+              "display_name": "ransomware-guard-30d",
+              "duration": [
+                {
+                  "time_amount": "30",
+                  "time_unit": "DAYS"
+                }
+              ]
+            }
+          ]
         }
       }
     }

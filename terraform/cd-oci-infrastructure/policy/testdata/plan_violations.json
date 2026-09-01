@@ -1,104 +1,133 @@
 {
+  "format_version": "1.2",
+  "terraform_version": "1.14.3",
   "resource_changes": [
     {
-      "address": "digitalocean_firewall.cd_alpha",
-      "type": "digitalocean_firewall",
+      "address": "oci_core_security_list.open",
+      "mode": "managed",
+      "type": "oci_core_security_list",
+      "name": "open",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
-        "actions": ["update"],
+        "actions": ["create"],
+        "before": null,
         "after": {
-          "name": "cd-alpha-firewall",
-          "inbound_rule": [
+          "display_name": "prod-open-sl",
+          "freeform_tags": {},
+          "egress_security_rules": [
             {
-              "protocol": "icmp",
-              "port_range": "",
-              "source_addresses": ["0.0.0.0/0", "::/0"]
+              "description": "",
+              "destination": "0.0.0.0/0",
+              "destination_type": "CIDR_BLOCK",
+              "icmp_options": [],
+              "protocol": "all",
+              "stateless": false,
+              "tcp_options": [],
+              "udp_options": []
+            }
+          ],
+          "ingress_security_rules": [
+            {
+              "description": "ssh open to the world",
+              "icmp_options": [],
+              "protocol": "6",
+              "source": "0.0.0.0/0",
+              "source_type": "CIDR_BLOCK",
+              "stateless": false,
+              "tcp_options": [
+                {
+                  "max": 22,
+                  "min": 22,
+                  "source_port_range": []
+                }
+              ],
+              "udp_options": []
             },
             {
-              "protocol": "tcp",
-              "port_range": "22",
-              "source_addresses": ["0.0.0.0/0", "::/0"]
-            },
-            {
-              "protocol": "tcp",
-              "port_range": "443",
-              "source_addresses": ["0.0.0.0/0", "::/0"]
+              "description": "app port open to the world",
+              "icmp_options": [],
+              "protocol": "6",
+              "source": "0.0.0.0/0",
+              "source_type": "CIDR_BLOCK",
+              "stateless": false,
+              "tcp_options": [
+                {
+                  "max": 8080,
+                  "min": 8080,
+                  "source_port_range": []
+                }
+              ],
+              "udp_options": []
             }
           ]
         }
       }
     },
     {
-      "address": "digitalocean_spaces_bucket.backups",
-      "type": "digitalocean_spaces_bucket",
+      "address": "oci_core_instance.big_box",
+      "mode": "managed",
+      "type": "oci_core_instance",
+      "name": "big_box",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
         "actions": ["create"],
+        "before": null,
         "after": {
-          "name": "cd-backups",
-          "region": "nyc3",
-          "versioning": []
+          "display_name": "big-box",
+          "shape": "VM.Standard.A1.Flex",
+          "freeform_tags": {},
+          "instance_options": [],
+          "metadata": {},
+          "shape_config": [
+            {
+              "memory_in_gbs": 48,
+              "ocpus": 8,
+              "vcpus": 8
+            }
+          ]
         }
       }
     },
     {
-      "address": "digitalocean_volume.data",
-      "type": "digitalocean_volume",
+      "address": "oci_objectstorage_bucket.plaintext",
+      "mode": "managed",
+      "type": "oci_objectstorage_bucket",
+      "name": "plaintext",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
         "actions": ["create"],
+        "before": null,
         "after": {
-          "name": "cd-data-vol",
-          "region": "nyc1",
-          "size": 100,
-          "filesystem_type": null
+          "access_type": "NoPublicAccess",
+          "name": "cd-plaintext",
+          "namespace": "example",
+          "kms_key_id": null,
+          "versioning": "Disabled",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "retention_rules": []
         }
       }
     },
     {
-      "address": "digitalocean_droplet.cd_alpha",
-      "type": "digitalocean_droplet",
+      "address": "oci_kms_vault.cd",
+      "mode": "managed",
+      "type": "oci_kms_vault",
+      "name": "cd",
+      "provider_name": "registry.terraform.io/oracle/oci",
       "change": {
         "actions": ["delete"],
+        "before": {
+          "display_name": "cd-vault",
+          "vault_type": "DEFAULT",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
+        },
         "after": null
-      }
-    },
-    {
-      "address": "digitalocean_ssh_key.root_key",
-      "type": "digitalocean_ssh_key",
-      "change": {
-        "actions": ["create"],
-        "after": {
-          "name": "root-admin",
-          "public_key": "ssh-ed25519 AAAA..."
-        }
-      }
-    },
-    {
-      "address": "digitalocean_droplet.test_no_prefix",
-      "type": "digitalocean_droplet",
-      "change": {
-        "actions": ["create"],
-        "after": {
-          "name": "my-server",
-          "size": "s-8vcpu-16gb",
-          "tags": [],
-          "backups": false
-        }
-      }
-    },
-    {
-      "address": "digitalocean_firewall.bad_name",
-      "type": "digitalocean_firewall",
-      "change": {
-        "actions": ["create"],
-        "after": {
-          "name": "open-firewall",
-          "inbound_rule": [
-            {
-              "protocol": "tcp",
-              "port_range": "8080",
-              "source_addresses": ["0.0.0.0/0"]
-            }
-          ]
-        }
       }
     }
   ]

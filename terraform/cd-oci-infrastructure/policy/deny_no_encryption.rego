@@ -1,9 +1,10 @@
-# DENY: Require versioning on Spaces buckets
+# DENY: Require a customer managed key on every object storage bucket
 #
-# DigitalOcean encrypts all block storage at rest by default.
-# This policy enforces versioning on Spaces buckets as a data
-# integrity and recovery safeguard (our proxy for encryption-at-rest
-# assurance on object storage).
+# Intent: every oci_objectstorage_bucket must reference a kms_key_id,
+# meaning it is encrypted with our customer managed key (CMK) out of
+# the cd-vault, not just Oracle's default key. The enemy is losing key
+# custody: with Oracle managed keys we cannot rotate, revoke, or prove
+# control of the encryption key that guards backups and terraform state.
 
 package main
 
@@ -11,34 +12,22 @@ import rego.v1
 
 deny contains msg if {
 	some rc in input.resource_changes
-	rc.type == "digitalocean_spaces_bucket"
-	not action_is_delete(rc)
+	rc.type == "oci_objectstorage_bucket"
+	not enc_is_delete(rc)
 	bucket := rc.change.after
-	not versioning_enabled(bucket)
+	not bucket_has_cmk(bucket)
 	msg := sprintf(
-		"DENY: Spaces bucket '%s' must have versioning enabled for data integrity.",
+		"DENY: Bucket '%s' has no kms_key_id. All buckets must use the customer managed key from cd-vault.",
 		[bucket.name],
 	)
 }
 
-versioning_enabled(bucket) if {
-	some v in bucket.versioning
-	v.enabled == true
+bucket_has_cmk(bucket) if {
+	bucket.kms_key_id != null
+	bucket.kms_key_id != ""
 }
 
-deny contains msg if {
-	some rc in input.resource_changes
-	rc.type == "digitalocean_volume"
-	not action_is_delete(rc)
-	vol := rc.change.after
-	not has_filesystem_type(vol)
-	msg := sprintf(
-		"DENY: Volume '%s' must have filesystem_type set (ext4 or xfs).",
-		[vol.name],
-	)
-}
-
-has_filesystem_type(vol) if {
-	vol.filesystem_type != null
-	vol.filesystem_type != ""
+enc_is_delete(rc) if {
+	some action in rc.change.actions
+	action == "delete"
 }

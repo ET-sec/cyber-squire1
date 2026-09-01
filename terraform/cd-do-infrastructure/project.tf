@@ -7,7 +7,7 @@ resource "digitalocean_project" "coredirective" {
   is_default  = true
   resources = [
     digitalocean_droplet.cd_alpha.urn,
-    "do:space:cd-terraform-state"
+    "do:space:tf-state-bucket"
   ]
 
   # NOTE: environment, purpose intentionally omitted (live state has empty strings).
