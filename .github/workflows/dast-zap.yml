@@ -8,8 +8,8 @@ name: DAST - OWASP ZAP Baseline
 # CRITICAL findings, uploads the report as a workflow artifact.
 #
 # Scope restriction: this scans an isolated CI-spun n8n instance. It does NOT
-# scan production at n8n.tigouetheory.com. Production scanning is documented
-# in DAST_METHODOLOGY.md as a quarterly manual activity per Section 13.1.
+# scan the production n8n behind the Cloudflare Access gate. Production
+# scanning is a quarterly manual activity per DAST_METHODOLOGY.md Section 13.1.
 
 on:
   pull_request:

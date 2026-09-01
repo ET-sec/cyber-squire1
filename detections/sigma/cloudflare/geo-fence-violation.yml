@@ -1,0 +1,37 @@
+title: Cloudflare Admin Subdomain Accessed From Non US Origin
+id: 9b3e2c1a-8f7d-4a4e-9c2f-1d5b8a7e4f0c
+status: stable
+description: |
+  Detects WAF block events on the admin subdomain geo fence rule. The custom
+  WAF rule blocks any traffic to n8n, Langfuse, or Squire admin subdomains
+  that does not originate from a US IP address. Emmanuel travels but does
+  not regularly access admin tooling outside the US. Even a blocked attempt
+  is high signal because it indicates either an attacker probing the admin
+  surface or a credential leak being tested from offshore infrastructure.
+references:
+  - https://attack.mitre.org/techniques/T1078/
+  - https://developers.cloudflare.com/waf/custom-rules/use-cases/country-and-asn/
+author: Organization Security Engineering
+date: 2026-04-28
+tags:
+  - attack.initial_access
+  - attack.t1078
+  - cd.cloudflare
+  - cd.waf
+  - cd.geo
+logsource:
+  product: cloudflare
+  service: firewall
+detection:
+  selection:
+    Action: 'block'
+    RequestHost|contains:
+      - 'n8n.example-ops.com'
+      - 'langfuse.example-ops.com'
+      - 'squire.example-ops.com'
+    ClientCountry|notContains: 'US'
+  condition: selection
+falsepositives:
+  - Operator traveling outside the US. Update the geo fence allow list for the trip duration or rely on Cloudflare Access from the destination IP.
+  - VPN exit node in non US country. Disable the VPN for admin access or add the VPN egress IP to the allow list.
+level: high

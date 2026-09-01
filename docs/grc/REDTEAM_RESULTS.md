@@ -251,7 +251,7 @@ Cumulative (cycle 1 + cycle 2): 17/20 RESISTED at graph or rail layer, 0 true by
 
 **Trigger cases**: 08, 16, 18 (cycle 2, all returned HTTP 500).
 
-**Root cause**: At concurrency 5, the Anthropic API returned 429 with message "request would exceed your organization's rate limit of 30,000 input tokens per minute" followed by "8,000 output tokens per minute" on the Opus 4.7 model. The llm_backend fallback chain then attempted Ollama, which failed with `[Errno -3] Temporary failure in name resolution`. The `svc-ollama` container sits on the `net-ai` internal-only docker network; squire on `net-core` cannot resolve it by service name even when both are on the droplet. Final backend in the chain (nemo) also returned 429 from the sidecar which fronts the same Anthropic endpoint.
+**Root cause**: At concurrency 5, the Anthropic API returned 429 with message "request would exceed your organization's rate limit of 30,000 input tokens per minute" followed by "8,000 output tokens per minute" on the Fable 5 model. The llm_backend fallback chain then attempted Ollama, which failed with `[Errno -3] Temporary failure in name resolution`. The `svc-ollama` container sits on the `net-ai` internal-only docker network; squire on `net-core` cannot resolve it by service name even when both are on the droplet. Final backend in the chain (nemo) also returned 429 from the sidecar which fronts the same Anthropic endpoint.
 
 **Severity**: MED. This affects availability dimension under stress, not integrity or confidentiality. Red-team cases with high token footprint running in parallel can exhaust the per-minute allotment in the demo environment.
 
@@ -276,7 +276,7 @@ Cycle 1 set the baseline on 2026-04-23. Cycle 2 on 2026-04-24 added 14 cases and
 | Cases resisted on first submission | 4/6 (67%) | 11/14 counted + 3 infra-quarantined (79% counted) | 19/20 (95%) |
 | Cases requiring remediation | 1 (PII gap) | 0 Squire-side; 1 infra-side | 1 per cycle max |
 | Average cost per case (LLM-reached) | $0.41 | $0.43 | <$0.50 |
-| Average latency per case (LLM-reached) | 21 s | 74 s (Opus on degraded + high concurrency) | <60 s |
+| Average latency per case (LLM-reached) | 21 s | 74 s (Fable on degraded + high concurrency) | <60 s |
 | Regression suite size | 24 red-team + 103 core | 24 red-team + 127 core + 14 cycle 2 case file | 50+ red-team + 150+ core |
 | Pre-graph block rate in production | 0% baseline | 0% (no real-traffic blocks to date) | <1% of real alerts |
 | True bypass count (cumulative) | 0 | 0 | 0 |

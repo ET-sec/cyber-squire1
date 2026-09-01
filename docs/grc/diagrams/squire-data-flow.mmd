@@ -21,7 +21,7 @@ sequenceDiagram
         participant LR as svc-langfuse-redis
     end
 
-    N->>API: POST /alert (x-squire-token)
+    N->>API: POST /alert (auth header)
     API->>API: Token auth check + Cloudflare rate limit
     API->>LR: increment daily cost counter
     LR-->>API: under ceiling
@@ -43,7 +43,7 @@ sequenceDiagram
         GR->>AN: classify (Sonnet 4.6)
         AN-->>GR: severity
         loop critique loop max 3
-            GR->>AN: draft + critique (Opus 4.7)
+            GR->>AN: draft + critique (Fable 5)
             AN-->>GR: critique result
         end
         GR->>NM: output rail scan

@@ -1,0 +1,202 @@
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    width:2160px; background:#0a0a0a; color:#e8e8e8;
+    font-family:'Inter','Helvetica Neue',Arial,sans-serif;
+    padding:70px 80px 60px;
+  }
+  .mono { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; }
+  .green { color:#00FF41; }
+
+  h1 { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:92px; letter-spacing:2px; }
+  .subtitle { font-size:38px; color:#a8b0b8; margin-top:18px; max-width:1900px; line-height:1.35; }
+
+  .lanes { display:grid; grid-template-columns:1.12fr .88fr; gap:44px; margin-top:56px; }
+  .lanehead { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#8f99a3; margin-bottom:22px; letter-spacing:1px; }
+
+  .band { border-radius:24px; padding:32px 36px; }
+  .blabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:52px; margin-bottom:8px; }
+  .bsub { font-size:32px; color:#a2aab2; line-height:1.4; }
+
+  .b-red   { border:3px solid #FF5C5C; background:rgba(255,92,92,.05); }
+  .b-red   .blabel { color:#FF7A7A; }
+  .b-orange{ border:3px solid #F6821F; background:rgba(246,130,31,.05); }
+  .b-orange .blabel { color:#FF9C42; }
+  .b-blue  { border:3px solid #4DA3FF; background:rgba(77,163,255,.05); }
+  .b-blue  .blabel { color:#7CBAFF; }
+  .b-green { border:3px solid #00FF41; background:rgba(0,255,65,.04); }
+  .b-green .blabel { color:#00FF41; }
+  .b-purple{ border:3px solid #B48CFF; background:rgba(180,140,255,.05); }
+  .b-purple .blabel { color:#C9ABFF; }
+
+  .cross { margin:0 60px; border-left:6px dashed #00FF41; padding:26px 0 26px 44px; position:relative; }
+  .cross::after { content:""; position:absolute; left:-19px; bottom:-4px;
+                  border-left:16px solid transparent; border-right:16px solid transparent; border-top:26px solid #00FF41; }
+  .xcard { background:#101216; border:2px solid #2c3138; border-radius:18px; padding:26px 30px; }
+  .xtitle { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:42px; color:#00FF41; margin-bottom:10px; }
+  .xmech { font-size:33px; color:#dde3e8; line-height:1.4; }
+  .xmech b { color:#fff; font-weight:600; }
+
+  .chip { display:inline-block; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px;
+          border-radius:12px; padding:10px 18px; margin-top:16px; margin-right:14px; line-height:1.35; }
+  .verified { border:2px solid #00FF41; color:#7dffA3; background:rgba(0,255,65,.07); }
+  .defeats  { border:2px solid #FF5C5C; color:#FF9B9B; background:rgba(255,92,92,.06); }
+
+  .inner { display:flex; gap:24px; margin-top:24px; flex-wrap:wrap; }
+  .icard { flex:1; min-width:520px; background:#121417; border:2px solid #2c3138; border-radius:16px; padding:24px 26px; }
+  .ilabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#f2f4f6; line-height:1.25; }
+  .isub { font-size:31px; color:#a2aab2; margin-top:10px; line-height:1.35; }
+  .pendtag { display:inline-block; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:29px; color:#FFB020;
+             border:2px dashed #FFB020; border-radius:10px; padding:6px 14px; margin-top:14px; }
+
+  .gov { margin-top:64px; border:3px solid #00FF41; border-radius:26px; padding:38px 44px 44px; background:rgba(0,255,65,.03); }
+  .govh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:54px; color:#00FF41; margin-bottom:10px; }
+  .govsub { font-size:33px; color:#a8b0b8; margin-bottom:32px; line-height:1.4; }
+  .layers { display:flex; align-items:stretch; }
+  .layer { flex:1; background:#121417; border:2px solid #2c3138; border-radius:16px; padding:22px 22px; text-align:center; }
+  .lnum { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#00FF41; margin-bottom:10px; }
+  .lname { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; color:#eef1f4; line-height:1.3; }
+  .lsub { font-size:29px; color:#98a0a8; margin-top:10px; line-height:1.3; }
+  .lsep { display:flex; align-items:center; justify-content:center; width:70px; color:#00FF41; font-size:52px; flex:none; }
+
+  .footer { margin-top:56px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#78828c; line-height:1.5; }
+</style>
+
+<h1>SECURITY <span class="green">BOUNDARIES</span></h1>
+<div class="subtitle">Layered trust model of the platform. Every boundary crossing is named, carries its authentication mechanism, and where the control was proven, the receipt of the forced failure. Verified 2026-08-31.</div>
+
+<div class="lanes">
+  <!-- HUMAN LANE -->
+  <div>
+    <div class="lanehead">LANE A: HUMANS</div>
+    <div class="band b-red">
+      <div class="blabel">UNTRUSTED: PUBLIC INTERNET</div>
+      <div class="bsub">Operators and end users in browsers. Assumed hostile until authenticated.</div>
+    </div>
+    <div class="cross">
+      <div class="xcard">
+        <div class="xtitle">CROSSING 1: HUMAN AT THE EDGE</div>
+        <div class="xmech"><b>Cloudflare Access single sign-on:</b> identity provider login before any request reaches an application, with WAF and DDoS filtering in the same hop. The origin address is never published; the edge hostname is the only door.</div>
+        <span class="chip defeats">DEFEATS: anonymous probing, credential stuffing, stolen-URL access</span>
+      </div>
+    </div>
+    <div class="band b-orange">
+      <div class="blabel">EDGE: CLOUDFLARE</div>
+      <div class="bsub">Authenticated sessions only past this line. DNS, WAF, Access policy, tunnel termination.</div>
+    </div>
+    <div class="cross">
+      <div class="xcard">
+        <div class="xtitle">CROSSING 2: EDGE TO ORIGIN</div>
+        <div class="xmech"><b>Outbound-only tunnel:</b> the origin authenticates outward to the edge with a tunnel credential and keeps zero listening service ports. There is no inbound path to reach.</div>
+        <span class="chip defeats">DEFEATS: direct-to-origin bypass, internet-wide port scans</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CI LANE -->
+  <div>
+    <div class="lanehead">LANE B: THE PIPELINE</div>
+    <div class="band b-red">
+      <div class="blabel">UNTRUSTED: AUTOMATION</div>
+      <div class="bsub">GitHub Actions runner in a public repo. Any fork can run workflows; none of them can reach the cloud.</div>
+    </div>
+    <div class="cross">
+      <div class="xcard">
+        <div class="xtitle">CROSSING 3: PIPELINE TO CLOUD</div>
+        <div class="xmech"><b>OIDC token exchange (RFC 8693):</b> a GitHub-signed identity token is exchanged for a short-lived OCI session token. Trust is pinned to this repo and its main branch, the mapped principal is read-only, and no cloud key is stored anywhere.</div>
+        <span class="chip verified">VERIFIED: wrong-branch token exchange refused, HTTP 401</span>
+        <span class="chip defeats">DEFEATS: leaked long-lived cloud keys, fork pipeline abuse</span>
+      </div>
+    </div>
+    <div class="band b-blue">
+      <div class="blabel">CI PRINCIPAL: READ-ONLY</div>
+      <div class="bsub">Exists for minutes per run. Plans, compares, alerts. Cannot mutate infrastructure or wedge the state lock.</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOST BOUNDARY (both lanes converge) -->
+<div class="cross" style="margin-top:44px;">
+  <div class="xcard">
+    <div class="xtitle">CONVERGENCE: BOTH LANES END AT THE SAME PERIMETER</div>
+    <div class="xmech">Humans arrive through the tunnel as application traffic. The CI principal arrives at the cloud control plane as a read-only observer. Neither path carries a standing credential.</div>
+  </div>
+</div>
+
+<div class="band b-green" style="margin-top:0;">
+  <div class="blabel">HOST BOUNDARY: OCI INSTANCE INSIDE THE VCN</div>
+  <div class="bsub">Ampere A1 ARM instance, Always Free. Security list is deny-by-default: SSH only from operator allow-listed CIDRs as break-glass, nothing else inbound.</div>
+  <div class="inner">
+    <div class="icard">
+      <div class="ilabel">LIVE workload</div>
+      <div class="isub">PostgreSQL 16 + pgvector, n8n, Cloudflare tunnel client. The only three running containers.</div>
+    </div>
+    <div class="icard">
+      <div class="ilabel">Designed, not running</div>
+      <div class="isub">Vault, Keycloak, Teleport, Falco, Datadog, Langfuse, Ollama, NeMo Guardrails, Squire agent.</div>
+      <span class="pendtag">PENDING ARM REBUILD</span>
+    </div>
+  </div>
+</div>
+
+<div class="cross">
+  <div class="xcard">
+    <div class="xtitle">CROSSING 4: HOST TO STORAGE</div>
+    <div class="xmech"><b>Instance principal:</b> the instance itself is the identity; the nightly backup job holds no stored cloud credential. Its policy grants create, read, and inspect on the backup bucket only. Delete does not exist in the grant, because the writer holding delete rights IS the ransomware scenario.</div>
+    <span class="chip verified">VERIFIED: owner delete refused, retention rule error</span>
+    <span class="chip defeats">DEFEATS: stolen-host credential abuse, backup destruction</span>
+  </div>
+</div>
+
+<div class="band b-blue">
+  <div class="blabel">DATA BOUNDARY: OBJECT STORAGE</div>
+  <div class="bsub">No public access on either bucket. Names and addresses stay out of the public repo.</div>
+  <div class="inner">
+    <div class="icard">
+      <div class="ilabel">Terraform state bucket</div>
+      <div class="isub">Versioned, with native locking: the lock is an atomic create-if-absent object.</div>
+      <span class="chip verified">VERIFIED: concurrent run refused, HTTP 412 lock conflict</span>
+    </div>
+    <div class="icard">
+      <div class="ilabel">Backup bucket</div>
+      <div class="isub">30-day retention rule: objects immutable until the window expires, even for the account owner. Restore-tested monthly.</div>
+      <span class="chip verified">VERIFIED: latest restore, 76 tables in 5 seconds</span>
+    </div>
+  </div>
+</div>
+
+<div class="cross">
+  <div class="xcard">
+    <div class="xtitle">CROSSING 5: DATA TO KEYS</div>
+    <div class="xmech"><b>Key-wrap API:</b> both buckets reference a customer-managed key in OCI Vault. Envelope model: the key encryption key never leaves the KMS and only wraps per-object data keys, so rotation re-wraps a handful of keys and never re-encrypts the data.</div>
+    <span class="chip verified">VERIFIED: key rotation exercised, data intact, old versions still unwrap</span>
+    <span class="chip defeats">DEFEATS: bulk plaintext exposure from a storage compromise</span>
+  </div>
+</div>
+
+<div class="band b-purple">
+  <div class="blabel">KEY BOUNDARY: OCI VAULT KMS</div>
+  <div class="bsub">Customer-managed AES-256 key. Innermost ring: nothing crosses inward, wrap and unwrap requests come to it.</div>
+</div>
+
+<!-- GOVERNANCE -->
+<div class="gov">
+  <div class="govh">GOVERNANCE RING: SIX-LAYER PIPELINE DEFENSE</div>
+  <div class="govsub">A secret or unreviewed change must beat six independent layers before it survives on the main branch. The last layer catches what never went through the pipeline at all.</div>
+  <div class="layers">
+    <div class="layer"><div class="lnum">1</div><div class="lname">Commit hook</div><div class="lsub">gitleaks on the laptop</div></div>
+    <div class="lsep">&#8594;</div>
+    <div class="layer"><div class="lnum">2</div><div class="lname">Push hook</div><div class="lsub">second local gate</div></div>
+    <div class="lsep">&#8594;</div>
+    <div class="layer"><div class="lnum">3</div><div class="lname">Push protection</div><div class="lsub">GitHub server-side scan</div></div>
+    <div class="lsep">&#8594;</div>
+    <div class="layer"><div class="lnum">4</div><div class="lname">CI scans</div><div class="lsub">Trivy, Checkov, Gitleaks to POA&amp;M</div></div>
+    <div class="lsep">&#8594;</div>
+    <div class="layer"><div class="lnum">5</div><div class="lname">Branch protection</div><div class="lsub">required checks on main</div></div>
+    <div class="lsep">&#8594;</div>
+    <div class="layer"><div class="lnum">6</div><div class="lname">Nightly drift plan</div><div class="lsub">catch-all for out-of-band change</div></div>
+  </div>
+</div>
+
+<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript in the private repo.</div>

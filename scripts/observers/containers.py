@@ -1,4 +1,4 @@
-"""Observe droplet container counts via ssh + docker ps. Emits 2 drift keys."""
+"""Observe remote host container counts via ssh + docker ps. Emits 2 drift keys."""
 from __future__ import annotations
 
 import logging

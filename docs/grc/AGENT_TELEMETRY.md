@@ -57,17 +57,17 @@ time. This guarantees the tag is present before the first LLM call.
 
 ## Rollout Topology Limitations
 
-The Telegram-interfaced bot `cdirective_bot` shares the `openclaw`
+The Telegram-interfaced primary agent bot shares the `openclaw`
 host-level tag in Phase 20. The bot routes user messages through the
 openclaw gateway, and Phase 20 does NOT inject a per-bot custom header on
-those requests. Result: metrics, traces, and logs from `cdirective_bot`
+those requests. Result: metrics, traces, and logs from the primary agent bot
 calls appear as `agent_id:openclaw` in Datadog. The Agent Activity
 dashboard correspondingly groups these two identities as one row in
 Phase 20.
 
 Per-bot telemetry breakdown for Telegram-interfaced agents is deferred to
 Phase 21 (named OpenClaw skill registration with custom headers per bot).
-At that point `cdirective_bot` gets a distinct ddtrace tag injected by the
+At that point the primary agent bot gets a distinct ddtrace tag injected by the
 openclaw skill wrapper, and the dashboard row splits.
 
 Operational implication: queries such as
@@ -82,7 +82,7 @@ Phase 21 ships.
 faceted by agent_id (Calls per Minute, Success Rate 7d, Top Destinations,
 Top Tools). Registry-driven: new agents appear automatically as their
 telemetry lands. Dashboard description and an inline note widget both
-surface the Phase 20 `cdirective_bot` limitation.
+surface the Phase 20 primary-agent-bot limitation.
 
 ## Verification
 
@@ -109,7 +109,7 @@ End-to-end smoke test (after rollout):
 | Span missing agent_id tag | Agent did not import its `telemetry` module | grep for the side-effect import in the package `__init__.py` or entrypoint |
 | Unknown agent_id in dashboard | Shadow agent operating outside the Registry | inventory_scan from Plan 20-04 should also be flagging it; reconcile before next deploy |
 | Cardinality spike alert from Datadog | Someone added per-session or per-request agent_id | revert immediately; treat as a Sev-2 because it threatens metric retention |
-| `cdirective_bot` traffic invisible | Expected Phase 20 behavior; collapses into `agent_id:openclaw` | resolved in Phase 21 when the per-bot custom header lands |
+| Primary agent bot traffic invisible | Expected Phase 20 behavior; collapses into `agent_id:openclaw` | resolved in Phase 21 when the per-bot custom header lands |
 
 ## Glossary
 
@@ -132,4 +132,4 @@ behind these telemetry tags), `AI_AUDIT_TRAIL_SPEC.md` (per-investigation
 audit rows now carry `agent_id` to keep the per-agent attribution story
 consistent across metrics, logs, traces, and audit records).*
 
-<!-- TODO(et): confirm the current `.agents/registry.yaml` row count matches the "13 LLM-callers" figure in the Cardinality Budget; the registry currently includes the four Squire agents and additional rows for openclaw, cdirective_bot, coredirective_bot, fastmcp_grc_corpus, master_orchestrator, n8n_content_research, n8n_gmail_readers, n8n_telegram_supervisor, grc_librarian. -->
+<!-- TODO(et): confirm the current `.agents/registry.yaml` row count matches the "13 LLM-callers" figure in the Cardinality Budget; the registry currently includes the four Squire agents and additional rows for gateway, bot-a, bot-b, fastmcp_grc_corpus, master_orchestrator, n8n_content_research, n8n_gmail_readers, n8n_telegram_supervisor, grc_librarian. -->

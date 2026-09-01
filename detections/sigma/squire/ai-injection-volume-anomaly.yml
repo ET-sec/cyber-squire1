@@ -1,0 +1,33 @@
+title: Squire Invocation Volume Anomaly
+id: 4f5a72d1-3c41-4f0c-9b87-a8c5d3e8e9d2
+status: stable
+description: |
+  Detects a Squire invocation rate that exceeds the operational baseline. The
+  baseline is fewer than five invocations per hour. A sustained rate above
+  thirty invocations per hour, when paired with an elevated rail block ratio,
+  suggests either model stealing reconnaissance or a denial of wallet probe.
+  This rule complements the cost ceiling rule by catching slow burn campaigns
+  that stay under per call cost but accumulate volume over time.
+references:
+  - https://atlas.mitre.org/techniques/AML.T0024
+  - https://atlas.mitre.org/techniques/AML.T0029
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/SQUIRE_THREAT_MODEL.md
+author: Organization Security Engineering
+date: 2026-04-24
+tags:
+  - cd.atlas_aml_t0024
+  - cd.atlas_aml_t0029
+  - cd.ai_security
+logsource:
+  product: langfuse
+  category: ai_volumetrics
+detection:
+  selection_invocation:
+    event_type: 'trace_complete'
+    project_id: 'squire'
+  timeframe: 1h
+  condition: selection_invocation | count() > 30
+falsepositives:
+  - Backfill or replay run by an operator. Tag with replay=true and tune.
+  - Load test before a release.
+level: medium

@@ -1,0 +1,177 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.14.3",
+  "resource_changes": [
+    {
+      "address": "oci_core_vcn.main",
+      "mode": "managed",
+      "type": "oci_core_vcn",
+      "name": "main",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "cidr_blocks": ["10.0.0.0/16"],
+          "display_name": "cd-vcn",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
+        }
+      }
+    },
+    {
+      "address": "oci_core_security_list.main",
+      "mode": "managed",
+      "type": "oci_core_security_list",
+      "name": "main",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "display_name": "cd-sl",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "egress_security_rules": [
+            {
+              "description": "",
+              "destination": "0.0.0.0/0",
+              "destination_type": "CIDR_BLOCK",
+              "icmp_options": [],
+              "protocol": "all",
+              "stateless": false,
+              "tcp_options": [],
+              "udp_options": []
+            }
+          ],
+          "ingress_security_rules": [
+            {
+              "description": "",
+              "icmp_options": [],
+              "protocol": "6",
+              "source": "76.17.120.27/32",
+              "source_type": "CIDR_BLOCK",
+              "stateless": false,
+              "tcp_options": [
+                {
+                  "max": 22,
+                  "min": 22,
+                  "source_port_range": []
+                }
+              ],
+              "udp_options": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "oci_core_instance.cd_alpha",
+      "mode": "managed",
+      "type": "oci_core_instance",
+      "name": "cd_alpha",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "display_name": "cd-alpha-engine",
+          "shape": "VM.Standard.A1.Flex",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "instance_options": [
+            {
+              "are_legacy_imds_endpoints_disabled": true
+            }
+          ],
+          "metadata": {
+            "ssh_authorized_keys": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyMaterial ops@example.com\n"
+          },
+          "shape_config": [
+            {
+              "memory_in_gbs": 24,
+              "ocpus": 4,
+              "vcpus": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "oci_kms_vault.cd",
+      "mode": "managed",
+      "type": "oci_kms_vault",
+      "name": "cd",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "display_name": "cd-vault",
+          "vault_type": "DEFAULT",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
+        }
+      }
+    },
+    {
+      "address": "oci_kms_key.storage",
+      "mode": "managed",
+      "type": "oci_kms_key",
+      "name": "storage",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "display_name": "cd-storage-cmk",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
+        }
+      }
+    },
+    {
+      "address": "oci_objectstorage_bucket.backups",
+      "mode": "managed",
+      "type": "oci_objectstorage_bucket",
+      "name": "backups",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["no-op"],
+        "before": null,
+        "after": {
+          "access_type": "NoPublicAccess",
+          "name": "cd-backups",
+          "namespace": "example",
+          "kms_key_id": "ocid1.key.oc1.iad.exampleexampleexample",
+          "versioning": "Disabled",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "retention_rules": [
+            {
+              "display_name": "ransomware-guard-30d",
+              "duration": [
+                {
+                  "time_amount": "30",
+                  "time_unit": "DAYS"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

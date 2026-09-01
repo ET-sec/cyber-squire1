@@ -46,21 +46,28 @@ data "oci_objectstorage_namespace" "ns" {
 # the name is part of the state backend address and stays out of the public
 # repo alongside the namespace, same boundary as backend.hcl.
 resource "oci_objectstorage_bucket" "tfstate" {
-  compartment_id = local.compartment
-  namespace      = data.oci_objectstorage_namespace.ns.namespace
-  name           = var.tfstate_bucket_name
-  access_type    = "NoPublicAccess"
-  versioning     = "Enabled"
-  kms_key_id     = oci_kms_key.storage.id
+  compartment_id        = local.compartment
+  namespace             = data.oci_objectstorage_namespace.ns.namespace
+  name                  = var.tfstate_bucket_name
+  access_type           = "NoPublicAccess"
+  versioning            = "Enabled"
+  kms_key_id            = oci_kms_key.storage.id
+  object_events_enabled = true # CKV_OCI_7: future Events-service detection hook
+  freeform_tags         = var.tags
 }
 
 resource "oci_objectstorage_bucket" "backups" {
-  compartment_id = local.compartment
-  namespace      = data.oci_objectstorage_namespace.ns.namespace
-  name           = "cd-backups"
-  access_type    = "NoPublicAccess"
-  kms_key_id     = oci_kms_key.storage.id
-  freeform_tags  = var.tags
+  # checkov:skip=CKV_OCI_8: OCI forbids object versioning on buckets with
+  # retention rules, and the retention lock is the stronger control here
+  # (ransomware cannot delete what the service refuses to delete). Versioned
+  # recovery is the state bucket's job; immutability is this bucket's job.
+  compartment_id        = local.compartment
+  namespace             = data.oci_objectstorage_namespace.ns.namespace
+  name                  = "cd-backups"
+  access_type           = "NoPublicAccess"
+  kms_key_id            = oci_kms_key.storage.id
+  object_events_enabled = true # CKV_OCI_7
+  freeform_tags         = var.tags
 
   retention_rules {
     display_name = "ransomware-guard-30d"
@@ -77,6 +84,7 @@ resource "oci_identity_policy" "objectstorage_kms" {
   compartment_id = local.compartment
   name           = "cd-objectstorage-use-cmk"
   description    = "Object Storage service may use the storage CMK (scoped to the key)"
+  freeform_tags  = var.tags
   statements = [
     "Allow service objectstorage-${var.oci_region} to use keys in compartment id ${local.compartment} where target.key.id = '${oci_kms_key.storage.id}'",
   ]
@@ -87,6 +95,7 @@ resource "oci_identity_dynamic_group" "backup_agents" {
   compartment_id = var.oci_tenancy_ocid
   name           = "cd-backup-agents"
   description    = "cd_alpha instance principal, used by the backup/restore jobs"
+  freeform_tags  = var.tags
   matching_rule  = "instance.id = '${oci_core_instance.cd_alpha.id}'"
 }
 
@@ -94,6 +103,7 @@ resource "oci_identity_policy" "backup_agents" {
   compartment_id = local.compartment
   name           = "cd-backup-agents-policy"
   description    = "Least privilege: create/read/list objects in cd-backups only. No delete: the retention rule is the delete guard anyway, and the writer holding delete rights is the ransomware scenario."
+  freeform_tags  = var.tags
   statements = [
     "Allow dynamic-group ${oci_identity_dynamic_group.backup_agents.name} to read buckets in compartment id ${local.compartment} where target.bucket.name = 'cd-backups'",
     "Allow dynamic-group ${oci_identity_dynamic_group.backup_agents.name} to manage objects in compartment id ${local.compartment} where all {target.bucket.name = 'cd-backups', any {request.permission = 'OBJECT_CREATE', request.permission = 'OBJECT_READ', request.permission = 'OBJECT_INSPECT'}}",

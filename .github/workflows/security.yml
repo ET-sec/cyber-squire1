@@ -1,4 +1,4 @@
-name: Security & Deploy Pipeline
+name: Security Pipeline
 
 on:
   push:
@@ -22,14 +22,14 @@ jobs:
           fetch-depth: 0
 
       # --- Secrets Detection ---
-      - name: Gitleaks — Detect hardcoded secrets
+      - name: Gitleaks secret detection
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
       # --- Filesystem / Dependency Scan ---
-      - name: Trivy — Scan repo for CVEs and misconfigs
+      - name: Trivy CVE and misconfig scan
         uses: aquasecurity/trivy-action@cf5c088a69634cd13ccddc735d7926162c31f9a6 # master
         with:
           scan-type: "fs"
@@ -48,7 +48,7 @@ jobs:
           sarif_file: "trivy-results.sarif"
 
       # --- Static Analysis (SAST) ---
-      - name: Semgrep — SAST security audit
+      - name: Semgrep SAST audit
         uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
           config: >-
@@ -107,63 +107,59 @@ jobs:
           sarif_file: snyk-container.sarif
           category: snyk-container
 
-  terraform-apply:
-    name: Terraform Apply
+  # The DigitalOcean apply job that lived here was retired 2026-08-31
+  # (Phase 20.1-05): its target infrastructure died in August 2026 and its
+  # credentials are being removed. OCI changes deploy from a workstation
+  # against remote locked state; CI's cloud role is read-only drift
+  # detection (drift-check.yml) by design.
+
+  poam-sync:
+    name: POA&M Ledger Sync
     runs-on: ubuntu-latest
     needs: security-scan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
-      contents: read
-    env:
-      TF_DIR: terraform/cd-do-infrastructure
-      TF_IN_AUTOMATION: true
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4
-        with:
-          terraform_wrapper: false
-
-      - name: Terraform Init
-        env:
-          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+      - name: Run scanners for machine-readable output
         run: |
-          terraform -chdir=$TF_DIR init \
-            -backend-config="access_key=${{ secrets.SPACES_ACCESS_KEY }}" \
-            -backend-config="secret_key=${{ secrets.SPACES_SECRET_KEY }}"
+          pipx install checkov >/dev/null 2>&1 || pip install -q checkov
+          checkov -d terraform/cd-oci-infrastructure -o json --quiet > checkov.json || true
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz | tar xz gitleaks
+          mkdir -p /tmp/tracked && git archive HEAD | tar -x -C /tmp/tracked
+          ./gitleaks detect --no-git --source /tmp/tracked \
+            --config .gitleaks.toml --report-format json \
+            --report-path gitleaks.json --exit-code 0
 
-      - name: Terraform Plan
-        id: plan
-        env:
-          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+      - name: Sync ledger
         run: |
-          set +e
-          terraform -chdir=$TF_DIR plan -no-color -input=false \
-            -detailed-exitcode -out=tfplan \
-            -var="cf_zone_id=${{ vars.CF_ZONE_ID }}" \
-            -var="cf_account_id=${{ vars.CF_ACCOUNT_ID }}" \
-            -var="cf_tunnel_id=${{ vars.CF_TUNNEL_ID }}"
-          EXIT_CODE=$?
-          echo "exitcode=$EXIT_CODE" >> $GITHUB_OUTPUT
-          if [ $EXIT_CODE -eq 1 ]; then
-            echo "::error::Terraform plan failed"
-            exit 1
+          python3 scripts/poam_sync.py --checkov checkov.json --gitleaks gitleaks.json
+          git diff --stat docs/grc/POAM_AUTO_FINDINGS.md || true
+
+      - name: Open PR if the ledger changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet docs/grc/POAM_AUTO_FINDINGS.md; then
+            echo "ledger unchanged, nothing to do"
+            exit 0
           fi
-          exit 0
-
-      - name: Terraform Apply
-        if: steps.plan.outputs.exitcode == '2'
-        env:
-          DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
-          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
-        run: terraform -chdir=$TF_DIR apply -auto-approve tfplan
+          git config user.name "poam-sync-bot"
+          git config user.email "actions@github.com"
+          BRANCH="bot/poam-sync"
+          git checkout -B "$BRANCH"
+          git add docs/grc/POAM_AUTO_FINDINGS.md
+          git commit -m "chore(grc): poam_sync ledger update from scanner run ${{ github.run_id }}"
+          git push -f origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "chore(grc): POA&M auto-findings ledger update" \
+            --body "Script-generated by poam_sync from run ${{ github.run_id }}. Rows are scanner-owned; review and merge." \
+            2>/dev/null || echo "PR already open, branch updated"
 
   container-verification:
     name: Container Image Verification
@@ -254,7 +250,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       # --- Repository filesystem SBOM ---
-      - name: SBOM — Repository filesystem
+      - name: SBOM for repository filesystem
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           path: "."
@@ -264,7 +260,7 @@ jobs:
 
 
       # --- Per-image SBOMs ---
-      - name: SBOM — postgres:16-alpine
+      - name: "SBOM postgres:16-alpine"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: postgres:16-alpine
@@ -273,7 +269,7 @@ jobs:
           artifact-name: sbom-postgres-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: SBOM — n8nio/n8n:latest
+      - name: "SBOM n8nio/n8n:latest"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: n8nio/n8n:latest
@@ -282,7 +278,7 @@ jobs:
           artifact-name: sbom-n8n-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: SBOM — hashicorp/vault:1.15
+      - name: "SBOM hashicorp/vault:1.15"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: hashicorp/vault:1.15
@@ -291,7 +287,7 @@ jobs:
           artifact-name: sbom-vault-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: SBOM — datadog/agent:latest
+      - name: "SBOM datadog/agent:latest"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: datadog/agent:latest
@@ -300,7 +296,7 @@ jobs:
           artifact-name: sbom-datadog-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: SBOM — cloudflare/cloudflared:latest
+      - name: "SBOM cloudflare/cloudflared:latest"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           image: cloudflare/cloudflared:latest

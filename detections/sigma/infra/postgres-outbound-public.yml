@@ -1,0 +1,39 @@
+title: PostgreSQL Container Outbound Connection To Public Address
+id: c9e1c4a7-c1c2-4f2c-89e9-7b6d4f4d2e8b
+status: stable
+description: |
+  Detects outbound TCP connections from the database container to non loopback
+  addresses. The database accepts connections from co resident services on the
+  bridge network and never initiates outbound traffic during normal operation.
+  An outbound connection suggests data staging, exfiltration, or replication
+  drift.
+references:
+  - https://attack.mitre.org/techniques/T1041/
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/AI_AUDIT_TRAIL_SPEC.md
+author: Organization Security Engineering
+date: 2026-04-24
+tags:
+  - attack.exfiltration
+  - attack.t1041
+  - falco.parity
+logsource:
+  category: network_connection
+  product: linux
+detection:
+  selection_container:
+    Image|contains: 'svc-db'
+  selection_outbound:
+    DestinationIp|contains:
+      - '.'
+    Initiated: 'true'
+  filter_loopback:
+    DestinationIp|startswith:
+      - '127.'
+      - '0.0.0.0'
+      - '169.254.'
+      - '172.17.'
+      - '172.18.'
+  condition: selection_container and selection_outbound and not filter_loopback
+falsepositives:
+  - Authorized backup or replication jobs that connect to managed object storage. Tune by destination CIDR.
+level: medium

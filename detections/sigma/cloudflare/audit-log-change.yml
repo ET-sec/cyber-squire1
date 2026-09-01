@@ -1,0 +1,51 @@
+title: Cloudflare Account Configuration Change
+id: e1f5c8b2-7a3d-4e9c-8b1f-2d4a6c8e0f1b
+status: stable
+description: |
+  Detects any change to high value Cloudflare account configuration: WAF
+  rulesets, DNS records, tunnel configuration, Access applications, Access
+  policies, and API token creation. Every change should correspond to a
+  Terraform apply. Out of band changes from the dashboard or via direct
+  API call indicate either drift or compromise. Audit log events captured
+  via Cloudflare Audit Logs API.
+references:
+  - https://attack.mitre.org/techniques/T1098/
+  - https://attack.mitre.org/techniques/T1562/
+  - https://developers.cloudflare.com/fundamentals/account/account-security/review-audit-logs/
+author: Organization Security Engineering
+date: 2026-04-28
+tags:
+  - attack.persistence
+  - attack.defense_evasion
+  - attack.t1098
+  - attack.t1562
+  - cd.cloudflare
+  - cd.audit
+logsource:
+  product: cloudflare
+  service: audit
+detection:
+  selection_high_risk:
+    ActionType:
+      - 'create'
+      - 'update'
+      - 'delete'
+    Resource|contains:
+      - 'firewall_rule'
+      - 'ruleset'
+      - 'dns_record'
+      - 'tunnel'
+      - 'access_app'
+      - 'access_policy'
+      - 'access_identity_provider'
+      - 'api_token'
+      - 'worker_script'
+  filter_terraform:
+    Actor|contains:
+      - 'cd-terraform-svc'
+      - 'terraform'
+  condition: selection_high_risk and not filter_terraform
+falsepositives:
+  - Manual dashboard change during incident response. Document the change in the IR ticket and disable the rule for the response window.
+  - Terraform actor name mismatch after token rotation. Update the filter_terraform actor list to match the new service principal.
+level: critical

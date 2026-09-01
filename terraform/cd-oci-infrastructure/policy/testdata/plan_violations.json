@@ -1,0 +1,134 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.14.3",
+  "resource_changes": [
+    {
+      "address": "oci_core_security_list.open",
+      "mode": "managed",
+      "type": "oci_core_security_list",
+      "name": "open",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "display_name": "prod-open-sl",
+          "freeform_tags": {},
+          "egress_security_rules": [
+            {
+              "description": "",
+              "destination": "0.0.0.0/0",
+              "destination_type": "CIDR_BLOCK",
+              "icmp_options": [],
+              "protocol": "all",
+              "stateless": false,
+              "tcp_options": [],
+              "udp_options": []
+            }
+          ],
+          "ingress_security_rules": [
+            {
+              "description": "ssh open to the world",
+              "icmp_options": [],
+              "protocol": "6",
+              "source": "0.0.0.0/0",
+              "source_type": "CIDR_BLOCK",
+              "stateless": false,
+              "tcp_options": [
+                {
+                  "max": 22,
+                  "min": 22,
+                  "source_port_range": []
+                }
+              ],
+              "udp_options": []
+            },
+            {
+              "description": "app port open to the world",
+              "icmp_options": [],
+              "protocol": "6",
+              "source": "0.0.0.0/0",
+              "source_type": "CIDR_BLOCK",
+              "stateless": false,
+              "tcp_options": [
+                {
+                  "max": 8080,
+                  "min": 8080,
+                  "source_port_range": []
+                }
+              ],
+              "udp_options": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "oci_core_instance.big_box",
+      "mode": "managed",
+      "type": "oci_core_instance",
+      "name": "big_box",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "display_name": "big-box",
+          "shape": "VM.Standard.A1.Flex",
+          "freeform_tags": {},
+          "instance_options": [],
+          "metadata": {},
+          "shape_config": [
+            {
+              "memory_in_gbs": 48,
+              "ocpus": 8,
+              "vcpus": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "address": "oci_objectstorage_bucket.plaintext",
+      "mode": "managed",
+      "type": "oci_objectstorage_bucket",
+      "name": "plaintext",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "access_type": "NoPublicAccess",
+          "name": "cd-plaintext",
+          "namespace": "example",
+          "kms_key_id": null,
+          "versioning": "Disabled",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          },
+          "retention_rules": []
+        }
+      }
+    },
+    {
+      "address": "oci_kms_vault.cd",
+      "mode": "managed",
+      "type": "oci_kms_vault",
+      "name": "cd",
+      "provider_name": "registry.terraform.io/oracle/oci",
+      "change": {
+        "actions": ["delete"],
+        "before": {
+          "display_name": "cd-vault",
+          "vault_type": "DEFAULT",
+          "freeform_tags": {
+            "env": "production",
+            "project": "coredirective"
+          }
+        },
+        "after": null
+      }
+    }
+  ]
+}

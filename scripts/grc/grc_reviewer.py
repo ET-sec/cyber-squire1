@@ -1,7 +1,7 @@
 """GRC PR reviewer agent.
 
 Reads a unified diff (either via `gh pr diff <pr_number>` or from a local
-file via `--diff-file`), calls Claude Sonnet 4.6 (escalating to Opus 4.7
+file via `--diff-file`), calls Claude Sonnet 4.6 (escalating to Fable 5
 on large diffs) with a cached system prompt sourced from
 `scripts/grc/grc_reference.md` plus the corpus index from
 `docs/grc/README.md`, parses structured JSON, sanitizes output, and
@@ -52,7 +52,7 @@ _CORPUS_INDEX: Optional[str] = None
 _SYSTEM_PROMPT: Optional[str] = None
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
-ESCALATION_MODEL = "claude-opus-4-7"
+ESCALATION_MODEL = "claude-fable-5"
 DIFF_HARD_SKIP_BYTES = 100_000
 DIFF_ESCALATE_BYTES = 50_000
 ESCALATE_FILES = 5

@@ -1,4 +1,4 @@
-"""critique node - Opus 4.7 self-critique of the draft report.
+"""critique node - Fable 5 self-critique of the draft report.
 
 Runs AFTER the draft node. Reads the current draft_report (JSON string),
 evaluates it against a short rubric, and emits:
@@ -83,7 +83,7 @@ def critique(state: dict) -> dict:
       - evidence: row with node='critique', elapsed_ms, model, tokens, cost
     """
     t0 = time.monotonic()
-    model = settings.claude_model_primary  # Opus 4.7
+    model = settings.claude_model_primary  # Fable 5
 
     draft_raw = state.get("draft_report") or ""
     payload = {

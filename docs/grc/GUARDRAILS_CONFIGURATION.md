@@ -8,6 +8,8 @@
 **Prepared By:** System Owner
 **Approved By:** System Owner (Authorizing Official)
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 ---
 
 ## 1. Overview
@@ -254,7 +256,7 @@ Daily audit job aggregates these counters across all traces and flags spikes. A 
 
 Lakera Guard is a commercial detection service for prompt injection. Squire's architecture reserves a Lakera pre-call slot but does not currently invoke it in production. Status:
 
-- **Free-tier status**: Emmanuel's Lakera account is on the free tier. API key placeholder in Doppler as `LAKERA_API_KEY` (currently empty).
+- **Free-tier status**: the System Owner's Lakera account is on the free tier. API key placeholder in Doppler as `LAKERA_API_KEY` (currently empty).
 - **Integration**: `builds/squire/app/rails/lakera_client.py` is a stub that wraps the Lakera Guard API. When the key is set, the stub fires before the NeMo input rail.
 - **Fallback**: When the key is empty, the stub returns `allow` immediately with `degraded=true`.
 - **Planned activation**: Once a production Lakera plan is funded, activate. Current coverage from NeMo input rail plus pre-graph scanner is sufficient for the demo threat model.
@@ -398,7 +400,7 @@ There is no operator-facing rail bypass. The only bypass is the `NEMO_ENABLED=fa
 
 Layers 1 (pre-graph) and 4 (critique citation guard) cannot be bypassed. They are compiled into the graph code path.
 
-The `NEMO_ENABLED=true` default is set in both the local Mac compose and the droplet compose. Override only during emergency maintenance of `svc-nemo`.
+The `NEMO_ENABLED=true` default is set in both the local Mac compose and the host compose. Override only during emergency maintenance of `svc-nemo`.
 
 ## 14. Cross-Reference to Red-Team Results
 

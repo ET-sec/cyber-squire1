@@ -1,7 +1,7 @@
 """Plan 19-06 Task 2: golden-set generator for the GRC reviewer eval harness.
 
 Generates 10 synthetic PR fixtures against the schema the eval harness
-consumes. Each fixture is one Opus 4.7 call with cached system prompt;
+consumes. Each fixture is one Fable 5 call with cached system prompt;
 running cost is tracked in the local spend ledger and the script halts at
 a hard $2.00 internal cap.
 
@@ -46,7 +46,7 @@ from scripts.grc.spend_ledger import record_call  # noqa: E402
 logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(message)s")
 log = logging.getLogger("build_golden_set")
 
-MODEL = "claude-opus-4-7"
+MODEL = "claude-fable-5"
 HARD_CAP_USD = 2.00
 MAX_TOKENS = 2048
 GOLDEN_DIR = REPO_ROOT / "scripts" / "grc" / "golden_prs"
@@ -107,8 +107,8 @@ CATEGORIES: list[dict[str, str]] = [
         "instructions": (
             "Generate a unified diff that ACCIDENTALLY leaks an internal pattern "
             "into a public-classified GRC doc. Use one of these exact internal "
-            "patterns somewhere in the added body lines: '161.35.0.184', "
-            "'cd-service-n8n', or '/root/COREDIRECTIVE_ENGINE'. The reviewer must "
+            "patterns somewhere in the added body lines: 'cd-service-n8n', or a "
+            "host filesystem path under '/root/'. The reviewer must "
             "catch this. expected.sanitization_violations should list the exact "
             "pattern and snippet. residual_risk_required is False (sanitization "
             "is its own gate). NO other fixtures may contain these patterns; "

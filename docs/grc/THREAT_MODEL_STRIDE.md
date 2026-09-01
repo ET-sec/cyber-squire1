@@ -9,6 +9,8 @@
 **Classification:** Internal Use Only
 **Version:** 1.1 (Phase 17 scope extension 2026-04-24)
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 ---
 
 ## Document Control
@@ -832,6 +834,18 @@ See `ATTACK_TREE_AI_PIPELINE.md` Phase 17 Scope Extension for the 3 new Squire-s
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks remediation actions for identified gaps |
 | [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md) | Response procedures for threats E-01, E-04, T-04 |
 | [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md) | Response procedures for threats I-02, I-04 |
+
+## Phase 20.1 Mitigation Update (2026-09-01)
+
+Five controls shipped in Phase 20.1 close attack paths identified in this model. Implementation detail lives in the Terraform repo; residual items are tracked in the POA&M.
+
+| # | New control | Attack path closed | STRIDE category |
+|---|-------------|--------------------|-----------------|
+| 1 | Remote Terraform state in versioned, locked OCI Object Storage | State file in git exposing credentials and topology | Information Disclosure |
+| 2 | GitHub OIDC token exchange for CI, zero stored cloud keys | Theft of long-lived CI cloud keys | Elevation of Privilege |
+| 3 | Customer-managed key (CMK) envelope encryption on state and backup buckets | Provider-default-only encryption at rest | Information Disclosure |
+| 4 | Retention-locked immutable backups with monthly timed restores | Ransomware deleting backups before detonation | Tampering |
+| 5 | Nightly drift detection with Telegram alerting | Unreviewed console changes persisting undetected; window now under 24 hours | Tampering |
 
 ---
 

@@ -1,9 +1,9 @@
 ---
-title: Squire Deployed Architecture - host-alpha topology
+title: Squire Architecture - host-alpha design baseline
 ---
 flowchart TB
     subgraph EXT["EXTERNAL"]
-        AN["Anthropic<br/>Opus 4.7 / Sonnet 4.6"]
+        AN["Anthropic<br/>Fable 5 / Sonnet 4.6"]
         TV["Tavily<br/>search enrichment"]
         TG["Telegram<br/>operator bot"]
         N8C["n8n webhook<br/>consumers"]
@@ -16,7 +16,7 @@ flowchart TB
         R3["langfuse.example-ops.com"]
     end
 
-    subgraph HOST["host-alpha droplet - /opt/platform"]
+    subgraph HOST["host-alpha instance - /opt/platform"]
         subgraph SQ["Squire stack"]
             SVC["svc-squire<br/>FastAPI + LangGraph"]
             NM["svc-nemo<br/>Guardrails sidecar"]
@@ -44,7 +44,7 @@ flowchart TB
         end
 
         subgraph GW["Gateway"]
-            OC["openclaw-gateway<br/>Claude Opus 4.7 agent"]
+            OC["openclaw-gateway<br/>Claude Fable 5 agent"]
         end
     end
 
@@ -52,7 +52,7 @@ flowchart TB
     TUN --> R2
     TUN --> R3
 
-    R1 -->|x-squire-token| SVC
+    R1 -->|auth header| SVC
     R2 --> N8
     R3 --> LW
 
@@ -60,7 +60,7 @@ flowchart TB
     SVC --> DB
     SVC --> LW
     SVC --> LK
-    SVC -.->|Opus 4.7 draft/critique,<br/>Sonnet 4.6 classify| AN
+    SVC -.->|Fable 5 draft/critique,<br/>Sonnet 4.6 classify| AN
     SVC -.->|enrichment| TV
 
     N8 -->|alert dispatch| SVC

@@ -19,7 +19,7 @@ provider "oci" {
   region              = var.oci_region
 }
 
-# Cloudflare v4 -- reads CLOUDFLARE_API_KEY + CLOUDFLARE_EMAIL env vars.
+# Cloudflare v4 reads CLOUDFLARE_API_KEY + CLOUDFLARE_EMAIL env vars.
 # Carries over unchanged from the DO stack; the ZTNA/WAF/DNS layer is
 # provider-independent and does not care that compute moved to OCI.
 provider "cloudflare" {}

@@ -8,7 +8,7 @@ terraform {
     endpoints = {
       s3 = "https://nyc3.digitaloceanspaces.com"
     }
-    bucket = "cd-terraform-state"
+    bucket = "tf-state-bucket"
     key    = "cd-do-infrastructure/terraform.tfstate"
     region = "us-east-1" # Required by S3 backend but ignored by DO Spaces
 
