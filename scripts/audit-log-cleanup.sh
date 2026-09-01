@@ -4,14 +4,17 @@ set -euo pipefail
 ###############################################################################
 # audit-log-cleanup.sh -- 90-day retention enforcement for audit logs
 #
-# Runs monthly (1st of month). Lists all objects in the cd-audit-logs bucket,
+# ARCHIVED (DO era, host retired 2026-08-19): kept as reference, not wired to
+# any current job. The object storage bucket it targeted no longer exists.
+#
+# Ran monthly (1st of month). Lists all objects in the audit-logs bucket,
 # deletes anything older than 90 days, and logs what was removed.
 #
 # NOTE: Google Drive archival is deferred (OAuth not connected). Logs older
 # than 90 days are deleted with a log note that archival is pending.
 ###############################################################################
 
-SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-cd-audit-logs}"
+SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-audit-logs-bucket}"
 WORK_DIR=$(mktemp -d /tmp/audit-cleanup.XXXXXX)
 RETENTION_DAYS=90
 
@@ -48,7 +51,7 @@ s3cmd ls "${SPACES_BUCKET}/" --recursive > "${OBJECT_LIST}" 2>/dev/null || true
 TOTAL_OBJECTS=$(wc -l < "${OBJECT_LIST}")
 echo "[$(date -u +%H:%M:%S)] Total objects in bucket: ${TOTAL_OBJECTS}"
 
-# s3cmd ls format: "2026-03-11 06:00    12345   s3://cd-audit-logs/2026/03/11/audit-xxx.log"
+# s3cmd ls format: "2026-03-11 06:00    12345   s3://<bucket>/2026/03/11/audit-xxx.log"
 # Extract date and path, compare against cutoff
 DELETED_COUNT=0
 OLDEST_DELETED=""

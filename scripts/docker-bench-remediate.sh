@@ -51,7 +51,7 @@ REMEDIATED (docker-compose.yaml changes):
     - Prevents unbounded log growth consuming disk
 
 NOT REMEDIATED (see docs/CIS_RISK_REGISTER.md for full justification):
-  [1.1]  Separate partition for containers -- single-disk DigitalOcean droplet
+  [1.1]  Separate partition for containers -- single-disk cloud VM (DigitalOcean at time of remediation)
   [1.5-1.9] Docker daemon audit rules -- requires host-level auditd, not compose scope
   [2.1]  Network traffic between containers -- services need inter-container communication
   [2.8]  User namespace support -- breaks volume permissions for PostgreSQL, n8n

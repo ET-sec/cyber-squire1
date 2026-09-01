@@ -89,6 +89,10 @@ AGENT_CLIENTS = [
 
 def http(method, path, token=None, body=None, form=None):
     url = f"{KC_BASE}{path}"
+    # Refuse non-HTTP schemes (file://, ftp://) before handing the URL to urllib.
+    scheme = urllib.parse.urlparse(url).scheme
+    if scheme not in {"http", "https"}:
+        raise ValueError(f"unsupported URL scheme {scheme!r} in {url!r}; only http/https allowed")
     headers = {"Accept": "application/json"}
     data = None
     if form is not None:
@@ -101,7 +105,8 @@ def http(method, path, token=None, body=None, form=None):
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        # Scheme is validated to http/https above, so file:// abuse is not possible here.
+        with urllib.request.urlopen(req, timeout=30) as r:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected
             raw = r.read()
             if not raw:
                 return r.status, None

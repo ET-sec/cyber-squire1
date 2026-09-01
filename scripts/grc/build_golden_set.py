@@ -107,8 +107,8 @@ CATEGORIES: list[dict[str, str]] = [
         "instructions": (
             "Generate a unified diff that ACCIDENTALLY leaks an internal pattern "
             "into a public-classified GRC doc. Use one of these exact internal "
-            "patterns somewhere in the added body lines: '161.35.0.184', "
-            "'cd-service-n8n', or '/root/COREDIRECTIVE_ENGINE'. The reviewer must "
+            "patterns somewhere in the added body lines: 'cd-service-n8n', or a "
+            "host filesystem path under '/root/'. The reviewer must "
             "catch this. expected.sanitization_violations should list the exact "
             "pattern and snippet. residual_risk_required is False (sanitization "
             "is its own gate). NO other fixtures may contain these patterns; "

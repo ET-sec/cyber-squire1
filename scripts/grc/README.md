@@ -119,7 +119,7 @@ The server file at `scripts/grc/grc_mcp_server.py` stays in the repo; nothing el
 
 - Read-only by construction. Every tool carries `readOnlyHint: True` and there is no write path in the module.
 - Path-traversal blocked: `is_relative_to(GRC_DIR.resolve())` plus symlink rejection on both pre-resolve and post-resolve paths.
-- Output sanitized on every return through `scripts/grc/sanitize_output.sanitize()` (Plan 19-02): production IP `161.35.0.184`, RFC1918, `cd-service-*`, `tigouetheory.com`, `/root/...`, Doppler tokens, Anthropic keys, GitHub PATs, AWS keys, Bearer tokens.
+- Output sanitized on every return through `scripts/grc/sanitize_output.sanitize()` (Plan 19-02): host-specific public IPs (env-supplied via `GRC_REDACT_IPS`), RFC1918, `cd-service-*`, `tigouetheory.com`, `/root/...`, Doppler tokens, Anthropic keys, GitHub PATs, AWS keys, Bearer tokens.
 - Stdio pure: all logs go to stderr via `logging.basicConfig(stream=sys.stderr)`. Zero `print()` calls (CI-greppable).
 - Size capped: 100KB hard ceiling on any single tool response; truncation marked with `[TRUNCATED]`.
 - Tool exceptions trapped: every tool body wrapped in try/except, structured error returned, server stays alive.

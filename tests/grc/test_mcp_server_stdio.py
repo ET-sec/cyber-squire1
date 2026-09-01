@@ -102,11 +102,11 @@ def test_read_doc_sanitizes_ip(tmp_path, monkeypatch):
     fake_grc = tmp_path / "grc"
     fake_grc.mkdir()
     f = fake_grc / "test.md"
-    f.write_text("Server IP: 161.35.0.184 reachable.")
+    f.write_text("Server IP: 10.100.1.10 reachable.")
     monkeypatch.setattr(srv, "GRC_DIR", fake_grc)
     result = srv.read_doc("test.md")
-    assert "[REDACTED-IP]" in result
-    assert "161.35.0.184" not in result
+    assert "[INTERNAL-IP]" in result
+    assert "10.100.1.10" not in result
 
 
 def test_read_doc_size_cap(tmp_path, monkeypatch):
@@ -128,7 +128,7 @@ def test_search_corpus_sanitizes_snippets(tmp_path, monkeypatch):
     fake_grc = tmp_path / "grc"
     fake_grc.mkdir()
     f = fake_grc / "leaks.md"
-    f.write_text("The droplet at 161.35.0.184 needed restart for residual risk.")
+    f.write_text("The host at 10.100.1.10 needed restart for residual risk.")
     monkeypatch.setattr(srv, "GRC_DIR", fake_grc)
     hits = srv.search_corpus("residual", limit=5)
     assert isinstance(hits, list)
@@ -137,8 +137,8 @@ def test_search_corpus_sanitizes_snippets(tmp_path, monkeypatch):
     real_hits = [h for h in hits if "snippet" in h]
     assert real_hits, f"No real hits in {hits}"
     for h in real_hits:
-        assert "161.35.0.184" not in h["snippet"]
-        assert "[REDACTED-IP]" in h["snippet"]
+        assert "10.100.1.10" not in h["snippet"]
+        assert "[INTERNAL-IP]" in h["snippet"]
 
 
 def test_search_corpus_caps_limit(tmp_path, monkeypatch):

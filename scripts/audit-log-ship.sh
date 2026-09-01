@@ -4,18 +4,23 @@ set -euo pipefail
 ###############################################################################
 # audit-log-ship.sh -- Collect, format, hash-chain, and upload audit logs
 #
-# Runs every 6 hours via cron. Collects logs from security-relevant containers,
+# ARCHIVED (DO era, host retired 2026-08-19): kept as reference, not wired to
+# any current job. The object storage bucket and host it targeted no longer
+# exist. All host-specific values below are placeholders; set the environment
+# variables to run against a live S3-compatible endpoint.
+#
+# Ran every 6 hours via cron. Collects logs from security-relevant containers,
 # formats as RFC 5424 with JSON structured data, computes a SHA-256 hash chain,
-# and uploads to DO Spaces (cd-audit-logs bucket).
+# and uploads to an S3-compatible audit bucket.
 ###############################################################################
 
-HOSTNAME="cd-alpha"
+HOSTNAME="${AUDIT_HOSTNAME:-engine-host}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 DATE_PATH=$(date -u +"%Y/%m/%d")
 BATCH_ID="$(date -u +%Y%m%d%H%M%S)-$(shuf -i 100-999 -n1)"
 WORK_DIR=$(mktemp -d /tmp/audit-ship.XXXXXX)
-SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-cd-audit-logs}"
-CHAIN_DIR="/root/COREDIRECTIVE_ENGINE/CD_BACKUPS/audit-chain"
+SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-audit-logs-bucket}"
+CHAIN_DIR="${AUDIT_CHAIN_DIR:-/opt/engine/backups/audit-chain}"
 CHAIN_FILE="${CHAIN_DIR}/latest-hash.txt"
 LOG_FILE="${WORK_DIR}/audit-${BATCH_ID}.log"
 MANIFEST_FILE="${WORK_DIR}/manifest-${BATCH_ID}.json"

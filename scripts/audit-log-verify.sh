@@ -4,14 +4,17 @@ set -euo pipefail
 ###############################################################################
 # audit-log-verify.sh -- Weekly hash chain integrity verification
 #
-# Downloads all manifests from DO Spaces for the past 90 days, sorts by
+# ARCHIVED (DO era, host retired 2026-08-19): kept as reference, not wired to
+# any current job. The object storage bucket it targeted no longer exists.
+#
+# Downloads all manifests from the audit bucket for the past 90 days, sorts by
 # timestamp, recomputes the hash chain, and alerts via Telegram if any
 # mismatch is found.
 ###############################################################################
 
-SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-cd-audit-logs}"
+SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-audit-logs-bucket}"
 WORK_DIR=$(mktemp -d /tmp/audit-verify.XXXXXX)
-CHAIN_DIR="/root/COREDIRECTIVE_ENGINE/CD_BACKUPS/audit-chain"
+CHAIN_DIR="${AUDIT_CHAIN_DIR:-/opt/engine/backups/audit-chain}"
 N8N_WEBHOOK="${N8N_WEBHOOK_URL}"
 CHAT_ID="${TELEGRAM_CHAT_ID}"
 

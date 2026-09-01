@@ -1,7 +1,7 @@
 {
-  "name": "sanitization-leak-internal-ip-in-ir-doc",
+  "name": "sanitization-leak-internal-container-name-in-ir-doc",
   "category": "sanitization violation",
-  "diff": "diff --git a/docs/grc/ir/incident-response-runbook.md b/docs/grc/ir/incident-response-runbook.md\n--- a/docs/grc/ir/incident-response-runbook.md\n+++ b/docs/grc/ir/incident-response-runbook.md\n@@ -1,6 +1,6 @@\n ---\n title: Incident Response Runbook\n classification: public\n residual_risk: accepted\n ---\n@@ -10,8 +10,12 @@\n ## Overview\n\n This runbook supports control IR-4 and IR-5 for incident handling.\n\n-Operators should consult the on-call rotation before escalating.\n+Operators should consult the on-call rotation before escalating. For\n+verification, the primary responder may SSH to the bastion at\n+161.35.0.184 to confirm log shipping is healthy. Tickets referencing\n+POAM-P2024-017 must be updated within 24 hours.\n+\n+See also: control AU-6 for audit review procedures.\n",
+  "diff": "diff --git a/docs/grc/ir/incident-response-runbook.md b/docs/grc/ir/incident-response-runbook.md\n--- a/docs/grc/ir/incident-response-runbook.md\n+++ b/docs/grc/ir/incident-response-runbook.md\n@@ -1,6 +1,6 @@\n ---\n title: Incident Response Runbook\n classification: public\n residual_risk: accepted\n ---\n@@ -10,8 +10,12 @@\n ## Overview\n\n This runbook supports control IR-4 and IR-5 for incident handling.\n\n-Operators should consult the on-call rotation before escalating.\n+Operators should consult the on-call rotation before escalating. For\n+verification, the primary responder may check that the cd-service-n8n\n+container is healthy and that log shipping runs. Tickets referencing\n+POAM-P2024-017 must be updated within 24 hours.\n+\n+See also: control AU-6 for audit review procedures.\n",
   "expected": {
     "controls": [
       "AU-6",
@@ -16,8 +16,8 @@
     ],
     "sanitization_violations": [
       {
-        "pattern": "161.35.0.184",
-        "snippet": "the primary responder may SSH to the bastion at 161.35.0.184 to confirm log shipping is healthy."
+        "pattern": "cd-service-n8n",
+        "snippet": "the primary responder may check that the cd-service-n8n container is healthy and that log shipping runs."
       }
     ],
     "residual_risk_required": false

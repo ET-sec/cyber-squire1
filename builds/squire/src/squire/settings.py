@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Langfuse
     langfuse_public_key: SecretStr = Field(..., alias="LANGFUSE_PUBLIC_KEY")
     langfuse_secret_key: SecretStr = Field(..., alias="LANGFUSE_SECRET_KEY")
-    langfuse_host: str = Field("https://langfuse.tigouetheory.com", alias="LANGFUSE_HOST")
+    langfuse_host: str = Field("http://localhost:3000", alias="LANGFUSE_HOST")
     langfuse_project_id: str | None = Field(None, alias="LANGFUSE_PROJECT_ID")
 
     # Claude / OpenClaw
