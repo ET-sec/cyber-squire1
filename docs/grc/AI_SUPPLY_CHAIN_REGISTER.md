@@ -77,7 +77,7 @@ Risk Score rubric:
 | Component | Version | Provider | License | Hash / Digest | Updated | Next Review | Risk Score | Notes |
 |-----------|---------|----------|---------|---------------|---------|-------------|------------|-------|
 | claude-fable-5 | claude-fable-5 (2026 release) | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 5 | Primary reasoning on investigate, draft, critique. Temperature param rejected by this model, APIBackend handles. |
-| claude-sonnet-4-6 | claude-sonnet-4-6 | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 4 | Classifier on classify node. Temperature accepted. |
+| claude-opus-5 | claude-opus-5 | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-09-01 | 2026-11-01 | 4 | Classifier on classify node. Temperature accepted. |
 | text-embedding-3-large | v3-large, 1536 dim | OpenAI | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 4 | Used at corpus embed time, not at runtime. Corpus rebuild required on provider drift. |
 
 ### 3.2 Orchestration and Observability

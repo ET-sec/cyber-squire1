@@ -260,7 +260,7 @@ def build_ssp() -> dict:
                     "through seven nodes: classify, retrieve, enrich, investigate, "
                     "draft, critique, route. NeMo Guardrails sidecar provides "
                     "input and output rails. Langfuse provides observability. "
-                    "Inference via Anthropic Fable 5 and Sonnet 4.6 with Ollama "
+                    "Inference via Anthropic Fable 5 and Opus 5 with Ollama "
                     "fallback."
                 ),
                 "security-sensitivity-level": "low",

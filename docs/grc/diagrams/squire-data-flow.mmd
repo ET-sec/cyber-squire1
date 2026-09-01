@@ -40,7 +40,7 @@ sequenceDiagram
         DB-->>GR: ir_chunks
         GR->>TV: enrichment query (optional)
         TV-->>GR: search results
-        GR->>AN: classify (Sonnet 4.6)
+        GR->>AN: classify (Opus 5)
         AN-->>GR: severity
         loop critique loop max 3
             GR->>AN: draft + critique (Fable 5)

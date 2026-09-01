@@ -34,12 +34,12 @@ flowchart TB
 
   subgraph GRAPH["LangGraph state machine (7 nodes) · pending ARM rebuild"]
     direction TB
-    N1["classify<br/>Sonnet 4.6 · 12 s p95"]:::node
+    N1["classify<br/>Opus 5 · 12 s p95"]:::node
     N2["retrieve<br/>pgvector cosine search<br/>top-k=8 · 1.5 s p95"]:::node
     N3["enrich<br/>2.5 s p95"]:::node
-    N4["investigate<br/>Opus · 29 s p95"]:::node
-    N5["draft<br/>Opus · 70 s p95"]:::node
-    N6{{"critique<br/>Opus · 12 s p95<br/>APPROVED / LOOP verdict"}}:::node
+    N4["investigate<br/>Fable 5 · 29 s p95"]:::node
+    N5["draft<br/>Fable 5 · 70 s p95"]:::node
+    N6{{"critique<br/>Fable 5 · 12 s p95<br/>APPROVED / LOOP verdict"}}:::node
     N7["route_severity<br/>0.1 s"]:::node
   end
 
@@ -54,8 +54,8 @@ flowchart TB
 
   subgraph MODELS["Models · external"]
     direction LR
-    OPUS["Anthropic API<br/>Opus tier<br/>investigate · draft · critique"]:::model
-    SONNET["Anthropic API<br/>Sonnet tier<br/>classify"]:::model
+    FABLE["Anthropic API<br/>Fable 5 tier<br/>investigate · draft · critique"]:::model
+    OPUS5["Anthropic API<br/>Opus 5 tier<br/>classify"]:::model
     OLLM["Ollama local<br/>fallback when degraded<br/>(pending ARM rebuild)"]:::pending
     VOYE["Voyage<br/>voyage-3-large 1024-dim"]:::model
   end
@@ -98,10 +98,10 @@ flowchart TB
   N6 -->|validate| CITE
   N6 -->|enforce caps| LOOP
 
-  N1 --> SONNET
-  N4 --> OPUS
-  N5 --> OPUS
-  N6 --> OPUS
+  N1 --> OPUS5
+  N4 --> FABLE
+  N5 --> FABLE
+  N6 --> FABLE
   N4 -->|fallback| OLLM
 
   DEDUP <--> REDIS

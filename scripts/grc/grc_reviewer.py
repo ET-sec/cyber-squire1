@@ -1,7 +1,7 @@
 """GRC PR reviewer agent.
 
 Reads a unified diff (either via `gh pr diff <pr_number>` or from a local
-file via `--diff-file`), calls Claude Sonnet 4.6 (escalating to Fable 5
+file via `--diff-file`), calls Claude Opus 5 (escalating to Fable 5
 on large diffs) with a cached system prompt sourced from
 `scripts/grc/grc_reference.md` plus the corpus index from
 `docs/grc/README.md`, parses structured JSON, sanitizes output, and
@@ -11,7 +11,7 @@ Defensive primitives owned by this script:
   * Daily Anthropic budget guard subprocess (first call)
   * Oversized diff guard (100KB) - skips LLM call entirely
   * Mixed-PR detection (warns; does not block)
-  * Model escalation (Sonnet -> Opus on >50KB or >5 files)
+  * Model escalation (Opus 5 -> Fable 5 on >50KB or >5 files)
   * Spend ledger record per call
   * sanitize_output.sanitize() final pass before any PR comment
 
@@ -51,7 +51,7 @@ _GRC_REFERENCE: Optional[str] = None
 _CORPUS_INDEX: Optional[str] = None
 _SYSTEM_PROMPT: Optional[str] = None
 
-DEFAULT_MODEL = "claude-sonnet-4-6"
+DEFAULT_MODEL = "claude-opus-5"
 ESCALATION_MODEL = "claude-fable-5"
 DIFF_HARD_SKIP_BYTES = 100_000
 DIFF_ESCALATE_BYTES = 50_000

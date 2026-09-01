@@ -37,7 +37,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC.KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          config.model: "anthropic/claude-sonnet-4-6"
+          config.model: "anthropic/claude-opus-5"
           config.fallback_models: '["anthropic/claude-fable-5"]'
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "true"

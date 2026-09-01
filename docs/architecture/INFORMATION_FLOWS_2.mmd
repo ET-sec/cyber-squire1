@@ -32,7 +32,7 @@ flowchart TB
 
   subgraph DOCAGENT["**GRC reviewer agent** (docs/grc/** only)"]
     direction TB
-    GRCREV["scripts/grc/grc_reviewer.py<br/>Sonnet default<br/>Opus escalation<br/>(over 50 KB or over 5 files)"]:::agent
+    GRCREV["scripts/grc/grc_reviewer.py<br/>Opus 5 default<br/>Fable 5 escalation<br/>(over 50 KB or over 5 files)"]:::agent
     PCACHE["**Prompt caching**<br/>cached system block<br/>cache_control: ephemeral"]:::agent
     GRCREF["scripts/grc/grc_reference.md<br/>NIST + POA&M reference tokens"]:::store
     SAN["sanitize_output.py<br/>10 patterns · POA&M/NIST passthrough"]:::gate
@@ -40,7 +40,7 @@ flowchart TB
 
   subgraph CODEAGENT["**PR-Agent** (code paths only)"]
     direction TB
-    PRA["qodo-ai/pr-agent<br/>pinned by 40-char SHA<br/>Sonnet default<br/>Opus fallback"]:::agent
+    PRA["qodo-ai/pr-agent<br/>pinned by 40-char SHA<br/>Opus 5 default<br/>Fable 5 fallback"]:::agent
     PRACONF[".pr_agent.toml<br/>describe + review + improve<br/>100k token cap"]:::store
   end
 
@@ -74,7 +74,7 @@ flowchart TB
     LEDGER[("local SQLite spend ledger<br/>+ Anthropic admin API")]:::store
   end
 
-  ANTH["Anthropic API<br/>Sonnet / Opus"]:::model
+  ANTH["Anthropic API<br/>Opus 5 / Fable 5"]:::model
   COMMENT["**PR comment**<br/>NIST mapping + POA&M deltas<br/>+ residual_risk required"]:::out
 
   PR --> PATH
