@@ -6,7 +6,9 @@
 **Methodology:** Manual Security Code Review, OWASP Code Review Guide v2.0, CWE/SANS Top 25
 **NIST 800-53 Controls:** SA-11 (Developer Testing and Evaluation), SA-15 (Development Process, Standards, and Tools), RA-5 (Vulnerability Monitoring and Scanning), CM-6 (Configuration Settings)
 **Classification:** Internal Use Only
-**Version:** 1.0
+**Version:** 1.1
+
+> **Status note (2026-08-31):** infrastructure has since migrated to Oracle Cloud (OCI); see docs/architecture/ for the current stack. Findings below describe the environment as assessed on the assessment date, including the object storage state backend then in use. The 19-service compose environment reviewed here was retired with the DigitalOcean host in 2026-08; open items roll into the OCI re-baseline.
 
 ---
 
@@ -209,7 +211,7 @@ This finding is accepted with compensating controls for the following reasons:
 |---------|-------------|
 | File permissions | `.env` file permissions set to `chmod 600` (root read/write only) |
 | Git exclusion | `.env` file is listed in `.gitignore` and is not tracked in version control |
-| Source of truth | External secrets manager serves as the external secrets manager and source of truth for all 44 secrets. The `.env` file is a deployment artifact, not the canonical store. |
+| Source of truth | The managed secrets platform is the source of truth for all 44 runtime credentials. The `.env` file is a deployment artifact, not the canonical store. |
 | Rotation capability | Secrets can be rotated through the external secrets manager and redeployed without manual editing of the `.env` file |
 | SSH access control | Host access requires SSH with ed25519 key authentication through a zero-trust tunnel. No password-based SSH. |
 | Runtime detection | Falco (svc-detection) monitors for sensitive file reads on the host, including reads of `.env` and `/proc/*/environ` |
@@ -267,7 +269,7 @@ terraform {
     endpoints = {
       s3 = "https://region.cloud-provider-spaces.example.com"
     }
-    bucket = "cd-terraform-state"
+    bucket = "org-terraform-state"
     key    = "terraform.tfstate"
     region = "us-east-1"
 
@@ -348,7 +350,7 @@ This finding is accepted because:
 
 #### Description
 
-The Master Orchestrator workflow (svc-automation) exposes a webhook endpoint at `/webhook/master-cmd` that accepts POST requests with a JSON body containing an `action` parameter. This parameter routes the request to one of 16 service integration handlers:
+The Master Orchestrator workflow (svc-automation) exposes a webhook endpoint at `/webhook/<redacted-route>` that accepts POST requests with a JSON body containing an `action` parameter. This parameter routes the request to one of 16 service integration handlers:
 
 ```
 postgres, telegram, github, drive, tasks, sheets, docs, slides,
@@ -370,7 +372,7 @@ The webhook node configuration (sanitized) shows no input validation:
 ```json
 {
   "webhookId": "[redacted]",
-  "path": "master-cmd",
+  "path": "<redacted-route>",
   "httpMethod": "POST",
   "responseMode": "lastNode",
   "options": {}
@@ -383,7 +385,7 @@ Example of a probing request:
 
 ```bash
 # Probe with a valid action and crafted payload
-curl -X POST https://automation.example-ops.com/webhook/master-cmd \
+curl -X POST https://automation.example-ops.com/webhook/<redacted-route> \
   -H "Content-Type: application/json" \
   -d '{"action": "postgres", "query": "SELECT version()"}'
 ```
@@ -403,7 +405,7 @@ If the webhook URL is known, this request would execute against the database wit
 
 This finding is accepted for the following reasons:
 
-1. **Webhook URL obscurity.** The webhook path is not a predictable value and is not exposed in any public documentation or API listing.
+1. **Webhook URL obscurity.** The path is redacted in this public copy; the accepted risk is tracked pending the auth-header remediation.
 2. **Cloudflare Tunnel restriction.** The webhook is only accessible through the Cloudflare Tunnel, which limits the attack surface to traffic routed through `automation.example-ops.com`.
 3. **Switch node validation.** While validation occurs late in the processing chain, the Switch node does reject unknown action values. Only the 16 defined actions are processed.
 
@@ -411,7 +413,7 @@ This finding is accepted for the following reasons:
 
 | Control | Description |
 |---------|-------------|
-| URL obscurity | Webhook path is not predictable or publicly documented |
+| URL obscurity | Path is redacted in this public copy; the accepted risk is tracked pending the auth-header remediation |
 | Cloudflare Tunnel | Traffic restricted to tunnel-routed requests only. No direct port exposure. |
 | Switch node validation | Unknown `action` values are rejected at the Switch node with an error response |
 | Rate limiting | Cloudflare provides DDoS protection and rate limiting at the tunnel edge |
@@ -548,20 +550,20 @@ The following table maps each finding to the NIST 800-53 Rev. 5 controls that ar
 
 ## 6. Remediation Tracking
 
-> Status as of 2026-06-24 audit refresh: all OPEN items below have crossed their original target date. Statuses below carry a Past Due flag and a TODO; owner verification required before flipping any row to COMPLETE.
+> Status as of 2026-06-24 audit refresh: all OPEN items below have crossed their original target date and carry a Past Due flag. With the reviewed environment retired in 2026-08, remaining open items roll into the OCI re-baseline rather than being closed against the old host.
 
 | Finding | Action Item | Owner | Target Date | Status |
 |---------|------------|-------|-------------|--------|
 | CR-001-F1 | Enable `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` | System Owner | 2026-03-22 | COMPLETE |
-| CR-001-F2 | Migrate to Vault AppRole dynamic credentials | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify Vault AppRole migration status. --> |
-| CR-001-F3 | Enable Spaces bucket encryption at rest | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify Spaces encryption status. --> |
-| CR-001-F3 | Add OPA policy for storage encryption enforcement | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify OPA storage-encryption policy status. --> |
-| CR-001-F3 | Enable Spaces bucket access logging | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) <!-- TODO(et): verify Spaces bucket access logging status. --> |
-| CR-001-F4 | Add webhook authentication header validation | System Owner | 2026-05-22 | OPEN (Past Due) <!-- TODO(et): verify webhook auth header validation status. --> |
-| CR-001-F4 | Add action allowlist validation at webhook entry | System Owner | 2026-05-22 | OPEN (Past Due) <!-- TODO(et): verify action allowlist status. --> |
-| CR-001-F4 | Add per-action parameter validation | System Owner | 2026-06-22 | OPEN (Past Due) <!-- TODO(et): verify per-action parameter validation status. --> |
-| CR-001-F5 | Implement quarterly tunnel token rotation | System Owner | 2026-06-22 | OPEN (Past Due) <!-- TODO(et): verify tunnel token rotation cadence is live. --> |
-| CR-001-F5 | Configure Cloudflare connector registration alerts | System Owner | 2026-05-22 | OPEN (Past Due) <!-- TODO(et): verify Cloudflare connector alert configuration. --> |
+| CR-001-F2 | Migrate to Vault AppRole dynamic credentials | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) |
+| CR-001-F3 | Enable Spaces bucket encryption at rest | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) |
+| CR-001-F3 | Add OPA policy for storage encryption enforcement | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) |
+| CR-001-F3 | Enable Spaces bucket access logging | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) |
+| CR-001-F4 | Add webhook authentication header validation | System Owner | 2026-05-22 | OPEN (Past Due) |
+| CR-001-F4 | Add action allowlist validation at webhook entry | System Owner | 2026-05-22 | OPEN (Past Due) |
+| CR-001-F4 | Add per-action parameter validation | System Owner | 2026-06-22 | OPEN (Past Due) |
+| CR-001-F5 | Implement quarterly tunnel token rotation | System Owner | 2026-06-22 | OPEN (Past Due) |
+| CR-001-F5 | Configure Cloudflare connector registration alerts | System Owner | 2026-05-22 | OPEN (Past Due) |
 
 ---
 

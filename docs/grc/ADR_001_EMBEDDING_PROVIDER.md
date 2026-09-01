@@ -1,5 +1,7 @@
 # ADR 001: Embedding Provider Selection for Squire RAG
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 **Status:** Accepted
 **Date:** 2026-04-23
 **Phase:** 17-07 (Squire GRC ingestion)
@@ -28,8 +30,8 @@ Cloud API call to OpenAI's embeddings endpoint. 1536-dimensional vectors. Proven
 
 Self-hosted embedding model running inside the Squire container. 1024-dimensional vectors. Open-source weights published under MIT license.
 
-- **Cost:** Zero external spend. Amortized droplet CPU only.
-- **Latency:** Ten to forty milliseconds per query depending on CPU contention with other droplet services.
+- **Cost:** Zero external spend. Amortized host CPU only.
+- **Latency:** Ten to forty milliseconds per query depending on CPU contention with other host services.
 - **Data path:** Alert text never leaves the deployment boundary. Fully air-gap capable.
 - **Overhead:** Container image grows by approximately 450 MB. Schema requires a one-line vector dimension change from 1536 to 1024.
 
@@ -49,7 +51,7 @@ The choice is driven by four factors:
 
 1. **Anthropic-native stack coherence.** The rest of Squire runs on Claude Fable 5 (reasoning) and Claude Sonnet 4.6 (classification). Voyage is the embedding provider Anthropic explicitly recommends in its RAG documentation, producing a clean single-vendor narrative for commercial interviews (Dropzone, Prophet, Resilience, OneDigital) while still matching or exceeding OpenAI quality on MTEB retrieval benchmarks.
 2. **Zero marginal cost.** Voyage's free tier covers 200 million tokens per month. Squire's 41-document corpus is approximately 1 million tokens after chunking, so the free tier has 200 times the headroom for the initial ingest and every subsequent re-embed. Under the current 12-week-year financial constraint, zero is the right price.
-3. **Ownership trajectory.** MongoDB acquired Voyage AI in February 2024. MongoDB is the database layer most commonly deployed alongside pgvector-style vector stacks in AI security products, and their GitHub Education benefit is one Emmanuel can activate as a peripheral resume-building step. Using Voyage positions the stack inside an ecosystem that is actively consolidating.
+3. **Ownership trajectory.** MongoDB acquired Voyage AI in February 2024. MongoDB is the database layer most commonly deployed alongside pgvector-style vector stacks in AI security products, and their GitHub Education benefit is one the System Owner can activate as a peripheral resume-building step. Using Voyage positions the stack inside an ecosystem that is actively consolidating.
 4. **Dimension alignment with the air-gap fallback.** Voyage returns 1024-dimensional vectors by default. `BAAI/bge-large-en-v1.5` (Option B, the air-gap fallback) also returns 1024-dimensional vectors. Standardizing on 1024 dims across both the commercial and air-gapped deployment modes means swapping providers never requires a re-index or another schema migration. The 1024 choice is the dimension that makes operational portability free.
 
 The reference deployment processes synthetic alerts against a sanitized GRC corpus, so the data-residency disadvantage of a cloud embedding service does not apply to the current use case. Production customer deployments that cannot send alert content to external APIs are covered by the swap procedure below.

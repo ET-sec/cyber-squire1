@@ -295,7 +295,7 @@ Applies to all three AI systems within the authorization boundary and their down
   - Add explicit refusal directives for the observed attack pattern
   - Reinforce separation between system instructions and user input
 
-- [ ] **Step A.4.4**: If the injection leveraged a skill (browser, tavily-search, GitHub, Notion, python-interpreter, Gemini), restrict or temporarily disable that skill:
+- [ ] **Step A.4.4**: If the injection used a skill (browser, tavily-search, GitHub, Notion, python-interpreter, Gemini), restrict or temporarily disable that skill:
   ```bash
   # Update svc-ai-gateway configuration at /root/moltbot/config-dir/openclaw.json
   # Restart the gateway to apply. OpenClaw is standalone.

@@ -8,6 +8,8 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** AU-2 (Event Logging), AU-3 (Content of Audit Records), AU-4 (Audit Log Storage Capacity), AU-6 (Audit Record Review), AU-9 (Protection of Audit Information), AU-11 (Audit Record Retention)
 
+> **Status note (2026-09-01):** this specification describes the DO-era baseline; that environment was retired in 2026-08. A re-baseline against the current OCI stack is queued.
+
 ---
 
 ## Document Control
@@ -125,8 +127,8 @@ Container logs, latency histograms, error rates. Shipped via fluentd. Structured
 
 | Store | Hot | Cold |
 |-------|-----|------|
-| Langfuse ClickHouse | 90 days TTL | Monthly export to DO Spaces `langfuse-traces/` (indefinite) |
-| svc-db `ir_*` tables | 90 days retained | Nightly pg_dump to DO Spaces `nightly/` (14 days), monthly snapshot to `archive/` (indefinite) |
+| Langfuse ClickHouse | 90 days TTL | Monthly export to cloud object storage `langfuse-traces/` (indefinite) |
+| svc-db `ir_*` tables | 90 days retained | Nightly pg_dump to cloud object storage `nightly/` (14 days), monthly snapshot to `archive/` (indefinite) |
 | Datadog | 15 days indexed, 1 year archived | Covered by Datadog plan |
 
 ### 4.1 Cold Storage Path
@@ -134,11 +136,9 @@ Container logs, latency histograms, error rates. Shipped via fluentd. Structured
 Phase 7 established the immutable log export path. Same path is reused here:
 
 1. Monthly cron dumps `ir_*` tables as SQL to `/var/backups/platform/<month>/`
-2. `aws s3 cp` uploads to DO Spaces `archive/ir/<month>/`
+2. `aws s3 cp` uploads to cloud object storage `archive/ir/<month>/`
 3. Spaces Object Lock governs the `archive/` prefix with retention set to Retain Until date equal to 7 years from upload. This 7-year window exceeds the HIPAA 6-year documentation floor at 45 CFR 164.530(j) and is the canonical retention figure that HIPAA_EPHI_HANDLING.md and HIPAA_SECURITY_RULE_CROSSWALK.md both reference.
 4. SHA-256 manifest written to `archive/ir/<month>/MANIFEST.sha256` before Object Lock engages
-
-<!-- TODO(et): confirm the monthly cron is actually scheduled on the alpha-node and that the first month's archive has been written; if not yet built, mark this section as design-state and capture the cutover date when the first archive lands. -->
 
 ### 4.2 Deletion
 
@@ -184,7 +184,7 @@ Full cryptographic notarization (e.g. via a separate append-only log with per-ro
 |-------|------|----------|
 | System owner | Teleport to alpha-node, direct psql | Teleport RBAC, session recording |
 | Langfuse UI user | https://langfuse.example-ops.com | Langfuse OAuth, project-scoped |
-| Datadog user | us5.datadoghq.com | SSO, role-based |
+| Datadog user | datadoghq.com (org SSO portal) | SSO, role-based |
 | svc-squire (application) | psql role `squire_app` | INSERT + limited UPDATE only |
 | Auditor (external) | Cold storage read-only presigned URLs | Time-bound, IP-scoped |
 
@@ -243,7 +243,7 @@ Commands run from a Teleport-gated session with the auditor-facing role:
 3. Script pulls the structured rows from svc-db, the trace JSONL from Langfuse, and the referenced chunks from `ir_chunks`
 4. Script computes SHA-256 over every file and writes `manifest.json`
 5. Bundle is tar.gz'd and signed with a cosign key held by the system owner
-6. Signed bundle uploaded to DO Spaces `audit-bundles/<requestor>/<date>.tar.gz.sig`
+6. Signed bundle uploaded to cloud object storage `audit-bundles/<requestor>/<date>.tar.gz.sig`
 7. Presigned URL returned to the auditor with a 7-day expiration
 
 The signing step is the evidence authenticity anchor. Any tampering with a file in the bundle invalidates the cosign signature. Storage side, Object Lock governs the bundle to prevent in-place modification.

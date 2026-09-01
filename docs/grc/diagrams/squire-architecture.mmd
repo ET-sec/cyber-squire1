@@ -1,5 +1,5 @@
 ---
-title: Squire Deployed Architecture - host-alpha topology
+title: Squire Architecture - host-alpha design baseline
 ---
 flowchart TB
     subgraph EXT["EXTERNAL"]
@@ -16,7 +16,7 @@ flowchart TB
         R3["langfuse.example-ops.com"]
     end
 
-    subgraph HOST["host-alpha droplet - /opt/platform"]
+    subgraph HOST["host-alpha instance - /opt/platform"]
         subgraph SQ["Squire stack"]
             SVC["svc-squire<br/>FastAPI + LangGraph"]
             NM["svc-nemo<br/>Guardrails sidecar"]
@@ -52,7 +52,7 @@ flowchart TB
     TUN --> R2
     TUN --> R3
 
-    R1 -->|x-squire-token| SVC
+    R1 -->|auth header| SVC
     R2 --> N8
     R3 --> LW
 

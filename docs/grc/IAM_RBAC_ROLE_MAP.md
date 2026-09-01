@@ -78,7 +78,7 @@ graph TD
 | `cd-operator` | Day-to-day operational access, can manage workflows and containers | Future ops staff | `organization-realm.json` |
 | `cd-auditor` | Read-only access to audit logs, session recordings, and compliance data | Future auditors | `organization-realm.json` |
 
-<!-- TODO(et): confirm SANITIZATION_KEY.md maps the real `coredirective-realm.json` to the sanitized `organization-realm.json` filename used here so external readers can trace the file. -->
+<!-- TODO(et): confirm SANITIZATION_KEY.md maps the realm export to the sanitized `organization-realm.json` filename used here so external readers can trace the file. -->
 
 ### Access Gateway Roles (gateway-config.yaml)
 

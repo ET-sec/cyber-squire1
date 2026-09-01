@@ -22,6 +22,8 @@ related:
   - POAM-OPS-001
 ---
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 # System Security Plan: Squire Autonomous SOC Analyst
 
 **Document Identifier:** SSP-SQUIRE-001
@@ -299,7 +301,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | AU-2 | Implemented | Four audit event types: (1) every `/alert` call emits a Langfuse trace with cost, latency, rail outcomes; (2) every pre-graph block writes a row to `ir_pregraph_blocks`; (3) every recommend-only rewrite writes to `ir_sanitization_events`; (4) every replay writes to `ir_replay_events`. | `builds/squire/app/audit.py` |
 | AU-3 | Implemented | Audit records include: timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms. | Langfuse schema + `ir_*` DDL in migrations/002 |
-| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to Telegram `@Coredirective_bot`. Weekly human review of red-team regression runs. | `builds/squire/scripts/daily_audit.py` |
+| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to the operations Telegram bot. Weekly human review of red-team regression runs. | `builds/squire/scripts/daily_audit.py` |
 | AU-9 | Implemented | Langfuse writes are append-only from the worker's perspective. The Postgres table holding traces has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly `pg_dump` to DO Spaces (14-day retention). | `svc-db` role `langfuse_rw` grants INSERT, SELECT only |
 | AU-12 | Implemented | Audit generation is immutable at the code path: every graph node is instrumented with `@observe()` from `langfuse.decorators`. Removing the decorator breaks CI because `tests/test_trace_coverage.py` enumerates nodes. | `builds/squire/tests/test_trace_coverage.py` |
 

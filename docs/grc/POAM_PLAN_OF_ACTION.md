@@ -17,6 +17,8 @@ related:
   - AITC-OPS-001
 ---
 
+> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+
 # Plan of Action and Milestones (POA&M)
 
 **System Name:** Organization Security Operations Platform

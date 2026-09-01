@@ -21,7 +21,7 @@ sequenceDiagram
         participant LR as svc-langfuse-redis
     end
 
-    N->>API: POST /alert (x-squire-token)
+    N->>API: POST /alert (auth header)
     API->>API: Token auth check + Cloudflare rate limit
     API->>LR: increment daily cost counter
     LR-->>API: under ceiling

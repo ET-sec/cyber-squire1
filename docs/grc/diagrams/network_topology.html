@@ -1,0 +1,231 @@
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    width:2160px; background:#0a0a0a; color:#e8e8e8;
+    font-family:'Inter','Helvetica Neue',Arial,sans-serif;
+    padding:70px 80px 60px;
+  }
+  .mono { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; }
+  .green { color:#00FF41; }
+
+  h1 { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:92px; letter-spacing:2px; }
+  .subtitle { font-size:38px; color:#a8b0b8; margin-top:18px; max-width:1900px; line-height:1.35; }
+
+  .legend { display:flex; gap:28px; margin:44px 0 50px; flex-wrap:wrap; }
+  .lg { display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#c8ced4; }
+  .sw { width:34px; height:34px; border-radius:8px; }
+  .sw.live { background:rgba(0,255,65,.18); border:3px solid #00FF41; }
+  .sw.pend { background:rgba(255,176,32,.10); border:3px dashed #FFB020; }
+  .sw.ver  { background:transparent; border:3px solid #00FF41; border-radius:50%; }
+  .sw.def  { background:transparent; border:3px solid #FF5C5C; border-radius:50%; }
+
+  .zone { border-radius:26px; padding:36px 40px 40px; position:relative; }
+  .zlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:52px; letter-spacing:1px; margin-bottom:10px; }
+  .zsub { font-size:32px; color:#9aa2aa; margin-bottom:26px; line-height:1.35; }
+
+  .z-red   { border:3px solid #FF5C5C; background:rgba(255,92,92,.05); }
+  .z-red   .zlabel { color:#FF7A7A; }
+  .z-blue  { border:3px solid #4DA3FF; background:rgba(77,163,255,.05); }
+  .z-blue  .zlabel { color:#7CBAFF; }
+  .z-orange{ border:3px solid #F6821F; background:rgba(246,130,31,.05); }
+  .z-orange .zlabel { color:#FF9C42; }
+  .z-green { border:3px solid #00FF41; background:rgba(0,255,65,.04); }
+  .z-green .zlabel { color:#00FF41; }
+  .z-grey  { border:3px solid #6a7480; background:rgba(150,160,170,.05); }
+  .z-grey  .zlabel { color:#aab6c2; }
+
+  .grid2 { display:grid; grid-template-columns:1.08fr .92fr; gap:44px; }
+
+  .node { background:#121417; border:2px solid #2c3138; border-radius:18px; padding:28px 30px; }
+  .node + .node { margin-top:24px; }
+  .nlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:44px; color:#f2f4f6; line-height:1.25; }
+  .nsub { font-size:32px; color:#a2aab2; margin-top:12px; line-height:1.4; }
+
+  .chip { display:inline-block; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px;
+          border-radius:12px; padding:10px 18px; margin-top:16px; margin-right:14px; line-height:1.35; }
+  .verified { border:2px solid #00FF41; color:#7dffA3; background:rgba(0,255,65,.07); }
+  .defeats  { border:2px solid #FF5C5C; color:#FF9B9B; background:rgba(255,92,92,.06); }
+  .badge    { border:2px solid #4DA3FF; color:#9CCBFF; background:rgba(77,163,255,.08); }
+
+  .connrow { display:grid; grid-template-columns:1.08fr .92fr; gap:44px; }
+  .conn { display:flex; flex-direction:column; align-items:center; padding:8px 0; }
+  .cline { width:6px; height:56px; background:#00FF41; }
+  .chead { width:0; height:0; border-left:18px solid transparent; border-right:18px solid transparent; border-top:28px solid #00FF41; }
+  .clabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; color:#cfd6dc; text-align:center;
+            margin:14px 0; max-width:880px; line-height:1.4; }
+  .conn .verified { margin-top:2px; margin-bottom:12px; }
+
+  .oci-badge { position:absolute; top:34px; right:40px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace;
+               font-size:36px; color:#0a0a0a; background:#00FF41; border-radius:14px; padding:12px 24px; font-weight:700; }
+
+  .subzone { border:2px solid #3a4148; border-radius:20px; padding:30px 32px; background:rgba(255,255,255,.015); }
+  .szlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:48px; color:#dfe5ea; margin-bottom:8px; }
+  .szsub { font-size:31px; color:#98a0a8; margin-bottom:24px; line-height:1.4; }
+
+  .livebox { border:3px solid #00FF41; background:rgba(0,255,65,.06); border-radius:16px; padding:24px 28px; margin-top:24px; }
+  .liveh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#00FF41; margin-bottom:16px; }
+  .pendbox { border:3px dashed #FFB020; background:rgba(255,176,32,.05); border-radius:16px; padding:24px 28px; margin-top:24px; }
+  .pendh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#FFB020; margin-bottom:16px; }
+  .ctrs { display:flex; flex-wrap:wrap; gap:14px; }
+  .ctr { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; background:#15181c;
+         border:2px solid #33393f; border-radius:12px; padding:12px 20px; color:#dde3e8; }
+  .pendbox .ctr { border-color:#5a4b26; color:#e8cf9a; }
+  .pendnote { font-size:30px; color:#c9a45c; margin-top:18px; line-height:1.4; }
+
+  .footer { margin-top:54px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#78828c; line-height:1.5; }
+</style>
+
+<h1>NETWORK <span class="green">TOPOLOGY</span></h1>
+<div class="subtitle">CoreDirective platform: Oracle Cloud Always Free ARM behind a Cloudflare zero trust edge. Two entry paths, two federation boundaries, no inbound service ports. Verified 2026-08-31.</div>
+
+<div class="legend">
+  <div class="lg"><span class="sw live"></span>LIVE, SERVING TRAFFIC</div>
+  <div class="lg"><span class="sw pend"></span>DESIGNED, PENDING ARM REBUILD</div>
+  <div class="lg"><span class="sw ver"></span>VERIFIED: control tested by forcing the failure</div>
+  <div class="lg"><span class="sw def"></span>DEFEATS: the enemy this control removes</div>
+</div>
+
+<!-- Row 1: the two external principals -->
+<div class="grid2">
+  <div class="zone z-red">
+    <div class="zlabel">ZONE: INTERNET (UNTRUSTED)</div>
+    <div class="zsub">Humans: operators and end users</div>
+    <div class="node">
+      <div class="nlabel">Browser traffic</div>
+      <div class="nsub">No direct path to the origin exists. The only door is the Cloudflare edge hostname.</div>
+    </div>
+  </div>
+  <div class="zone z-blue">
+    <div class="zlabel">EXTERNAL PRINCIPAL: GITHUB CI</div>
+    <div class="zsub">Public repo pipeline: nightly drift cron and security scans</div>
+    <div class="node">
+      <div class="nlabel">GitHub Actions runner</div>
+      <div class="nsub">Holds zero stored cloud keys. Proves its identity per run with a GitHub-signed OIDC token.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: connectors -->
+<div class="connrow">
+  <div class="conn">
+    <div class="clabel">HTTPS to the edge hostname only</div>
+    <div class="cline"></div><div class="chead"></div>
+  </div>
+  <div class="conn">
+    <div class="clabel">OIDC token exchange (RFC 8693): signed JWT in, short-lived OCI session token out</div>
+    <span class="chip verified">VERIFIED: wrong-branch token exchange refused, HTTP 401</span>
+    <div class="cline"></div><div class="chead"></div>
+  </div>
+</div>
+
+<!-- Row 3: edge + identity domain -->
+<div class="grid2">
+  <div class="zone z-orange">
+    <div class="zlabel">ZONE: CLOUDFLARE EDGE</div>
+    <div class="zsub">Every human request is identity-checked before it can reach the platform</div>
+    <div class="node">
+      <div class="nlabel">Access: single sign-on gate</div>
+      <div class="nsub">End users authenticate to an identity provider at the edge; no session, no entry.</div>
+      <span class="chip defeats">DEFEATS: anonymous probing, credential stuffing at the origin</span>
+    </div>
+    <div class="node">
+      <div class="nlabel">WAF + DDoS filtering, DNS</div>
+      <div class="nsub">Edge hostname is the only published name; the origin address is never exposed.</div>
+      <span class="chip defeats">DEFEATS: exploit spray, volumetric floods, origin discovery</span>
+    </div>
+  </div>
+  <div class="zone z-blue">
+    <div class="zlabel">ZONE: OCI IDENTITY DOMAIN</div>
+    <div class="zsub">The trust anchor for the keyless CI path</div>
+    <div class="node">
+      <div class="nlabel">Identity propagation trust rule</div>
+      <div class="nsub">Pins the token subject to this repo and its main branch. Forks, other repos, and feature branches are refused at exchange time.</div>
+    </div>
+    <div class="node">
+      <div class="nlabel">Short-lived session token</div>
+      <div class="nsub">Lives minutes, mapped to a read-only CI principal. The job ends, the credential dies: nothing to steal.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 4: connectors into OCI -->
+<div class="connrow">
+  <div class="conn">
+    <div class="clabel">Outbound-only tunnel: the origin dials out to the edge. Zero inbound service ports listen on the instance.</div>
+    <div class="cline"></div><div class="chead"></div>
+  </div>
+  <div class="conn">
+    <div class="clabel">Read-only nightly terraform plan: compute and storage read scope, cannot mutate anything</div>
+    <div class="cline"></div><div class="chead"></div>
+  </div>
+</div>
+
+<!-- Row 5: the OCI tenancy -->
+<div class="zone z-green">
+  <div class="zlabel">ZONE: ORACLE CLOUD TENANCY</div>
+  <div class="oci-badge">ALWAYS FREE ARM: $0/MONTH</div>
+  <div class="zsub">One compartment, one VCN, one instance, two encrypted buckets</div>
+
+  <div class="grid2">
+    <!-- VCN -->
+    <div class="subzone">
+      <div class="szlabel">VIRTUAL CLOUD NETWORK</div>
+      <div class="szsub">Single public subnet behind an internet gateway</div>
+      <div class="node">
+        <div class="nlabel">Security list: deny by default</div>
+        <div class="nsub">Ingress closed except SSH from operator allow-listed CIDRs (bootstrap and emergency only) and intra-VCN ICMP path MTU. Egress open for the tunnel and APIs.</div>
+        <span class="chip defeats">DEFEATS: internet-wide port scans, opportunistic exploitation</span>
+      </div>
+      <div class="node">
+        <div class="nlabel">Ampere A1 Flex instance (aarch64)</div>
+        <div class="nsub">4 OCPU, 24 GB RAM, 150 GB boot volume. Docker host provisioned by Terraform and cloud-init.</div>
+
+        <div class="livebox">
+          <div class="liveh">LIVE: the only three running containers</div>
+          <div class="ctrs">
+            <span class="ctr">PostgreSQL 16 + pgvector</span>
+            <span class="ctr">n8n automation</span>
+            <span class="ctr">Cloudflare tunnel client</span>
+          </div>
+        </div>
+
+        <div class="pendbox">
+          <div class="pendh">DESIGNED, PENDING ARM REBUILD (not running)</div>
+          <div class="ctrs">
+            <span class="ctr">Vault</span><span class="ctr">Keycloak</span><span class="ctr">Teleport</span>
+            <span class="ctr">Falco</span><span class="ctr">Datadog</span><span class="ctr">Langfuse</span>
+            <span class="ctr">Ollama</span><span class="ctr">NeMo Guardrails</span><span class="ctr">Squire agent</span>
+          </div>
+          <div class="pendnote">Codified in Docker Compose; comes back once images are re-pinned and rebuilt for arm64.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Storage plane -->
+    <div class="subzone">
+      <div class="szlabel">OBJECT STORAGE PLANE</div>
+      <div class="szsub">Both buckets wrapped by one customer-managed key</div>
+      <div class="node">
+        <div class="nlabel">OCI Vault: customer-managed key</div>
+        <div class="nsub">AES-256 key that never leaves the KMS. Envelope model: it wraps per-object data keys, so rotation re-wraps a handful of keys and never re-encrypts data.</div>
+      </div>
+      <div class="node">
+        <div class="nlabel">Terraform state bucket</div>
+        <span class="chip badge">VERSIONED</span><span class="chip badge">NATIVE LOCKING</span><span class="chip badge">CMK ENCRYPTED</span>
+        <div class="nsub">The lock is an atomic create-if-absent object; a second runner cannot win the race.</div>
+        <span class="chip verified">VERIFIED: concurrent run refused, HTTP 412 lock conflict</span>
+      </div>
+      <div class="node">
+        <div class="nlabel">Backup bucket</div>
+        <span class="chip badge">30-DAY RETENTION LOCK</span><span class="chip badge">CMK ENCRYPTED</span>
+        <div class="nsub">Objects are immutable until the retention window expires, even for the account that wrote them. Nightly pg_dump plus n8n volume, uploaded by instance principal: no stored credentials on the host, and the writer holds no delete permission at all.</div>
+        <span class="chip verified">VERIFIED: owner delete refused, retention rule error</span>
+        <span class="chip verified">VERIFIED: monthly restore test, latest 76 tables in 5 seconds</span>
+        <span class="chip defeats">DEFEATS: ransomware backup wipe, stolen-host credential abuse</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript in the private repo.</div>
