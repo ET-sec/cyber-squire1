@@ -254,3 +254,7 @@ builds/resume-rebuild/output/
 stack.env
 COREDIRECTIVE_ENGINE/stack.env
 **/stack.env
+
+# AWS security plane: same hygiene as the OCI dir
+terraform/cd-aws-security-plane/backend.hcl
+terraform/cd-aws-security-plane/lambda/*.zip

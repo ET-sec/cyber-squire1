@@ -173,6 +173,25 @@ Each layer exists because the previous one can be bypassed. Depth is the point.
 
 A secret that reaches a pushed commit stays fetchable by SHA even after a force-push, which is why layers 1 through 3 are fail-closed rather than advisory.
 
+## Security plane: AWS custody split (designed, apply scheduled)
+
+The newest plane extends the multi-cloud posture from lineage to live
+custody: AWS holds what must survive the other two vendors. Evidence vault
+(S3 with versioning, Object Lock compliance mode, customer-managed key),
+cross-cloud break-glass (the sealed OCI emergency credential in Secrets
+Manager, where any read raises a Telegram alert through CloudTrail and
+EventBridge), native GitHub OIDC federation pinned to this repo
+and main, a region guard that denies created principals everything outside
+the home region, and CloudTrail with log file validation archiving into
+the vault. Nothing else runs there: no VPC, no standing compute beyond one
+alert Lambda, near-zero cost by design.
+
+Status follows house rules: the Terraform is public and gate-checked
+(`terraform/cd-aws-security-plane/`, Checkov 134 passed, 0 failed, 11
+reasoned skips), the design record is [DR-05](decisions/DR-05-aws-security-plane.md),
+and no control here is claimed as running until its forced-failure receipt
+exists. The receipt checklist ships in the module README.
+
 ## Trust boundaries, numbered
 
 1. **End users to the stack**: only through the Cloudflare edge. Access (ZTNA) authenticates the human, the tunnel carries the traffic, the origin listens on nothing inbound.
@@ -180,6 +199,7 @@ A secret that reaches a pushed commit stays fetchable by SHA even after a force-
 3. **CI to the cloud**: OIDC token exchange only, minutes-lived, read-only, pinned to repo and branch. No stored keys on either side.
 4. **Host to storage**: instance principal with create/read/inspect only. The host cannot delete its own backups even if fully compromised.
 5. **Repo to public**: the layered pipeline above, plus sanitization convention (illustrative addresses like 10.100.1.10 only, no real hostnames, buckets, or identifiers in public docs).
+6. **Workload cloud to security plane** (designed, apply scheduled): evidence flows one way into the AWS vault through a write-only identity; nothing in AWS can reach back into OCI, and the only OCI material there is the sealed break-glass secret whose access alerts.
 
 ## Counts verified this session
 

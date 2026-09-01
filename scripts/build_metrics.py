@@ -193,6 +193,7 @@ def compute_infra() -> dict:
     # DO directory still holds the Datadog monitor/dashboard definitions
     # (codified, pending the ARM rebuild), so those counts come from there.
     tf_dir = REPO_ROOT / "terraform" / "cd-oci-infrastructure"
+    aws_plane_dir = REPO_ROOT / "terraform" / "cd-aws-security-plane"
     legacy_dir = REPO_ROOT / "terraform" / "cd-do-infrastructure"
     tf_files = list_files(tf_dir, "*.tf")
     legacy_files = list_files(legacy_dir, "*.tf")
@@ -203,6 +204,7 @@ def compute_infra() -> dict:
     dashboards = grep_count(r'^resource "datadog_dashboard"', legacy_files)
     return {
         "terraform_files": len(tf_files),
+        "terraform_files_aws_security_plane": len(sorted(aws_plane_dir.glob("*.tf"))),
         "terraform_files_archived_do": len(legacy_files),
         "opa_policies": len(opa_files),
         "datadog_monitors": monitors,
@@ -350,7 +352,7 @@ def main() -> int:
         "filesystem_root": str(REPO_ROOT),
         "ssp_source": "docs/grc/SSP_*.md",
         "poam_source": "docs/grc/POAM_PLAN_OF_ACTION.md",
-        "terraform_source": "terraform/cd-oci-infrastructure/ (active); terraform/cd-do-infrastructure/ (archived)",
+        "terraform_source": "terraform/cd-oci-infrastructure/ (active); terraform/cd-aws-security-plane/ (designed, apply scheduled); terraform/cd-do-infrastructure/ (archived)",
         "detections_source": "detections/",
         "workflows_source": ".github/workflows/",
         "poam_auto_source": "docs/grc/POAM_AUTO_FINDINGS.md",

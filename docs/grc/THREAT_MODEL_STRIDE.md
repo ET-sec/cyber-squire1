@@ -837,7 +837,7 @@ See `ATTACK_TREE_AI_PIPELINE.md` Phase 17 Scope Extension for the 3 new Squire-s
 
 ## Phase 20.1 Mitigation Update (2026-09-01)
 
-Five controls shipped in Phase 20.1 close attack paths identified in this model. Implementation detail lives in the Terraform repo; residual items are tracked in the POA&M.
+Five controls shipped in Phase 20.1 close attack paths identified in this model; a sixth is designed and gated, closing at apply. Implementation detail lives in the Terraform repo; residual items are tracked in the POA&M.
 
 | # | New control | Attack path closed | STRIDE category |
 |---|-------------|--------------------|-----------------|
@@ -846,6 +846,7 @@ Five controls shipped in Phase 20.1 close attack paths identified in this model.
 | 3 | Customer-managed key (CMK) envelope encryption on state and backup buckets | Provider-default-only encryption at rest | Information Disclosure |
 | 4 | Retention-locked immutable backups with monthly timed restores | Ransomware deleting backups before detonation | Tampering |
 | 5 | Nightly drift detection with Telegram alerting | Unreviewed console changes persisting undetected; window now under 24 hours | Tampering |
+| 6 | AWS security plane (designed, apply scheduled): Object Lock evidence vault, cross-cloud break-glass with alert-on-use, region guard | Single-vendor failure taking evidence, backups, and emergency access together; silent break-glass use | Tampering, Repudiation, Denial of Service |
 
 ---
 

@@ -16,3 +16,4 @@ live execution, not reconstruction.
 | [DR-02](DR-02-workload-identity.md) | Keyless CI via OIDC token exchange | Wrong-branch run refused with 401 |
 | [DR-03](DR-03-data-protection.md) | Customer-managed keys + immutable backups | Owner delete refused with 403; restore timed |
 | [DR-04](DR-04-drift-detection-and-findings-pipeline.md) | Nightly drift detection + self-updating POA&M | Hand-made change detected and alerted |
+| [DR-05](DR-05-aws-security-plane.md) | AWS security and evidence plane (multi-cloud custody split) | Designed and gated; receipts land at apply |
