@@ -1,0 +1,34 @@
+title: Vault Unseal Key or Root Token File Access
+id: 8c8211f6-3b58-4d18-bc48-9f5e2bcf3a2f
+status: stable
+description: |
+  Detects file read activity on Vault unseal key files, root tokens, or recovery
+  key files. Any access outside of a documented bootstrap or rotation event is
+  treated as an unseal attempt or token theft.
+references:
+  - https://attack.mitre.org/techniques/T1552/001/
+  - https://developer.hashicorp.com/vault/docs/concepts/seal
+  - https://github.com/ET-sec/cyber-squire1/blob/main/docs/grc/AI_AUDIT_TRAIL_SPEC.md
+author: Organization Security Engineering
+date: 2026-04-24
+tags:
+  - attack.credential_access
+  - attack.t1552.001
+  - cd.vault
+  - falco.parity
+logsource:
+  category: file_event
+  product: linux
+detection:
+  selection_container:
+    Image|contains: 'svc-vault'
+  selection_files:
+    TargetFilename|contains:
+      - 'unseal'
+      - 'root-token'
+      - 'recovery'
+  condition: selection_container and selection_files
+falsepositives:
+  - Documented unseal during cold start. Track via change management and suppress with a timeboxed exception.
+  - Operator triggered key rotation under runbook RUN-VAULT-ROTATE.
+level: critical
