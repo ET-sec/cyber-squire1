@@ -122,7 +122,7 @@ The hook is your daily seatbelt. GTA is the periodic mechanical inspection.
 | Portfolio HTML | `scripts/sync_portfolio.py` rewrites HTML markers | `~/portfolio/index.html` |
 | Resume PDF | source resume reads `metrics.yaml` at build time (future) | flagship in `~/Library/Mobile Documents/com~apple~CloudDocs/` |
 | IR playbooks (`docs/grc/PLAYBOOK_*.md`) | reference numbers should match `metrics.yaml` (manual today, GTA-enforced) | `docs/grc/PLAYBOOK_*.md` |
-| Architecture diagrams (`docs/grc/diagrams/*.png`) | `gen_*.py` scripts read source docs (e.g. POA&M for `gen_poam_summary.py`) and regen the PNG | `docs/grc/diagrams/gen_*.py` |
+| Architecture diagrams (`docs/grc/diagrams/*.png`) | HTML+CSS sources carry the data with source comments; `render.mjs` (Playwright) renders the PNGs | `docs/grc/diagrams/*.html` + `render.mjs` |
 | LinkedIn / external posts | manual reference | n/a |
 
 ### The portfolio marker pattern
@@ -236,16 +236,18 @@ contact:
 
 ## Adding a new tracked diagram
 
-PNG diagrams under `docs/grc/diagrams/` should have a sibling `gen_*.py` so they regenerate when source data changes. Today four diagrams have generators:
+PNG diagrams under `docs/grc/diagrams/` are rendered from sibling HTML+CSS sources by `render.mjs` (Playwright, replaces the retired matplotlib `gen_*.py` scripts as of 2026-09-01). Five charts use this path today:
 
-- `gen_poam_summary.py`, reads `POAM_PLAN_OF_ACTION.md`
-- `gen_risk_summary_dashboard.py`, reads risk register
-- `gen_risk_heat_map.py`, reads risk register
-- `gen_control_coverage.py`, reads SSP
+- `poam_summary.html`, data from `POAM_PLAN_OF_ACTION.md` + `POAM_AUTO_FINDINGS.md`
+- `risk_summary_dashboard.html` and `risk_heat_map.html`, data from the risk register rows
+- `control_coverage.html`, data from the SSP control table
+- `github_actions_pipeline.html`, data from `.github/workflows/`
+
+Each HTML file states its sources and verification date in a comment at the top. Re-render with `cd docs/grc/diagrams && node render.mjs [name ...]`.
 
 To add a new one:
 
-1. Write `gen_<name>.py` that reads its source markdown directly and writes the PNG.
+1. Write `<name>.html` with the data inline and a source comment, then add it to `TARGETS` in `render.mjs`.
 2. Add the regen rule to `REPO_MAP.yaml` via the GTA manifest scanner: edit the source doc's entry to include `regenerate_when_changed: [docs/grc/diagrams/<name>.png]`.
 3. The hook will not run the regen automatically (it would slow every commit). Instead `regenerate_assets.py` is invoked by GTA Phase 9 or run manually with `python3 ~/.claude/skills/gta/scripts/regenerate_assets.py`.
 

@@ -1,0 +1,120 @@
+<meta charset="utf-8">
+<!-- Sources of truth (verified 2026-09-01):
+     docs/grc/POAM_PLAN_OF_ACTION.md, 42 unique POAM-* entries: 20 open, 7 closed, 15 accepted risk
+       base register (CIS Docker Bench / Checkov / Risk Assessment) 27: 1 closed, 15 accepted, 11 open (9 past due)
+       Squire AI register (POAM-P17-01..15) 15: 6 closed, 9 open
+       combined severity: 2 high, 19 medium, 20 low, 1 informational
+     docs/grc/POAM_AUTO_FINDINGS.md (scanner ledger, poam_sync.py): 75 rows, 0 open, 70 gitleaks + 5 checkov
+     Reconciles with metrics.yaml grc.poam_* keys.
+     Render: node render.mjs -->
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:2160px; background:#0a0a0a; color:#e8e8e8; font-family:'Inter','Helvetica Neue',Arial,sans-serif; padding:80px 80px 60px; }
+  .eyebrow { font-family:'JetBrains Mono',monospace; font-size:38px; color:#00FF41; letter-spacing:6px; }
+  h1 { font-family:'JetBrains Mono',monospace; font-size:92px; letter-spacing:2px; margin-top:16px; }
+  h1 .green { color:#00FF41; }
+  .sub { font-size:40px; color:#a8b0b8; margin-top:18px; max-width:1700px; line-height:1.4; }
+
+  .tiles { display:grid; grid-template-columns:repeat(5,1fr); gap:24px; margin-top:56px; }
+  .tile { border:3px solid #2c3138; border-radius:18px; padding:28px 24px; text-align:center; background:#101216; }
+  .tile .n { font-family:'JetBrains Mono',monospace; font-size:76px; font-weight:700; }
+  .tile .l { font-family:'JetBrains Mono',monospace; font-size:25px; color:#a8b0b8; margin-top:10px; letter-spacing:1px; line-height:1.4; }
+  .t-w { border-color:#e8e8e8; } .t-w .n { color:#fff; }
+  .t-open { border-color:#FFB020; } .t-open .n { color:#FFB020; }
+  .t-closed { border-color:#00FF41; } .t-closed .n { color:#00FF41; }
+  .t-acc { border-color:#4DA3FF; } .t-acc .n { color:#4DA3FF; }
+
+  .cols { display:grid; grid-template-columns:1.25fr 1fr; gap:40px; margin-top:56px; }
+  .panel { border:3px solid #2c3138; border-radius:22px; padding:40px 44px; background:#101216; }
+  .ptitle { font-family:'JetBrains Mono',monospace; font-size:44px; color:#fff; }
+  .psub { font-family:'JetBrains Mono',monospace; font-size:26px; color:#78828c; margin-top:8px; }
+
+  .legend { display:flex; gap:40px; margin-top:30px; font-family:'JetBrains Mono',monospace; font-size:28px; color:#c8ced4; flex-wrap:wrap; }
+  .legend span { display:flex; align-items:center; gap:12px; }
+  .sw { width:30px; height:30px; border-radius:6px; display:inline-block; }
+
+  .row { margin-top:34px; }
+  .rlab { font-family:'JetBrains Mono',monospace; font-size:30px; color:#c8ced4; margin-bottom:12px; }
+  .rlab b { color:#fff; }
+  .bar { display:flex; gap:4px; height:58px; }
+  .seg { border-radius:6px; display:flex; align-items:center; justify-content:center;
+         font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:#0a0a0a; }
+  .s-closed { background:#00FF41; } .s-acc { background:#4DA3FF; } .s-open { background:#FFB020; }
+  .s-high { background:#FF4455; } .s-med { background:#FFB020; } .s-low { background:#4DA3FF; } .s-info { background:#78828c; }
+
+  .zero { text-align:center; margin-top:34px; border:3px solid #00FF41; border-radius:18px; padding:30px; background:rgba(0,255,65,.05); }
+  .zero .n { font-family:'JetBrains Mono',monospace; font-size:110px; font-weight:700; color:#00FF41; }
+  .zero .l { font-family:'JetBrains Mono',monospace; font-size:30px; color:#a8b0b8; margin-top:6px; }
+
+  .footer { margin-top:56px; font-family:'JetBrains Mono',monospace; font-size:28px; color:#78828c; line-height:1.5; }
+</style>
+
+<div class="eyebrow">GRC LIBRARY // PLAN OF ACTION &amp; MILESTONES</div>
+<h1>POA&amp;M <span class="green">FINDINGS</span></h1>
+<div class="sub">Two ledgers: a hand-audited register of 42 findings, and a 75-row ledger written automatically by the CI scanners. Every finding carries a status, an owner, and a milestone.</div>
+
+<div class="tiles">
+  <div class="tile t-w"><div class="n">42</div><div class="l">REGISTER FINDINGS</div></div>
+  <div class="tile t-open"><div class="n">20</div><div class="l">OPEN</div></div>
+  <div class="tile t-closed"><div class="n">7</div><div class="l">CLOSED</div></div>
+  <div class="tile t-acc"><div class="n">15</div><div class="l">ACCEPTED RISK</div></div>
+  <div class="tile t-closed"><div class="n">75</div><div class="l">AUTO LEDGER ROWS<br>ALL CLOSED</div></div>
+</div>
+
+<div class="cols">
+  <div class="panel">
+    <div class="ptitle">MANUAL REGISTER: 42 FINDINGS</div>
+    <div class="psub">By source track and status. Bars scaled to the base register (27).</div>
+    <div class="legend">
+      <span><i class="sw" style="background:#00FF41"></i>Closed</span>
+      <span><i class="sw" style="background:#4DA3FF"></i>Accepted risk</span>
+      <span><i class="sw" style="background:#FFB020"></i>Open</span>
+    </div>
+    <div class="row">
+      <div class="rlab"><b>Base register</b> &middot; CIS Docker Bench, Checkov, Risk Assessment &middot; 27</div>
+      <div class="bar" style="width:100%">
+        <div class="seg s-closed" style="width:3.7%">1</div>
+        <div class="seg s-acc" style="width:55.6%">15</div>
+        <div class="seg s-open" style="width:40.7%">11 open (9 past due)</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="rlab"><b>Squire AI register</b> &middot; red team results, guardrail residuals (P17) &middot; 15</div>
+      <div class="bar" style="width:55.6%">
+        <div class="seg s-closed" style="width:40%">6</div>
+        <div class="seg s-open" style="width:60%">9</div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:48px;">
+      <div class="rlab"><b>Combined severity</b> &middot; 42 findings</div>
+      <div class="bar" style="width:100%">
+        <div class="seg s-high" style="width:4.8%">2</div>
+        <div class="seg s-med" style="width:45.2%">19 medium</div>
+        <div class="seg s-low" style="width:47.6%">20 low</div>
+        <div class="seg s-info" style="width:2.4%">1</div>
+      </div>
+      <div class="legend" style="margin-top:16px;font-size:25px;">
+        <span><i class="sw" style="background:#FF4455"></i>High</span>
+        <span><i class="sw" style="background:#FFB020"></i>Medium</span>
+        <span><i class="sw" style="background:#4DA3FF"></i>Low</span>
+        <span><i class="sw" style="background:#78828c"></i>Informational</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ptitle">AUTO LEDGER: 75 ROWS</div>
+    <div class="psub">Written by poam_sync.py from CI scanner output on every merge. No human in the loop.</div>
+    <div class="zero"><div class="n">0</div><div class="l">OPEN AUTO FINDINGS</div></div>
+    <div class="row">
+      <div class="rlab"><b>Gitleaks</b> &middot; repo history sanitization rules &middot; 70 closed</div>
+      <div class="bar" style="width:93.3%"><div class="seg s-closed" style="width:100%">70</div></div>
+    </div>
+    <div class="row">
+      <div class="rlab"><b>Checkov</b> &middot; OCI object storage hardening &middot; 5 closed</div>
+      <div class="bar" style="width:6.7%"><div class="seg s-closed" style="width:100%"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Sources: POAM_PLAN_OF_ACTION.md v1.3 (register audit 2026-06-24), POAM_AUTO_FINDINGS.md (ledger current 2026-09-01). Reconciled with metrics.yaml.<br>Sanitized public view. Rebuilt 2026-09-01.</div>

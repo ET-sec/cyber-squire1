@@ -80,8 +80,8 @@ All documents are sanitized for public repository hosting. Personal identifiers,
 |--------|-------|
 | **NIST 800-53 Control Families** | 16 of 20 |
 | **Total Controls Mapped** | 133 |
-| **Fully Implemented** | 87 (65%) |
-| **Partially Implemented** | 27 (21%) |
+| **Fully Implemented** | 88 (66%) |
+| **Partially Implemented** | 26 (20%) |
 | **Implemented + Partial** | 114 (86%) |
 
 ### Control Family Coverage
@@ -182,7 +182,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 |----------|-------------|
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Full NIST 800-53 control mapping (133 controls) plus Phase 17 annex |
 | [SQUIRE_SSP.md](SQUIRE_SSP.md) | Squire subsystem scoped SSP (36 controls) |
-| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | 30 tracked POA&M entries (15 legacy plus 15 Phase 17) |
+| [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | 42 tracked POA&M entries (27 base plus 15 Phase 17) |
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | 17 enterprise threat scenarios with 5x5 risk matrix |
 | [SQUIRE_AI_RISK_ASSESSMENT.md](SQUIRE_AI_RISK_ASSESSMENT.md) | 10 AI-specific risks, NIST AI RMF plus CSA Agentic |
 | [FRAMEWORK_CROSSWALK_SQUIRE.md](FRAMEWORK_CROSSWALK_SQUIRE.md) | 31 Squire controls across 7 frameworks |
