@@ -106,7 +106,7 @@ def http(method, path, token=None, body=None, form=None):
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
         # Scheme is validated to http/https above, so file:// abuse is not possible here.
-        with urllib.request.urlopen(req, timeout=30) as r:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected
+        with urllib.request.urlopen(req, timeout=30) as r:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
             raw = r.read()
             if not raw:
                 return r.status, None
