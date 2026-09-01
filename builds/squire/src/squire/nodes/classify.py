@@ -1,4 +1,4 @@
-"""classify node - Sonnet 4.6 severity + incident-type classifier.
+"""classify node - Opus 5 severity + incident-type classifier.
 
 Reads state["alert"]; writes state["classification"] and state["severity"].
 Cost + tokens + degraded-mode flags are merged into state via evidence row.
@@ -96,7 +96,7 @@ def _validate_and_normalize(parsed: dict[str, Any]) -> dict[str, Any]:
 
 
 def classify(state: dict) -> dict:
-    """Sonnet-4.6 severity classifier node.
+    """Opus-5 severity classifier node.
 
     Writes classification + severity into state; appends an evidence row;
     propagates degraded_mode if the underlying backend fell back.
@@ -106,7 +106,7 @@ def classify(state: dict) -> dict:
     # Cap payload size to avoid blowing context on giant alert blobs.
     alert_str = json.dumps(alert_payload, default=str)[:4000]
 
-    model = settings.claude_model_secondary  # Sonnet 4.6 per plan
+    model = settings.claude_model_secondary  # Opus 5 per plan
 
     resp = llm_invoke(
         messages=[

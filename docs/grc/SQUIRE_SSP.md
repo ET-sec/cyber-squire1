@@ -58,7 +58,7 @@ related:
 
 Squire is an autonomous Security Operations Center analyst deployed at `squire.example-ops.com`. It ingests raw alert payloads, classifies them against a sanitized Governance, Risk, and Compliance (GRC) corpus held in pgvector, retrieves relevant policy and playbook passages, calls external enrichment APIs, and drafts an analyst-style investigation report with explicit framework citations (NIST 800-53, CSF 2.0, MITRE ATT&CK, NIST AI RMF, OWASP LLM Top 10).
 
-The system is a seven-node LangGraph state machine running on top of Anthropic Claude Fable 5 (draft, critique, investigate) and Claude Sonnet 4.6 (classification), with Voyage AI `voyage-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
+The system is a seven-node LangGraph state machine running on top of Anthropic Claude Fable 5 (draft, critique, investigate) and Claude Opus 5 (classification), with Voyage AI `voyage-3-large` driving Retrieval-Augmented Generation (RAG). All LLM traffic is observed through Langfuse and gated through a NeMo Guardrails sidecar plus a pre-graph regex scanner that blocks Personally Identifiable Information (PII) before any token is billed.
 
 Squire never performs remediation. It issues recommendations in a controlled vocabulary defined by `actions.yml` (recommend-only mode, see Annex A). Every response carries a citation block pinned to document identifiers retrieved during the RAG step (see Annex B). The system is categorized FIPS 199 LOW for availability and confidentiality of transient alert data. Audit trail integrity is the single MODERATE control family.
 
@@ -159,7 +159,7 @@ Squire runs as a deterministic state machine. Each incoming `/alert` request exe
 |  +---------------------------------+  |
 |  | pre_graph_pii (regex, 0 ms)     |  |
 |  +---------------------------------+  |
-|  | classify  (Sonnet 4.6)          |  |
+|  | classify  (Opus 5)              |  |
 |  | retrieve  (pgvector, top-k=6)   |  |
 |  | enrich    (Tavily optional)     |  |
 |  | investigate (Fable 5)          |  |
@@ -213,9 +213,9 @@ Model routing per node:
 
 | Node | Model | Rationale |
 |------|-------|-----------|
-| classify | `anthropic/claude-sonnet-4-6` | Cheap, fast, structured output |
+| classify | `anthropic/claude-opus-5` | Cheap, fast, structured output |
 | retrieve | n/a (pgvector) | Local cosine similarity |
-| enrich | `anthropic/claude-sonnet-4-6` | Web search summarization |
+| enrich | `anthropic/claude-opus-5` | Web search summarization |
 | investigate | `anthropic/claude-fable-5` | Multi-step reasoning over retrieved chunks |
 | draft | `anthropic/claude-fable-5` | Final narrative composition |
 | critique | `anthropic/claude-fable-5` | Citation validator + severity sanity check |
@@ -394,7 +394,7 @@ The following control families are inherited without modification from SSP-OPS-0
 
 | External System | Purpose | Data Direction | Protocol | Authentication |
 |-----------------|---------|----------------|----------|----------------|
-| Anthropic API | LLM inference (Fable 5, Sonnet 4.6) | Outbound | HTTPS | Bearer API key from Doppler `ANTHROPIC_API_KEY` |
+| Anthropic API | LLM inference (Fable 5, Opus 5) | Outbound | HTTPS | Bearer API key from Doppler `ANTHROPIC_API_KEY` |
 | Voyage AI API | Embeddings for RAG (`voyage-3-large`, 1024 dim) | Outbound, corpus only | HTTPS | Bearer API key from Doppler `VOYAGE_API_KEY` |
 | Tavily | Enrichment web search (optional, skippable) | Outbound | HTTPS | Bearer API key from Doppler `TAVILY_API_KEY` |
 | DO Spaces | Nightly Postgres backups | Outbound | HTTPS | S3 access key from Doppler `SPACES_ACCESS_KEY` / `SPACES_SECRET_KEY` |

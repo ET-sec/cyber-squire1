@@ -146,7 +146,7 @@ All AI systems within the authorization boundary are registered in the following
 <!-- TODO(et): Verify Qwen 3 4B is the actually loaded Ollama model via `docker exec svc-ollama ollama list`. Model is pulled at runtime and not pinned in docker-compose.yaml. -->
 | AI-002 | Local LLM Inference | `svc-llm` (Ollama) | Qwen 3 4B | Local (on `alpha-node`) | All processing on-premises; no data leaves the node | **Medium** |
 | AI-003 | Voice Transcription | `svc-transcription` (Whisper) | Whisper base (open-weight) | Local (on `alpha-node`) | Audio processed locally; transcripts stored in workflow state | **Low** |
-| AI-004 | Squire Autonomous SOC Analyst | `svc-squire` | Claude Fable 5 (primary) and Sonnet 4.6 (secondary) via Anthropic API; voyage-3-large embeddings (1024-dim) via Voyage AI for pgvector RAG | External API (model and embeddings) | Sanitized alerts ingressed at `/alert`; prompts and retrieval embeddings sent to Anthropic and Voyage AI; responses persisted in `ir_investigations` table; advisory output only per `HITL_POLICY.md` | **High** |
+| AI-004 | Squire Autonomous SOC Analyst | `svc-squire` | Claude Fable 5 (primary) and Opus 5 (secondary) via Anthropic API; voyage-3-large embeddings (1024-dim) via Voyage AI for pgvector RAG | External API (model and embeddings) | Sanitized alerts ingressed at `/alert`; prompts and retrieval embeddings sent to Anthropic and Voyage AI; responses persisted in `ir_investigations` table; advisory output only per `HITL_POLICY.md` | **High** |
 | AI-005 | NeMo Guardrails | `svc-nemo` | NVIDIA NeMo Guardrails (open-source rail engine) configured per `GUARDRAILS_CONFIGURATION.md` | Local (on `alpha-node`); rail engine invokes upstream model providers only via svc-squire | Pre-graph PII scanner plus input/output rails enforced before model calls; refusals logged to `ir_rail_events` | **High** |
 
 ### 4.2 AI System Classification Criteria
@@ -775,7 +775,7 @@ All AI-related actions are logged, correlated, and subject to audit. Personnel s
 
 The Squire autonomous SOC analyst is deployed under the NIST AI RMF and ISO 42001 requirements codified in this policy. The following Squire-scope documents implement the policy for the Squire subsystem:
 
-- `SQUIRE_MODEL_CARD.md` implements model transparency with a Mitchell et al. card covering Fable 5 primary, Sonnet 4.6 routing, and voyage-3-large (1024-dim) embeddings via Voyage AI for pgvector RAG.
+- `SQUIRE_MODEL_CARD.md` implements model transparency with a Mitchell et al. card covering Fable 5 primary, Opus 5 routing, and voyage-3-large (1024-dim) embeddings via Voyage AI for pgvector RAG.
 - `AI_SUPPLY_CHAIN_REGISTER.md` implements supply chain governance as a living register of 14 components with version, license, hash, and 60-day review cadence.
 - `HITL_POLICY.md` implements human oversight with HIGH and CRITICAL severity gating, action approval flow, and ephemeral token rotation at 60-day production cadence plus per-interview revocation.
 - `SQUIRE_AI_RISK_ASSESSMENT.md` implements AI risk assessment using NIST AI RMF plus CSA Agentic Profile across 10 risks.
