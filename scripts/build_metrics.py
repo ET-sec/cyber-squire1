@@ -28,12 +28,14 @@ METRICS_PATH = REPO_ROOT / "metrics.yaml"
 
 # Owner-approved public values not derivable from disk (or where disk would mislead).
 OWNER_APPROVED = {
-    # Container count: the droplet runs N containers in flux; owner picked 20 as the
-    # public number. See CLAUDE.md "20 owner-approved public count".
-    "containers_public": 20,
+    # Container counts: the OCI instance runs a 3-container core (Postgres+pgvector,
+    # n8n, tunnel client) while the 19-service design is rebuilt for ARM. Both
+    # numbers are owner-approved; live count re-verified 2026-09-01.
+    "containers_live": 3,
+    "containers_designed": 19,
     # n8n workflows: behind an HTTP API, not on disk. Owner-confirmed 14 active.
     "workflows_n8n_active": 14,
-    # AI engine identifiers come from droplet config files, not always synced locally.
+    # AI engine identifiers come from host config files, not always synced locally.
     "openclaw_model": "Claude Fable 5",
     "openclaw_model_id": "claude-fable-5",
     "ollama_model": "Qwen 3 8B",
@@ -187,15 +189,21 @@ def compute_grc() -> dict:
 
 
 def compute_infra() -> dict:
-    tf_dir = REPO_ROOT / "terraform" / "cd-do-infrastructure"
+    # Active IaC is the OCI directory (2026-08-19 migration). The archived
+    # DO directory still holds the Datadog monitor/dashboard definitions
+    # (codified, pending the ARM rebuild), so those counts come from there.
+    tf_dir = REPO_ROOT / "terraform" / "cd-oci-infrastructure"
+    legacy_dir = REPO_ROOT / "terraform" / "cd-do-infrastructure"
     tf_files = list_files(tf_dir, "*.tf")
+    legacy_files = list_files(legacy_dir, "*.tf")
     opa_files: list[Path] = []
     if tf_dir.exists():
         opa_files = sorted(tf_dir.rglob("*.rego"))
-    monitors = grep_count(r'^resource "datadog_monitor"', tf_files)
-    dashboards = grep_count(r'^resource "datadog_dashboard"', tf_files)
+    monitors = grep_count(r'^resource "datadog_monitor"', legacy_files)
+    dashboards = grep_count(r'^resource "datadog_dashboard"', legacy_files)
     return {
         "terraform_files": len(tf_files),
+        "terraform_files_archived_do": len(legacy_files),
         "opa_policies": len(opa_files),
         "datadog_monitors": monitors,
         "datadog_dashboards": dashboards,
@@ -222,7 +230,8 @@ def compute_stack() -> dict:
             list(wf_dir.glob("*.yml")) + list(wf_dir.glob("*.yaml"))
         )
     return {
-        "containers_public": OWNER_APPROVED["containers_public"],
+        "containers_live": OWNER_APPROVED["containers_live"],
+        "containers_designed": OWNER_APPROVED["containers_designed"],
         "workflows_n8n_active": OWNER_APPROVED["workflows_n8n_active"],
         "workflows_github_actions": len(workflows),
     }
@@ -341,7 +350,7 @@ def main() -> int:
         "filesystem_root": str(REPO_ROOT),
         "ssp_source": "docs/grc/SSP_*.md",
         "poam_source": "docs/grc/POAM_PLAN_OF_ACTION.md",
-        "terraform_source": "terraform/cd-do-infrastructure/",
+        "terraform_source": "terraform/cd-oci-infrastructure/ (active); terraform/cd-do-infrastructure/ (archived)",
         "detections_source": "detections/",
         "workflows_source": ".github/workflows/",
         "poam_auto_source": "docs/grc/POAM_AUTO_FINDINGS.md",

@@ -115,15 +115,35 @@ def parse_checkov(path: Path) -> list[dict]:
 def parse_gitleaks(path: Path) -> list[dict]:
     """Gitleaks JSON report. Line number kept: two secrets in one file differ."""
     data = json.loads(path.read_text())
+
+    def rel(p: str) -> str:
+        # Scans run against an exported copy of tracked files; normalize any
+        # absolute export prefix back to the repo-relative path so ledger
+        # fingerprints stay stable across scan locations.
+        for marker in ("/tracked/", f"{REPO_ROOT}/"):
+            if marker in p:
+                return p.split(marker, 1)[1]
+        return p
+
     return [
         {
             "source": "gitleaks",
             "rule": f.get("RuleID", "unknown"),
-            "location": f"{f.get('File', 'unknown')}:{f.get('StartLine', 0)}",
+            "location": f"{rel(f.get('File', 'unknown'))}:{f.get('StartLine', 0)}",
             "severity": "HIGH",
         }
         for f in data
     ]
+
+
+def _normalize_location(loc: str) -> str:
+    # Same repair as parse_gitleaks.rel(): rows written before the path fix
+    # can carry an absolute scan-export prefix. Strip it so no machine-local
+    # path ever sits in the public ledger.
+    for marker in ("/tracked/", f"{REPO_ROOT}/"):
+        if marker in loc:
+            return loc.split(marker, 1)[1]
+    return loc
 
 
 def load_ledger() -> list[dict]:
@@ -138,7 +158,16 @@ def load_ledger() -> list[dict]:
                 "location", "first_seen", "last_seen", "status",
             )
             rows.append(dict(zip(keys, (g.strip() for g in m.groups()))))
-    return rows
+    # Repair pass: normalize locations, then drop rows that collapse onto an
+    # existing (source, rule, location) fingerprint. Lowest row ID wins.
+    seen: dict[str, dict] = {}
+    for r in rows:
+        r["location"] = _normalize_location(r["location"])
+        fp = fingerprint(r["source"], r["rule"], r["location"])
+        r["fp"] = fp
+        if fp not in seen:
+            seen[fp] = r
+    return list(seen.values())
 
 
 def write_ledger(rows: list[dict]) -> None:
