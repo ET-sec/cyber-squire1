@@ -264,7 +264,7 @@ grep -c '\*\*POA&M ID\*\*' docs/grc/POAM_PLAN_OF_ACTION.md                      
 grep -c "^| POAM-P17-" docs/grc/POAM_PLAN_OF_ACTION.md                            # 15
 
 # Auto ledger rows
-grep -c "^| POAM-AUTO-" docs/grc/POAM_AUTO_FINDINGS.md                            # 76
+grep -c "^| POAM-AUTO-" docs/grc/POAM_AUTO_FINDINGS.md                            # 75
 ```
 
 </details>

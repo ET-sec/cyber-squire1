@@ -1,0 +1,92 @@
+<meta charset="utf-8">
+<!-- Source of truth: docs/grc/RISK_ASSESSMENT.md register rows (R-01..R-17) + POA&M metrics, verified 2026-09-01.
+     Aggregates computed from per-entry rows. Render: node render.mjs -->
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:2160px; background:#0a0a0a; color:#e8e8e8; font-family:'Inter','Helvetica Neue',Arial,sans-serif; padding:80px 80px 60px; }
+  .eyebrow { font-family:'JetBrains Mono',monospace; font-size:38px; color:#00FF41; letter-spacing:6px; }
+  h1 { font-family:'JetBrains Mono',monospace; font-size:92px; letter-spacing:2px; margin-top:16px; }
+  h1 .green { color:#00FF41; }
+  .sub { font-size:40px; color:#a8b0b8; margin-top:18px; max-width:1700px; line-height:1.4; }
+
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; margin-top:56px; }
+  .tile { border:3px solid #2c3138; border-radius:18px; padding:30px 24px; text-align:center; background:#101216; }
+  .tile .n { font-family:'JetBrains Mono',monospace; font-size:84px; font-weight:700; color:#fff; }
+  .tile .l { font-family:'JetBrains Mono',monospace; font-size:26px; color:#a8b0b8; margin-top:10px; letter-spacing:1px; line-height:1.4; }
+  .t-green { border-color:#00FF41; } .t-green .n { color:#00FF41; }
+  .t-gold { border-color:#FFB020; } .t-gold .n { color:#FFB020; }
+
+  .cols { display:grid; grid-template-columns:1.15fr 1fr; gap:40px; margin-top:56px; }
+  .panel { border:3px solid #2c3138; border-radius:22px; padding:40px 44px; background:#101216; }
+  .ptitle { font-family:'JetBrains Mono',monospace; font-size:44px; color:#fff; }
+  .psub { font-family:'JetBrains Mono',monospace; font-size:26px; color:#78828c; margin-top:8px; margin-bottom:10px; }
+
+  .grp { margin-top:36px; }
+  .glab { font-family:'JetBrains Mono',monospace; font-size:32px; margin-bottom:14px; }
+  .brow { display:flex; align-items:center; gap:20px; margin-top:10px; }
+  .btag { font-family:'JetBrains Mono',monospace; font-size:26px; color:#78828c; width:190px; flex:none; }
+  .btrack { flex:1; }
+  .bbar { height:50px; border-radius:6px; display:flex; align-items:center; justify-content:flex-end; padding-right:14px;
+          font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:#0a0a0a; min-width:50px; }
+  .hollow { background:transparent !important; border:3px dashed; color:#e8e8e8; justify-content:flex-end; }
+
+  .rank { margin-top:36px; }
+  .ritem { display:flex; align-items:center; gap:24px; border-left:6px solid #FFB020; background:rgba(255,176,32,.05);
+           border-radius:0 12px 12px 0; padding:22px 26px; margin-top:18px; }
+  .rid { font-family:'JetBrains Mono',monospace; font-size:38px; font-weight:700; color:#FFB020; flex:none; width:130px; }
+  .rname { font-size:32px; color:#e8e8e8; line-height:1.4; }
+  .rscore { font-family:'JetBrains Mono',monospace; font-size:44px; font-weight:700; color:#FFB020; margin-left:auto; flex:none; }
+
+  .note { margin-top:40px; font-family:'JetBrains Mono',monospace; font-size:30px; color:#c8ced4; line-height:1.6;
+          border:2px solid #2c3138; border-radius:14px; padding:24px 28px; }
+  .note b { color:#00FF41; }
+
+  .footer { margin-top:56px; font-family:'JetBrains Mono',monospace; font-size:28px; color:#78828c; line-height:1.5; }
+</style>
+
+<div class="eyebrow">GRC LIBRARY // RISK POSTURE</div>
+<h1>RISK SUMMARY <span class="green">DASHBOARD</span></h1>
+<div class="sub">The whole register on one page: what the risk looked like before controls, what remains after, and where the remainder is tracked.</div>
+
+<div class="tiles">
+  <div class="tile"><div class="n">17</div><div class="l">RISKS ASSESSED<br>NIST SP 800-30</div></div>
+  <div class="tile t-green"><div class="n">0</div><div class="l">HIGH OR CRITICAL<br>RESIDUAL</div></div>
+  <div class="tile t-gold"><div class="n">3</div><div class="l">MODERATE<br>RESIDUAL</div></div>
+  <div class="tile t-green"><div class="n">14</div><div class="l">LOW<br>RESIDUAL</div></div>
+</div>
+
+<div class="cols">
+  <div class="panel">
+    <div class="ptitle">INHERENT VS RESIDUAL</div>
+    <div class="psub">Dashed bar: before controls. Solid bar: after. Scaled to 14.</div>
+
+    <div class="grp">
+      <div class="glab" style="color:#FF7A45;">HIGH (15 to 19)</div>
+      <div class="brow"><div class="btag">Inherent</div><div class="btrack"><div class="bbar hollow" style="width:7.1%;border-color:#FF7A45;">1</div></div></div>
+      <div class="brow"><div class="btag">Residual</div><div class="btrack"><div class="bbar" style="width:50px;background:#1a1d22;color:#78828c;">0</div></div></div>
+    </div>
+    <div class="grp">
+      <div class="glab" style="color:#FFB020;">MODERATE (7 to 14)</div>
+      <div class="brow"><div class="btag">Inherent</div><div class="btrack"><div class="bbar hollow" style="width:78.6%;border-color:#FFB020;">11</div></div></div>
+      <div class="brow"><div class="btag">Residual</div><div class="btrack"><div class="bbar" style="width:21.4%;background:#FFB020;">3</div></div></div>
+    </div>
+    <div class="grp">
+      <div class="glab" style="color:#00FF41;">LOW (1 to 6)</div>
+      <div class="brow"><div class="btag">Inherent</div><div class="btrack"><div class="bbar hollow" style="width:35.7%;border-color:#00FF41;">5</div></div></div>
+      <div class="brow"><div class="btag">Residual</div><div class="btrack"><div class="bbar" style="width:100%;background:#00FF41;">14</div></div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ptitle">TOP RESIDUAL RISKS</div>
+    <div class="psub">Everything that still rates moderate after controls.</div>
+    <div class="rank">
+      <div class="ritem"><div class="rid">R-10</div><div class="rname">Accidental secret exposure. Secrets manager plus Gitleaks in CI; was the only inherent high.</div><div class="rscore">10</div></div>
+      <div class="ritem"><div class="rid">R-04</div><div class="rname">Webhook exploitation. Token auth, input validation, runtime shell-spawn detection.</div><div class="rscore">8</div></div>
+      <div class="ritem"><div class="rid">R-14</div><div class="rname">Data loss. Nightly backups to a retention-locked bucket, restore-tested monthly.</div><div class="rscore">8</div></div>
+    </div>
+    <div class="note">Every mitigation lives in the <b>POA&amp;M</b>: 42 register findings plus a 75-row scanner ledger with <b>0 open</b> auto findings.</div>
+  </div>
+</div>
+
+<div class="footer">Source: RISK_ASSESSMENT.md register rows (baseline 2026-03-11), POA&amp;M metrics current 2026-09-01. Aggregates recomputed from the rows.<br>Sanitized public view. Rebuilt 2026-09-01.</div>

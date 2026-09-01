@@ -1,0 +1,104 @@
+<meta charset="utf-8">
+<!-- Source of truth: docs/grc/RISK_ASSESSMENT.md Section 3 register rows (R-01..R-17), verified 2026-09-01.
+     Aggregates computed from the per-entry rows (the doc's own summary table was miscounted and is fixed alongside this rebuild).
+     Ordinal severity ramp, lightness-monotonic, every cell prints its score. Render: node render.mjs -->
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:2160px; background:#0a0a0a; color:#e8e8e8; font-family:'Inter','Helvetica Neue',Arial,sans-serif; padding:80px 80px 60px; }
+  .eyebrow { font-family:'JetBrains Mono',monospace; font-size:38px; color:#00FF41; letter-spacing:6px; }
+  h1 { font-family:'JetBrains Mono',monospace; font-size:92px; letter-spacing:2px; margin-top:16px; }
+  h1 .green { color:#00FF41; }
+  .sub { font-size:40px; color:#a8b0b8; margin-top:18px; max-width:1700px; line-height:1.4; }
+
+  .maps { display:grid; grid-template-columns:1fr 1fr; gap:56px; margin-top:64px; }
+  .mtitle { font-family:'JetBrains Mono',monospace; font-size:46px; margin-bottom:10px; }
+  .msub { font-family:'JetBrains Mono',monospace; font-size:26px; color:#78828c; margin-bottom:28px; }
+
+  .plot { display:grid; grid-template-columns:70px repeat(5,1fr); grid-auto-rows:minmax(150px,auto); gap:6px; }
+  .plot > .cell, .plot > .ylab { height:310px; }
+  .ylab { font-family:'JetBrains Mono',monospace; font-size:26px; color:#78828c; display:flex; align-items:center; justify-content:center; writing-mode:vertical-rl; transform:rotate(180deg); }
+  .xlab { font-family:'JetBrains Mono',monospace; font-size:26px; color:#78828c; text-align:center; padding-top:10px; }
+  .cell { border-radius:10px; padding:10px 12px; position:relative; overflow:hidden; }
+  .score { font-family:'JetBrains Mono',monospace; font-size:24px; position:absolute; top:8px; right:12px; opacity:.85; }
+  .chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:38px; align-content:flex-start; }
+  .chip { font-family:'JetBrains Mono',monospace; font-size:25px; font-weight:700; color:#0a0a0a; background:#e8e8e8; border-radius:6px; padding:4px 10px; }
+  .axis { font-family:'JetBrains Mono',monospace; font-size:30px; color:#c8ced4; text-align:center; margin-top:14px; }
+
+  .b-low  { background:rgba(0,255,65,.12);  border:2px solid rgba(0,255,65,.45); }  .b-low .score { color:#00FF41; }
+  .b-mod  { background:rgba(255,176,32,.12); border:2px solid rgba(255,176,32,.45); } .b-mod .score { color:#FFB020; }
+  .b-high { background:rgba(255,122,69,.14); border:2px solid rgba(255,122,69,.55); } .b-high .score { color:#FF7A45; }
+  .b-crit { background:rgba(255,68,85,.16);  border:2px solid rgba(255,68,85,.6); }  .b-crit .score { color:#FF4455; }
+
+  .legend { display:flex; gap:44px; margin-top:56px; font-family:'JetBrains Mono',monospace; font-size:30px; color:#c8ced4; flex-wrap:wrap; }
+  .legend span { display:flex; align-items:center; gap:14px; }
+  .sw { width:34px; height:34px; border-radius:8px; display:inline-block; }
+
+  .delta { margin-top:56px; border:3px solid #2c3138; border-radius:22px; padding:36px 44px; background:#101216;
+           font-family:'JetBrains Mono',monospace; font-size:36px; color:#c8ced4; line-height:1.6; }
+  .delta b { color:#00FF41; }
+
+  .footer { margin-top:48px; font-family:'JetBrains Mono',monospace; font-size:28px; color:#78828c; line-height:1.5; }
+</style>
+
+<div class="eyebrow">GRC LIBRARY // NIST SP 800-30 RISK ASSESSMENT</div>
+<h1>RISK <span class="green">HEAT MAP</span></h1>
+<div class="sub">17 risks scored likelihood by impact, before and after controls. The same risks appear on both maps, so the shift down and left is the control story.</div>
+
+<div class="maps">
+  <div>
+    <div class="mtitle" style="color:#FF7A45;">INHERENT</div>
+    <div class="msub">Before controls: 1 high, 11 moderate, 5 low</div>
+    <div class="plot" id="inherent"></div>
+    <div class="axis">Impact &rarr;</div>
+  </div>
+  <div>
+    <div class="mtitle" style="color:#00FF41;">RESIDUAL</div>
+    <div class="msub">After controls: 0 high, 3 moderate, 14 low</div>
+    <div class="plot" id="residual"></div>
+    <div class="axis">Impact &rarr;</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><i class="sw" style="background:rgba(0,255,65,.25);border:2px solid #00FF41;"></i>Low (1 to 6)</span>
+  <span><i class="sw" style="background:rgba(255,176,32,.25);border:2px solid #FFB020;"></i>Moderate (7 to 14)</span>
+  <span><i class="sw" style="background:rgba(255,122,69,.3);border:2px solid #FF7A45;"></i>High (15 to 19)</span>
+  <span><i class="sw" style="background:rgba(255,68,85,.3);border:2px solid #FF4455;"></i>Critical (20 to 25)</span>
+</div>
+
+<div class="delta">The only inherent high, <b>R-10 accidental secret exposure</b>, drops to moderate behind an external secrets manager and Gitleaks in CI. Nothing rates high or critical after controls; the residual moderates (R-04 webhooks, R-10 secrets, R-14 data loss) are tracked in the POA&amp;M.</div>
+
+<div class="footer">Source: RISK_ASSESSMENT.md register rows, NIST SP 800-30 Rev. 1 methodology, baseline 2026-03-11. Aggregates recomputed from the rows 2026-09-01.<br>Sanitized public view. Rebuilt 2026-09-01.</div>
+
+<script>
+// [likelihood, impact, [risk ids]] from RISK_ASSESSMENT.md rows
+const INHERENT = [
+  [3,3,['R-01','R-07','R-16']], [4,3,['R-02']], [2,5,['R-03','R-08','R-14']],
+  [3,4,['R-04']], [2,4,['R-05','R-11','R-12']], [1,5,['R-06','R-09','R-17']],
+  [3,5,['R-10']], [1,4,['R-13']], [2,3,['R-15']],
+];
+const RESIDUAL = [
+  [2,3,['R-01','R-02','R-07','R-12','R-16']], [1,5,['R-03','R-06','R-08']],
+  [2,4,['R-04','R-14']], [1,4,['R-05','R-09','R-11','R-17']],
+  [2,5,['R-10']], [1,3,['R-13']], [2,2,['R-15']],
+];
+const LNAMES = ['Very Low','Low','Moderate','High','Very High'];
+function band(s){ return s<=6?'b-low':s<=14?'b-mod':s<=19?'b-high':'b-crit'; }
+function draw(el, data){
+  const map = {};
+  for (const [l,i,ids] of data) map[l+'-'+i] = ids;
+  const plot = document.getElementById(el);
+  for (let l=5; l>=1; l--){
+    plot.insertAdjacentHTML('beforeend', `<div class="ylab">${l===5?'Likelihood &uarr; &nbsp;'+LNAMES[l-1]:LNAMES[l-1]}</div>`);
+    for (let i=1; i<=5; i++){
+      const s = l*i;
+      const ids = map[l+'-'+i] || [];
+      const chips = ids.map(id=>`<span class="chip">${id}</span>`).join('');
+      plot.insertAdjacentHTML('beforeend', `<div class="cell ${band(s)}"><span class="score">${s}</span><div class="chips">${chips}</div></div>`);
+    }
+  }
+  plot.insertAdjacentHTML('beforeend', '<div></div>' + LNAMES.map(n=>`<div class="xlab">${n}</div>`).join(''));
+}
+draw('inherent', INHERENT);
+draw('residual', RESIDUAL);
+</script>
