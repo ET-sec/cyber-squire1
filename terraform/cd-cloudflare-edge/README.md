@@ -52,7 +52,7 @@ terraform init -backend-config=backend.hcl
 # API, then import each resource BEFORE any apply. v4 provider ID formats:
 #   cloudflare_ruleset                 zone/<zone_id>/<ruleset_id>
 #   cloudflare_access_application      <account_id>/<app_id>
-#   cloudflare_access_policy           <account_id>/<app_id>/<policy_id>
+#   cloudflare_access_policy           account/<account_id>/<app_id>/<policy_id>
 #   cloudflare_access_service_token    <account_id>/<token_id>
 terraform import cloudflare_ruleset.custom_waf zone/<zone_id>/<ruleset_id>
 # ... repeat for each adopted resource ...
