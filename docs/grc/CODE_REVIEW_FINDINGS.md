@@ -522,7 +522,7 @@ No immediate remediation required. Long-term improvements:
 | CR-001-F1 | HIGH | REMEDIATED | N/A | N/A | Complete |
 | CR-001-F2 | MEDIUM | ACCEPTED | Environment variable injection is industry standard for single-host Docker Compose. Host-level access required for exploitation. | `.env` chmod 600, External secrets manager as source of truth, Falco monitoring, Git exclusion | 90 days (Vault AppRole migration) |
 | CR-001-F3 | MEDIUM | ACCEPTED | State bucket access requires specific credentials not present on production host. OPA enforces versioning. | Scoped credentials, OPA policies, PR review gate, CI/CD isolation | 90 days (encryption at rest) |
-| CR-001-F4 | MEDIUM | ACCEPTED | Webhook URL not publicly discoverable. Cloudflare Tunnel limits access. Switch node rejects unknown actions. | URL obscurity, tunnel restriction, Switch validation, execution logging | 60 days (webhook auth) |
+| CR-001-F4 | MEDIUM | ACCEPTED | Cloudflare Access gates the path (identity or service token; verified against the live edge 2026-09-02). Switch node rejects unknown actions. | Edge authentication, Switch validation, execution logging, per-IP rate limit | App-layer header validation in progress (DR-06) |
 | CR-001-F5 | LOW | ACCEPTED | Token compromise requires host root access, which implies broader compromise. | `.env` permissions, External secrets manager rotation, dashboard monitoring, Falco detection | Quarterly rotation |
 
 ---
@@ -559,7 +559,7 @@ The following table maps each finding to the NIST 800-53 Rev. 5 controls that ar
 | CR-001-F3 | Enable Spaces bucket encryption at rest | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) |
 | CR-001-F3 | Add OPA policy for storage encryption enforcement | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) |
 | CR-001-F3 | Enable Spaces bucket access logging | System Owner | 2026-06-22 | OPEN (POA&M, Past Due) |
-| CR-001-F4 | Add webhook authentication header validation | System Owner | 2026-05-22 | OPEN (Past Due) |
+| CR-001-F4 | Add webhook authentication header validation | System Owner | 2026-05-22 | IN PROGRESS (caller headers shipped 2026-09-02; node validation pending, DR-06) |
 | CR-001-F4 | Add action allowlist validation at webhook entry | System Owner | 2026-05-22 | OPEN (Past Due) |
 | CR-001-F4 | Add per-action parameter validation | System Owner | 2026-06-22 | OPEN (Past Due) |
 | CR-001-F5 | Implement quarterly tunnel token rotation | System Owner | 2026-06-22 | OPEN (Past Due) |
