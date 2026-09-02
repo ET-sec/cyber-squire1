@@ -17,3 +17,4 @@ live execution, not reconstruction.
 | [DR-03](DR-03-data-protection.md) | Customer-managed keys + immutable backups | Owner delete refused with 403; restore timed |
 | [DR-04](DR-04-drift-detection-and-findings-pipeline.md) | Nightly drift detection + self-updating POA&M | Hand-made change detected and alerted |
 | [DR-05](DR-05-aws-security-plane.md) | AWS security and evidence plane (multi-cloud custody split) | Designed and gated; receipts land at apply |
+| [DR-06](DR-06-webhook-trust-at-the-edge.md) | Webhook trust at the edge (Access, WAF, Telegram carve-out), edge plane adopted as code | Applied 2026-09-02; workflow-side controls in residuals |

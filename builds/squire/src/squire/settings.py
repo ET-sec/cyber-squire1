@@ -81,6 +81,9 @@ class Settings(BaseSettings):
         alias="SQUIRE_TELEGRAM_WEBHOOK_URL",
     )
     telegram_chat_id: str = Field("0", alias="SQUIRE_TELEGRAM_CHAT_ID")
+    # Application-layer token the n8n master-cmd webhook validates (Header
+    # Auth credential on the Webhook node). Empty means "not yet enforced".
+    telegram_webhook_token: str = Field("", alias="SQUIRE_TELEGRAM_WEBHOOK_TOKEN")
 
     # Embedding provider (plan 17-07)
     squire_embedding_provider: str = Field(

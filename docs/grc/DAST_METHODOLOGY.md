@@ -53,7 +53,7 @@ The Organization's platform has zero directly exposed ports to the public intern
 | Endpoint | Service | Protocol | Authentication |
 |----------|---------|----------|---------------|
 | `https://[automation-subdomain].example-ops.com` | svc-automation (n8n web interface) | HTTPS (Cloudflare-terminated TLS) | Email/password login, session cookie |
-| `https://[automation-subdomain].example-ops.com/webhook/master-cmd` | Master Orchestrator webhook | HTTPS POST | Cloudflare WAF (no application-level auth) |
+| `https://[automation-subdomain].example-ops.com/webhook/master-cmd` | Master Orchestrator webhook | HTTPS POST | Cloudflare WAF and Access (service token); application-level header validation in progress |
 | `https://[automation-subdomain].example-ops.com/webhook/gmail-read-*` | Gmail reader webhooks (4 endpoints) | HTTPS POST | Cloudflare WAF |
 | `ssh://[ssh-subdomain].example-ops.com` | SSH access (Cloudflare-proxied) | SSH over Cloudflare | SSH key authentication |
 
