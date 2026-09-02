@@ -258,3 +258,7 @@ COREDIRECTIVE_ENGINE/stack.env
 # AWS security plane: same hygiene as the OCI dir
 terraform/cd-aws-security-plane/backend.hcl
 terraform/cd-aws-security-plane/lambda/*.zip
+
+# cd-cloudflare-edge: local-only backend and real zone values
+terraform/cd-cloudflare-edge/backend.hcl
+terraform/cd-cloudflare-edge/terraform.tfvars

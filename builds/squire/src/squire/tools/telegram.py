@@ -6,6 +6,14 @@ Routing preference (first success wins):
   2. Direct Telegram Bot API: POST /bot{token}/sendMessage when
      TELEGRAM_BOT_TOKEN is present. Used when the n8n workflow is offline.
 
+Trust on path 1 is layered. The n8n host sits behind Cloudflare Access, so
+the request carries the Access service-token headers (CF_ACCESS_N8N_CLIENT_ID /
+CF_ACCESS_N8N_CLIENT_SECRET from the environment); without them the edge
+answers 302 to a login page and the message never reaches n8n. On top of that
+the webhook node validates an application-layer header
+(settings.telegram_webhook_token). Missing values degrade to "send what we
+have": the edge or the workflow rejects the call and path 2 takes over.
+
 Fail-safe: on non-2xx or network failure for both paths, log + return
 {"delivered": False, "error": "..."}. Never raises. The route_severity node
 records the failure into state.errors so the FastAPI layer can surface it.
@@ -20,6 +28,26 @@ log = logging.getLogger("squire.tools.telegram")
 
 DEFAULT_TIMEOUT = 10.0
 TELEGRAM_API_BASE = "https://api.telegram.org"
+WEBHOOK_TOKEN_HEADER = "X-CD-Webhook-Token"
+CF_ACCESS_ID_ENV = "CF_ACCESS_N8N_CLIENT_ID"
+CF_ACCESS_SECRET_ENV = "CF_ACCESS_N8N_CLIENT_SECRET"
+
+
+def _n8n_headers(webhook_token: str | None) -> dict[str, str]:
+    """Headers for the n8n webhook: Access service token (edge) + app-layer token.
+
+    Only sets what is present so a missing value produces a clean rejection
+    upstream instead of a malformed header.
+    """
+    headers: dict[str, str] = {}
+    client_id = os.environ.get(CF_ACCESS_ID_ENV)
+    client_secret = os.environ.get(CF_ACCESS_SECRET_ENV)
+    if client_id and client_secret:
+        headers["CF-Access-Client-Id"] = client_id
+        headers["CF-Access-Client-Secret"] = client_secret
+    if webhook_token:
+        headers[WEBHOOK_TOKEN_HEADER] = webhook_token
+    return headers
 
 
 def _try_n8n_webhook(
@@ -27,13 +55,14 @@ def _try_n8n_webhook(
     chat_id: str,
     webhook_url: str,
     timeout: float,
+    webhook_token: str | None = None,
 ) -> dict[str, Any]:
-    """POST to n8n master-cmd webhook."""
+    """POST to n8n master-cmd webhook through the Access edge."""
     import httpx
 
     payload = {"action": "telegram", "chat_id": chat_id, "text": text}
-    with httpx.Client(timeout=timeout) as client:
-        r = client.post(webhook_url, json=payload)
+    with httpx.Client(timeout=timeout, follow_redirects=False) as client:
+        r = client.post(webhook_url, json=payload, headers=_n8n_headers(webhook_token))
     status = r.status_code
     if 200 <= status < 300:
         return {"delivered": True, "status_code": status, "error": None, "via": "n8n"}
@@ -109,7 +138,9 @@ def telegram_notify(
 
     # 1. Try n8n webhook first.
     try:
-        result = _try_n8n_webhook(msg, target_chat_id, target_url, timeout)
+        result = _try_n8n_webhook(
+            msg, target_chat_id, target_url, timeout, settings.telegram_webhook_token
+        )
         if result["delivered"]:
             return result
         log.warning("n8n webhook failed (%s); trying Bot API fallback", result["error"])
