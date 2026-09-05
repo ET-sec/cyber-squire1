@@ -12,6 +12,9 @@ Targets in the portfolio repo:
 A node table is validated before anything is written: every control id must have a row in SSP section 5, every evidence
 path must be tracked on main, every label must appear exactly once as a <text> in the SVG, status must be live, partial,
 or designed. The SSP row (name, status, line) is attached to each control at sync time, never typed by hand.
+An entry may say `from: <slug>/<id>` to inherit every field from another table's entry and override some (label and zone
+at least). A table may carry `chips: {zone: ...}`: every box whose label is a control id then gets a generated entry from
+its SSP row (name, status, implementation text) and every occurrence on the drawing is wrapped.
 
 Usage:
   python3 scripts/sync_views.py            # dry run, report drift
@@ -64,7 +67,7 @@ NODES_CSS = """.cd-node { cursor: pointer; outline: none; }
 .cd-node-status { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; margin: 0 0 14px; padding: 10px 12px; border: 1px solid #27342b; }
 .cd-node-status b { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #e6ebe4; }
 .cd-node-dot { width: 9px; height: 9px; border-radius: 50%; background: #a3ada1; display: inline-block; }
-.cd-node-dot.live { background: #3dff8b; } .cd-node-dot.partial { background: #ffc247; } .cd-node-dot.designed { background: #e8dcc0; }
+.cd-node-dot.live, .cd-node-dot.implemented { background: #3dff8b; } .cd-node-dot.partial, .cd-node-dot.partially-implemented { background: #ffc247; } .cd-node-dot.designed, .cd-node-dot.planned { background: #e8dcc0; }
 .cd-node-status .cd-node-note { grid-column: 1 / -1; color: #a3ada1; font-size: 13px; }
 .cd-node-panel h5 { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #a3ada1; margin: 14px 0 6px; font-weight: 700; }
 .cd-node-panel ul { list-style: none; margin: 0; padding: 0; }
@@ -91,17 +94,17 @@ NODES_JS = """// NODE PANEL: click a box on a view for what it is, its controls,
     var what = el('p', 'cd-node-what');
     var status = el('div', 'cd-node-status'), dot = el('span', 'cd-node-dot'), slabel = el('b'), note = el('span', 'cd-node-note');
     status.appendChild(dot); status.appendChild(slabel); status.appendChild(note);
-    var controls = el('ul', 'cd-node-controls'), evidence = el('ul', 'cd-node-evidence');
-    [bar, title, what, status, el('h5', null, 'Controls'), controls, el('h5', null, 'Evidence'), evidence].forEach(function(n) { panel.appendChild(n); });
-    parts = { zone: zone, title: title, what: what, dot: dot, slabel: slabel, note: note, controls: controls, evidence: evidence, close: close };
+    var controls = el('ul', 'cd-node-controls'), evidence = el('ul', 'cd-node-evidence'), hc = el('h5', null, 'Controls');
+    [bar, title, what, status, hc, controls, el('h5', null, 'Evidence'), evidence].forEach(function(n) { panel.appendChild(n); });
+    parts = { zone: zone, title: title, what: what, dot: dot, slabel: slabel, note: note, controls: controls, hc: hc, evidence: evidence, close: close };
     close.addEventListener('click', hide);
     document.body.appendChild(panel);
   }
   function show(node, g) {
     if (!panel) build();
     parts.zone.textContent = node.zone; parts.title.textContent = node.label; parts.what.textContent = node.what;
-    parts.dot.className = 'cd-node-dot ' + node.status; parts.slabel.textContent = LABEL[node.status] || node.status; parts.note.textContent = node.status_note;
-    parts.controls.textContent = '';
+    parts.dot.className = 'cd-node-dot ' + node.status; parts.slabel.textContent = node.status_label || LABEL[node.status] || node.status; parts.note.textContent = node.status_note;
+    parts.controls.textContent = ''; parts.hc.style.display = node.controls.length ? '' : 'none';
     node.controls.forEach(function(c) {
       var li = el('li'); li.appendChild(link(SSP + '#L' + c.line, c.id, 'cd-node-id')); li.appendChild(el('span', null, c.name)); li.appendChild(el('em', null, 'SSP: ' + c.status)); parts.controls.appendChild(li);
     });
@@ -165,19 +168,45 @@ def ssp_rows():
         if line.startswith("## 5."): inside = True
         elif line.startswith("## 6."): break
         elif inside:
-            m = re.match(r"^\| \**([A-Z]{2}-\d+(?:\(\d+\))?)\**\s*\| ([^|]+?)\s*\| ([^|]+?)\s*\|", line)
-            if m: rows[m.group(1)] = {"name": m.group(2), "status": m.group(3), "line": n}
+            m = re.match(r"^\| \**([A-Z]{2}-\d+(?:\(\d+\))?)\**\s*\| ([^|]+?)\s*\| ([^|]+?)\s*\|\s*([^|]*?)\s*\|", line)
+            if m: rows[m.group(1)] = {"name": m.group(2), "status": m.group(3), "line": n, "text": m.group(4).replace("`", "")}
     assert len(rows) > 100, f"SSP section 5 parsed {len(rows)} rows, expected the full control table"
     return rows
 
 def tracked():
     return set(subprocess.run(["git", "-C", str(ROOT), "ls-files"], capture_output=True, text=True, check=True).stdout.split("\n"))
 
+def read_table(slug):
+    import yaml
+    return yaml.safe_load((NODES / f"{slug}.yaml").read_text(encoding="utf-8"))
+
+def resolve_from(n, slug, cache):
+    """Merge an entry over the entry it names in `from: <slug>/<id>`; local fields win."""
+    ref = n.get("from")
+    if not ref: return n
+    src_slug, _, src_id = ref.partition("/")
+    if src_slug not in cache: cache[src_slug] = {e["id"]: e for e in read_table(src_slug)["nodes"]}
+    base = cache[src_slug].get(src_id)
+    if base is None: raise SystemExit(f"nodes/{slug}.yaml: {n.get('id')}: from {ref!r} not found")
+    base = resolve_from(base, src_slug, cache)
+    merged = dict(base); merged.update({k: v for k, v in n.items() if k != "from"}); return merged
+
+def chip_entries(svg, rows, chips):
+    """One generated entry per control id printed as a box label on the drawing, straight from its SSP row."""
+    out = []
+    for cid in sorted({t for t in re.findall(r"<text\b[^>]*>([^<]*)</text>", svg) if t in rows}, key=lambda c: (c[:2], int(re.search(r"\d+", c).group()), c)):
+        r = rows[cid]; status = re.sub(r"[^a-z]+", "-", r["status"].lower()).strip("-")
+        out.append({"id": f"ctl-{cid}", "label": cid, "zone": chips.get("zone", "NIST 800-53 Rev 5"), "chip": True,
+                    "what": f"{r['name']}. {r['text']}" if r["text"] else r["name"],
+                    "status": status, "status_label": r["status"], "status_note": chips.get("note", "Status as recorded in the System Security Plan, section 5; open items sit on the POA&M."),
+                    "controls": [], "evidence": [{"label": f"SSP row {cid}", "path": "docs/grc/SSP_SYSTEM_SECURITY_PLAN.md", "line": r["line"]}]})
+    return out
+
 def load_nodes(slug, svg):
     f = NODES / f"{slug}.yaml"
     if not f.exists(): return None, None
-    import yaml
-    nodes = yaml.safe_load(f.read_text(encoding="utf-8"))["nodes"]
+    table = read_table(f.stem); cache = {}
+    nodes = [resolve_from(n, slug, cache) for n in table["nodes"]]
     rows, repo, errs, seen = ssp_rows(), tracked(), [], set()
     for n in nodes:
         nid = n.get("id", "?")
@@ -195,6 +224,7 @@ def load_nodes(slug, svg):
         if k != 1: errs.append(f"{nid}: label {n['label']!r} appears {k} times as a <text> in the SVG, need exactly 1")
     if errs:
         print(f"nodes/{slug}.yaml: {len(errs)} problem(s)\n  " + "\n  ".join(errs), file=sys.stderr); sys.exit(2)
+    if table.get("chips"): nodes += chip_entries(svg, rows, table["chips"])
     return nodes, rows
 
 def inject_nodes(svg, nodes):
@@ -203,12 +233,12 @@ def inject_nodes(svg, nodes):
         open_tag = (f'<g class="cd-node" data-node="{n["id"]}" tabindex="0" role="button" '
                     f'aria-label="{html.escape(n["label"])}: details">')
         pat = re.compile(rf'(<rect\b[^>]*/>)(\s*)(<text\b[^>]*>{lab}</text>|<g text-anchor="middle">\s*<text\b[^>]*>{lab}</text>.*?</g>)', re.S)
-        svg, k = pat.subn(lambda m: open_tag + m.group(1) + m.group(2) + m.group(3) + "</g>", svg, count=1)
-        assert k == 1, f"node {n['id']}: no rect followed by the label {n['label']!r} in the SVG"
+        svg, k = pat.subn(lambda m: open_tag + m.group(1) + m.group(2) + m.group(3) + "</g>", svg, count=0 if n.get("chip") else 1)
+        assert k >= 1, f"node {n['id']}: no rect followed by the label {n['label']!r} in the SVG"
     return svg
 
 def nodes_json(slug, nodes, rows):
-    data = [{"id": n["id"], "label": n["label"], "zone": n["zone"], "what": n["what"], "status": n["status"], "status_note": n["status_note"],
+    data = [{"id": n["id"], "label": n["label"], "zone": n["zone"], "what": n["what"], "status": n["status"], "status_label": n.get("status_label", ""), "status_note": n["status_note"],
              "controls": [{"id": c, "name": rows[c]["name"], "status": rows[c]["status"], "line": rows[c]["line"]} for c in n["controls"]],
              "evidence": [{"label": e["label"], "path": e["path"], "line": str(e["line"])} for e in n["evidence"]]} for n in nodes]
     js = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
