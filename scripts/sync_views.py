@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """sync_views.py: publish the architecture views into the portfolio site.
 
-Source of truth: docs/grc/diagrams/views/<slug>.html (listed in views.yaml).
+Source of truth: docs/architecture/views/<slug>.html (listed in views.yaml).
 Targets in the portfolio repo:
   views/<slug>.html                 standalone page (viewport, CSP, back link added)
   index.html  <!-- VIEW:slug -->...<!-- /VIEW -->   inline figure (svg + caption)
@@ -15,7 +15,7 @@ Options: --portfolio PATH (default ~/portfolio)
 import argparse, html, os, re, sys, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-VIEWS = ROOT / "docs" / "grc" / "diagrams" / "views"
+VIEWS = ROOT / "docs" / "architecture" / "views"
 CSP = ("default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none';")
 

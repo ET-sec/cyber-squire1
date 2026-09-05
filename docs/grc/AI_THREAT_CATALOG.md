@@ -148,7 +148,7 @@ to final impact.
 
 ## 1. Purpose
 
-This document provides a comprehensive catalog of AI-specific threats applicable to the Organization Security Operations Platform. It maps each threat across four complementary frameworks - OWASP LLM Top 10, MITRE ATLAS, NIST AI RMF, and ISO 42001 - and documents the current control posture, detection capabilities, and cross-references to existing GRC documents.
+This document catalogs the AI-specific threats that apply to the Organization Security Operations Platform. It maps each threat across four complementary frameworks - OWASP LLM Top 10, MITRE ATLAS, NIST AI RMF, and ISO 42001 - and documents the current control posture, detection capabilities, and cross-references to existing GRC documents.
 
 The catalog serves as:
 

@@ -19,8 +19,8 @@ jobs:
           path: portfolio
       - name: Generators reproduce the committed views
         run: |
-          python3 docs/grc/diagrams/views/render_views.py
-          git diff --exit-code -- docs/grc/diagrams/views/
+          python3 docs/architecture/views/render_views.py
+          git diff --exit-code -- docs/architecture/views/
       - name: Portfolio numbers match metrics.yaml
         run: python3 scripts/sync_portfolio.py --portfolio-root portfolio
       - name: Portfolio views match rendered views

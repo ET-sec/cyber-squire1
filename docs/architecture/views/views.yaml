@@ -1,7 +1,7 @@
 # Architecture views: one entry per view. Source of truth for scripts/sync_views.py.
-# slug      -> docs/grc/diagrams/views/<slug>.html (rendered by gen_<slug>.py, or hand-authored for topology)
+# slug      -> docs/architecture/views/<slug>.html (rendered by gen_<slug>.py, or hand-authored for topology)
 # section   -> where the site embeds it (informational; the index.html carries <!-- VIEW:slug --> markers)
-# Regenerate: python3 docs/grc/diagrams/views/render_views.py
+# Regenerate: python3 docs/architecture/views/render_views.py
 # Sync site:  python3 scripts/sync_views.py --apply   (or --check in CI)
 views:
   - slug: topology

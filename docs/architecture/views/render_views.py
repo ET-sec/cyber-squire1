@@ -3,7 +3,7 @@
 
 Each gen_<slug>.py holds the view's data (nodes, arrows, labels) and writes
 <slug>.html beside itself. topology.html is hand-authored (generator: null).
-Run from anywhere: python3 docs/grc/diagrams/views/render_views.py
+Run from anywhere: python3 docs/architecture/views/render_views.py
 """
 import re, subprocess, sys, pathlib
 HERE = pathlib.Path(__file__).resolve().parent
