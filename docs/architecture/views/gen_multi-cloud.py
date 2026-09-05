@@ -116,7 +116,7 @@ html=f'''<title>CoreDirective Multi-Cloud Planes</title>
 
   <figcaption>
     <div class="g"><b>Edge</b>identity → filter → tunnel, host dials out, no origin address anywhere</div>
-    <div class="c"><b>Identity</b>one GitHub JWT → two clouds, pinned to main, short-lived, read-only, zero stored keys in CI</div>
+    <div class="c"><b>Identity</b>one GitHub JWT → two clouds, pinned to main, short-lived, read-only, no stored cloud key in CI</div>
     <div class="a"><b>Evidence</b>nightly, one way, write-only, Object Lock, survives the runtime cloud</div>
     <div class="r"><b>Break-glass</b>sealed credential in the other cloud, any read → page in 2 min</div>
   </figcaption>

@@ -45,9 +45,10 @@ def parse(slug):
 def standalone(slug, title, head, body):
     head = head.replace("<title>", '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n'
                         f'<meta http-equiv="Content-Security-Policy" content="{CSP}">\n<link rel="icon" href="../favicon.svg">\n<title>', 1)
-    extra = ("\n  .head .back{margin-left:18px;font-family:var(--mono);font-size:12px;color:var(--green);text-decoration:none;letter-spacing:.02em}"
+    extra = ("\n  .head .back{margin-left:18px;font-family:var(--mono);font-size:12px;color:var(--green);text-decoration:none;letter-spacing:.02em;display:inline-block;padding:12px 0}"
              "\n  .head .back:hover{text-decoration:underline}"
-             "\n  @media (max-width:900px){svg{max-height:none;min-width:1100px} figure{overflow-x:auto;-webkit-overflow-scrolling:touch} .head{gap:6px 14px}}\n")
+             "\n  @media (max-width:900px){svg{max-height:none;min-width:1100px} figure{overflow-x:auto;-webkit-overflow-scrolling:touch} .head{gap:6px 14px} .head p::after{content:\". Scroll sideways to see the whole drawing.\";color:var(--bone)}}"
+             "\n  @media (max-width:600px){figcaption{grid-template-columns:1fr}}\n")
     head = head.replace("</style>", extra + "</style>")
     body = re.sub(r'(<span class="tag">[^<]*</span>)', r'\1<a class="back" href="../#view-' + slug + '">Back to portfolio</a>', body, count=1)
     return f'<!doctype html>\n<html lang="en">\n<head>\n{head}\n</head>\n<body>{body}\n</body>\n</html>\n'
@@ -58,7 +59,7 @@ def figure(slug, title, sub, svg, cap):
     # six views share marker ids (m-green, m-red, ...); prefix per view so one page holds them all
     svg = svg.replace('id="m-', f'id="m-{slug}-').replace('url(#m-', f'url(#m-{slug}-')
     return (f'<!-- VIEW:{slug} -->\n<figure class="cd-view" id="view-{slug}">\n'
-            f'  <div class="cd-view-head"><span class="cd-view-title">{html.escape(title)}</span>'
+            f'  <div class="cd-view-head"><h3 class="cd-view-title">{html.escape(title)}</h3>'
             f'<span class="cd-view-sub">{sub_clean}</span>'
             f'<a class="cd-view-open" href="{href}">Open full view</a></div>\n'
             f'  <a class="cd-view-frame" href="{href}" aria-label="Open the {html.escape(title.lower())} view full size">\n{svg}\n  </a>\n'
