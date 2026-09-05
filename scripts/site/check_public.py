@@ -12,7 +12,7 @@ section, a stale number) is a review job, not this script's.
 
 Usage: python3 scripts/site/check_public.py [--portfolio PATH] [--links] [--links-only]
 """
-import argparse, os, pathlib, re, subprocess, sys, urllib.request
+import argparse, http.client, os, pathlib, re, subprocess, sys, urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SSP = ROOT / "docs" / "grc" / "SSP_SYSTEM_SECURITY_PLAN.md"
@@ -69,6 +69,29 @@ def tracked():
 def strip_urls(text):
     return URL_RE.sub(" ", text)
 
+def host_of(url):
+    return (urllib.parse.urlsplit(url).hostname or "").lower()
+
+def on_domain(url, domain):
+    h = host_of(url); return h == domain or h.endswith("." + domain)
+
+def fetch_status(url):
+    """Status code for an http(s) URL, HEAD then GET, no redirects followed (3xx counts as answered)."""
+    u = urllib.parse.urlsplit(url)
+    if u.scheme not in ("http", "https") or not u.hostname: return "error: not http(s)"
+    conn_cls = http.client.HTTPSConnection if u.scheme == "https" else http.client.HTTPConnection
+    path = (u.path or "/") + (("?" + u.query) if u.query else "")
+    code = None
+    for method in ("HEAD", "GET"):
+        try:
+            conn = conn_cls(u.hostname, u.port, timeout=20)
+            conn.request(method, path, headers={"User-Agent": "Mozilla/5.0 (portfolio link check)", "Host": u.netloc})
+            code = conn.getresponse().status; conn.close()
+            if 200 <= code < 400: break
+        except Exception as e:
+            code = f"error: {e.__class__.__name__}"
+    return code
+
 def check_links(pf):
     urls = set()
     for f in files(pf):
@@ -78,19 +101,8 @@ def check_links(pf):
     urls = sorted(u for u in urls if re.search(r"https?://[^/]+/.+", u))  # skip bare preconnect origins
     bad = []
     for u in urls:
-        code = None
-        for method in ("HEAD", "GET"):
-            try:
-                req = urllib.request.Request(u, method=method, headers={"User-Agent": "Mozilla/5.0 (portfolio link check)"})
-                with urllib.request.urlopen(req, timeout=20) as r: code = r.status
-                break
-            except urllib.error.HTTPError as e:
-                code = e.code
-                if method == "GET": break
-            except Exception as e:
-                code = f"error: {e.__class__.__name__}"
-                if method == "GET": break
-        ok = isinstance(code, int) and (200 <= code < 400 or ("linkedin.com" in u and code in (429, 999)))
+        code = fetch_status(u)
+        ok = isinstance(code, int) and (200 <= code < 400 or (on_domain(u, "linkedin.com") and code in (429, 999)))
         if not ok: bad.append((u, code))
     return len(urls), bad
 
@@ -106,7 +118,7 @@ def main():
             text = f.read_text(encoding="utf-8"); rel = f.relative_to(pf)
             # 1. OPSEC over the whole file, Credly badge ids excluded from the hex check
             for name, pat in OPSEC:
-                allow = (lambda m, line, rule: "credly.com" in line) if name == "long hex id" else None
+                allow = (lambda m, line, rule: any(on_domain(h, "credly.com") for h in re.findall(r'href="([^"]+)"', line))) if name == "long hex id" else None
                 for n, m, ctx in hits(pat, text, allow): print(f"FAIL opsec {name}: {rel}:{n}: {m}   | {ctx}"); fails += 1
             # 2. tells over the whole file; box-shadow allowed only on a hover rule (brand-motion exception)
             # brand-motion exception (ROE 2026-09-05): the cursor glow gradient and the hover glow shadow stay
