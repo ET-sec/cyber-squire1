@@ -1,0 +1,119 @@
+<title>CoreDirective Multi-Cloud Planes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --ink:#0a0d0b; --node:#141b16; --line:#27342b; --line-soft:#1b241e; --text:#e6ebe4; --dim:#a3ada1;
+    --green:#3dff8b; --bone:#e8dcc0; --amber:#ffc247; --red:#ff6b5e;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--ink)}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);margin:0;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .page{max-width:1720px;margin:0 auto;padding:16px 26px 16px}
+  .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+  .head h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .head p{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+  .head .tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  figure{margin:10px 0 0}
+  svg{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}
+  figcaption{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}
+  @media (max-width:1100px){figcaption{grid-template-columns:repeat(2,1fr)}}
+  figcaption b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}
+  .g b{color:var(--green)} .c b{color:var(--bone)} .a b{color:var(--amber)} .r b{color:var(--red)}
+</style>
+
+<div class="page">
+  <div class="head">
+    <h1>CoreDirective reference architecture</h1>
+    <p>three planes, three vendors, split by blast radius, sanitized, no accounts, regions, or bucket names</p>
+    <span class="tag">Multi-cloud planes</span>
+  </div>
+
+  <figure>
+  <svg viewBox="0 0 1700 750" role="img" aria-label="Multi-cloud planes view of the CoreDirective platform. Three planes on three vendors, split by blast radius. The edge plane on Cloudflare holds Access with one-time PIN and service tokens, WAF and rate limits, the tunnel edge the host dials out to, a DNS proxy with no origin address, one webhook carve-out for Telegram's published ranges, and the versioned Terraform state bucket, kept off the runtime cloud so state and compute never share a failure domain. The runtime plane on Oracle Cloud holds the hardened host with the compose stack, a VCN with one inbound port for SSH from allowlisted sources, an identity domain that trades a GitHub JWT for a token that lives minutes, a backup bucket with a 30 day retention rule, a KMS vault and customer managed key, an instance identity that can write backups but not delete them, block storage encrypted with the provider key, and a monthly timed restore. The security plane on AWS holds OIDC federation pinned to one repo and the main branch, a sealed break-glass credential for the runtime cloud whose every read pages the operator with the caller named, an evidence vault with Object Lock in compliance mode and a customer managed key, a multi-region account trail with log validation, a region guard that denies everything outside one region, and a write-only evidence uploader. What crosses: users enter at the edge and reach the host over a tunnel the host dials out; one GitHub identity federates into both clouds with no stored keys; evidence flows one way from the runtime into the vault nightly; no automation in the security plane reaches back into the runtime.">
+    <defs><marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b5e"/></marker><marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3dff8b"/></marker><marker id="m-bone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8dcc0"/></marker><marker id="m-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffc247"/></marker></defs>
+    <rect x="28" y="150" width="472" height="460" rx="9" fill="rgba(61,255,139,0.03)" stroke="#27342b" stroke-width="2"/>
+    <text x="46" y="174" font-size="12" font-weight="700" fill="#3dff8b" letter-spacing="2">EDGE  CLOUDFLARE</text>
+    <text x="46" y="191" font-size="11.5" fill="#a3ada1">identity, ingress, state</text>
+    <text x="482" y="598" font-size="11.5" fill="#a3ada1" text-anchor="end">Terraform: cd-cloudflare-edge</text>
+    <rect x="530" y="150" width="630" height="460" rx="9" fill="rgba(232,220,192,0.03)" stroke="#27342b" stroke-width="2"/>
+    <text x="548" y="174" font-size="12" font-weight="700" fill="#e8dcc0" letter-spacing="2">RUNTIME  ORACLE CLOUD</text>
+    <text x="548" y="191" font-size="11.5" fill="#a3ada1">compute, data, keys</text>
+    <text x="1142" y="598" font-size="11.5" fill="#a3ada1" text-anchor="end">Terraform: cd-oci-infrastructure</text>
+    <rect x="1190" y="150" width="482" height="460" rx="9" fill="rgba(255,194,71,0.03)" stroke="#27342b" stroke-width="2"/>
+    <text x="1208" y="174" font-size="12" font-weight="700" fill="#ffc247" letter-spacing="2">SECURITY  AWS</text>
+    <text x="1208" y="191" font-size="11.5" fill="#a3ada1">what must survive the other two</text>
+    <text x="1654" y="598" font-size="11.5" fill="#a3ada1" text-anchor="end">Terraform: cd-aws-security-plane</text>
+    <rect x="60" y="30" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="55" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">users, operators</text>
+    <rect x="620" y="30" width="160" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="700" y="55" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">SIEM</text>
+    <rect x="1080" y="30" width="190" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1175" y="55" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">GitHub Actions</text>
+    <rect x="1450" y="30" width="190" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1545" y="55" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">operator, Telegram</text>
+    <rect x="60" y="235" width="190" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="155" y="260" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Access</text><text x="155" y="292" font-size="11.5" fill="#a3ada1" text-anchor="middle">OTP, service tokens</text>
+    <rect x="290" y="235" width="190" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="385" y="260" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">tunnel edge</text><text x="385" y="292" font-size="11.5" fill="#a3ada1" text-anchor="middle">host dials out to it</text>
+    <rect x="60" y="335" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="360" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">WAF, rate limits</text><text x="155" y="392" font-size="11.5" fill="#a3ada1" text-anchor="middle">managed and custom rules</text>
+    <rect x="290" y="335" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="385" y="360" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">DNS proxy</text><text x="385" y="392" font-size="11.5" fill="#a3ada1" text-anchor="middle">no origin address</text>
+    <rect x="60" y="435" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="460" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">webhook carve-out</text><text x="155" y="492" font-size="11.5" fill="#a3ada1" text-anchor="middle">Telegram ranges, one path</text>
+    <rect x="290" y="435" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="385" y="460" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">state bucket</text><text x="385" y="492" font-size="11.5" fill="#a3ada1" text-anchor="middle">Terraform state, versioned</text>
+    <rect x="560" y="235" width="150" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="635" y="260" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">hardened host</text><text x="635" y="292" font-size="11.5" fill="#a3ada1" text-anchor="middle">compose, 19 services</text>
+    <rect x="760" y="235" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="835" y="260" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">VCN, one port</text><text x="835" y="292" font-size="11.5" fill="#a3ada1" text-anchor="middle">SSH, allowlisted sources</text>
+    <rect x="960" y="235" width="150" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="1035" y="260" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">identity domain</text><text x="1035" y="292" font-size="11.5" fill="#a3ada1" text-anchor="middle">JWT to token, minutes</text>
+    <rect x="560" y="335" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="635" y="360" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">backup bucket</text><text x="635" y="392" font-size="11.5" fill="#a3ada1" text-anchor="middle">retention rule, 30 days</text>
+    <rect x="760" y="335" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="835" y="360" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">KMS vault + key</text><text x="835" y="392" font-size="11.5" fill="#a3ada1" text-anchor="middle">CMK, envelope</text>
+    <rect x="960" y="335" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1035" y="360" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">block storage</text><text x="1035" y="392" font-size="11.5" fill="#a3ada1" text-anchor="middle">encrypted, provider key</text>
+    <rect x="560" y="435" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="635" y="460" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">instance identity</text><text x="635" y="492" font-size="11.5" fill="#a3ada1" text-anchor="middle">writes, cannot delete</text>
+    <rect x="760" y="435" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="835" y="460" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">timed restore</text><text x="835" y="492" font-size="11.5" fill="#a3ada1" text-anchor="middle">monthly, logged</text>
+    <rect x="1220" y="235" width="190" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="1315" y="260" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">OIDC federation</text><text x="1315" y="292" font-size="11.5" fill="#a3ada1" text-anchor="middle">repo and main, 1h max</text>
+    <rect x="1450" y="235" width="190" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/><text x="1545" y="260" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">break-glass secret</text><text x="1545" y="292" font-size="11.5" fill="#a3ada1" text-anchor="middle">sealed runtime credential</text>
+    <rect x="1220" y="335" width="190" height="40" rx="5" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/><text x="1315" y="360" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">evidence vault</text><text x="1315" y="392" font-size="11.5" fill="#a3ada1" text-anchor="middle">Object Lock, CMK, 30d</text>
+    <rect x="1450" y="335" width="190" height="40" rx="5" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/><text x="1545" y="360" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">alert on read</text><text x="1545" y="392" font-size="11.5" fill="#a3ada1" text-anchor="middle">trail to Lambda to Telegram</text>
+    <rect x="1220" y="435" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1315" y="460" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">account trail</text><text x="1315" y="492" font-size="11.5" fill="#a3ada1" text-anchor="middle">multi-region, validated</text>
+    <rect x="1450" y="435" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1545" y="460" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">region guard</text><text x="1545" y="492" font-size="11.5" fill="#a3ada1" text-anchor="middle">deny outside one region</text>
+    <rect x="1220" y="535" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1315" y="560" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">evidence uploader</text><text x="1315" y="592" font-size="11.5" fill="#a3ada1" text-anchor="middle">write-only, no delete</text>
+    <path d="M230,70 V234" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="240" y="112" font-size="11.5" fill="#3dff8b" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">one-time PIN, service tokens</text>
+    <path d="M250,255 H289" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <path d="M560,255 H481" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <path d="M1110,70 V120 H1035 V234" fill="none" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="1100" y="112" font-size="11.5" fill="#e8dcc0" text-anchor="end" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">signed JWT, main only</text>
+    <path d="M1175,70 V255 H1219" fill="none" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="1185" y="112" font-size="11.5" fill="#e8dcc0" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">same JWT, role pinned</text>
+    <path d="M710,255 H735 V318 H1205 V355 H1219" fill="none" stroke="#ffc247" stroke-width="2.5" marker-end="url(#m-amber)"/>
+    <text x="970" y="312" font-size="11.5" fill="#ffc247" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">nightly evidence, one way, write-only</text>
+    <path d="M700,235 V71" fill="none" stroke="#ffc247" stroke-width="2.5" marker-end="url(#m-amber)"/>
+    <text x="710" y="112" font-size="11.5" fill="#ffc247" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">logs, alerts, metrics</text>
+    <path d="M1640,355 H1660 V50 H1641" fill="none" stroke="#ffc247" stroke-width="2.5" marker-end="url(#m-amber)"/>
+    <text x="1555" y="126" font-size="11.5" fill="#ffc247" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">pages in 2 min</text>
+    <text x="1555" y="141" font-size="11.5" fill="#ffc247" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">caller named</text>
+    <path d="M1545,70 V234" fill="none" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#m-red)"/>
+    <text x="1535" y="112" font-size="11.5" fill="#ff6b5e" text-anchor="end" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">emergency read only</text>
+    <path d="M1545,275 V334" fill="none" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#m-red)"/>
+    <text x="1555" y="307" font-size="11.5" fill="#ff6b5e" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">any read</text>
+    <text x="46" y="640" font-size="12" font-weight="700" fill="#3dff8b" letter-spacing="2">IF THIS ACCOUNT FALLS</text>
+    <text x="46" y="658" font-size="11.5" fill="#a3ada1">the front door and its policies fall, not the host; revoke the</text>
+    <text x="46" y="674" font-size="11.5" fill="#a3ada1">tunnel token and the host goes dark with its data intact</text>
+    <text x="548" y="640" font-size="12" font-weight="700" fill="#e8dcc0" letter-spacing="2">IF THIS ACCOUNT FALLS</text>
+    <text x="548" y="658" font-size="11.5" fill="#a3ada1">data and keys live here; the host cannot delete its own backups, and the</text>
+    <text x="548" y="674" font-size="11.5" fill="#a3ada1">evidence copy and the break-glass credential sit with another vendor</text>
+    <text x="1208" y="640" font-size="12" font-weight="700" fill="#ffc247" letter-spacing="2">IF THIS ACCOUNT FALLS</text>
+    <text x="1208" y="658" font-size="11.5" fill="#a3ada1">no automation here reaches the runtime; the uploader can only</text>
+    <text x="1208" y="674" font-size="11.5" fill="#a3ada1">add, Object Lock refuses deletes even for root, and every</text>
+    <text x="1208" y="690" font-size="11.5" fill="#a3ada1">access lands on a validated trail</text>
+    <g font-size="12" fill="#a3ada1">
+    <line x1="44" y1="728" x2="84" y2="728" stroke="#3dff8b" stroke-width="2.5"/><text x="95" y="732">request and tunnel path</text>
+    <line x1="301" y1="728" x2="341" y2="728" stroke="#e8dcc0" stroke-width="2.5"/><text x="352" y="732">pipeline identity, short-lived</text>
+    <line x1="608" y1="728" x2="648" y2="728" stroke="#ffc247" stroke-width="2.5"/><text x="659" y="732">evidence and alerts, one way</text>
+    <line x1="901" y1="728" x2="941" y2="728" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5"/><text x="952" y="732">break-glass, alerted on read</text>
+    <rect x="1194" y="721" width="40" height="15" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1245" y="732">external service</text></g>
+  </svg>
+
+  <figcaption>
+    <div class="g"><b>Edge</b>identity → filter → tunnel, host dials out, no origin address anywhere</div>
+    <div class="c"><b>Identity</b>one GitHub JWT → two clouds, pinned to main, short-lived, read-only, no stored cloud key in CI</div>
+    <div class="a"><b>Evidence</b>nightly, one way, write-only, Object Lock, survives the runtime cloud</div>
+    <div class="r"><b>Break-glass</b>sealed credential in the other cloud, any read → page in 2 min</div>
+  </figcaption>
+  </figure>
+</div>

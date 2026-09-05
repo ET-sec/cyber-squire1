@@ -1,0 +1,212 @@
+<title>CoreDirective Authorization Boundary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --ink:#0a0d0b; --node:#141b16; --line:#27342b; --line-soft:#1b241e; --text:#e6ebe4; --dim:#a3ada1;
+    --green:#3dff8b; --bone:#e8dcc0; --amber:#ffc247; --red:#ff6b5e; --orange:#ff9b3d;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--ink)}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);margin:0;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .page{max-width:1720px;margin:0 auto;padding:14px 26px 10px}
+  .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+  .head h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .head p{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+  .head .tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  figure{margin:10px 0 0}
+  svg{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}
+  figcaption{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}
+  @media (max-width:1100px){figcaption{grid-template-columns:repeat(2,1fr)}}
+  figcaption b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}
+  .g b{color:var(--green)} .c b{color:var(--bone)} .a b{color:var(--amber)} .r b{color:var(--red)}
+</style>
+
+<div class="page">
+  <div class="head">
+    <h1>CoreDirective reference architecture</h1>
+    <p>what is inside the boundary, what the providers carry, and every crossing with its control</p>
+    <span class="tag">Authorization boundary</span>
+  </div>
+
+  <figure>
+  <svg viewBox="0 0 1700 770" role="img" aria-label="Authorization boundary view of the CoreDirective platform. A dashed boundary encloses one hardened host running 19 services across three segments, the cloud resources under Terraform on the runtime cloud (compute, a virtual network with one inbound port, object storage for state and backups, a customer managed key, an identity domain for pipeline tokens, and an instance identity that writes backups but cannot delete them), a security plane account on a second provider (OIDC federation, an evidence vault with object lock, a sealed break-glass key whose reads page on-call, an account trail, a region guard), and configuration items, edge policy, 14 SHA-pinned workflow definitions, 8 policy gates, and a nightly drift check, versioned inside the boundary and executed by the providers. Outside on the left: users reach the edge platform with a one-time PIN; the host dials an outbound tunnel to that edge and requests ride it in, so nothing listens publicly; operators reach the host through the edge on recorded SSH with a second factor, and hold one break-glass exception: key-based SSH from allowlisted sources straight to the host; Telegram enters through an edge carve-out scoped to its published address ranges and receives notifications. Outside on the right, seven external services, each crossing labeled with direction, protocol, and control: image registries in, pulled by digest with signatures checked; a secrets manager injecting environment variables at deploy; Datadog receiving audit records and telemetry over TLS; the Claude API receiving screened prompts from Guardrails; an embeddings API receiving corpus chunks and alert query text; a web search API receiving indicator terms from two nodes; and GitHub presenting a signed, minutes-lived JWT to both clouds. Inherited from the providers: physical, hypervisor, and backbone controls from the two cloud providers, and DDoS, WAF engine, tunnel edge, and secure DNS from the edge provider, six control rows marked inherited in the system security plan. The Teleport event shipper spans net-core and net-monitoring.">
+    <defs><marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3dff8b"/></marker><marker id="m-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff9b3d"/></marker><marker id="m-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffc247"/></marker><marker id="m-bone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8dcc0"/></marker><marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b5e"/></marker><marker id="m-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a3ada1"/></marker></defs>
+    <rect x="350" y="30" width="900" height="660" rx="10" fill="rgba(232,220,192,0.015)" stroke="#e8dcc0" stroke-width="3" stroke-dasharray="18 9"/>
+    <text x="372" y="58" font-size="13" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start">AUTHORIZATION BOUNDARY</text>
+    <text x="372" y="76" font-size="11.5" fill="#a3ada1" text-anchor="start">one hardened host, 19 services, three Terraform modules, the configuration that changes them; Moderate baseline, 133 controls cited in the SSP</text>
+    <rect x="370" y="88" width="860" height="88" rx="7" fill="rgba(255,255,255,0.015)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="382" y="106" font-size="12" fill="#e6ebe4" font-weight="700" letter-spacing="2" text-anchor="start">CONFIGURATION ITEMS</text>
+    <text x="382" y="142" font-size="11.5" fill="#a3ada1" text-anchor="start">versioned here  CM-2 CM-3</text>
+    <text x="382" y="157" font-size="11.5" fill="#a3ada1" text-anchor="start">executed by the providers</text>
+    <rect x="560" y="104" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="635" y="128.5" font-size="13" fill="#e6ebe4" font-weight="500" text-anchor="middle">edge policy</text>
+    <text x="635" y="161" font-size="11.5" fill="#a3ada1" text-anchor="middle">Access, WAF, tokens</text>
+    <rect x="730" y="104" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="805" y="128.5" font-size="13" fill="#e6ebe4" font-weight="500" text-anchor="middle">workflows</text>
+    <text x="805" y="161" font-size="11.5" fill="#a3ada1" text-anchor="middle">14 definitions, pinned</text>
+    <rect x="900" y="104" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="975" y="128.5" font-size="13" fill="#e6ebe4" font-weight="500" text-anchor="middle">policy gates</text>
+    <text x="975" y="161" font-size="11.5" fill="#a3ada1" text-anchor="middle">8 OPA, 4 deny, 4 warn</text>
+    <rect x="1070" y="104" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1145" y="128.5" font-size="13" fill="#e6ebe4" font-weight="500" text-anchor="middle">drift check</text>
+    <text x="1145" y="161" font-size="11.5" fill="#a3ada1" text-anchor="middle">nightly re-plan, alerts</text>
+    <rect x="370" y="186" width="860" height="294" rx="7" fill="rgba(255,255,255,0.015)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="382" y="204" font-size="12" fill="#e6ebe4" font-weight="700" letter-spacing="2" text-anchor="start">HOST</text>
+    <text x="440" y="204" font-size="11.5" fill="#a3ada1" text-anchor="start">one hardened VM, published to loopback only, three segments</text>
+    <rect x="402" y="212" width="150" height="32" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="477" y="232.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">tunnel connector</text>
+    <text x="562" y="232" font-size="11.5" fill="#a3ada1" text-anchor="start">host network, read-only root; dials out, listens on nothing public</text>
+    <rect x="358" y="300" width="80" height="22" rx="3" fill="#0a0d0b" stroke="#ff6b5e" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="398" y="315" font-size="11.5" fill="#ff6b5e" text-anchor="middle">host sshd</text>
+    <rect x="448" y="270" width="380" height="198" rx="6" fill="rgba(255,255,255,0.015)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="460" y="288" font-size="11.5" fill="#e6ebe4" font-weight="700" letter-spacing="2" text-anchor="start">NET-CORE</text>
+    <text x="548" y="288" font-size="11.5" fill="#a3ada1" text-anchor="start">state, identity, orchestration</text>
+    <rect x="460" y="300" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="516" y="319.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">n8n</text>
+    <rect x="586" y="300" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="642" y="319.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Squire</text>
+    <rect x="712" y="300" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="768" y="319.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Guardrails</text>
+    <rect x="460" y="338" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="516" y="357.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Postgres</text>
+    <rect x="586" y="338" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="642" y="357.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Vault</text>
+    <rect x="712" y="338" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="768" y="357.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Keycloak</text>
+    <rect x="460" y="376" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="516" y="395.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Teleport</text>
+    <rect x="586" y="376" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="642" y="395.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">event shipper</text>
+    <rect x="712" y="376" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="768" y="395.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Langfuse web</text>
+    <rect x="460" y="414" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="516" y="433.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Langfuse worker</text>
+    <rect x="586" y="414" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="642" y="433.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">ClickHouse</text>
+    <rect x="712" y="414" width="112" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="768" y="433.5" font-size="12" fill="#e6ebe4" font-weight="500" text-anchor="middle">Redis</text>
+    <rect x="840" y="270" width="150" height="198" rx="6" fill="rgba(232,220,192,0.03)" stroke="#e8dcc0" stroke-width="1.5" stroke-dasharray="7 5"/>
+    <text x="850" y="288" font-size="11.5" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start">NET-AI</text>
+    <text x="917" y="288" font-size="11.5" fill="#a3ada1" text-anchor="start">sealed</text>
+    <rect x="850" y="300" width="130" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="915" y="319.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">Whisper</text>
+    <rect x="850" y="338" width="130" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="915" y="357.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">Ollama</text>
+    <text x="915" y="394" font-size="11.5" fill="#a3ada1" text-anchor="middle">no route out</text>
+    <text x="915" y="410" font-size="11.5" fill="#a3ada1" text-anchor="middle">bridged by n8n</text>
+    <text x="915" y="426" font-size="11.5" fill="#a3ada1" text-anchor="middle">audio never leaves</text>
+    <rect x="1004" y="270" width="226" height="198" rx="6" fill="rgba(255,255,255,0.015)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="1014" y="288" font-size="11.5" fill="#e6ebe4" font-weight="700" letter-spacing="2" text-anchor="start">NET-MONITORING</text>
+    <rect x="1014" y="300" width="206" height="30" rx="5" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/><text x="1117" y="319.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">Falco, eBPF</text>
+    <rect x="1014" y="338" width="206" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1117" y="357.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">Falcosidekick</text>
+    <rect x="1014" y="376" width="206" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1117" y="395.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">Fluentd</text>
+    <rect x="1014" y="414" width="206" height="30" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1117" y="433.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">Datadog agent</text>
+    <text x="1117" y="458" font-size="11" fill="#a3ada1" text-anchor="middle">reads the kernel below every container</text>
+    <rect x="370" y="496" width="430" height="172" rx="7" fill="rgba(232,220,192,0.02)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="382" y="516" font-size="12" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start">RUNTIME CLOUD</text>
+    <text x="382" y="532" font-size="11.5" fill="#a3ada1" text-anchor="start">compute, network, keys, state and backups under Terraform</text>
+    <rect x="382" y="544" width="130" height="32" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="447" y="564.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">compute, 1 host</text>
+    <rect x="524" y="544" width="130" height="32" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/><text x="589" y="564.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">VCN, one port</text>
+    <rect x="666" y="544" width="130" height="32" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="731" y="564.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">object storage</text>
+    <rect x="382" y="584" width="130" height="32" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="447" y="604.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">KMS, CMK</text>
+    <rect x="524" y="584" width="130" height="32" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="589" y="604.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">identity domain</text>
+    <rect x="666" y="584" width="130" height="32" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="731" y="604.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">instance identity</text>
+    <text x="382" y="640" font-size="11.5" fill="#a3ada1" text-anchor="start">instance identity writes backups and cannot delete them</text>
+    <text x="382" y="656" font-size="11.5" fill="#a3ada1" text-anchor="start">state versioned, backups on a retention rule, both under the CMK</text>
+    <rect x="816" y="496" width="414" height="172" rx="7" fill="rgba(255,194,71,0.02)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="828" y="516" font-size="12" fill="#ffc247" font-weight="700" letter-spacing="2" text-anchor="start">SECURITY PLANE</text>
+    <text x="828" y="532" font-size="11.5" fill="#a3ada1" text-anchor="start">what must survive the runtime cloud, on a second provider</text>
+    <rect x="828" y="544" width="124" height="32" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="890" y="564.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">OIDC federation</text>
+    <rect x="962" y="544" width="124" height="32" rx="5" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/><text x="1024" y="564.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">evidence vault</text>
+    <rect x="1096" y="544" width="124" height="32" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/><text x="1158" y="564.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">break-glass key</text>
+    <rect x="828" y="584" width="124" height="32" rx="5" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/><text x="890" y="604.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">alert on read</text>
+    <rect x="962" y="584" width="124" height="32" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1024" y="604.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">account trail</text>
+    <rect x="1096" y="584" width="124" height="32" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1158" y="604.5" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="middle">region guard</text>
+    <text x="828" y="640" font-size="11.5" fill="#a3ada1" text-anchor="start">evidence and backup replicas arrive one way, write-only</text>
+    <text x="828" y="656" font-size="11.5" fill="#a3ada1" text-anchor="start">no automatic path back; a secret read pages on-call</text>
+    <text x="20" y="44" font-size="12" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start">OUTSIDE</text>
+    <text x="96" y="44" font-size="11.5" fill="#a3ada1" text-anchor="start">people and the front door</text>
+    <rect x="20" y="106" width="160" height="44" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="100" y="124" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">users</text><text x="100" y="140" font-size="11" fill="#a3ada1" text-anchor="middle">browsers, any network</text>
+    <rect x="20" y="196" width="160" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="100" y="214" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">edge platform</text><text x="100" y="230" font-size="11" fill="#a3ada1" text-anchor="middle">Access, WAF, tunnel</text>
+    <rect x="20" y="290" width="160" height="44" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="100" y="308" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">operators</text><text x="100" y="324" font-size="11" fill="#a3ada1" text-anchor="middle">workstation, SSH, IaC</text>
+    <rect x="20" y="380" width="160" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="100" y="398" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">Telegram</text><text x="100" y="414" font-size="11" fill="#a3ada1" text-anchor="middle">bot API, on-call channel</text>
+    <path d="M100,150 V195" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="108" y="178" font-size="11.5" fill="#3dff8b" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">HTTPS, one-time PIN  IA-2</text>
+    <path d="M100,290 V241" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="108" y="270" font-size="11.5" fill="#3dff8b" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">recorded SSH, TOTP  IA-2</text>
+    <path d="M401,228 H181" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <rect x="345" y="223" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="190" y="250" font-size="11.5" fill="#3dff8b" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">out: tunnel, TLS  SC-7 SC-8</text>
+    <text x="190" y="265" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">requests ride it in</text>
+    <path d="M559,124 H290 V206 H181" fill="none" stroke="#a3ada1" stroke-width="2" marker-end="url(#m-gray)"/>
+    <rect x="345" y="119" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="344" y="118" font-size="11.5" fill="#a3ada1" text-anchor="end" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">configures, TLS  CM-3</text>
+    <path d="M181,312 H357" fill="none" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#m-red)"/>
+    <rect x="345" y="307" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="190" y="345" font-size="11.5" fill="#ff6b5e" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">in: break-glass, key</text>
+    <text x="190" y="360" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">allowlist  SC-7 MA-4</text>
+    <path d="M181,392 H369" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <rect x="345" y="387" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="190" y="384" font-size="11.5" fill="#3dff8b" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">in: carve-out, IP ranges  AC-3</text>
+    <path d="M370,412 H181" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <rect x="345" y="407" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="190" y="428" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">out: notify, TLS  SC-8</text>
+    <text x="20" y="470" font-size="12" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start">INHERITED</text>
+    <text x="112" y="470" font-size="11.5" fill="#a3ada1" text-anchor="start">controls the providers carry</text>
+    <text x="20" y="494" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">Oracle Cloud and AWS, IaaS</text>
+    <text x="20" y="509" font-size="11.5" fill="#a3ada1" text-anchor="start">physical, hypervisor, backbone, resolver</text>
+    <text x="20" y="524" font-size="11.5" fill="#a3ada1" text-anchor="start">PE family  MP-4  MP-6  SC-21</text>
+    <text x="20" y="552" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">Cloudflare, edge</text>
+    <text x="20" y="567" font-size="11.5" fill="#a3ada1" text-anchor="start">DDoS, WAF engine, tunnel edge, DNS</text>
+    <text x="20" y="582" font-size="11.5" fill="#a3ada1" text-anchor="start">SC-20  SC-22</text>
+    <text x="1480" y="44" font-size="12" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start">OUTSIDE</text>
+    <text x="1556" y="44" font-size="11.5" fill="#a3ada1" text-anchor="start">external services</text>
+    <text x="1480" y="60" font-size="11" fill="#a3ada1" text-anchor="start">commercial, no federal data</text>
+    <text x="1480" y="74" font-size="11" fill="#a3ada1" text-anchor="start">SA-9 providers, CA-3 documented</text>
+    <rect x="1480" y="170" width="200" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1580" y="188" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">image registries</text><text x="1580" y="204" font-size="11" fill="#a3ada1" text-anchor="middle">upstream images, pinned</text>
+    <path d="M1479,192 H1231" fill="none" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <rect x="1245" y="187" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1262" y="185" font-size="11.5" fill="#e8dcc0" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">in: image pull, TLS, by digest</text>
+    <text x="1262" y="208" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">signatures checked  CM-5 SI-7</text>
+    <rect x="1480" y="227" width="200" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1580" y="245" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">secrets manager</text><text x="1580" y="261" font-size="11" fill="#a3ada1" text-anchor="middle">deploy-time injection</text>
+    <path d="M1479,249 H1231" fill="none" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <rect x="1245" y="244" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1262" y="242" font-size="11.5" fill="#e8dcc0" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">in at deploy: TLS, env vars</text>
+    <text x="1262" y="265" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">chmod 600, none in git  IA-5</text>
+    <rect x="1480" y="284" width="200" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1580" y="302" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">Datadog</text><text x="1580" y="318" font-size="11" fill="#a3ada1" text-anchor="middle">SIEM, events, logs</text>
+    <path d="M1230,306 H1479" fill="none" stroke="#ffc247" stroke-width="2.5" marker-end="url(#m-amber)"/>
+    <rect x="1245" y="301" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1262" y="299" font-size="11.5" fill="#ffc247" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">out: TLS, agent key</text>
+    <text x="1262" y="322" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">audit off-host  AU-9 SI-4</text>
+    <rect x="1480" y="341" width="200" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1580" y="359" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">Claude API</text><text x="1580" y="375" font-size="11" fill="#a3ada1" text-anchor="middle">frontier model</text>
+    <path d="M1230,363 H1479" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <rect x="1245" y="358" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1262" y="356" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">out: TLS, bearer, screened</text>
+    <text x="1262" y="379" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">from Guardrails  SI-10 SA-9</text>
+    <rect x="1480" y="398" width="200" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1580" y="416" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">embeddings API</text><text x="1580" y="432" font-size="11" fill="#a3ada1" text-anchor="middle">index and query text</text>
+    <path d="M1230,420 H1479" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <rect x="1245" y="415" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1262" y="413" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">out: TLS, text to embed</text>
+    <text x="1262" y="436" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">chunks and queries  SA-9</text>
+    <rect x="1480" y="455" width="200" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1580" y="473" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">web search API</text><text x="1580" y="489" font-size="11" fill="#a3ada1" text-anchor="middle">enrichment</text>
+    <path d="M1230,477 H1479" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <rect x="1245" y="472" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1262" y="470" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">out: TLS, indicator terms</text>
+    <text x="1262" y="493" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">two nodes, skippable  SA-9</text>
+    <rect x="1480" y="512" width="200" height="44" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1580" y="530" font-size="13.0" fill="#e6ebe4" font-weight="500" text-anchor="middle">GitHub</text><text x="1580" y="546" font-size="11" fill="#a3ada1" text-anchor="middle">repo, runners, OIDC issuer</text>
+    <path d="M1479,534 H1231" fill="none" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <rect x="1245" y="529" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1262" y="527" font-size="11.5" fill="#e8dcc0" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">in: signed JWT, both clouds</text>
+    <text x="1262" y="550" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">minutes, main only  IA-5 AC-6</text>
+    <text x="1480" y="590" font-size="11" fill="#a3ada1" font-weight="700" letter-spacing="2" text-anchor="start">READING THE PAGE</text>
+    <line x1="1480" y1="608" x2="1514" y2="608" stroke="#e8dcc0" stroke-width="3" stroke-dasharray="18 9"/>
+    <text x="1524" y="612" font-size="11.5" fill="#a3ada1" text-anchor="start">authorization boundary</text>
+    <rect x="1492" y="621" width="10" height="10" fill="#0a0d0b" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1524" y="630" font-size="11.5" fill="#a3ada1" text-anchor="start">crossing point</text>
+    <line x1="1480" y1="644" x2="1514" y2="644" stroke="#3dff8b" stroke-width="2.5"/>
+    <text x="1524" y="648" font-size="11.5" fill="#a3ada1" text-anchor="start">human request path</text>
+    <line x1="1480" y1="662" x2="1514" y2="662" stroke="#ff9b3d" stroke-width="2.5"/>
+    <text x="1524" y="666" font-size="11.5" fill="#a3ada1" text-anchor="start">agent path, screened</text>
+    <line x1="1480" y1="680" x2="1514" y2="680" stroke="#ffc247" stroke-width="2.5"/>
+    <text x="1524" y="684" font-size="11.5" fill="#a3ada1" text-anchor="start">audit, telemetry out</text>
+    <line x1="1480" y1="698" x2="1514" y2="698" stroke="#e8dcc0" stroke-width="2"/>
+    <text x="1524" y="702" font-size="11.5" fill="#a3ada1" text-anchor="start">machine identity</text>
+    <line x1="1480" y1="716" x2="1514" y2="716" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5"/>
+    <text x="1524" y="720" font-size="11.5" fill="#a3ada1" text-anchor="start">inbound exception</text>
+    <line x1="1480" y1="734" x2="1514" y2="734" stroke="#a3ada1" stroke-width="2"/>
+    <text x="1524" y="738" font-size="11.5" fill="#a3ada1" text-anchor="start">configures</text>
+  </svg>
+
+  <figcaption>
+    <div class="g"><b>Inside</b>one host, 19 services, three Terraform modules, the configuration that changes them; 133 controls cited, Moderate baseline</div>
+    <div class="c"><b>Crossings</b>12 drawn: direction, protocol class, control; ports and data types on the SSP copy; SA-9 providers, CA-3 links</div>
+    <div class="a"><b>Inherited</b>physical, hypervisor, backbone, resolver, DDoS, edge DNS from the providers; six inherited SSP rows, PE family by note</div>
+    <div class="r"><b>Exception</b>one inbound port, break-glass SSH from allowlisted sources; everything else rides a tunnel the host dials out</div>
+  </figcaption>
+  </figure>
+</div>

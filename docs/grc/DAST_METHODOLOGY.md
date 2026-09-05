@@ -214,9 +214,9 @@ The following matrix maps OWASP Top 10 (2025) categories to specific ZAP test mo
 | **A01:2025 Broken Access Control** | Access Control Scanner, Path Traversal | IDOR on workflow IDs, unauthorized API access, directory traversal | High | Test with authenticated and unauthenticated sessions |
 | **A02:2025 Security Misconfiguration** | SSL/TLS Scanner (passive) | Weak TLS versions, missing HSTS, insecure cookies | Medium | TLS terminated at Cloudflare; test from client perspective |
 | **A05:2025 Injection** | SQL Injection, Command Injection, CRLF Injection | SQL injection in webhook JSON parameters, header injection | High | Focus on `/webhook/master-cmd` action and query parameters |
-| **A04:2025 Insecure Design** | Manual review | Business logic flaws in webhook routing | Medium | Verify action parameter validation in Master Orchestrator |
+| **A04:2025 Cryptographic Failures** | Manual review | Business logic flaws in webhook routing | Medium | Verify action parameter validation in Master Orchestrator |
 | **A02:2025 Security Misconfiguration** | Server Header Scanner, Cookie Scanner, CSP Scanner | Missing security headers, verbose error messages, default credentials | High | Check X-Frame-Options, CSP, X-Content-Type-Options, Referrer-Policy |
-| **A06:2025 Vulnerable and Outdated Components** | Technology Detection (passive) | Outdated server headers, exposed version strings | Low | Component versions tracked via SBOM in SECURE_SDLC.md |
+| **A06:2025 Insecure Design** | Technology Detection (passive) | Outdated server headers, exposed version strings | Low | Component versions tracked via SBOM in SECURE_SDLC.md |
 | **A07:2025 Authentication Failures** | Authentication Scanner, Brute Force | Weak session management, session fixation, credential stuffing | High | n8n login is the primary authentication target |
 | **A08:2025 Data Integrity Failures** | Deserialization Scanner | Insecure deserialization in webhook JSON processing | Medium | JSON payloads to webhook endpoints |
 | **A09:2025 Security Logging and Alerting Failures** | Manual review | Insufficient logging of failed auth attempts | Low | Verify via Datadog/Falco correlation after scan |
@@ -813,9 +813,9 @@ All three remediation items can be resolved in a single Cloudflare configuration
 | A01:2025 Broken Access Control | Yes (ZAP, includes SSRF) | Partial (Semgrep) | Falco runtime detection, network segmentation |
 | A02:2025 Security Misconfiguration | Yes (ZAP passive + TLS scan) | Yes (Checkov) | CIS Docker Bench, Cloudflare headers |
 | A03:2025 Software Supply Chain Failures | No | Yes (Trivy, Cosign, Syft) | SBOM generation, image signing |
-| A04:2025 Insecure Design | Partial (manual) | No | Threat model (STRIDE) |
+| A04:2025 Cryptographic Failures | Partial (manual) | No | Threat model (STRIDE) |
 | A05:2025 Injection | Yes (ZAP active scan) | Yes (Semgrep) | OPA policy validation |
-| A06:2025 Vulnerable and Outdated Components | Partial (fingerprinting) | Yes (Trivy) | SBOM, Cosign |
+| A06:2025 Insecure Design | Partial (fingerprinting) | Yes (Trivy) | SBOM, Cosign |
 | A07:2025 Authentication Failures | Yes (ZAP auth scan) | No | n8n session management |
 | A08:2025 Data Integrity Failures | Partial (deserialization) | Yes (Semgrep) | Cosign image verification |
 | A09:2025 Security Logging and Alerting Failures | No | No | Falco, Datadog, Fluentd |

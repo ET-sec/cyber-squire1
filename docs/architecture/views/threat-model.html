@@ -1,0 +1,325 @@
+<title>CoreDirective Threat Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --ink:#0a0d0b; --node:#141b16; --line:#27342b; --line-soft:#1b241e; --text:#e6ebe4; --dim:#a3ada1;
+    --green:#3dff8b; --bone:#e8dcc0; --amber:#ffc247; --red:#ff6b5e;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--ink)}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);margin:0;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .page{max-width:1720px;margin:0 auto;padding:16px 26px 16px}
+  .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+  .head h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .head p{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+  .head .tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  figure{margin:10px 0 0}
+  svg{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}
+  figcaption{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}
+  @media (max-width:1100px){figcaption{grid-template-columns:repeat(2,1fr)}}
+  figcaption b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}
+  .g b{color:var(--green)} .c b{color:var(--bone)} .a b{color:var(--amber)} .r b{color:var(--red)}
+</style>
+
+<div class="page">
+  <div class="head">
+    <h1>CoreDirective reference architecture</h1>
+    <p>six attacker positions, the wall that meets each one, and what remains after the walls</p>
+    <span class="tag">Threat model</span>
+  </div>
+
+  <figure>
+  <svg viewBox="0 0 1700 656" role="img" aria-label="Threat model view of the CoreDirective platform. Six attacker positions run as columns, each attack drawn top to bottom, each control drawn as a wall across the column with the layer it lives in, the NIST 800-53 control it satisfies, and the STRIDE category it answers. An internet scanner meets no origin address in DNS, WAF and DDoS absorption at the edge, no published ports because the tunnel dials out, and SSH restricted to an allowlist; it reaches the edge login page and public webhook paths, never the host. A webhook caller meets the WAF and per-IP rate limit, identity checks at the edge with one carve-out, a token header on the agent, a typed schema-checked payload, and a recommend-only action set, with every call traced and a human reading anything rated HIGH. A hostile prompt inside a real alert meets a PII scrub before the graph, a jailbreak and PII input rail, an output rail with a citation guard, a forbidden-verb filter, and a human gate on HIGH and CRITICAL, with a daily spend cap and a trace on every call; it reaches the allowlist, text advice only, twenty red-team cases fired with zero bypasses. A compromised container meets three bridge networks with a sealed AI segment, no-new-privileges with one documented exemption and PID caps, the Docker socket mounted read-only into two sensors and no application container, Falco reading syscalls from the kernel, token-gated secrets, and a credential-gated database; it reaches its own segment and environment. A stolen operator credential meets a one-time PIN at the edge, a second factor on the SSH gateway, just-in-time access that expires in four hours, roles reviewed quarterly, and session recordings shipped off-host over mTLS; it reaches a recorded session with a four hour clock. A poisoned upstream image meets digest pinning on security-boundary images, a reviewed pull request for any change, vulnerability scanning with an SBOM and signature verification, and a sealed segment with no route home. A right rail carries the counts: 29 STRIDE threats across 7 trust boundaries, 7 attack paths, 10 AI threats cataloged, 20 red-team cases with 0 bypasses, 11 pentest findings with 0 critical and 4 accepted with compensating controls, and 0 application ports open to the internet. Residual ratings come from the STRIDE register after controls.">
+    <defs><marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b5e"/></marker></defs>
+    <line x1="131" y1="70" x2="131" y2="121" stroke="#ff6b5e" stroke-width="2.5" marker-end="url(#m-red)"/>
+    <line x1="131" y1="166" x2="131" y2="516" stroke="#ff6b5e" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
+    <rect x="28" y="30" width="206" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/>
+    <text x="131" y="55" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">internet scanner</text>
+    <text x="131" y="87" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">any host, no credential</text>
+    <rect x="28" y="122" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="38" y="139" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">no origin IP in DNS</text>
+    <text x="38" y="156" font-size="11" fill="#a3ada1" text-anchor="start">EDGE   SC-7</text>
+    <rect x="207" y="135" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="216" y="148" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">I</text>
+    <rect x="28" y="188" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="38" y="205" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">WAF, DDoS absorbed</text>
+    <text x="38" y="222" font-size="11" fill="#a3ada1" text-anchor="start">EDGE   SC-5</text>
+    <rect x="207" y="201" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="216" y="214" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">D</text>
+    <rect x="28" y="254" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="38" y="271" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">no ports, dials out</text>
+    <text x="38" y="288" font-size="11" fill="#a3ada1" text-anchor="start">HOST   SC-7</text>
+    <rect x="207" y="267" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="216" y="280" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">S</text>
+    <rect x="28" y="320" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="38" y="337" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">SSH allowlist only</text>
+    <text x="38" y="354" font-size="11" fill="#a3ada1" text-anchor="start">HOST   SC-7</text>
+    <rect x="207" y="333" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="216" y="346" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">D</text>
+    <line x1="115" y1="106" x2="147" y2="106" stroke="#e8dcc0" stroke-width="2"/>
+    <text x="153" y="110" font-size="12" fill="#e8dcc0" font-weight="700" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">TB-1</text>
+    <text x="28" y="530" font-size="11.5" fill="#ff6b5e" font-weight="700" letter-spacing="2" text-anchor="start">REACHES</text>
+    <text x="28" y="549" font-size="12" fill="#a3ada1" text-anchor="start">the edge login page and the</text>
+    <text x="28" y="566" font-size="12" fill="#a3ada1" text-anchor="start">public webhook paths, never</text>
+    <text x="28" y="583" font-size="12" fill="#a3ada1" text-anchor="start">the host or its address</text>
+    <rect x="28" y="598" width="64" height="20" rx="3" fill="none" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="60" y="612" font-size="11" fill="#3dff8b" font-weight="700" text-anchor="middle">LOW</text>
+    <text x="102" y="612" font-size="11" fill="#a3ada1" text-anchor="start">D-01  S-05</text>
+    <line x1="357" y1="70" x2="357" y2="121" stroke="#ff6b5e" stroke-width="2.5" marker-end="url(#m-red)"/>
+    <line x1="357" y1="166" x2="357" y2="516" stroke="#ff6b5e" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
+    <rect x="254" y="30" width="206" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/>
+    <text x="357" y="55" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">webhook caller</text>
+    <text x="357" y="87" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">knows a public webhook path</text>
+    <rect x="254" y="122" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="264" y="139" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">WAF and per-IP limit</text>
+    <text x="264" y="156" font-size="11" fill="#a3ada1" text-anchor="start">EDGE   SC-5</text>
+    <rect x="433" y="135" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="442" y="148" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">D</text>
+    <rect x="254" y="188" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="264" y="205" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">edge auth, 1 carve-out</text>
+    <text x="264" y="222" font-size="11" fill="#a3ada1" text-anchor="start">EDGE   AC-3</text>
+    <rect x="433" y="201" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="442" y="214" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">S</text>
+    <rect x="254" y="254" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="264" y="271" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">token header on Squire</text>
+    <text x="264" y="288" font-size="11" fill="#a3ada1" text-anchor="start">APP   IA-5</text>
+    <rect x="433" y="267" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="442" y="280" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">S</text>
+    <rect x="254" y="320" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="264" y="337" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">typed payload, schema</text>
+    <text x="264" y="354" font-size="11" fill="#a3ada1" text-anchor="start">APP   SI-10</text>
+    <rect x="433" y="333" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="442" y="346" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">T</text>
+    <rect x="254" y="386" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="264" y="403" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">recommend-only actions</text>
+    <text x="264" y="420" font-size="11" fill="#a3ada1" text-anchor="start">APP   AC-6</text>
+    <rect x="433" y="399" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="442" y="412" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="254" y="452" width="206" height="44" rx="4" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="264" y="469" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">traced, human on HIGH</text>
+    <text x="264" y="486" font-size="11" fill="#a3ada1" text-anchor="start">APP   AU-12</text>
+    <rect x="433" y="465" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="442" y="478" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">R</text>
+    <line x1="341" y1="243" x2="373" y2="243" stroke="#e8dcc0" stroke-width="2"/>
+    <text x="379" y="247" font-size="12" fill="#e8dcc0" font-weight="700" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">TB-2, TB-7</text>
+    <text x="254" y="530" font-size="11.5" fill="#ff6b5e" font-weight="700" letter-spacing="2" text-anchor="start">REACHES</text>
+    <text x="254" y="549" font-size="12" fill="#a3ada1" text-anchor="start">one forged alert into a</text>
+    <text x="254" y="566" font-size="12" fill="#a3ada1" text-anchor="start">recommend-only pipeline; a</text>
+    <text x="254" y="583" font-size="12" fill="#a3ada1" text-anchor="start">human reads anything HIGH</text>
+    <rect x="254" y="598" width="64" height="20" rx="3" fill="none" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="286" y="612" font-size="11" fill="#ffc247" font-weight="700" text-anchor="middle">MEDIUM</text>
+    <text x="328" y="612" font-size="11" fill="#a3ada1" text-anchor="start">S-01</text>
+    <line x1="583" y1="70" x2="583" y2="121" stroke="#ff6b5e" stroke-width="2.5" marker-end="url(#m-red)"/>
+    <line x1="583" y1="166" x2="583" y2="516" stroke="#ff6b5e" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
+    <rect x="480" y="30" width="206" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/>
+    <text x="583" y="55" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">hostile prompt</text>
+    <text x="583" y="87" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">attacker text in an alert</text>
+    <rect x="480" y="122" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="490" y="139" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">PII scrubbed pre-graph</text>
+    <text x="490" y="156" font-size="11" fill="#a3ada1" text-anchor="start">APP   SI-10</text>
+    <rect x="659" y="135" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="668" y="148" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">I</text>
+    <rect x="480" y="188" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="490" y="205" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">jailbreak and PII rail</text>
+    <text x="490" y="222" font-size="11" fill="#a3ada1" text-anchor="start">APP   SI-4</text>
+    <rect x="659" y="201" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="668" y="214" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">T</text>
+    <rect x="480" y="254" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="490" y="271" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">output rail, citations</text>
+    <text x="490" y="288" font-size="11" fill="#a3ada1" text-anchor="start">APP   SI-7</text>
+    <rect x="659" y="267" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="668" y="280" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">T</text>
+    <rect x="480" y="320" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="490" y="337" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">forbidden-verb filter</text>
+    <text x="490" y="354" font-size="11" fill="#a3ada1" text-anchor="start">APP   AC-6</text>
+    <rect x="659" y="333" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="668" y="346" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="480" y="386" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="490" y="403" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">human gate on HIGH</text>
+    <text x="490" y="420" font-size="11" fill="#a3ada1" text-anchor="start">APP   IR-4</text>
+    <rect x="659" y="399" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="668" y="412" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="480" y="452" width="206" height="44" rx="4" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="490" y="469" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">spend cap, traced</text>
+    <text x="490" y="486" font-size="11" fill="#a3ada1" text-anchor="start">APP   AU-12</text>
+    <rect x="659" y="465" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="668" y="478" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">R</text>
+    <line x1="567" y1="243" x2="599" y2="243" stroke="#e8dcc0" stroke-width="2"/>
+    <text x="605" y="247" font-size="12" fill="#e8dcc0" font-weight="700" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">TB-5</text>
+    <text x="480" y="530" font-size="11.5" fill="#ff6b5e" font-weight="700" letter-spacing="2" text-anchor="start">REACHES</text>
+    <text x="480" y="549" font-size="12" fill="#a3ada1" text-anchor="start">the allowlist: text advice,</text>
+    <text x="480" y="566" font-size="12" fill="#a3ada1" text-anchor="start">no action executes; 20 cases</text>
+    <text x="480" y="583" font-size="12" fill="#a3ada1" text-anchor="start">fired, 0 bypasses</text>
+    <rect x="480" y="598" width="64" height="20" rx="3" fill="none" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="512" y="612" font-size="11" fill="#ffc247" font-weight="700" text-anchor="middle">MEDIUM</text>
+    <text x="554" y="612" font-size="11" fill="#a3ada1" text-anchor="start">T-01  I-01</text>
+    <line x1="809" y1="70" x2="809" y2="121" stroke="#ff6b5e" stroke-width="2.5" marker-end="url(#m-red)"/>
+    <line x1="809" y1="166" x2="809" y2="516" stroke="#ff6b5e" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
+    <rect x="706" y="30" width="206" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/>
+    <text x="809" y="55" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">compromised container</text>
+    <text x="809" y="87" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">code running in one service</text>
+    <rect x="706" y="122" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="716" y="139" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">three bridge networks</text>
+    <text x="716" y="156" font-size="11" fill="#a3ada1" text-anchor="start">RUNTIME   AC-4</text>
+    <rect x="885" y="135" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="894" y="148" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="706" y="188" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="716" y="205" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">no-new-privs, 1 exempt</text>
+    <text x="716" y="222" font-size="11" fill="#a3ada1" text-anchor="start">RUNTIME   CM-7</text>
+    <rect x="885" y="201" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="894" y="214" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="706" y="254" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="716" y="271" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">socket: 2 sensors only</text>
+    <text x="716" y="288" font-size="11" fill="#a3ada1" text-anchor="start">RUNTIME   AC-6</text>
+    <rect x="885" y="267" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="894" y="280" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="706" y="320" width="206" height="44" rx="4" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="716" y="337" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">Falco reads the kernel</text>
+    <text x="716" y="354" font-size="11" fill="#a3ada1" text-anchor="start">RUNTIME   SI-4</text>
+    <rect x="885" y="333" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="894" y="346" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="706" y="386" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="716" y="403" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">secrets need a token</text>
+    <text x="716" y="420" font-size="11" fill="#a3ada1" text-anchor="start">IDENTITY   IA-5</text>
+    <rect x="885" y="399" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="894" y="412" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">I</text>
+    <rect x="706" y="452" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="716" y="469" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">DB needs a credential</text>
+    <text x="716" y="486" font-size="11" fill="#a3ada1" text-anchor="start">DATA   AC-3</text>
+    <rect x="885" y="465" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="894" y="478" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">I</text>
+    <line x1="793" y1="375" x2="825" y2="375" stroke="#e8dcc0" stroke-width="2"/>
+    <text x="831" y="379" font-size="12" fill="#e8dcc0" font-weight="700" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">TB-4</text>
+    <text x="706" y="530" font-size="11.5" fill="#ff6b5e" font-weight="700" letter-spacing="2" text-anchor="start">REACHES</text>
+    <text x="706" y="549" font-size="12" fill="#a3ada1" text-anchor="start">its own segment and env;</text>
+    <text x="706" y="566" font-size="12" fill="#a3ada1" text-anchor="start">host escape needs a kernel</text>
+    <text x="706" y="583" font-size="12" fill="#a3ada1" text-anchor="start">zero-day and lands in Falco</text>
+    <rect x="706" y="598" width="64" height="20" rx="3" fill="none" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="738" y="612" font-size="11" fill="#ffc247" font-weight="700" text-anchor="middle">MEDIUM</text>
+    <text x="780" y="612" font-size="11" fill="#a3ada1" text-anchor="start">E-04  E-01  S-03</text>
+    <line x1="1035" y1="70" x2="1035" y2="121" stroke="#ff6b5e" stroke-width="2.5" marker-end="url(#m-red)"/>
+    <line x1="1035" y1="166" x2="1035" y2="516" stroke="#ff6b5e" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
+    <rect x="932" y="30" width="206" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/>
+    <text x="1035" y="55" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">stolen credential</text>
+    <text x="1035" y="87" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">a password or a laptop</text>
+    <rect x="932" y="122" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="942" y="139" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">one-time PIN at edge</text>
+    <text x="942" y="156" font-size="11" fill="#a3ada1" text-anchor="start">EDGE   IA-2</text>
+    <rect x="1111" y="135" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1120" y="148" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">S</text>
+    <rect x="932" y="188" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="942" y="205" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">second factor on SSH</text>
+    <text x="942" y="222" font-size="11" fill="#a3ada1" text-anchor="start">HOST   IA-2</text>
+    <rect x="1111" y="201" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1120" y="214" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">S</text>
+    <rect x="932" y="254" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="942" y="271" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">JIT expires in 4h</text>
+    <text x="942" y="288" font-size="11" fill="#a3ada1" text-anchor="start">IDENTITY   AC-12</text>
+    <rect x="1111" y="267" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1120" y="280" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="932" y="320" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="942" y="337" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">quarterly role review</text>
+    <text x="942" y="354" font-size="11" fill="#a3ada1" text-anchor="start">IDENTITY   AC-2</text>
+    <rect x="1111" y="333" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1120" y="346" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">E</text>
+    <rect x="932" y="386" width="206" height="44" rx="4" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="942" y="403" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">recorded, shipped mTLS</text>
+    <text x="942" y="420" font-size="11" fill="#a3ada1" text-anchor="start">IDENTITY   AU-9</text>
+    <rect x="1111" y="399" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1120" y="412" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">R</text>
+    <line x1="1019" y1="106" x2="1051" y2="106" stroke="#e8dcc0" stroke-width="2"/>
+    <text x="1057" y="110" font-size="12" fill="#e8dcc0" font-weight="700" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">TB-1</text>
+    <line x1="1019" y1="177" x2="1051" y2="177" stroke="#e8dcc0" stroke-width="2"/>
+    <text x="1057" y="181" font-size="12" fill="#e8dcc0" font-weight="700" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">TB-2</text>
+    <text x="932" y="530" font-size="11.5" fill="#ff6b5e" font-weight="700" letter-spacing="2" text-anchor="start">REACHES</text>
+    <text x="932" y="549" font-size="12" fill="#a3ada1" text-anchor="start">a recorded session with a</text>
+    <text x="932" y="566" font-size="12" fill="#a3ada1" text-anchor="start">four hour clock; evidence</text>
+    <text x="932" y="583" font-size="12" fill="#a3ada1" text-anchor="start">lands beyond their reach</text>
+    <rect x="932" y="598" width="64" height="20" rx="3" fill="none" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="964" y="612" font-size="11" fill="#3dff8b" font-weight="700" text-anchor="middle">LOW</text>
+    <text x="1006" y="612" font-size="11" fill="#a3ada1" text-anchor="start">R-02  E-03</text>
+    <line x1="1261" y1="70" x2="1261" y2="121" stroke="#ff6b5e" stroke-width="2.5" marker-end="url(#m-red)"/>
+    <line x1="1261" y1="166" x2="1261" y2="516" stroke="#ff6b5e" stroke-width="2" stroke-dasharray="5 5" opacity="0.9"/>
+    <rect x="1158" y="30" width="206" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/>
+    <text x="1261" y="55" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">poisoned image</text>
+    <text x="1261" y="87" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">a tag nobody here built</text>
+    <rect x="1158" y="122" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="1168" y="139" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">digest pinned, Tier 1</text>
+    <text x="1168" y="156" font-size="11" fill="#a3ada1" text-anchor="start">DELIVERY   CM-5</text>
+    <rect x="1337" y="135" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1346" y="148" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">T</text>
+    <rect x="1158" y="188" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="1168" y="205" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">reviewed PR to change</text>
+    <text x="1168" y="222" font-size="11" fill="#a3ada1" text-anchor="start">DELIVERY   CM-3</text>
+    <rect x="1337" y="201" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1346" y="214" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">T</text>
+    <rect x="1158" y="254" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="1168" y="271" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">scan, SBOM, signature</text>
+    <text x="1168" y="288" font-size="11" fill="#a3ada1" text-anchor="start">DELIVERY   RA-5</text>
+    <rect x="1337" y="267" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1346" y="280" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">T</text>
+    <rect x="1158" y="320" width="206" height="44" rx="4" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="1168" y="337" font-size="12.5" fill="#e6ebe4" font-weight="500" text-anchor="start">sealed: no route home</text>
+    <text x="1168" y="354" font-size="11" fill="#a3ada1" text-anchor="start">RUNTIME   AC-4</text>
+    <rect x="1337" y="333" width="18" height="18" rx="3" fill="none" stroke="#a3ada1" stroke-width="1"/>
+    <text x="1346" y="346" font-size="11" fill="#e6ebe4" font-weight="700" text-anchor="middle">I</text>
+    <text x="1158" y="530" font-size="11.5" fill="#ff6b5e" font-weight="700" letter-spacing="2" text-anchor="start">REACHES</text>
+    <text x="1158" y="549" font-size="12" fill="#a3ada1" text-anchor="start">a poisoned tag needs a</text>
+    <text x="1158" y="566" font-size="12" fill="#a3ada1" text-anchor="start">reviewed PR; a bad runtime</text>
+    <text x="1158" y="583" font-size="12" fill="#a3ada1" text-anchor="start">has no route home</text>
+    <rect x="1158" y="598" width="64" height="20" rx="3" fill="none" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="1190" y="612" font-size="11" fill="#3dff8b" font-weight="700" text-anchor="middle">LOW</text>
+    <text x="1232" y="612" font-size="11" fill="#a3ada1" text-anchor="start">T-05  T-03</text>
+    <text x="1400" y="48" font-size="11" fill="#a3ada1" font-weight="700" letter-spacing="2" text-anchor="start">BY THE NUMBERS</text>
+    <text x="1400" y="84" font-size="24" fill="#e6ebe4" font-weight="700" text-anchor="start">29</text>
+    <text x="1448" y="73" font-size="11.5" fill="#a3ada1" text-anchor="start">STRIDE threats across</text>
+    <text x="1448" y="88" font-size="11.5" fill="#a3ada1" text-anchor="start">7 trust boundaries</text>
+    <text x="1400" y="130" font-size="24" fill="#e6ebe4" font-weight="700" text-anchor="start">7</text>
+    <text x="1448" y="119" font-size="11.5" fill="#a3ada1" text-anchor="start">attack paths,</text>
+    <text x="1448" y="134" font-size="11.5" fill="#a3ada1" text-anchor="start">4 platform, 3 AI</text>
+    <text x="1400" y="176" font-size="24" fill="#e6ebe4" font-weight="700" text-anchor="start">10</text>
+    <text x="1448" y="165" font-size="11.5" fill="#a3ada1" text-anchor="start">AI threats cataloged,</text>
+    <text x="1448" y="180" font-size="11.5" fill="#a3ada1" text-anchor="start">OWASP LLM and ATLAS</text>
+    <text x="1400" y="222" font-size="24" fill="#e6ebe4" font-weight="700" text-anchor="start">20</text>
+    <text x="1448" y="211" font-size="11.5" fill="#a3ada1" text-anchor="start">red-team cases fired,</text>
+    <text x="1448" y="226" font-size="11.5" fill="#a3ada1" text-anchor="start">0 bypasses</text>
+    <text x="1400" y="268" font-size="24" fill="#e6ebe4" font-weight="700" text-anchor="start">11</text>
+    <text x="1448" y="257" font-size="11.5" fill="#a3ada1" text-anchor="start">pentest findings,</text>
+    <text x="1448" y="272" font-size="11.5" fill="#a3ada1" text-anchor="start">0 critical, 4 accepted</text>
+    <text x="1400" y="314" font-size="24" fill="#e6ebe4" font-weight="700" text-anchor="start">0</text>
+    <text x="1448" y="303" font-size="11.5" fill="#a3ada1" text-anchor="start">application ports</text>
+    <text x="1448" y="318" font-size="11.5" fill="#a3ada1" text-anchor="start">open to the internet</text>
+    <text x="1400" y="372" font-size="11" fill="#a3ada1" font-weight="700" letter-spacing="2" text-anchor="start">STRIDE</text>
+    <text x="1400" y="392" font-size="11.5" fill="#e6ebe4" font-weight="700" text-anchor="start">S</text>
+    <text x="1422" y="392" font-size="11.5" fill="#a3ada1" text-anchor="start">spoofing</text>
+    <text x="1400" y="410" font-size="11.5" fill="#e6ebe4" font-weight="700" text-anchor="start">T</text>
+    <text x="1422" y="410" font-size="11.5" fill="#a3ada1" text-anchor="start">tampering</text>
+    <text x="1400" y="428" font-size="11.5" fill="#e6ebe4" font-weight="700" text-anchor="start">R</text>
+    <text x="1422" y="428" font-size="11.5" fill="#a3ada1" text-anchor="start">repudiation</text>
+    <text x="1400" y="446" font-size="11.5" fill="#e6ebe4" font-weight="700" text-anchor="start">I</text>
+    <text x="1422" y="446" font-size="11.5" fill="#a3ada1" text-anchor="start">information disclosure</text>
+    <text x="1400" y="464" font-size="11.5" fill="#e6ebe4" font-weight="700" text-anchor="start">D</text>
+    <text x="1422" y="464" font-size="11.5" fill="#a3ada1" text-anchor="start">denial of service</text>
+    <text x="1400" y="482" font-size="11.5" fill="#e6ebe4" font-weight="700" text-anchor="start">E</text>
+    <text x="1422" y="482" font-size="11.5" fill="#a3ada1" text-anchor="start">elevation of privilege</text>
+    <text x="1400" y="524" font-size="11" fill="#a3ada1" font-weight="700" letter-spacing="2" text-anchor="start">READING THE PAGE</text>
+    <line x1="1400" y1="542" x2="1434" y2="542" stroke="#ff6b5e" stroke-width="2.5"/><text x="1444" y="546" font-size="11.5" fill="#a3ada1" text-anchor="start">the attack, top to bottom</text>
+    <line x1="1400" y1="562" x2="1434" y2="562" stroke="#ff6b5e" stroke-width="2" stroke-dasharray="5 5"/><text x="1444" y="566" font-size="11.5" fill="#a3ada1" text-anchor="start">what remains after a wall</text>
+    <rect x="1400" y="575" width="34" height="14" rx="3" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="1444" y="586" font-size="11.5" fill="#a3ada1" text-anchor="start">wall that stops it, STRIDE letter</text>
+    <rect x="1400" y="595" width="34" height="14" rx="3" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/><text x="1444" y="606" font-size="11.5" fill="#a3ada1" text-anchor="start">sees it, cannot be silenced inside</text>
+    <line x1="1404" y1="622" x2="1430" y2="622" stroke="#e8dcc0" stroke-width="2"/><text x="1444" y="626" font-size="11.5" fill="#a3ada1" text-anchor="start">trust boundary crossed, register ID</text>
+    <rect x="1400" y="635" width="34" height="14" rx="3" fill="none" stroke="#ffc247" stroke-width="1.5"/><text x="1444" y="646" font-size="11.5" fill="#a3ada1" text-anchor="start">residual after controls, register IDs</text>
+  </svg>
+
+  <figcaption>
+    <div class="g"><b>Method</b>STRIDE per trust boundary, attack trees per AI path, two red-team cycles fired at production</div>
+    <div class="c"><b>Reading</b>top to bottom is the attack, each bar is a wall, dashed is what remains, chip is residual after controls</div>
+    <div class="a"><b>Detection</b>Falco from the kernel, logins and sessions off-host over mTLS, every model call traced</div>
+    <div class="r"><b>Residual</b>MEDIUM carries a named mitigation or acceptance; the one High in the platform register (I-02) is re-rated Moderate by the risk register; reviewed quarterly</div>
+  </figcaption>
+  </figure>
+</div>

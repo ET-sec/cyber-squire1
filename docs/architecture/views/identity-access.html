@@ -1,0 +1,140 @@
+<title>CoreDirective Identity and Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --ink:#0a0d0b; --node:#141b16; --line:#27342b; --line-soft:#1b241e; --text:#e6ebe4; --dim:#a3ada1;
+    --green:#3dff8b; --bone:#e8dcc0; --orange:#ff9b3d; --red:#ff6b5e;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--ink)}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);margin:0;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .page{max-width:1720px;margin:0 auto;padding:16px 26px 16px}
+  .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+  .head h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .head p{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+  .head .tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  figure{margin:10px 0 0}
+  svg{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}
+  figcaption{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}
+  @media (max-width:1100px){figcaption{grid-template-columns:repeat(2,1fr)}}
+  figcaption b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}
+  .g b{color:var(--green)} .c b{color:var(--bone)} .o b{color:var(--orange)} .r b{color:var(--red)}
+</style>
+
+<div class="page">
+  <div class="head">
+    <h1>CoreDirective reference architecture</h1>
+    <p>four privilege tiers, every credential named with its lifetime, sanitized, no addresses, ports, or versions</p>
+    <span class="tag">Identity and access</span>
+  </div>
+
+  <figure>
+  <svg viewBox="0 0 1700 790" role="img" aria-label="Identity and access view of the CoreDirective platform. Four privilege tiers drawn as horizontal bands, each with principals on the left, decision points in the middle, resources on the right, and a note on what a stolen credential reaches. Tier 0, break-glass: an allowlisted source range reaches the host SSH daemon with a static key and lands on the host shell with no broker in the path. Tier 1, operator: humans reach admin consoles through an email one-time PIN with a 24 hour session, and reach host SSH and the database through Keycloak single sign-on into Teleport with TOTP, recorded sessions, and just-in-time elevation that expires after four hours. Tier 2, service: n8n and services fetch dynamic database credentials from Vault by AppRole on a one hour lease; the CI runner trades a signed JWT from the main branch for a cloud token that lives minutes and is read-only; Telegram reaches one webhook path through an Access bypass limited to its published ranges with a chat ID check. Tier 3, agent: alert sources reach Squire with a rotated shared-secret webhook header and a schema-checked payload; Squire reaches the Claude API only through Guardrails, which holds the API key and the spend cap; Squire notifies Telegram through a typed actions allowlist. A perfect prompt injection reaches the allowlist, never the operator or cloud planes.">
+    <defs><marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b5e"/></marker><marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3dff8b"/></marker><marker id="m-bone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8dcc0"/></marker><marker id="m-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff9b3d"/></marker></defs>
+    <g font-size="12" font-weight="700" letter-spacing="2" fill="#a3ada1"><text x="60" y="24">PRINCIPAL</text><text x="675" y="24">DECISION POINT</text><text x="1180" y="24">RESOURCE</text><text x="1410" y="24">IF THE CREDENTIAL IS STOLEN</text></g>
+    <!-- ===== TIER 0  BREAK-GLASS ===== -->
+    <rect x="28" y="44" width="1644" height="88" rx="7" fill="rgba(255,107,94,0.035)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="62" font-size="12" font-weight="700" fill="#ff6b5e" letter-spacing="2">TIER 0  BREAK-GLASS</text>
+    <text x="237" y="62" font-size="11.5" fill="#a3ada1">static key, source-restricted, last resort, no broker in the path</text>
+    <rect x="60" y="74" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="99" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">allowlisted source</text>
+    <rect x="675" y="74" width="200" height="40" rx="5" fill="#141b16" stroke="#ff6b5e" stroke-width="1.5"/><text x="775" y="99" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">host sshd</text>
+    <line x1="250" y1="94" x2="674" y2="94" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#m-red)"/>
+    <text x="462.5" y="85" font-size="11.5" fill="#ff6b5e" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">Ed25519 key, static</text>
+    <line x1="875" y1="94" x2="1179" y2="94" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#m-red)"/>
+    <text x="1027.5" y="85" font-size="11.5" fill="#ff6b5e" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">root path, no broker</text>
+    <rect x="1180" y="74" width="200" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1280" y="99" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">host shell</text>
+    <text x="1410" y="90" font-size="11.5" fill="#a3ada1">whole host, from one source range</text><text x="1410" y="106" font-size="11.5" fill="#a3ada1">Falco sees the session after the fact</text>
+    <!-- ===== TIER 1  OPERATOR ===== -->
+    <rect x="28" y="142" width="1644" height="148" rx="7" fill="rgba(61,255,139,0.03)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="160" font-size="12" font-weight="700" fill="#3dff8b" letter-spacing="2">TIER 1  OPERATOR</text>
+    <text x="209" y="160" font-size="11.5" fill="#a3ada1">humans, three realm roles: admin, operator, auditor</text>
+    <rect x="60" y="172" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="197" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">operator</text>
+    <rect x="675" y="172" width="200" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="775" y="197" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Access</text>
+    <line x1="250" y1="192" x2="674" y2="192" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="462.5" y="183" font-size="11.5" fill="#3dff8b" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">email one-time PIN, 24h session</text>
+    <line x1="875" y1="192" x2="1179" y2="192" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="1027.5" y="183" font-size="11.5" fill="#3dff8b" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">identity checked before origin</text>
+    <rect x="1180" y="172" width="200" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1280" y="197" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">admin consoles</text>
+    <rect x="60" y="232" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="257" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">operator</text>
+    <rect x="600" y="232" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="670" y="257" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Keycloak</text>
+    <rect x="810" y="232" width="140" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="880" y="257" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Teleport</text>
+    <line x1="250" y1="252" x2="599" y2="252" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="425" y="243" font-size="11.5" fill="#3dff8b" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">password, lockout on failures</text>
+    <line x1="740" y1="252" x2="809" y2="252" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="775" y="283" font-size="11.5" fill="#3dff8b" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">OIDC, 5-min token</text>
+    <line x1="950" y1="252" x2="1179" y2="252" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <text x="1065" y="243" font-size="11.5" fill="#3dff8b" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">TOTP, recorded, JIT 4h</text>
+    <rect x="1180" y="232" width="200" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1280" y="257" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">host SSH, database</text>
+    <text x="1410" y="188" font-size="11.5" fill="#a3ada1">consoles until the 24h session ends</text><text x="1410" y="204" font-size="11.5" fill="#a3ada1">SSH recorded, elevation ends at 4h</text>
+    <!-- ===== TIER 2  SERVICE ===== -->
+    <rect x="28" y="300" width="1644" height="208" rx="7" fill="rgba(232,220,192,0.03)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="318" font-size="12" font-weight="700" fill="#e8dcc0" letter-spacing="2">TIER 2  SERVICE</text>
+    <text x="200" y="318" font-size="11.5" fill="#a3ada1">machines trade one bootstrap secret for a short-lived credential</text>
+    <rect x="60" y="330" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="355" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">n8n and services</text>
+    <rect x="675" y="330" width="200" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="775" y="355" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">Vault AppRole</text>
+    <line x1="250" y1="350" x2="674" y2="350" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="462.5" y="341" font-size="11.5" fill="#e8dcc0" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">role ID and secret ID</text>
+    <line x1="875" y1="350" x2="1179" y2="350" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="1027.5" y="341" font-size="11.5" fill="#e8dcc0" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">dynamic creds, 1h lease</text>
+    <rect x="1180" y="330" width="200" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1280" y="355" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Postgres</text>
+    <rect x="60" y="390" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="415" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">CI runner</text>
+    <rect x="675" y="390" width="200" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="775" y="415" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">OIDC exchange</text>
+    <line x1="250" y1="410" x2="674" y2="410" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="462.5" y="401" font-size="11.5" fill="#e8dcc0" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">signed JWT, main branch only</text>
+    <line x1="875" y1="410" x2="1179" y2="410" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="1027.5" y="401" font-size="11.5" fill="#e8dcc0" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">minutes-lived token, read-only</text>
+    <rect x="1180" y="390" width="200" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1280" y="415" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">cloud API</text>
+    <rect x="60" y="450" width="190" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="155" y="475" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Telegram</text>
+    <rect x="675" y="450" width="200" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/><text x="775" y="475" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">Access bypass</text>
+    <line x1="250" y1="470" x2="674" y2="470" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="462.5" y="461" font-size="11.5" fill="#e8dcc0" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">published egress ranges only</text>
+    <line x1="875" y1="470" x2="1179" y2="470" stroke="#e8dcc0" stroke-width="2.5" marker-end="url(#m-bone)"/>
+    <text x="1027.5" y="461" font-size="11.5" fill="#e8dcc0" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">chat ID checked, rate limited</text>
+    <rect x="1180" y="450" width="200" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1280" y="475" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">one webhook path</text>
+    <text x="1410" y="346" font-size="11.5" fill="#a3ada1">one database, for one hour</text><text x="1410" y="362" font-size="11.5" fill="#a3ada1">no stored cloud key exists to leak</text>
+    <!-- ===== TIER 3  AGENT ===== -->
+    <rect x="28" y="518" width="1644" height="208" rx="7" fill="rgba(255,155,61,0.03)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="536" font-size="12" font-weight="700" fill="#ff9b3d" letter-spacing="2">TIER 3  AGENT</text>
+    <text x="182" y="536" font-size="11.5" fill="#a3ada1">six agent roles in the realm, five-minute tokens, screened on the way out</text>
+    <rect x="60" y="548" width="190" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="155" y="573" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">alert source</text>
+    <rect x="675" y="548" width="200" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="775" y="573" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">webhook token</text>
+    <line x1="250" y1="568" x2="674" y2="568" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="462.5" y="559" font-size="11.5" fill="#ff9b3d" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">shared-secret header, rotated</text>
+    <line x1="875" y1="568" x2="1179" y2="568" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="1027.5" y="559" font-size="11.5" fill="#ff9b3d" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">typed payload, schema checked</text>
+    <rect x="1180" y="548" width="200" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1280" y="573" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Squire</text>
+    <rect x="60" y="608" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="633" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Squire</text>
+    <rect x="675" y="608" width="200" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="775" y="633" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Guardrails</text>
+    <line x1="250" y1="628" x2="674" y2="628" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="462.5" y="619" font-size="11.5" fill="#ff9b3d" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">no model key in the agent</text>
+    <line x1="875" y1="628" x2="1179" y2="628" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="1027.5" y="619" font-size="11.5" fill="#ff9b3d" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">API key held here, spend cap</text>
+    <rect x="1180" y="608" width="200" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1280" y="633" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Claude API</text>
+    <rect x="60" y="668" width="190" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="155" y="693" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Squire</text>
+    <rect x="675" y="668" width="200" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="775" y="693" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">actions allowlist</text>
+    <line x1="250" y1="688" x2="674" y2="688" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="462.5" y="679" font-size="11.5" fill="#ff9b3d" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">typed actions, deny by default</text>
+    <line x1="875" y1="688" x2="1179" y2="688" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="1027.5" y="679" font-size="11.5" fill="#ff9b3d" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">webhook token, one chat ID</text>
+    <rect x="1180" y="668" width="200" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1280" y="693" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">Telegram notify</text>
+    <text x="1410" y="564" font-size="11.5" fill="#a3ada1">an injection reaches the allowlist,</text><text x="1410" y="580" font-size="11.5" fill="#a3ada1">not the operator or cloud planes</text>
+    <g font-size="12" fill="#a3ada1">
+    <line x1="44" y1="756" x2="84" y2="756" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5"/><text x="95" y="760">break-glass, static key</text>
+    <line x1="301" y1="756" x2="341" y2="756" stroke="#3dff8b" stroke-width="2.5"/><text x="352" y="760">human session, MFA</text>
+    <line x1="522" y1="756" x2="562" y2="756" stroke="#e8dcc0" stroke-width="2.5"/><text x="573" y="760">machine identity, short-lived</text>
+    <line x1="822" y1="756" x2="862" y2="756" stroke="#ff9b3d" stroke-width="2.5"/><text x="873" y="760">agent path, screened</text>
+    <rect x="1057" y="749" width="40" height="15" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1108" y="760">external service</text></g>
+  </svg>
+
+  <figcaption>
+    <div class="g"><b>Human</b>one-time PIN → consoles, 24h. MFA → recorded SSH, elevation ends at 4h</div>
+    <div class="c"><b>Machine</b>AppRole → 1h lease. signed JWT from main → minutes, read-only. no stored cloud key</div>
+    <div class="o"><b>Agent</b>secret header in → rails → key held by guardrails → allowlist out, one chat ID</div>
+    <div class="r"><b>Break-glass</b>one source range, one key, whole host, watched after the fact</div>
+  </figcaption>
+  </figure>
+</div>
