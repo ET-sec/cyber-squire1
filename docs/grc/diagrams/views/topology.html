@@ -1,0 +1,307 @@
+<title>CoreDirective Topology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --ink:#0a0d0b;
+    --node:#141b16;
+    --line:#27342b;
+    --line-soft:#1b241e;
+    --text:#e6ebe4;
+    --dim:#a3ada1;
+    --green:#3dff8b;
+    --orange:#ff9b3d;
+    --amber:#ffc247;
+    --bone2:#e8dcc0;
+    --red:#ff6b5e;
+    --bone:#e8dcc0;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--ink)}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);margin:0;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .page{max-width:1720px;margin:0 auto;padding:16px 26px 22px}
+
+  .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+  .head h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .head p{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+  .head .tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+
+  figure{margin:10px 0 0}
+  svg{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}
+  figcaption{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;
+    margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);
+    font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em;
+  }
+  @media (max-width:1100px){figcaption{grid-template-columns:repeat(2,1fr)}}
+  figcaption b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}
+  .g b{color:var(--green)} .b b{color:var(--orange)} .a b{color:var(--amber)} .v b{color:var(--bone)}
+</style>
+
+<div class="page">
+  <div class="head">
+    <h1>CoreDirective reference architecture</h1>
+    <p>one hardened host, 19 services, three trust segments, sanitized, no addresses, ports, or versions</p>
+    <span class="tag">Topology and flows</span>
+  </div>
+
+  <figure>
+  <svg viewBox="0 0 1700 790" role="img" aria-label="Reference topology of the CoreDirective platform. Users reach services through Cloudflare Access and WAF over a tunnel the host dials outbound, so no application port listens publicly. Inside the host, three bridge networks separate core services, a sealed AI inference segment with no internet route, and a monitoring segment. The SOC agent's model calls pass through a guardrails container before leaving the host, with a local model as fallback on the sealed segment. Falco reads kernel syscalls and ships alerts to Datadog; Teleport session events leave over mTLS. State and backups are encrypted with a customer managed key in retention-locked object storage. Infrastructure changes arrive only through a pipeline with OIDC credentials, OPA policy gates, human review, and a nightly drift check. One inbound port remains: SSH from an allowlisted source range as break-glass.">
+    <defs>
+      <marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3dff8b"/></marker>
+      <marker id="m-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff9b3d"/></marker>
+      <marker id="m-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffc247"/></marker>
+      <marker id="m-bone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8dcc0"/></marker>
+      <marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff6b5e"/></marker>
+      <marker id="m-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a3ada1"/></marker>
+    </defs>
+
+    <!-- ================= LEGEND ================= -->
+    <g font-size="12" fill="#a3ada1">
+      <line x1="1300" y1="38" x2="1340" y2="38" stroke="#3dff8b" stroke-width="2.5"/><text x="1351" y="42">request path, user to service</text>
+      <line x1="1300" y1="58" x2="1340" y2="58" stroke="#ff9b3d" stroke-width="2.5"/><text x="1351" y="62">AI agent path, screened on the way out</text>
+      <line x1="1300" y1="78" x2="1340" y2="78" stroke="#ff9b3d" stroke-width="2.5" stroke-dasharray="6 5"/><text x="1351" y="82">fallback on spend ceiling</text>
+      <line x1="1300" y1="98" x2="1340" y2="98" stroke="#ffc247" stroke-width="2.5"/><text x="1351" y="102">detection and audit, shipped off-host</text>
+      <line x1="1300" y1="118" x2="1340" y2="118" stroke="#e8dcc0" stroke-width="2.5"/><text x="1351" y="122">change path, pipeline only</text>
+      <line x1="1300" y1="138" x2="1340" y2="138" stroke="#a3ada1" stroke-width="2"/><text x="1351" y="142">internal dependency</text>
+      <line x1="1300" y1="158" x2="1340" y2="158" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5"/><text x="1351" y="162">inbound SSH, break-glass</text>
+      <rect x="1300" y="172" width="40" height="15" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1351" y="184">external service</text>
+    </g>
+
+    <!-- ================= OUTSIDE ROW ================= -->
+    <g font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">
+      <rect x="180" y="30" width="200" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="280" y="55">users, operators</text>
+
+      <rect x="675" y="30" width="170" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="760" y="55">Claude API</text>
+
+      <rect x="900" y="30" width="230" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1015" y="55">allowlisted source range</text>
+    </g>
+
+    <!-- ================= EDGE ZONE ================= -->
+    <rect x="120" y="100" width="480" height="105" rx="7" fill="rgba(61,255,139,0.03)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="138" y="120" font-size="12" font-weight="700" fill="#3dff8b" letter-spacing="2">CLOUDFLARE EDGE</text>
+    <text x="138" y="136" font-size="11.5" fill="#a3ada1">off-host, identity checked before origin, WAF and DDoS, no origin address in DNS</text>
+    <g font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">
+      <rect x="180" y="150" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="255" y="175">Access</text>
+      <rect x="400" y="150" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="475" y="175">WAF + DDoS</text>
+    </g>
+
+    <!-- ================= HOST ================= -->
+    <rect x="100" y="245" width="1320" height="435" rx="9" fill="rgba(255,255,255,0.018)" stroke="#35463b" stroke-width="2"/>
+    <text x="120" y="268" font-size="12" font-weight="700" fill="#e6ebe4" letter-spacing="2">HOST, SINGLE HARDENED VM</text>
+    <text x="120" y="284" font-size="11.5" fill="#a3ada1">published to loopback only</text>
+
+    <!-- tunnel node -->
+    <g font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">
+      <rect x="400" y="262" width="150" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+      <text x="475" y="287">cloudflared</text>
+    </g>
+    <text x="560" y="287" font-size="11.5" fill="#a3ada1">host network, read-only root</text>
+
+    <!-- host sshd tag on the boundary -->
+    <rect x="975" y="234" width="80" height="22" rx="3" fill="#0a0d0b" stroke="#ff6b5e" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="1015" y="249" font-size="11.5" fill="#ff6b5e" text-anchor="middle">host sshd</text>
+
+    <!-- ----- net-ai ----- -->
+    <rect x="120" y="330" width="220" height="320" rx="7" fill="rgba(232,220,192,0.03)" stroke="#e8dcc0" stroke-width="1.5" stroke-dasharray="7 5"/>
+    <text x="136" y="352" font-size="12" font-weight="700" fill="#e8dcc0" letter-spacing="2">NET-AI, SEALED</text>
+    <text x="136" y="368" font-size="11.5" fill="#a3ada1">no route in or out</text>
+    <text x="136" y="383" font-size="11.5" fill="#a3ada1">n8n and Squire bridge in</text>
+    <g font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">
+      <rect x="155" y="395" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="230" y="420">Whisper</text>
+      <rect x="155" y="505" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="230" y="530">Ollama</text>
+    </g>
+    <g font-size="11.5" fill="#a3ada1" text-anchor="middle">
+      <text x="230" y="452">voice to text, on host</text>
+      <text x="230" y="562">local LLM, sealed</text>
+    </g>
+
+    <!-- ----- net-core ----- -->
+    <rect x="380" y="330" width="760" height="320" rx="7" fill="rgba(255,255,255,0.02)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="1124" y="352" font-size="12" font-weight="700" fill="#e6ebe4" letter-spacing="2" text-anchor="end">NET-CORE</text>
+    <text x="1124" y="368" font-size="11.5" fill="#a3ada1" text-anchor="end">state, identity, orchestration</text>
+    <g font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">
+      <rect x="420" y="395" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="490" y="420">n8n</text>
+      <rect x="600" y="395" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="670" y="420">Langfuse ×4</text>
+      <rect x="780" y="395" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="850" y="420">Vault</text>
+      <rect x="960" y="395" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1030" y="420">Keycloak</text>
+
+      <rect x="420" y="505" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="490" y="530">Squire</text>
+      <rect x="600" y="505" width="140" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/>
+      <text x="670" y="530">Guardrails</text>
+      <rect x="780" y="505" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="850" y="530">Postgres</text>
+      <rect x="960" y="505" width="140" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1030" y="530">Teleport</text>
+    </g>
+    <g font-size="11.5" fill="#a3ada1">
+      <text x="490" y="452" text-anchor="middle">SOAR, bridge to net-ai</text>
+      <text x="920" y="452" text-anchor="end">secrets, AppRole</text>
+      <text x="1100" y="452" text-anchor="end">OIDC, realm roles</text>
+      <text x="490" y="562" text-anchor="middle">SOC agent, allowlist</text>
+      <text x="670" y="562" text-anchor="middle">PII, injection, policy</text>
+      <text x="850" y="562" text-anchor="middle">backs five services</text>
+      <text x="1030" y="562" text-anchor="middle">recorded SSH, MFA, JIT</text>
+    </g>
+    <text x="760" y="628" font-size="11.5" fill="#a3ada1" text-anchor="middle">every service: no-new-privileges (Falco excepted, documented), CPU, memory, and PID limits</text>
+
+    <!-- ----- net-monitoring ----- -->
+    <rect x="1180" y="330" width="220" height="320" rx="7" fill="rgba(255,194,71,0.02)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="1196" y="352" font-size="12" font-weight="700" fill="#e6ebe4" letter-spacing="2">NET-MONITORING</text>
+    <text x="1196" y="368" font-size="11.5" fill="#a3ada1">reads the kernel via eBPF</text>
+    <text x="1196" y="383" font-size="11.5" fill="#a3ada1">audit shipper also on net-core</text>
+    <g font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">
+      <rect x="1215" y="400" width="150" height="38" rx="5" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/>
+      <text x="1290" y="424">Falco, eBPF</text>
+      <rect x="1215" y="456" width="150" height="38" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1290" y="480">Falcosidekick</text>
+      <rect x="1215" y="512" width="150" height="38" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1290" y="536">event handler</text>
+      <rect x="1215" y="568" width="150" height="38" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1290" y="592">Fluentd</text>
+      <rect x="1215" y="624" width="150" height="38" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1290" y="648">Datadog agent</text>
+    </g>
+
+    <!-- ----- external: backups and SIEM ----- -->
+    <rect x="1470" y="250" width="180" height="120" rx="6" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <g text-anchor="middle">
+      <text x="1560" y="296" font-size="15" font-weight="500" fill="#e6ebe4">Object storage</text>
+      <text x="1560" y="314" font-size="11.5" fill="#a3ada1">state + backups</text>
+      <text x="1560" y="330" font-size="11.5" fill="#a3ada1">CMK encrypted</text>
+      <text x="1560" y="346" font-size="11.5" fill="#a3ada1">retention rule</text>
+      <text x="1560" y="362" font-size="11.5" fill="#a3ada1">timed restore, monthly</text>
+    </g>
+
+    <rect x="1470" y="420" width="180" height="240" rx="6" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <g text-anchor="middle">
+      <text x="1560" y="536" font-size="15" font-weight="500" fill="#e6ebe4">Datadog</text>
+      <text x="1560" y="556" font-size="11.5" fill="#a3ada1">SIEM, events, logs</text>
+    </g>
+
+    <!-- ================= DELIVERY STRIP ================= -->
+    <text x="140" y="704" font-size="12" font-weight="700" fill="#e8dcc0" letter-spacing="2">DELIVERY</text>
+    <text x="230" y="704" font-size="11.5" fill="#a3ada1">Terraform is the only supported path for infrastructure change, CI holds no long-lived cloud credentials</text>
+    <g font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">
+      <rect x="140" y="718" width="160" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="220" y="743">pull request</text>
+      <rect x="340" y="718" width="160" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="420" y="743">OIDC exchange</text>
+      <rect x="540" y="718" width="160" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="620" y="743">plan, scan, lint</text>
+      <rect x="740" y="718" width="160" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/>
+      <text x="820" y="743">OPA gates, 4 deny</text>
+      <rect x="940" y="718" width="160" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1020" y="743">human review</text>
+      <rect x="1140" y="718" width="160" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+      <text x="1220" y="743">apply, main only</text>
+      <rect x="1340" y="718" width="160" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/>
+      <text x="1420" y="743">nightly drift check</text>
+    </g>
+    <text x="1512" y="743" font-size="11.5" fill="#a3ada1">any diff → alert</text>
+
+    <!-- ================= ARROWS ================= -->
+
+    <!-- GREEN: request path -->
+    <g stroke="#3dff8b" stroke-width="2.5" fill="none">
+      <line x1="280" y1="70" x2="280" y2="149" marker-end="url(#m-green)"/>
+      <line x1="330" y1="170" x2="399" y2="170" marker-end="url(#m-green)"/>
+      <line x1="475" y1="262" x2="475" y2="191" marker-end="url(#m-green)"/>
+      <line x1="475" y1="302" x2="475" y2="394" marker-end="url(#m-green)"/>
+      <line x1="420" y1="415" x2="306" y2="415" marker-end="url(#m-green)"/>
+    </g>
+    <g font-size="11.5" fill="#3dff8b" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">
+      <text x="290" y="112">HTTPS</text>
+      <text x="486" y="222">dials out, host initiates</text>
+      <text x="486" y="237" fill="#a3ada1">no inbound listener</text>
+      <text x="486" y="345">proxied to loopback</text>
+    </g>
+
+    <!-- BLUE: AI path -->
+    <g stroke="#ff9b3d" stroke-width="2.5" fill="none">
+      <line x1="560" y1="525" x2="599" y2="525" marker-end="url(#m-orange)"/>
+      <path d="M740,525 H760 V71" marker-end="url(#m-orange)"/>
+      <line x1="420" y1="525" x2="306" y2="525" stroke-dasharray="6 5" marker-end="url(#m-orange)"/>
+    </g>
+    <g font-size="11.5" fill="#ff9b3d" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">
+      <text x="770" y="200">leaves the host only here</text>
+      <text x="770" y="215" fill="#a3ada1">daily spend ceiling, every call traced</text>
+    </g>
+
+    <!-- GRAY: internal dependencies -->
+    <g stroke="#a3ada1" stroke-width="2" fill="none">
+      <line x1="670" y1="505" x2="670" y2="436" marker-end="url(#m-gray)"/>
+      <line x1="790" y1="435" x2="790" y2="504" marker-end="url(#m-gray)"/>
+      <line x1="968" y1="435" x2="968" y2="504" marker-end="url(#m-gray)"/>
+      <line x1="1420" y1="310" x2="1469" y2="310" marker-end="url(#m-gray)"/>
+    </g>
+    <g font-size="11" fill="#a3ada1" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">
+      <text x="678" y="474">trace</text>
+      <text x="798" y="474">short-TTL creds</text>
+      <text x="976" y="474">OIDC</text>
+      <text x="1444" y="300" text-anchor="middle">nightly</text>
+    </g>
+
+    <!-- AMBER: detection and audit -->
+    <g stroke="#ffc247" stroke-width="2.5" fill="none">
+      <line x1="1290" y1="438" x2="1290" y2="455" marker-end="url(#m-amber)"/>
+      <line x1="1365" y1="475" x2="1469" y2="475" marker-end="url(#m-amber)"/>
+      <path d="M1100,525 H1157 V531 H1214" marker-end="url(#m-amber)"/>
+      <line x1="1290" y1="550" x2="1290" y2="567" marker-end="url(#m-amber)"/>
+      <line x1="1365" y1="587" x2="1469" y2="587" marker-end="url(#m-amber)"/>
+      <line x1="1365" y1="643" x2="1469" y2="643" marker-end="url(#m-amber)"/>
+    </g>
+    <g font-size="11.5" fill="#ffc247" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">
+      <text x="1417" y="466" text-anchor="middle">alerts</text>
+      <text x="1157" y="516" text-anchor="middle">audit, gRPC</text>
+      <text x="1298" y="562">mTLS</text>
+      <text x="1417" y="578" text-anchor="middle">audit logs</text>
+      <text x="1417" y="634" text-anchor="middle">logs, metrics</text>
+    </g>
+
+    <!-- VIOLET: delivery -->
+    <g stroke="#e8dcc0" stroke-width="2.5" fill="none">
+      <line x1="300" y1="738" x2="339" y2="738" marker-end="url(#m-bone)"/>
+      <line x1="500" y1="738" x2="539" y2="738" marker-end="url(#m-bone)"/>
+      <line x1="700" y1="738" x2="739" y2="738" marker-end="url(#m-bone)"/>
+      <line x1="900" y1="738" x2="939" y2="738" marker-end="url(#m-bone)"/>
+      <line x1="1100" y1="738" x2="1139" y2="738" marker-end="url(#m-bone)"/>
+      <line x1="1220" y1="718" x2="1220" y2="681" marker-end="url(#m-bone)"/>
+      <line x1="1400" y1="680" x2="1400" y2="717" marker-end="url(#m-bone)"/>
+    </g>
+    <g font-size="11.5" fill="#e8dcc0" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">
+      <text x="1230" y="703">applies</text>
+      <text x="1410" y="703">re-plans against live</text>
+    </g>
+
+    <!-- RED: the one inbound exception -->
+    <line x1="1015" y1="70" x2="1015" y2="233" stroke="#ff6b5e" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#m-red)"/>
+    <g font-size="11.5" fill="#ff6b5e" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">
+      <text x="1026" y="140">SSH, break-glass</text>
+      <text x="1026" y="155" fill="#a3ada1">source-restricted</text>
+    </g>
+  </svg>
+
+  <figcaption>
+    <div class="g"><b>Request</b>edge auth → tunnel dialed out → loopback, tunnel dies: site unreachable, no port opens</div>
+    <div class="b"><b>AI</b>agent → guardrails → API, spend cap, traced, sealed local fallback</div>
+    <div class="a"><b>Detect + audit</b>kernel → Falco → SIEM, sessions → mTLS → SIEM, sensor sits below the workloads</div>
+    <div class="v"><b>Change</b>PR → checks → policy gates → review → apply, nightly drift re-plan, CMK-encrypted state</div>
+  </figcaption>
+  </figure>
+</div>

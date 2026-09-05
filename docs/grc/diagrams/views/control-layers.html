@@ -1,0 +1,322 @@
+<title>CoreDirective Control Layers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --ink:#0a0d0b;
+    --node:#141b16;
+    --line:#27342b;
+    --line-soft:#1b241e;
+    --text:#e6ebe4;
+    --dim:#a3ada1;
+    --green:#3dff8b;
+    --orange:#ff9b3d;
+    --amber:#ffc247;
+    --bone2:#e8dcc0;
+    --red:#ff6b5e;
+    --bone:#e8dcc0;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--ink)}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);margin:0;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .page{max-width:1720px;margin:0 auto;padding:16px 26px 16px}
+
+  .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+  .head h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .head p{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+  .head .tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+
+  figure{margin:10px 0 0}
+  svg{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}
+  figcaption{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;
+    margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);
+    font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em;
+  }
+  @media (max-width:1100px){figcaption{grid-template-columns:repeat(2,1fr)}}
+  figcaption b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}
+  .g b{color:var(--green)} .b b{color:var(--orange)} .a b{color:var(--amber)} .v b{color:var(--bone)}
+</style>
+
+<div class="page">
+  <div class="head">
+    <h1>CoreDirective reference architecture</h1>
+    <p>seven barrier layers on one hardened host, moderate baseline, sanitized, no addresses, ports, or versions</p>
+    <span class="tag">Control layers</span>
+  </div>
+
+  <figure>
+  <svg viewBox="0 0 1700 788" role="img" aria-label="Control layers view of the CoreDirective platform. Seven horizontal bands, edge, host, runtime, application, identity, data, and delivery. Each band names the barriers at that layer and the NIST 800-53 Revision 5 control identifiers they satisfy, as cited in the system security plan. Edge: identity checked before the origin, WAF with custom and managed rules, DDoS absorption, per-IP rate limits on the webhook path, and no origin address in DNS. Host: an outbound-only tunnel, services published to loopback, one inbound port, break-glass SSH from an allowlisted source, a CIS baseline with documented exceptions, no-new-privileges on 18 of 19 services, and resource limits. Runtime: a kernel sensor below the workloads, three bridge networks with one that has no internet route, read-only roots on the tunnel and alert router, digest pinning with review tiers, and alerts shipped off-host into the incident handling pipeline. Application: input and output rails, a typed actions allowlist, a per-alert spend ceiling with a daily cap, tracing of every call, a rotated shared-secret webhook token, and human review for high severity. Identity: OIDC realm roles, MFA on every session, just-in-time elevation that expires, recorded sessions, short-lived credentials from Vault, and lockout. Data: a bridge-only database, customer managed key encryption on state and backups, versioned state and retention-ruled backups in object storage, nightly backups by instance principal, and a monthly timed restore. Delivery: pull request only, OIDC token exchange, scanners, eight policy gates, signature verification of upstream images, human review, and a nightly drift check.">
+    <g font-size="12" font-weight="700" letter-spacing="2" fill="#a3ada1">
+    <text x="44" y="24">LAYER</text>
+    <text x="250" y="24">BARRIER</text>
+    <text x="1356" y="24">NIST 800-53 REV 5</text>
+    </g>
+    <text x="1672" y="24" font-size="11.5" fill="#a3ada1" text-anchor="end">133 controls cited</text>
+    <!-- ===== EDGE ===== -->
+    <rect x="28" y="40" width="1644" height="96" rx="7" fill="rgba(61,255,139,0.03)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="62" font-size="12" font-weight="700" fill="#3dff8b" letter-spacing="2">EDGE</text>
+    <text x="44" y="78" font-size="11.5" fill="#a3ada1">who reaches the origin</text>
+    <text x="44" y="114" font-size="26" font-weight="700" fill="#3dff8b">0</text>
+    <text x="44" y="129" font-size="11.5" fill="#a3ada1">origin addresses in DNS</text>
+    <rect x="250" y="58" width="148" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/>
+    <text x="324" y="83" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Access</text>
+    <text x="324" y="115" font-size="11.5" fill="#a3ada1" text-anchor="middle">login before origin</text>
+    <rect x="406" y="58" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="480" y="83" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">WAF</text>
+    <text x="480" y="115" font-size="11.5" fill="#a3ada1" text-anchor="middle">custom and managed</text>
+    <rect x="562" y="58" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="636" y="83" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">DDoS</text>
+    <text x="636" y="115" font-size="11.5" fill="#a3ada1" text-anchor="middle">absorbed off-host</text>
+    <rect x="718" y="58" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="792" y="83" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">rate limits</text>
+    <text x="792" y="115" font-size="11.5" fill="#a3ada1" text-anchor="middle">per IP, webhook path</text>
+    <rect x="874" y="58" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="948" y="83" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">DNS proxy</text>
+    <text x="948" y="115" font-size="11.5" fill="#a3ada1" text-anchor="middle">no origin address</text>
+    <rect x="1356" y="66" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="80" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-7</text>
+    <rect x="1404" y="66" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1424" y="80" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-5</text>
+    <rect x="1452" y="66" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1472" y="80" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AC-3</text>
+    <rect x="1500" y="66" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1520" y="80" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-8</text>
+    <!-- ===== HOST ===== -->
+    <rect x="28" y="146" width="1644" height="96" rx="7" fill="rgba(255,255,255,0.018)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="168" font-size="12" font-weight="700" fill="#e6ebe4" letter-spacing="2">HOST</text>
+    <text x="44" y="184" font-size="11.5" fill="#a3ada1">what listens on the host</text>
+    <text x="44" y="220" font-size="26" font-weight="700" fill="#e6ebe4">1</text>
+    <text x="44" y="235" font-size="11.5" fill="#a3ada1">inbound port, SSH only</text>
+    <rect x="250" y="164" width="148" height="40" rx="5" fill="#141b16" stroke="#e6ebe4" stroke-width="1.5"/>
+    <text x="324" y="189" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">outbound tunnel</text>
+    <text x="324" y="221" font-size="11.5" fill="#a3ada1" text-anchor="middle">no inbound listener</text>
+    <rect x="406" y="164" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="480" y="189" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">loopback binds</text>
+    <text x="480" y="221" font-size="11.5" fill="#a3ada1" text-anchor="middle">no interface exposed</text>
+    <rect x="562" y="164" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="636" y="189" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">break-glass SSH</text>
+    <text x="636" y="221" font-size="11.5" fill="#a3ada1" text-anchor="middle">allowlisted, keys</text>
+    <rect x="718" y="164" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="792" y="189" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">CIS baseline</text>
+    <text x="792" y="221" font-size="11.5" fill="#a3ada1" text-anchor="middle">exceptions on record</text>
+    <rect x="874" y="164" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="948" y="189" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">no-new-privileges</text>
+    <text x="948" y="221" font-size="11.5" fill="#a3ada1" text-anchor="middle">18 of 19 services</text>
+    <rect x="1030" y="164" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="1104" y="189" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">resource limits</text>
+    <text x="1104" y="221" font-size="11.5" fill="#a3ada1" text-anchor="middle">CPU, memory, PIDs</text>
+    <rect x="1356" y="172" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="186" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-7</text>
+    <rect x="1404" y="172" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1424" y="186" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CM-6</text>
+    <rect x="1452" y="172" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1472" y="186" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CM-7</text>
+    <rect x="1500" y="172" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1520" y="186" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AC-6</text>
+    <rect x="1548" y="172" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1568" y="186" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-6</text>
+    <!-- ===== RUNTIME ===== -->
+    <rect x="28" y="252" width="1644" height="96" rx="7" fill="rgba(255,194,71,0.025)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="274" font-size="12" font-weight="700" fill="#ffc247" letter-spacing="2">RUNTIME</text>
+    <text x="44" y="290" font-size="11.5" fill="#a3ada1">what a container can reach</text>
+    <text x="44" y="326" font-size="26" font-weight="700" fill="#ffc247">3</text>
+    <text x="44" y="341" font-size="11.5" fill="#a3ada1">networks, one sealed, no route out</text>
+    <rect x="250" y="270" width="148" height="40" rx="5" fill="#141b16" stroke="#ffc247" stroke-width="1.5"/>
+    <text x="324" y="295" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Falco eBPF</text>
+    <text x="324" y="327" font-size="11.5" fill="#a3ada1" text-anchor="middle">below the workloads</text>
+    <rect x="406" y="270" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="480" y="295" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">three networks</text>
+    <text x="480" y="327" font-size="11.5" fill="#a3ada1" text-anchor="middle">core, ai, monitoring</text>
+    <rect x="562" y="270" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="636" y="295" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">sealed net-ai</text>
+    <text x="636" y="327" font-size="11.5" fill="#a3ada1" text-anchor="middle">no internet route</text>
+    <rect x="718" y="270" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="792" y="295" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">read-only root</text>
+    <text x="792" y="327" font-size="11.5" fill="#a3ada1" text-anchor="middle">tunnel, alert router</text>
+    <rect x="874" y="270" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="948" y="295" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">digest pinning</text>
+    <text x="948" y="327" font-size="11.5" fill="#a3ada1" text-anchor="middle">Renovate tiers</text>
+    <rect x="1030" y="270" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="1104" y="295" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">alerts off-host</text>
+    <text x="1104" y="327" font-size="11.5" fill="#a3ada1" text-anchor="middle">shipped to the SIEM</text>
+    <rect x="1356" y="278" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="292" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AC-4</text>
+    <rect x="1404" y="278" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1424" y="292" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-7</text>
+    <rect x="1452" y="278" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1472" y="292" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SI-3</text>
+    <rect x="1500" y="278" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1520" y="292" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SI-4</text>
+    <rect x="1548" y="278" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1568" y="292" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SI-7</text>
+    <rect x="1596" y="278" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1616" y="292" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CM-8</text>
+    <rect x="1356" y="306" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="320" font-size="11.5" fill="#e6ebe4" text-anchor="middle">IR-4</text>
+    <!-- ===== APPLICATION ===== -->
+    <rect x="28" y="358" width="1644" height="96" rx="7" fill="rgba(255,155,61,0.03)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="380" font-size="12" font-weight="700" fill="#ff9b3d" letter-spacing="2">APPLICATION</text>
+    <text x="44" y="396" font-size="11.5" fill="#a3ada1">what the agent may do</text>
+    <text x="44" y="432" font-size="26" font-weight="700" fill="#ff9b3d">9</text>
+    <text x="44" y="447" font-size="11.5" fill="#a3ada1">layers, WAF to audit trail</text>
+    <rect x="250" y="376" width="148" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/>
+    <text x="324" y="401" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">input rails</text>
+    <text x="324" y="433" font-size="11.5" fill="#a3ada1" text-anchor="middle">PII and injection</text>
+    <rect x="406" y="376" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="480" y="401" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">output rails</text>
+    <text x="480" y="433" font-size="11.5" fill="#a3ada1" text-anchor="middle">policy, schema check</text>
+    <rect x="562" y="376" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="636" y="401" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">actions allowlist</text>
+    <text x="636" y="433" font-size="11.5" fill="#a3ada1" text-anchor="middle">deny by default</text>
+    <rect x="718" y="376" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="792" y="401" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">spend ceiling</text>
+    <text x="792" y="433" font-size="11.5" fill="#a3ada1" text-anchor="middle">per alert, daily cap</text>
+    <rect x="874" y="376" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="948" y="401" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">Langfuse trace</text>
+    <text x="948" y="433" font-size="11.5" fill="#a3ada1" text-anchor="middle">every call recorded</text>
+    <rect x="1030" y="376" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="1104" y="401" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">webhook token</text>
+    <text x="1104" y="433" font-size="11.5" fill="#a3ada1" text-anchor="middle">shared secret</text>
+    <rect x="1186" y="376" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="1260" y="401" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">HITL review</text>
+    <text x="1260" y="433" font-size="11.5" fill="#a3ada1" text-anchor="middle">high and critical</text>
+    <rect x="1356" y="384" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1379" y="398" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SI-10</text>
+    <rect x="1410" y="384" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1430" y="398" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SI-4</text>
+    <rect x="1458" y="384" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1478" y="398" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AC-3</text>
+    <rect x="1506" y="384" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1526" y="398" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AU-2</text>
+    <rect x="1554" y="384" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1577" y="398" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AU-12</text>
+    <rect x="1608" y="384" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1628" y="398" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SA-8</text>
+    <!-- ===== IDENTITY ===== -->
+    <rect x="28" y="464" width="1644" height="96" rx="7" fill="rgba(255,255,255,0.018)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="486" font-size="12" font-weight="700" fill="#e6ebe4" letter-spacing="2">IDENTITY</text>
+    <text x="44" y="502" font-size="11.5" fill="#a3ada1">who, with what, how long</text>
+    <text x="44" y="538" font-size="26" font-weight="700" fill="#e6ebe4">4h</text>
+    <text x="44" y="553" font-size="11.5" fill="#a3ada1">JIT elevation, then expiry</text>
+    <rect x="250" y="482" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="324" y="507" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">Keycloak OIDC</text>
+    <text x="324" y="539" font-size="11.5" fill="#a3ada1" text-anchor="middle">realm roles, RBAC</text>
+    <rect x="406" y="482" width="148" height="40" rx="5" fill="#141b16" stroke="#e6ebe4" stroke-width="1.5"/>
+    <text x="480" y="507" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Teleport MFA</text>
+    <text x="480" y="539" font-size="11.5" fill="#a3ada1" text-anchor="middle">TOTP, every session</text>
+    <rect x="562" y="482" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="636" y="507" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">JIT elevation</text>
+    <text x="636" y="539" font-size="11.5" fill="#a3ada1" text-anchor="middle">approved, expires</text>
+    <rect x="718" y="482" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="792" y="507" font-size="14" font-weight="500" fill="#e6ebe4" text-anchor="middle">session recording</text>
+    <text x="792" y="539" font-size="11.5" fill="#a3ada1" text-anchor="middle">to SIEM over mTLS</text>
+    <rect x="874" y="482" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="948" y="507" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">Vault AppRole</text>
+    <text x="948" y="539" font-size="11.5" fill="#a3ada1" text-anchor="middle">short-TTL creds</text>
+    <rect x="1030" y="482" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="1104" y="507" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">lockout policy</text>
+    <text x="1104" y="539" font-size="11.5" fill="#a3ada1" text-anchor="middle">failed logins alert</text>
+    <rect x="1356" y="490" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="504" font-size="11.5" fill="#e6ebe4" text-anchor="middle">IA-2</text>
+    <rect x="1404" y="490" width="60" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1434" y="504" font-size="11.5" fill="#e6ebe4" text-anchor="middle">IA-2(1)</text>
+    <rect x="1472" y="490" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1492" y="504" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AC-2</text>
+    <rect x="1520" y="490" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1543" y="504" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AC-12</text>
+    <rect x="1574" y="490" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1594" y="504" font-size="11.5" fill="#e6ebe4" text-anchor="middle">IA-5</text>
+    <rect x="1622" y="490" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1645" y="504" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-12</text>
+    <rect x="1356" y="518" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="532" font-size="11.5" fill="#e6ebe4" text-anchor="middle">AC-7</text>
+    <!-- ===== DATA ===== -->
+    <rect x="28" y="570" width="1644" height="96" rx="7" fill="rgba(255,255,255,0.018)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="592" font-size="12" font-weight="700" fill="#e6ebe4" letter-spacing="2">DATA</text>
+    <text x="44" y="608" font-size="11.5" fill="#a3ada1">where state lives</text>
+    <text x="44" y="644" font-size="26" font-weight="700" fill="#e6ebe4">30d</text>
+    <text x="44" y="659" font-size="11.5" fill="#a3ada1">retention rule on backups</text>
+    <rect x="250" y="588" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="324" y="613" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">Postgres</text>
+    <text x="324" y="645" font-size="11.5" fill="#a3ada1" text-anchor="middle">bridge-only, no port</text>
+    <rect x="406" y="588" width="148" height="40" rx="5" fill="#141b16" stroke="#e6ebe4" stroke-width="1.5"/>
+    <text x="480" y="613" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">CMK encryption</text>
+    <text x="480" y="645" font-size="11.5" fill="#a3ada1" text-anchor="middle">state and backups</text>
+    <rect x="562" y="588" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="636" y="613" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">object storage</text>
+    <text x="636" y="645" font-size="11.5" fill="#a3ada1" text-anchor="middle">state versioned</text>
+    <rect x="718" y="588" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="792" y="613" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">nightly backup</text>
+    <text x="792" y="645" font-size="11.5" fill="#a3ada1" text-anchor="middle">instance principal</text>
+    <rect x="874" y="588" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="948" y="613" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">timed restore</text>
+    <text x="948" y="645" font-size="11.5" fill="#a3ada1" text-anchor="middle">monthly, logged</text>
+    <rect x="1356" y="596" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1379" y="610" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-28</text>
+    <rect x="1410" y="596" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1433" y="610" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-12</text>
+    <rect x="1464" y="596" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1487" y="610" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SC-13</text>
+    <rect x="1518" y="596" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1538" y="610" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CP-6</text>
+    <rect x="1566" y="596" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1586" y="610" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CP-9</text>
+    <rect x="1614" y="596" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1637" y="610" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CP-10</text>
+    <rect x="1356" y="624" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="638" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CP-4</text>
+    <!-- ===== DELIVERY ===== -->
+    <rect x="28" y="676" width="1644" height="96" rx="7" fill="rgba(232,220,192,0.03)" stroke="#27342b" stroke-width="1.5"/>
+    <text x="44" y="698" font-size="12" font-weight="700" fill="#e8dcc0" letter-spacing="2">DELIVERY</text>
+    <text x="44" y="714" font-size="11.5" fill="#a3ada1">how change arrives</text>
+    <text x="44" y="750" font-size="26" font-weight="700" fill="#e8dcc0">8</text>
+    <text x="44" y="765" font-size="11.5" fill="#a3ada1">gates, 4 deny, 4 warn</text>
+    <rect x="250" y="694" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="324" y="719" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">pull request</text>
+    <text x="324" y="751" font-size="11.5" fill="#a3ada1" text-anchor="middle">only path to change</text>
+    <rect x="406" y="694" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="480" y="719" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">OIDC exchange</text>
+    <text x="480" y="751" font-size="11.5" fill="#a3ada1" text-anchor="middle">short-lived token</text>
+    <rect x="562" y="694" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="636" y="719" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">scanners</text>
+    <text x="636" y="751" font-size="11.5" fill="#a3ada1" text-anchor="middle">CVE, SAST, secrets</text>
+    <rect x="718" y="694" width="148" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="792" y="719" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">OPA gates</text>
+    <text x="792" y="751" font-size="11.5" fill="#a3ada1" text-anchor="middle">4 deny, 4 warn</text>
+    <rect x="874" y="694" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="948" y="719" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">Cosign verify</text>
+    <text x="948" y="751" font-size="11.5" fill="#a3ada1" text-anchor="middle">upstream images</text>
+    <rect x="1030" y="694" width="148" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/>
+    <text x="1104" y="719" font-size="16" font-weight="500" fill="#e6ebe4" text-anchor="middle">human review</text>
+    <text x="1104" y="751" font-size="11.5" fill="#a3ada1" text-anchor="middle">required to merge</text>
+    <rect x="1186" y="694" width="148" height="40" rx="5" fill="#141b16" stroke="#e8dcc0" stroke-width="1.5"/>
+    <text x="1260" y="719" font-size="15" font-weight="500" fill="#e6ebe4" text-anchor="middle">nightly drift</text>
+    <text x="1260" y="751" font-size="11.5" fill="#a3ada1" text-anchor="middle">re-plan, diff alerts</text>
+    <rect x="1356" y="702" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="716" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CM-3</text>
+    <rect x="1404" y="702" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1424" y="716" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CM-5</text>
+    <rect x="1452" y="702" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1472" y="716" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CM-4</text>
+    <rect x="1500" y="702" width="46" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1523" y="716" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SA-11</text>
+    <rect x="1554" y="702" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1574" y="716" font-size="11.5" fill="#e6ebe4" text-anchor="middle">RA-5</text>
+    <rect x="1602" y="702" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1622" y="716" font-size="11.5" fill="#e6ebe4" text-anchor="middle">SI-7</text>
+    <rect x="1356" y="730" width="40" height="20" rx="3" fill="#0d181e" stroke="#2c3a30" stroke-width="1"/>
+    <text x="1376" y="744" font-size="11.5" fill="#e6ebe4" text-anchor="middle">CA-7</text>
+  </svg>
+
+  <figcaption>
+    <div class="g"><b>Outside in</b>edge identity → WAF → tunnel dialed out → loopback, nothing listens publicly</div>
+    <div class="a"><b>Inside</b>three networks, one sealed, kernel sensor below the workloads, 18 of 19 no-new-privileges</div>
+    <div class="b"><b>Agent</b>rails → allowlist → spend cap → trace, blast radius is the allowlist</div>
+    <div class="v"><b>Change</b>PR → OIDC → Trivy, Semgrep, Gitleaks → 8 gates → review → apply, drift re-plans nightly</div>
+  </figcaption>
+  </figure>
+</div>
