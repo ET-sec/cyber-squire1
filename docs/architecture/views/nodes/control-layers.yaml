@@ -1,0 +1,317 @@
+# Node table for the control layers view: 42 barrier boxes (labels from gen_control-layers.py BANDS) plus generated
+# chip entries for every 800-53 id printed on the drawing (chips: block). Entries with `from:` inherit the topology
+# entry and override label and zone. See nodes/topology.yaml for the field rules.
+nodes:
+  # EDGE
+  - {id: access, label: Access, zone: edge, from: topology/access}
+  - id: waf
+    label: WAF
+    zone: edge
+    from: topology/waf
+    what: "The edge web application firewall: a custom ruleset in Terraform (scanner user agents, admin geo-fence, honeytoken paths, header anomalies) on top of the provider's managed ruleset."
+  - id: ddos
+    label: DDoS
+    zone: edge
+    what: "Volumetric attacks are absorbed at the edge provider's network before anything reaches the tunnel; the host never sees the flood."
+    controls: [SC-5, SC-7]
+    status: live
+    status_note: "Inherited from the edge provider on every proxied hostname; the playbook covers what to do when the edge reports degradation."
+    evidence:
+      - {label: "Degradation playbook", path: docs/grc/PLAYBOOK_DDOS_SERVICE_DEGRADATION.md, line: 1}
+      - {label: "Rate limit behind it", path: terraform/cd-cloudflare-edge/waf.tf, line: 57}
+    solidify: none
+  - id: rate-limits
+    label: "rate limits"
+    zone: edge
+    what: "A per-source rate limit on the webhook path, so a caller that found the endpoint cannot flood the orchestration engine."
+    controls: [SC-5, SI-4]
+    status: live
+    status_note: "Applied as Terraform, keyed on source address and edge location and scoped to the webhook path; the per-token characteristic the SSP describes is the design."
+    evidence:
+      - {label: "Rate limit ruleset", path: terraform/cd-cloudflare-edge/waf.tf, line: 57}
+      - {label: "Characteristics it keys on", path: terraform/cd-cloudflare-edge/waf.tf, line: 71}
+      - {label: "Burst detection rule", path: detections/sigma/cloudflare/waf-block-burst.yml, line: 1}
+    solidify: "Control layers: rate limit per IP; SSP 7.5.3 says per-IP and per-token"
+  - id: dns-proxy
+    label: "DNS proxy"
+    zone: edge
+    what: "Every public name resolves to the edge proxy and never to the host, so the origin address is not in DNS."
+    controls: [SC-7, SC-20]
+    status: live
+    status_note: "Verified by resolution on 2026-09-04; the records themselves are dashboard-managed and pending import into the Terraform module."
+    evidence:
+      - {label: "Module scope and what is pending import", path: terraform/cd-cloudflare-edge/README.md, line: 20}
+      - {label: "Access application on the proxied name", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
+    solidify: "Control layers: DNS records pending import"
+  # HOST
+  - {id: outbound-tunnel, label: "outbound tunnel", zone: host, from: topology/cloudflared}
+  - id: loopback-binds
+    label: "loopback binds"
+    zone: host
+    what: "Every published service binds to the loopback interface only; the tunnel reaches it from inside the host and no interface is exposed."
+    controls: [SC-7, CM-7]
+    status: live
+    status_note: "The live compose publishes the orchestration engine to loopback only; the full design does the same for every service that publishes at all."
+    evidence:
+      - {label: "Loopback publish on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 52}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 121}
+    solidify: none
+  - {id: break-glass-ssh, label: "break-glass SSH", zone: host, from: topology/host-sshd}
+  - id: cis-baseline
+    label: "CIS baseline"
+    zone: host
+    what: "The Docker host and daemon measured against the CIS Docker Benchmark, with every exception written down and a compensating control named."
+    controls: [CM-6, CM-2]
+    status: partial
+    status_note: "The recorded run (29 findings, none high) is from the previous host; the exceptions and their compensating controls are on the POA&M, and a re-run on the current host is owed."
+    evidence:
+      - {label: "CIS risk register, host section", path: docs/grc/CIS_RISK_REGISTER.md, line: 24}
+      - {label: "Scan sources and counts", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 65}
+      - {label: "First accepted exception", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 605}
+    solidify: "CIS Docker Bench dated 2026-03-11 (previous host); re-run on the current host owed"
+  - id: no-new-privileges
+    label: "no-new-privileges"
+    zone: host
+    what: "A process inside a container cannot gain more privilege than it started with, so a setuid binary or a capability trick inside a compromised service goes nowhere."
+    controls: [AC-6, CM-7]
+    status: partial
+    status_note: "Set on the three live containers and on 18 of 19 in the full design; the kernel sensor is the documented exception because it needs the capabilities it watches."
+    evidence:
+      - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 77}
+      - {label: "Database in the full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 106}
+      - {label: "The one exception and why", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 470-472}
+    solidify: "Tier 2: Falco without NNP, accepted (CIS 5.25)"
+  - id: resource-limits
+    label: "resource limits"
+    zone: host
+    what: "CPU, memory, and process-count limits on every service, so a runaway or a fork bomb in one container cannot starve the host."
+    controls: [SC-6, SC-5]
+    status: partial
+    status_note: "Limits are set on every service in the full design; the live three-container definition carries none yet, a compose change."
+    evidence:
+      - {label: "Limits on the database", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 110-111}
+      - {label: "PID limits and the restart policy tradeoff", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 616}
+    solidify: "oci-core compose has no deploy.resources limits (found 2026-09-05)"
+  # RUNTIME
+  - {id: falco, label: "Falco eBPF", zone: runtime, from: topology/falco}
+  - id: three-networks
+    label: "three networks"
+    zone: runtime
+    what: "Three bridge networks: core for state and orchestration, a sealed one for the local models, and one for the sensors; a container reaches only what its network reaches."
+    controls: [AC-4, SC-7]
+    status: partial
+    status_note: "Three networks in the full design; the live host runs the core network alone until the rebuild brings the other services back."
+    evidence:
+      - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1018-1025}
+      - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 80}
+      - {label: "Segmentation in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 199}
+    solidify: none
+  - id: sealed-net-ai
+    label: "sealed net-ai"
+    zone: runtime
+    what: "The model network is internal: no route to the internet in either direction, so audio and prompts on it cannot leave and nothing outside can reach the models."
+    controls: [AC-4, SC-7]
+    status: designed
+    status_note: "Pending the ARM rebuild; the SSP row for information flow describes the core network's egress and is queued for a rewording that names the sealed segment."
+    evidence:
+      - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1020-1022}
+      - {label: "Whisper on it", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 243-244}
+    solidify: "Threat model: SSP AC-4 row wording (net-core unrestricted, net-ai none)"
+  - id: read-only-root
+    label: "read-only root"
+    zone: runtime
+    what: "The tunnel and the alert router run on a read-only root filesystem, so a compromise cannot drop a binary or edit a config in place."
+    controls: [CM-7, SI-7]
+    status: partial
+    status_note: "Set on both in the full design; the live tunnel definition lacks it, a two line change."
+    evidence:
+      - {label: "Tunnel, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 667}
+      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 548}
+      - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 70-77}
+    solidify: "Tier 2: live cloudflared lacks read_only"
+  - id: digest-pinning
+    label: "digest pinning"
+    zone: runtime
+    what: "Every image is pinned by content digest rather than by tag, so a pull returns exactly the reviewed bytes; Renovate proposes updates in tiers for review."
+    controls: [SI-7, CM-8]
+    status: partial
+    status_note: "Every image in the full design carries a digest and Renovate is configured; the live three-container definition pins by version tag, and the ARM rebuild re-pins by digest."
+    evidence:
+      - {label: "Pinning rule for the compose", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 44}
+      - {label: "Live tunnel image, tag-pinned", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 71}
+      - {label: "Renovate configuration", path: renovate.json, line: 1}
+      - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
+    solidify: "ARM rebuild: arm64 digest re-pin"
+  - id: alerts-off-host
+    label: "alerts off-host"
+    zone: runtime
+    what: "Sensor alerts and audit logs leave the host as they happen, so a compromise cannot erase the record of itself."
+    controls: [AU-9, SI-4, IR-5]
+    status: designed
+    status_note: "Drift alerts reach the operator from CI today; the sensor and log shipping paths from the host return with the ARM rebuild."
+    evidence:
+      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 530}
+      - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 578}
+      - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 135}
+    solidify: "Multi-cloud: Datadog agent and Falco pending"
+  # APPLICATION
+  - {id: input-rails, label: "input rails", zone: application, from: topology/guardrails}
+  - id: output-rails
+    label: "output rails"
+    zone: application
+    from: topology/guardrails
+    what: "What comes back from the model is screened before anyone sees it: personal data on the way out, citations checked against the retrieved sources, forbidden verbs rewritten to recommendations."
+    evidence:
+      - {label: "Output rail", path: builds/squire/docker/nemo_config/rails/output.co, line: 1}
+      - {label: "Citation guard and verb rewrite at the API boundary", path: builds/squire/src/squire/app.py, line: 138}
+      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 894}
+  - id: actions-allowlist
+    label: "actions allowlist"
+    zone: application
+    what: "The agent recommends and never executes; any action outside the allowlist is rewritten to a recommendation before the response leaves."
+    controls: [AC-6, SI-10]
+    status: designed
+    status_note: "Pending the ARM rebuild; the shipped check is a forbidden-verb filter, and making the allowlist the gate (deny unless listed) is the queued change that makes the SSP line literal."
+    evidence:
+      - {label: "Action check", path: builds/squire/src/squire/actions_allowlist.py, line: 57}
+      - {label: "Recommendation enforcement", path: builds/squire/src/squire/actions_allowlist.py, line: 72}
+      - {label: "Layer 5 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 682}
+    solidify: "Threat model: forbidden-verb filter, allowed_verbs never read"
+  - id: spend-ceiling
+    label: "spend ceiling"
+    zone: application
+    what: "A per-alert budget stops a runaway call and a daily ceiling flips the agent to the local model, so a prompt cannot run up the vendor bill."
+    controls: [SC-6, SA-9]
+    status: designed
+    status_note: "Pending the ARM rebuild; today the daily sum returns zero on a database error (fails open) and the local fallback has no route yet, both queued."
+    evidence:
+      - {label: "Daily spend query", path: builds/squire/src/squire/cost_ceiling.py, line: 35}
+      - {label: "Breach decision", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
+      - {label: "Layer 4 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 682}
+    solidify: "AI trust: cost ceiling fails open on DB error; Tier 1 route to net-ai"
+  - {id: langfuse-trace, label: "Langfuse trace", zone: application, from: topology/langfuse}
+  - id: webhook-token
+    label: "webhook token"
+    zone: application
+    what: "The alert endpoint accepts a request only with a shared-secret header that the orchestration engine holds; rotation is on a stated cadence."
+    controls: [IA-5, SC-23]
+    status: designed
+    status_note: "Pending the ARM rebuild; the shipped compare is a plain inequality, and a constant-time compare plus a signed payload is the queued change."
+    evidence:
+      - {label: "Auth dependency", path: builds/squire/src/squire/app.py, line: 65}
+      - {label: "The compare", path: builds/squire/src/squire/app.py, line: 77-79}
+    solidify: "Identity view: shared-secret header, plain != compare"
+  - id: hitl-review
+    label: "HITL review"
+    zone: application
+    what: "A HIGH or CRITICAL finding is not closed by the agent; it carries an approval row a person has to close, and the notification goes out immediately."
+    controls: [AC-6, IR-4]
+    status: designed
+    status_note: "Pending the ARM rebuild; the policy names the gate and the route node writes the approval row, and nothing executes either way because the agent only recommends."
+    evidence:
+      - {label: "Route node", path: builds/squire/src/squire/nodes/route.py, line: 1}
+      - {label: "Human-in-the-loop policy", path: docs/grc/HITL_POLICY.md, line: 35}
+    solidify: none
+  # IDENTITY
+  - {id: keycloak-oidc, label: "Keycloak OIDC", zone: identity, from: topology/keycloak}
+  - {id: teleport-mfa, label: "Teleport MFA", zone: identity, from: topology/teleport}
+  - id: jit-elevation
+    label: "JIT elevation"
+    zone: identity
+    what: "Privilege is requested, approved, and expires; nobody holds standing admin on the host."
+    controls: [AC-6, AC-12]
+    status: designed
+    status_note: "Pending the ARM rebuild and the gateway's access-request role, which does not exist yet; the four hour expiry is the SSP value."
+    evidence:
+      - {label: "Privilege escalation path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
+      - {label: "Upgrade path with the request role", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 190}
+    solidify: "Identity view: JIT 4h, no access-request role"
+  - id: session-recording
+    label: "session recording"
+    zone: identity
+    from: topology/event-handler
+    what: "Every gateway session is recorded and its audit events leave the host over mutual TLS, so a session record exists that the operator cannot edit."
+  - {id: vault-approle, label: "Vault AppRole", zone: identity, from: topology/vault}
+  - id: lockout-policy
+    label: "lockout policy"
+    zone: identity
+    what: "Repeated failed logins lock the account at the identity provider and raise an alert at the edge."
+    controls: [AC-7]
+    status: partial
+    status_note: "The edge brute-force detection rule exists today; the identity provider's lockout returns with Keycloak in the ARM rebuild."
+    evidence:
+      - {label: "Brute force protection in the realm", path: keycloak/coredirective-realm.json, line: 12}
+      - {label: "Edge brute-force detection", path: detections/sigma/cloudflare/access-brute-force.yml, line: 1}
+    solidify: none
+  # DATA
+  - {id: postgres, label: Postgres, zone: data, from: topology/postgres}
+  - id: cmk-encryption
+    label: "CMK encryption"
+    zone: data
+    what: "State and backups are encrypted with a customer-managed key in the provider's key service; the object store cannot read them unless the key policy allows it."
+    controls: [SC-12, SC-13, SC-28]
+    status: live
+    status_note: "Applied on the current provider; a deny policy fails any plan that adds storage without the key."
+    evidence:
+      - {label: "Key vault", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 18}
+      - {label: "The key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 25}
+      - {label: "Key policy for object storage", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 83}
+      - {label: "Deny unencrypted storage", path: terraform/cd-oci-infrastructure/policy/deny_no_encryption.rego, line: 1}
+    solidify: none
+  - {id: object-storage, label: "object storage", zone: data, from: topology/object-storage}
+  - id: nightly-backup
+    label: "nightly backup"
+    zone: data
+    what: "The database is dumped every night by the instance's own identity into the backup bucket; that identity can write and cannot delete."
+    controls: [CP-9, IA-3]
+    status: live
+    status_note: "Running on the current host; the SSP backup row still reads Partially Implemented and is queued for re-baseline."
+    evidence:
+      - {label: "Backup writer identity", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
+      - {label: "Write-only grant", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 102-109}
+      - {label: "Recovery plan", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 17}
+    solidify: "Control layers: CP-9 re-baseline"
+  - id: timed-restore
+    label: "timed restore"
+    zone: data
+    what: "Once a month the latest dump is restored into a temporary container and the time to a usable database is logged, so the backup is proven rather than assumed."
+    controls: [CP-4, CP-10]
+    status: live
+    status_note: "Scheduled on the current host per the recovery plan; the SSP rows for testing and recovery are queued for re-baseline."
+    evidence:
+      - {label: "Monthly restore test", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 224}
+      - {label: "Backup bucket and retention", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
+    solidify: "Control layers: CP-4, CP-10 re-baseline"
+  # DELIVERY
+  - {id: pull-request, label: "pull request", zone: delivery, from: topology/pull-request}
+  - {id: oidc-exchange, label: "OIDC exchange", zone: delivery, from: topology/oidc-exchange}
+  - id: scanners
+    label: scanners
+    zone: delivery
+    what: "Secret detection, CVE and misconfiguration scanning, static analysis, and code scanning on every change, as a required check before merge."
+    controls: [RA-5, SA-11, SI-2]
+    status: live
+    status_note: "The scan pipeline is a required status check on main."
+    evidence:
+      - {label: "Secret scan", path: .github/workflows/security.yml, line: 25}
+      - {label: "CVE and misconfig scan", path: .github/workflows/security.yml, line: 32}
+      - {label: "Static analysis", path: .github/workflows/security.yml, line: 51}
+      - {label: "Code scanning", path: .github/workflows/codeql.yml, line: 1}
+    solidify: none
+  - {id: opa-gates, label: "OPA gates", zone: delivery, from: topology/opa-gates}
+  - id: cosign-verify
+    label: "Cosign verify"
+    zone: delivery
+    what: "Upstream image signatures are checked with Cosign on every merge and the tally is reported."
+    controls: [SI-7, CM-5]
+    status: partial
+    status_note: "Runs and reports without blocking; the identity match is a wildcard and it checks tags rather than the digests the compose pins, so the fail-closed flip with pinned identities is the queued change."
+    evidence:
+      - {label: "Verification step, advisory", path: .github/workflows/security.yml, line: 179-181}
+      - {label: "Tally", path: .github/workflows/security.yml, line: 200-217}
+    solidify: "Boundary view: Cosign advisory, wildcard identity, tags not digests"
+  - {id: human-review, label: "human review", zone: delivery, from: topology/human-review}
+  - {id: nightly-drift, label: "nightly drift", zone: delivery, from: topology/drift-check}
+chips:
+  zone: "NIST 800-53 Rev 5"
+  note: "Status as recorded in the System Security Plan, section 5; the open items behind it sit on the POA&M."
