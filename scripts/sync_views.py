@@ -102,7 +102,7 @@ NODES_JS = """// NODE PANEL: click a box on a view for what it is, its controls,
   }
   function show(node, g) {
     if (!panel) build();
-    parts.zone.textContent = node.zone; parts.title.textContent = node.label; parts.what.textContent = node.what;
+    parts.zone.textContent = node.zone; parts.title.textContent = node.title || node.label; parts.what.textContent = node.what;
     parts.dot.className = 'cd-node-dot ' + node.status; parts.slabel.textContent = node.status_label || LABEL[node.status] || node.status; parts.note.textContent = node.status_note;
     parts.controls.textContent = ''; parts.hc.style.display = node.controls.length ? '' : 'none';
     node.controls.forEach(function(c) {
@@ -196,8 +196,8 @@ def chip_entries(svg, rows, chips):
     out = []
     for cid in sorted({t for t in re.findall(r"<text\b[^>]*>([^<]*)</text>", svg) if t in rows}, key=lambda c: (c[:2], int(re.search(r"\d+", c).group()), c)):
         r = rows[cid]; status = re.sub(r"[^a-z]+", "-", r["status"].lower()).strip("-")
-        out.append({"id": f"ctl-{cid}", "label": cid, "zone": chips.get("zone", "NIST 800-53 Rev 5"), "chip": True,
-                    "what": f"{r['name']}. {r['text']}" if r["text"] else r["name"],
+        out.append({"id": f"ctl-{cid}", "label": cid, "title": f"{cid} {r['name']}", "zone": chips.get("zone", "NIST 800-53 Rev 5"), "chip": True,
+                    "what": r["text"] or r["name"],
                     "status": status, "status_label": r["status"], "status_note": chips.get("note", "Status as recorded in the System Security Plan, section 5; open items sit on the POA&M."),
                     "controls": [], "evidence": [{"label": f"SSP row {cid}", "path": "docs/grc/SSP_SYSTEM_SECURITY_PLAN.md", "line": r["line"]}]})
     return out
@@ -232,13 +232,15 @@ def inject_nodes(svg, nodes):
         lab = re.escape(html.escape(n["label"], quote=False))
         open_tag = (f'<g class="cd-node" data-node="{n["id"]}" tabindex="0" role="button" '
                     f'aria-label="{html.escape(n["label"])}: details">')
-        pat = re.compile(rf'(<rect\b[^>]*/>)(\s*)(<text\b[^>]*>{lab}</text>|<g text-anchor="middle">\s*<text\b[^>]*>{lab}</text>.*?</g>)', re.S)
+        # the box is the rect plus its label; a dim sub-label that immediately follows the label joins the group so a
+        # click anywhere on the box opens the panel (the topology keeps its sub-labels in separate groups, unaffected)
+        pat = re.compile(rf'(<rect\b[^>]*/>)(\s*)(<text\b[^>]*>{lab}</text>(?:\s*<text\b[^>]*font-size="11(?:\.5)?"[^>]*>[^<]*</text>)?|<g text-anchor="middle">\s*<text\b[^>]*>{lab}</text>.*?</g>)', re.S)
         svg, k = pat.subn(lambda m: open_tag + m.group(1) + m.group(2) + m.group(3) + "</g>", svg, count=0 if n.get("chip") else 1)
         assert k >= 1, f"node {n['id']}: no rect followed by the label {n['label']!r} in the SVG"
     return svg
 
 def nodes_json(slug, nodes, rows):
-    data = [{"id": n["id"], "label": n["label"], "zone": n["zone"], "what": n["what"], "status": n["status"], "status_label": n.get("status_label", ""), "status_note": n["status_note"],
+    data = [{"id": n["id"], "label": n["label"], "title": n.get("title", ""), "zone": n["zone"], "what": n["what"], "status": n["status"], "status_label": n.get("status_label", ""), "status_note": n["status_note"],
              "controls": [{"id": c, "name": rows[c]["name"], "status": rows[c]["status"], "line": rows[c]["line"]} for c in n["controls"]],
              "evidence": [{"label": e["label"], "path": e["path"], "line": str(e["line"])} for e in n["evidence"]]} for n in nodes]
     js = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")

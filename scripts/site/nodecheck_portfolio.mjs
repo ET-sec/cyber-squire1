@@ -19,7 +19,7 @@ for (const [slug, want] of specs) for (const [u, w, h, tag] of [['file://' + pf 
   console.log(tag, 'nodes', n, 'frame', frameIsLink); if (n !== Number(want)) fail('expected ' + want + ' nodes'); if (frameIsLink === 'A') fail('frame is still a link');
   const ids = await p.evaluate(sel => Array.from(document.querySelectorAll(sel + ' .cd-node')).map(g => g.getAttribute('data-node')), fig);
   const first = ids[0], second = ids[1], last = ids[ids.length - 1];
-  const labelOf = async id => p.evaluate(([sel, id]) => document.querySelector(sel + ' .cd-node[data-node="' + id + '"]').getAttribute('aria-label').replace(/: details$/, ''), [fig, id]);
+  const labelOf = async id => p.evaluate(([sel, id]) => { const s = document.querySelector(sel + ' script[id^="cd-nodes-"]'); const n = JSON.parse(s.textContent).find(n => n.id === id); return n.title || n.label; }, [fig, id]);
   await p.evaluate(sel => document.querySelector(sel).scrollIntoView({ block: 'start' }), fig); await p.waitForTimeout(300);
   await p.click(fig + ' .cd-node[data-node="' + first + '"] rect'); await p.waitForTimeout(300);
   const open = await p.evaluate(() => { const pn = document.getElementById('cd-node-panel'); if (!pn || !pn.classList.contains('open')) return null; const r = pn.getBoundingClientRect();
