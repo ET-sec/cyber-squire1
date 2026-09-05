@@ -1,0 +1,34 @@
+# Architecture views: one entry per view. Source of truth for scripts/sync_views.py.
+# slug      -> docs/architecture/views/<slug>.html (rendered by gen_<slug>.py, or hand-authored for topology)
+# section   -> where the site embeds it (informational; the index.html carries <!-- VIEW:slug --> markers)
+# Regenerate: python3 docs/architecture/views/render_views.py
+# Sync site:  python3 scripts/sync_views.py --apply   (or --check in CI)
+views:
+  - slug: topology
+    title: Topology and flows
+    generator: null
+    section: platform
+  - slug: multi-cloud
+    title: Multi-cloud planes
+    generator: gen_multi-cloud.py
+    section: platform
+  - slug: threat-model
+    title: Threat model
+    generator: gen_threat-model.py
+    section: security
+  - slug: identity-access
+    title: Identity and access
+    generator: gen_identity-access.py
+    section: security
+  - slug: ai-trust
+    title: AI trust
+    generator: gen_ai-trust.py
+    section: ai
+  - slug: control-layers
+    title: Control layers
+    generator: gen_control-layers.py
+    section: grc
+  - slug: authorization-boundary
+    title: Authorization boundary
+    generator: gen_authorization-boundary.py
+    section: grc

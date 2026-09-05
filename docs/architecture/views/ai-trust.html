@@ -1,0 +1,123 @@
+<title>CoreDirective AI Trust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --ink:#0a0d0b; --node:#141b16; --line:#27342b; --line-soft:#1b241e; --text:#e6ebe4; --dim:#a3ada1;
+    --green:#3dff8b; --bone:#e8dcc0; --orange:#ff9b3d; --red:#ff6b5e;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--ink)}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);margin:0;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .page{max-width:1720px;margin:0 auto;padding:16px 26px 16px}
+  .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}
+  .head h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .head p{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+  .head .tag{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  figure{margin:10px 0 0}
+  svg{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}
+  figcaption{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}
+  @media (max-width:1100px){figcaption{grid-template-columns:repeat(2,1fr)}}
+  figcaption b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}
+  .g b{color:var(--green)} .o b{color:var(--orange)} .c b{color:var(--bone)} .d b{color:var(--dim)}
+</style>
+
+<div class="page">
+  <div class="head">
+    <h1>CoreDirective reference architecture</h1>
+    <p>five models, one search API, three trust levels; every crossing out of the host drawn with what stands in front of it</p>
+    <span class="tag">AI trust</span>
+  </div>
+
+  <figure>
+  <svg viewBox="0 0 1700 664" role="img" aria-label="AI trust view of the CoreDirective platform. Three trust levels drawn as bands. Outside the host, vendor models: a frontier model for the three reasoning nodes, a classifier for one structured call, an embeddings model, and a web search API; a data processing agreement is on file for the model and embeddings vendors, terms of service for search. A host boundary line separates them; five crossings go out, each one drawn: the prompt, alert queries and corpus chunks to the embeddings model, search terms, and a text notification. Inside net-core, guardrails stand in front of the model calls, with the PII model baked into the guardrails image and offline enforced: an alert payload, attacker-influenced by definition, passes a shared-secret token check and typed schema, a regex PII scrub before the graph, and an input rail with NER PII detection as a second pass, then reaches the model egress point with a daily spend cap and a trace on every call. The completion returns through output checks for PII, citations, and verbs, a recommend-only allowlist, and a human gate where HIGH and CRITICAL findings wait, then a notification with the chat ID checked reaches the operator, who reads, decides, and acts. The embed step sends corpus chunks at ingest and alert queries per run to the embeddings model and stores vectors in a bridge-only Postgres. The enrich node sends indicators and the rule name to web search. A voice note from the operator goes down to speech to text on the sealed segment; the audio never comes back up, only the transcript does. Below a sealed boundary, net-ai holds a local LLM used as fallback when the spend cap trips and the speech to text model, both with no internet route. Tags under the screens are the OWASP Top 10 for LLM Applications 2026 (LLM) and the OWASP Top 10 for Agentic Applications 2026 (ASI).">
+    <defs><marker id="m-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff9b3d"/></marker><marker id="m-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3dff8b"/></marker><marker id="m-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a3ada1"/></marker></defs>
+    <rect x="28" y="56" width="1644" height="118" rx="9" fill="rgba(232,220,192,0.03)" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="46" y="78" font-size="12" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start">VENDOR MODELS, OUTSIDE THE HOST</text>
+    <text x="46" y="94" font-size="11.5" fill="#a3ada1" text-anchor="start">frontier reasoning and classification, embeddings, search; DPA on file for the model and embeddings vendors, terms of service for search</text>
+    <text x="1654" y="78" font-size="12" fill="#a3ada1" font-weight="700" letter-spacing="2" text-anchor="end">TRUSTED VENDOR, UNTRUSTED NETWORK PATH</text>
+    <rect x="28" y="214" width="1644" height="280" rx="9" fill="rgba(255,155,61,0.03)" stroke="#27342b" stroke-width="2"/>
+    <text x="46" y="236" font-size="12" fill="#ff9b3d" font-weight="700" letter-spacing="2" text-anchor="start">NET-CORE, GUARDRAILS IN FRONT OF THE MODEL CALLS</text>
+    <text x="46" y="252" font-size="11.5" fill="#a3ada1" text-anchor="start">on host, screened, traced; PII model baked into the image, offline enforced, cannot fetch at runtime</text>
+    <rect x="28" y="530" width="1644" height="118" rx="9" fill="rgba(163,173,161,0.04)" stroke="#a3ada1" stroke-width="1.5" stroke-dasharray="7 5"/>
+    <text x="46" y="552" font-size="12" fill="#e6ebe4" font-weight="700" letter-spacing="2" text-anchor="start">NET-AI, SEALED SEGMENT</text>
+    <text x="46" y="568" font-size="11.5" fill="#a3ada1" text-anchor="start">local models for anything that touches raw personal data; reached only over the bridge</text>
+    <text x="1654" y="552" font-size="12" fill="#a3ada1" font-weight="700" letter-spacing="2" text-anchor="end">ON HOST, NO ROUTE OUT</text>
+    <line x1="28" y1="196" x2="1672" y2="196" stroke="#e8dcc0" stroke-width="2" stroke-dasharray="10 6"/>
+    <text x="46" y="191" font-size="12" fill="#e8dcc0" font-weight="700" letter-spacing="2" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">HOST BOUNDARY</text>
+    <text x="178" y="191" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">five crossings out, each one drawn</text>
+    <line x1="28" y1="514" x2="1672" y2="514" stroke="#a3ada1" stroke-width="2" stroke-dasharray="10 6"/>
+    <text x="46" y="509" font-size="12" fill="#e6ebe4" font-weight="700" letter-spacing="2" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">SEALED BOUNDARY</text>
+    <text x="190" y="509" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">audio never comes back up; only text does</text>
+    <path d="M198,292 H227" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <path d="M378,292 H407" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <path d="M558,292 H587" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <path d="M738,292 H767" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <path d="M843,271 V153" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-start="url(#m-orange)" marker-end="url(#m-orange)"/>
+    <path d="M800,271 V240 H655 V153" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-start="url(#m-orange)" marker-end="url(#m-orange)"/>
+    <text x="858" y="229" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">prompt up, completion down</text>
+    <path d="M843,313 V391" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="858" y="357" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">completion</text>
+    <path d="M918,292 H1023 V579" fill="none" stroke="#ff9b3d" stroke-width="2.5" stroke-dasharray="6 5" marker-start="url(#m-orange)" marker-end="url(#m-orange)"/>
+    <text x="1037" y="487" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">fallback when the cap trips</text>
+    <path d="M1203,271 V153" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-start="url(#m-orange)" marker-end="url(#m-orange)"/>
+    <text x="1217" y="229" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">text up, vectors down</text>
+    <path d="M1203,313 V391" fill="none" stroke="#a3ada1" stroke-width="2.5" marker-end="url(#m-gray)"/>
+    <text x="1217" y="357" font-size="11.5" fill="#a3ada1" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">vectors, DC-4</text>
+    <path d="M1383,271 V153" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-start="url(#m-orange)" marker-end="url(#m-orange)"/>
+    <text x="1397" y="229" font-size="11.5" fill="#ff9b3d" text-anchor="start" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">terms up, results down</text>
+    <path d="M1563,313 V579" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <text x="1549" y="472" font-size="11.5" fill="#ff9b3d" text-anchor="end" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">audio, never leaves</text>
+    <path d="M1488,600 H1383 V433" fill="none" stroke="#a3ada1" stroke-width="2.5" marker-end="url(#m-gray)"/>
+    <text x="1369" y="484" font-size="11.5" fill="#a3ada1" text-anchor="end" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">text only</text>
+    <path d="M767,412 H739" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <path d="M587,412 H559" fill="none" stroke="#ff9b3d" stroke-width="2.5" marker-end="url(#m-orange)"/>
+    <path d="M407,412 H379" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <path d="M227,412 H199" fill="none" stroke="#3dff8b" stroke-width="2.5" marker-end="url(#m-green)"/>
+    <rect x="700" y="628" width="34" height="14" rx="4" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="744" y="639" font-size="11.5" fill="#a3ada1" text-anchor="start">orange box: data leaves here</text>
+    <line x1="700" y1="550" x2="734" y2="550" stroke="#ff9b3d" stroke-width="2.5"/><text x="744" y="554" font-size="11.5" fill="#a3ada1" text-anchor="start">AI path, screened first</text>
+    <line x1="700" y1="567" x2="734" y2="567" stroke="#ff9b3d" stroke-width="2.5" stroke-dasharray="6 5"/><text x="744" y="571" font-size="11.5" fill="#a3ada1" text-anchor="start">fallback, sealed segment</text>
+    <line x1="700" y1="584" x2="734" y2="584" stroke="#3dff8b" stroke-width="2.5"/><text x="744" y="588" font-size="11.5" fill="#a3ada1" text-anchor="start">human path, closes the loop</text>
+    <line x1="700" y1="601" x2="734" y2="601" stroke="#a3ada1" stroke-width="2.5"/><text x="744" y="605" font-size="11.5" fill="#a3ada1" text-anchor="start">data at rest, on host</text>
+    <line x1="700" y1="618" x2="734" y2="618" stroke="#e8dcc0" stroke-width="2.5" stroke-dasharray="6 5"/><text x="744" y="622" font-size="11.5" fill="#a3ada1" text-anchor="start">trust boundary</text>
+    <rect x="575" y="112" width="160" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="655" y="137" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">frontier model</text><text x="655" y="169" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">three reasoning nodes</text>
+<rect x="763" y="112" width="160" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="843" y="137" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">classifier</text><text x="843" y="169" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">one structured call</text>
+<rect x="1123" y="112" width="160" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1203" y="137" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">embeddings</text><text x="1203" y="169" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">1024-dim vectors</text>
+<rect x="1303" y="112" width="160" height="40" rx="5" fill="none" stroke="#4a5a4e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="1383" y="137" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">web search</text><text x="1383" y="169" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">enrich node only</text>
+<rect x="48" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="123" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">alert payload</text><text x="123" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">DC-1, attacker text</text>
+<rect x="228" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="303" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">token, schema</text><text x="303" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">shared secret, typed</text>
+<rect x="408" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="483" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">PII scrub</text><text x="483" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">regex before the graph</text>
+<rect x="588" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="663" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">input rail</text><text x="663" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">NER PII, second pass</text>
+<rect x="768" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="843" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">model egress</text><text x="843" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">daily cap, traced</text>
+<rect x="1128" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="1203" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">embed</text><text x="1203" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">chunks, alert queries</text>
+<rect x="1308" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="1383" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">enrich</text><text x="1383" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">IoCs and rule name</text>
+<rect x="1488" y="272" width="150" height="40" rx="5" fill="#141b16" stroke="#ff9b3d" stroke-width="1.5"/><text x="1563" y="297" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">voice note</text><text x="1563" y="329" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">operator audio in</text>
+<rect x="48" y="392" width="150" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="123" y="417" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">operator</text><text x="123" y="449" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">reads, decides, acts</text>
+<rect x="228" y="392" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="303" y="417" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">notify</text><text x="303" y="449" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">chat ID checked</text>
+<rect x="408" y="392" width="150" height="40" rx="5" fill="#141b16" stroke="#3dff8b" stroke-width="1.5"/><text x="483" y="417" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">human gate</text><text x="483" y="449" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">HIGH and CRITICAL wait</text>
+<rect x="588" y="392" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="663" y="417" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">allowlist</text><text x="663" y="449" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">recommend only</text>
+<rect x="768" y="392" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="843" y="417" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">output checks</text><text x="843" y="449" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">PII, citations, verbs</text>
+<rect x="1128" y="392" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1203" y="417" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">vector store</text><text x="1203" y="449" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">bridge-only Postgres</text>
+<rect x="1308" y="392" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1383" y="417" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">transcript</text><text x="1383" y="449" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">text out, audio stays</text>
+<rect x="948" y="580" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1023" y="605" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">local LLM</text><text x="1023" y="637" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">no internet route</text>
+<rect x="1488" y="580" width="150" height="40" rx="5" fill="#141b16" stroke="#2c3a30" stroke-width="1.5"/><text x="1563" y="605" font-size="15" fill="#e6ebe4" font-weight="500" text-anchor="middle">speech to text</text><text x="1563" y="637" font-size="11.5" fill="#a3ada1" text-anchor="middle" paint-order="stroke" stroke="#0a0d0b" stroke-width="4" stroke-linejoin="round">no internet route</text>
+<rect x="456" y="332" width="54" height="17" rx="3" fill="none" stroke="#ff9b3d" stroke-width="1"/><text x="483" y="344" font-size="11.5" fill="#ff9b3d" font-weight="700" text-anchor="middle">LLM02</text>
+<rect x="610.8" y="332" width="104.4" height="17" rx="3" fill="none" stroke="#ff9b3d" stroke-width="1"/><text x="663" y="344" font-size="11.5" fill="#ff9b3d" font-weight="700" text-anchor="middle">LLM01, ASI01</text>
+<rect x="772" y="332" width="54" height="17" rx="3" fill="none" stroke="#ff9b3d" stroke-width="1"/><text x="799" y="344" font-size="11.5" fill="#ff9b3d" font-weight="700" text-anchor="middle">LLM06</text>
+<rect x="790.8" y="452" width="104.4" height="17" rx="3" fill="none" stroke="#ff9b3d" stroke-width="1"/><text x="843" y="464" font-size="11.5" fill="#ff9b3d" font-weight="700" text-anchor="middle">LLM10, LLM07</text>
+<rect x="610.8" y="452" width="104.4" height="17" rx="3" fill="none" stroke="#ff9b3d" stroke-width="1"/><text x="663" y="464" font-size="11.5" fill="#ff9b3d" font-weight="700" text-anchor="middle">LLM03, ASI02</text>
+<rect x="430.8" y="452" width="104.4" height="17" rx="3" fill="none" stroke="#ff9b3d" stroke-width="1"/><text x="483" y="464" font-size="11.5" fill="#ff9b3d" font-weight="700" text-anchor="middle">LLM03, ASI09</text>
+<rect x="1150.8" y="452" width="104.4" height="17" rx="3" fill="none" stroke="#ff9b3d" stroke-width="1"/><text x="1203" y="464" font-size="11.5" fill="#ff9b3d" font-weight="700" text-anchor="middle">LLM09, ASI06</text>
+  </svg>
+
+  <figcaption>
+    <div class="o"><b>Screened</b>regex and NER PII before the model; citation guard and verb rewrite after; daily spend cap; every call traced; tags are the OWASP Top 10 for LLM Applications 2026 (LLM) and for Agentic Applications 2026 (ASI)</div>
+    <div class="c"><b>Crossings</b>prompt, alert queries, chunks, search terms, notification go out; audio never does; DPA for the model and embeddings vendors, terms of service for search</div>
+    <div class="g"><b>Human</b>nothing acts on its own; HIGH and CRITICAL wait for a person; the operator closes the loop</div>
+    <div class="d"><b>Sealed</b>raw personal data stays on a segment with no internet route; the fallback keeps working with the vendor gone</div>
+  </figcaption>
+  </figure>
+</div>
