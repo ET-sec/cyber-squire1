@@ -1,0 +1,275 @@
+# Node table for the authorization boundary view: 44 boxes (labels from gen_authorization-boundary.py node() calls).
+# Group headers (HOST, NET-CORE, ...) and the crossing labels are not entries. See nodes/topology.yaml for the field rules.
+nodes:
+  # CONFIGURATION ITEMS
+  - id: edge-policy
+    label: "edge policy"
+    zone: configuration
+    what: "The edge as code: the identity check in front of the consoles, the service token for automation callers, the webhook carve-out, the custom firewall ruleset, and the rate limit."
+    controls: [AC-3, SC-7, CM-3]
+    status: live
+    status_note: "Access and the firewall rules are Terraform and applied; the tunnel and the DNS records are dashboard-managed and pending import into the module."
+    evidence:
+      - {label: "Access application and policies", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
+      - {label: "Custom firewall ruleset", path: terraform/cd-cloudflare-edge/waf.tf, line: 12}
+      - {label: "Module scope and what is pending import", path: terraform/cd-cloudflare-edge/README.md, line: 20}
+    solidify: "Multi-cloud: tunnel and DNS pending import"
+  - id: workflows
+    label: workflows
+    zone: configuration
+    what: "The CI workflows: the PR pipeline, the merge scans, the nightly drift check, code scanning, and the ledgers; every action pinned to a commit."
+    controls: [CM-3, SA-11, CM-5]
+    status: partial
+    status_note: "Fifteen workflows, all actions SHA-pinned; none of them applies infrastructure yet, and the apply job on main is the queued change."
+    evidence:
+      - {label: "PR pipeline", path: .github/workflows/terraform-pr.yml, line: 1}
+      - {label: "Merge scans", path: .github/workflows/security.yml, line: 1}
+      - {label: "Nightly drift check", path: .github/workflows/drift-check.yml, line: 1}
+      - {label: "Pipeline described", path: docs/grc/SECURE_SDLC.md, line: 39}
+    solidify: "Tier 1: no terraform apply in any workflow"
+  - {id: policy-gates, label: "policy gates", zone: configuration, from: topology/opa-gates}
+  - {id: drift-check, label: "drift check", zone: configuration, from: topology/drift-check}
+  # HOST
+  - {id: tunnel-connector, label: "tunnel connector", zone: host, from: topology/cloudflared}
+  - {id: host-sshd, label: "host sshd", zone: host, from: topology/host-sshd}
+  # NET-CORE
+  - {id: n8n, label: n8n, zone: net-core, from: topology/n8n}
+  - {id: squire, label: Squire, zone: net-core, from: topology/squire}
+  - {id: guardrails, label: Guardrails, zone: net-core, from: topology/guardrails}
+  - {id: postgres, label: Postgres, zone: net-core, from: topology/postgres}
+  - {id: vault, label: Vault, zone: net-core, from: topology/vault}
+  - {id: keycloak, label: Keycloak, zone: net-core, from: topology/keycloak}
+  - {id: teleport, label: Teleport, zone: net-core, from: topology/teleport}
+  - {id: event-shipper, label: "event shipper", zone: net-core, from: topology/event-handler}
+  - id: langfuse-web
+    label: "Langfuse web"
+    zone: net-core
+    from: topology/langfuse
+    what: "The trace store's web application: where every model call's prompt, response, tokens, and cost are read back by correlation id."
+  - id: langfuse-worker
+    label: "Langfuse worker"
+    zone: net-core
+    from: topology/langfuse
+    what: "The trace store's ingestion worker: takes spans from the agent and writes them into the analytics store."
+  - id: clickhouse
+    label: ClickHouse
+    zone: net-core
+    from: topology/langfuse
+    what: "The analytics store behind the traces; holds the spans the worker writes."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 693}
+      - {label: "Audit trail field spec", path: docs/grc/AI_AUDIT_TRAIL_SPEC.md, line: 54}
+  - id: redis
+    label: Redis
+    zone: net-core
+    from: topology/langfuse
+    what: "The queue and cache the trace store uses between its web and worker processes."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 733}
+  # NET-AI
+  - {id: whisper, label: Whisper, zone: net-ai, from: topology/whisper}
+  - {id: ollama, label: Ollama, zone: net-ai, from: topology/ollama}
+  # NET-MONITORING
+  - {id: falco, label: "Falco, eBPF", zone: net-monitoring, from: topology/falco}
+  - {id: falcosidekick, label: Falcosidekick, zone: net-monitoring, from: topology/falcosidekick}
+  - {id: fluentd, label: Fluentd, zone: net-monitoring, from: topology/fluentd}
+  - {id: datadog-agent, label: "Datadog agent", zone: net-monitoring, from: topology/datadog-agent}
+  # RUNTIME CLOUD
+  - id: compute
+    label: "compute, 1 host"
+    zone: runtime cloud
+    what: "One ARM instance under Terraform with remote state; the shape, the boot hardening, and the key injection are code."
+    controls: [CM-2, CM-8, SC-7]
+    status: live
+    status_note: "Applied on the current provider's Always Free tier; the instance is the single host behind every service on the drawing."
+    evidence:
+      - {label: "Instance", path: terraform/cd-oci-infrastructure/compute.tf, line: 22}
+      - {label: "Boot configuration", path: terraform/cd-oci-infrastructure/cloud-init.yaml, line: 1}
+      - {label: "Shape ceiling", path: terraform/cd-oci-infrastructure/variables.tf, line: 79}
+    solidify: none
+  - id: vcn
+    label: "VCN, one port"
+    zone: runtime cloud
+    what: "One virtual network, one public subnet, and a security list whose only inbound rule is SSH from the allowlisted range; a deny policy fails any plan that opens a rule to the world."
+    controls: [SC-7, AC-4, CM-7]
+    status: live
+    status_note: "Applied on the current provider; the ICMP rule beside the SSH rule is path discovery from inside the network, not a listener."
+    evidence:
+      - {label: "Virtual network", path: terraform/cd-oci-infrastructure/networking.tf, line: 11}
+      - {label: "Security list", path: terraform/cd-oci-infrastructure/networking.tf, line: 40}
+      - {label: "SSH rule from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
+      - {label: "Deny public firewall rule", path: terraform/cd-oci-infrastructure/policy/deny_public_firewall.rego, line: 1}
+    solidify: none
+  - {id: object-storage, label: "object storage", zone: runtime cloud, from: topology/object-storage}
+  - id: kms
+    label: "KMS, CMK"
+    zone: runtime cloud
+    what: "The provider's key service holding the customer-managed key that encrypts state and backups."
+    controls: [SC-12, SC-13, SC-28]
+    status: live
+    status_note: "Applied on the current provider; a deny policy fails any plan that adds storage without the key."
+    evidence:
+      - {label: "Key vault", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 18}
+      - {label: "The key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 25}
+      - {label: "Deny unencrypted storage", path: terraform/cd-oci-infrastructure/policy/deny_no_encryption.rego, line: 1}
+    solidify: none
+  - id: identity-domain
+    label: "identity domain"
+    zone: runtime cloud
+    what: "The provider's identity domain: the operator account, the dynamic group the backup writer belongs to, and the trust CI federates into."
+    controls: [IA-2, AC-2, IA-5]
+    status: live
+    status_note: "The policies are Terraform; the domain itself and the operator account are provider-managed, and CI reaches it only through the identity token exchange."
+    evidence:
+      - {label: "Policy for the backup writers", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 102}
+      - {label: "Policy for object storage and the key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 83}
+      - {label: "Federated session for CI", path: .github/workflows/drift-check.yml, line: 50}
+    solidify: none
+  - id: instance-identity
+    label: "instance identity"
+    zone: runtime cloud
+    what: "The host signs as itself: the dynamic group grants write on the backup bucket and nothing else, so a stolen host cannot delete a backup."
+    controls: [IA-3, AC-6, IA-5]
+    status: live
+    status_note: "Applied on the current provider; no long-lived key sits on the host for this path."
+    evidence:
+      - {label: "Dynamic group", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
+      - {label: "Write-only grant", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 102-109}
+    solidify: none
+  # SECURITY PLANE (second provider, designed and gated, apply scheduled behind account activation)
+  - id: oidc-federation
+    label: "OIDC federation"
+    zone: security plane
+    what: "The same GitHub identity trust the runtime cloud uses, on the second provider: CI assumes a read-only role with a short-lived token and no stored key."
+    controls: [IA-5, AC-6, IA-3]
+    status: designed
+    status_note: "Written, Checkov-clean, gated in CI; apply is deliberately disabled until the account is funded."
+    evidence:
+      - {label: "Identity provider trust", path: terraform/cd-aws-security-plane/oidc.tf, line: 11}
+      - {label: "Read-only role for CI", path: terraform/cd-aws-security-plane/oidc.tf, line: 44}
+      - {label: "Plane status", path: terraform/cd-aws-security-plane/README.md, line: 1}
+    solidify: "Multi-cloud: AWS plane designed, not applied"
+  - id: evidence-vault
+    label: "evidence vault"
+    zone: security plane
+    what: "An object-locked, key-encrypted bucket on the second provider that receives evidence and backup replicas one way; the uploader can write and cannot read or delete."
+    controls: [AU-9, AU-11, CP-6, SC-28]
+    status: designed
+    status_note: "Designed and gated; before apply the uploader policy is scoped to one prefix, since as written it can write anywhere in the bucket."
+    evidence:
+      - {label: "Bucket", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 19}
+      - {label: "Object lock", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 39}
+      - {label: "Uploader identity", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 108}
+      - {label: "Uploader policy", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 136}
+    solidify: "Multi-cloud: uploader PutObject unscoped, ListBucket without prefix"
+  - id: break-glass-key
+    label: "break-glass key"
+    zone: security plane
+    what: "A sealed copy of a runtime credential on the second provider, so the platform can be recovered if the runtime cloud's account is lost."
+    controls: [IA-5, AC-6, SC-12]
+    status: designed
+    status_note: "Designed and gated; nothing automated reads it, a read pages the operator, and revocation is deleting the runtime key by hand."
+    evidence:
+      - {label: "Sealed secret", path: terraform/cd-aws-security-plane/breakglass.tf, line: 9}
+      - {label: "Key policy", path: terraform/cd-aws-security-plane/breakglass.tf, line: 81}
+    solidify: "Multi-cloud: no resource policy on the secret; prevention is that nothing consumes it"
+  - id: alert-on-read
+    label: "alert on read"
+    zone: security plane
+    what: "Any read of the sealed credential raises an event that a function turns into a page to the operator."
+    controls: [AU-6, IR-5, SI-4]
+    status: designed
+    status_note: "Designed and gated; detection, not prevention, and said so."
+    evidence:
+      - {label: "Event rule on secret access", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
+      - {label: "Alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
+      - {label: "Function code", path: terraform/cd-aws-security-plane/lambda/breakglass_alert.py, line: 1}
+    solidify: none
+  - id: account-trail
+    label: "account trail"
+    zone: security plane
+    what: "Every API call in the second provider's account is logged to the evidence vault, where object lock keeps the log from being edited."
+    controls: [AU-2, AU-9, AU-12]
+    status: designed
+    status_note: "Designed and gated."
+    evidence:
+      - {label: "Account trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 55}
+      - {label: "Bucket policy for the trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 28}
+    solidify: none
+  - id: region-guard
+    label: "region guard"
+    zone: security plane
+    what: "The principals the plane creates are denied outside the home region, so a stolen role cannot spin up resources somewhere unwatched."
+    controls: [CM-6, AC-6, SC-7]
+    status: designed
+    status_note: "Designed and gated; it binds the created principals only, root and console-created principals bypass it, and at scale it becomes an organization policy."
+    evidence:
+      - {label: "Region guard policy", path: terraform/cd-aws-security-plane/region_guard.tf, line: 34}
+      - {label: "Attached to the CI role", path: terraform/cd-aws-security-plane/region_guard.tf, line: 40}
+    solidify: "Multi-cloud: region guard bypassed by root and console principals"
+  # OUTSIDE, LEFT
+  - {id: users, label: users, zone: outside, from: topology/users}
+  - id: edge-platform
+    label: "edge platform"
+    zone: outside
+    what: "The only public face of the platform: identity check, firewall, and the tunnel endpoint the host dials out to."
+    controls: [SC-7, SC-5, AC-3, SA-9]
+    status: live
+    status_note: "Access, the firewall rules, and the tunnel are live; the edge terminates public TLS and the host has no inbound listener behind it."
+    evidence:
+      - {label: "Access application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
+      - {label: "Firewall ruleset", path: terraform/cd-cloudflare-edge/waf.tf, line: 12}
+      - {label: "Module README", path: terraform/cd-cloudflare-edge/README.md, line: 1}
+    solidify: none
+  - id: operators
+    label: operators
+    zone: outside
+    what: "Whoever changes the platform: consoles through the edge check, the host over break-glass SSH from the allowlisted range, infrastructure through pull requests and a workstation apply."
+    controls: [AC-2, IA-2(1), AC-6, MA-4]
+    status: live
+    status_note: "One operator today; the recorded gateway path returns with the ARM rebuild, and the apply job on main is the queued change that takes apply off the workstation."
+    evidence:
+      - {label: "Role definitions", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 71}
+      - {label: "SSH rule from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
+      - {label: "Access control policy", path: docs/grc/POLICY_ACCESS_CONTROL.md, line: 1}
+    solidify: "Boundary view: operator path is direct SSH today; Tier 1: apply operator-run"
+  - id: telegram
+    label: Telegram
+    zone: outside
+    what: "The on-call channel: drift alerts and incident notifications go out to it, and the bot's webhook comes in through a source-scoped edge carve-out."
+    controls: [SC-8, IR-6, AC-3]
+    status: partial
+    status_note: "Drift alerts reach it today and the edge carve-out for its source ranges is live; the bot workflow on the orchestration engine is pending restore."
+    evidence:
+      - {label: "Drift alert", path: .github/workflows/drift-check.yml, line: 135}
+      - {label: "Webhook carve-out", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66}
+      - {label: "Notification tool in the agent", path: builds/squire/src/squire/tools/telegram.py, line: 1}
+    solidify: "Identity view: chat-ID check pending the workflow restore"
+  # OUTSIDE, RIGHT
+  - id: image-registries
+    label: "image registries"
+    zone: outside
+    what: "Where the container images come from; every pull is by digest, the SBOMs are generated in CI, and signatures are checked."
+    controls: [SI-7, CM-8, SA-9]
+    status: partial
+    status_note: "Digest pinning and SBOM generation are live; signature verification runs and reports without blocking yet."
+    evidence:
+      - {label: "Signature check, advisory", path: .github/workflows/security.yml, line: 179-181}
+      - {label: "SBOM generation", path: .github/workflows/security.yml, line: 253}
+      - {label: "Pinning rule", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 44}
+      - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
+    solidify: "Boundary view: Cosign advisory"
+  - id: secrets-manager
+    label: "secrets manager"
+    zone: outside
+    what: "Where secrets live between deploys; they arrive on the host once, at deploy time, as environment variables in a root-only file."
+    controls: [SC-12, IA-5, SC-28]
+    status: live
+    status_note: "Deploy-time injection is the live path and is an accepted finding with compensating controls; runtime secrets from Vault by AppRole are the design."
+    evidence:
+      - {label: "Environment file on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 76}
+      - {label: "Accepted finding, environment injection", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 420}
+      - {label: "Vault migration tracked", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 267}
+    solidify: "Tier 2: Vault AppRole"
+  - {id: datadog, label: Datadog, zone: outside, from: topology/datadog}
+  - {id: claude-api, label: "Claude API", zone: outside, from: topology/claude-api}
