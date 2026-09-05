@@ -1,5 +1,6 @@
 name: portfolio-sync
-# Fails when a generator, a rendered view, or metrics.yaml changed without the portfolio being synced.
+# Fails when a generator, a rendered view, a node table, or metrics.yaml changed without the portfolio being synced,
+# and when a public file carries an OPSEC pattern, a design or writing tell, an unknown control id, or a dead repo path.
 on:
   pull_request:
   push:
@@ -17,11 +18,18 @@ jobs:
           repository: ET-sec/portfolio
           ref: main
           path: portfolio
+      - name: Python deps for the node tables
+        run: python3 -m pip install --quiet pyyaml
       - name: Generators reproduce the committed views
         run: |
           python3 docs/architecture/views/render_views.py
           git diff --exit-code -- docs/architecture/views/
       - name: Portfolio numbers match metrics.yaml
         run: python3 scripts/sync_portfolio.py --portfolio-root portfolio
-      - name: Portfolio views match rendered views
+      - name: Portfolio views and node tables match the sources
         run: python3 scripts/sync_views.py --check --portfolio portfolio
+      - name: Public checks (OPSEC, tells, control ids, cited paths)
+        run: python3 scripts/site/check_public.py --portfolio portfolio
+      - name: External links answer
+        continue-on-error: true
+        run: python3 scripts/site/check_public.py --portfolio portfolio --links-only
