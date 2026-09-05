@@ -16,7 +16,28 @@ import argparse, html, os, re, sys, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 VIEWS = ROOT / "docs" / "architecture" / "views"
-CSP = ("default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+FLOW_CSS = """.cd-packet { pointer-events: none; opacity: .9; stroke-dashoffset: var(--cdlen); }
+@keyframes cdpacket { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .cd-packet { display: none; } }"""
+FLOW_JS = """// ANIMATED FLOW: packets ride every arrow in the architecture views
+(function() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('.cd-view-frame svg, figure > svg').forEach(function(svg) {
+    svg.querySelectorAll('line[marker-end], path[marker-end], polyline[marker-end]').forEach(function(el, i) {
+      var len = el.getTotalLength ? el.getTotalLength() : 0; if (!len || len < 24) return;
+      var c = el.cloneNode(false);
+      ['marker-end', 'marker-start', 'stroke-dasharray', 'id'].forEach(function(a) { c.removeAttribute(a); });
+      c.setAttribute('class', 'cd-packet');
+      c.setAttribute('stroke-width', String(parseFloat(el.getAttribute('stroke-width') || '1.5') + 1.2));
+      c.setAttribute('stroke-linecap', 'round');
+      c.setAttribute('stroke-dasharray', '5 ' + Math.ceil(len + 5));
+      c.style.setProperty('--cdlen', String(Math.ceil(len + 10)));
+      c.style.animation = 'cdpacket ' + Math.max(1.8, len / 80).toFixed(2) + 's linear ' + (-(i % 9) * 0.4).toFixed(2) + 's infinite';
+      el.parentNode.insertBefore(c, el.nextSibling);
+    });
+  });
+})();"""
+CSP = ("default-src 'self'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none';")
 
 def manifest():
@@ -49,9 +70,9 @@ def standalone(slug, title, head, body):
              "\n  .head .back:hover{text-decoration:underline}"
              "\n  @media (max-width:900px){svg{max-height:none;min-width:1100px} figure{overflow-x:auto;-webkit-overflow-scrolling:touch} .head{gap:6px 14px} .head p::after{content:\". Scroll sideways to see the whole drawing.\";color:var(--bone)}}"
              "\n  @media (max-width:600px){figcaption{grid-template-columns:1fr}}\n")
-    head = head.replace("</style>", extra + "</style>")
+    head = head.replace("</style>", extra + FLOW_CSS + "\n</style>")
     body = re.sub(r'(<span class="tag">[^<]*</span>)', r'\1<a class="back" href="../#view-' + slug + '">Back to portfolio</a>', body, count=1)
-    return f'<!doctype html>\n<html lang="en">\n<head>\n{head}\n</head>\n<body>{body}\n</body>\n</html>\n'
+    return f'<!doctype html>\n<html lang="en">\n<head>\n{head}\n</head>\n<body>{body}\n<script>\n{FLOW_JS}\n</script>\n</body>\n</html>\n'
 
 def figure(slug, title, sub, svg, cap):
     href = f"views/{slug}.html"
