@@ -1,0 +1,435 @@
+# Node table for the topology view. One entry per box on the drawing, keyed by the exact label text.
+# scripts/sync_views.py reads this, wraps the matching rect+text in a clickable group, and emits the JSON the
+# panel reads. It refuses to sync if a control id has no row in SSP section 5, an evidence path is not tracked
+# on main, a label is not found exactly once in the SVG, or a status is outside live | partial | designed.
+# Fields: id, label (as drawn), zone, what (one sentence), controls (800-53 ids), status, status_note (one
+# sentence, honest, from SOLIDIFY where a row exists), evidence ({label, path, line} in this repo; line is N or
+# N-M), solidify (private cross-reference, never emitted to the page).
+nodes:
+  - id: users
+    label: "users, operators"
+    zone: outside
+    what: "The people who reach the platform: the owner as operator over SSH and the consoles, and automation callers holding a service token, every one of them identity-checked at the edge before the host sees a request."
+    controls: [AC-2, IA-2, IA-2(1), AC-6]
+    status: live
+    status_note: "The operator account and one edge service token for automation callers exist today; access is reviewed quarterly and every console has its own login behind the edge check."
+    evidence:
+      - {label: "Edge policy naming who may pass", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 31}
+      - {label: "Service token for automation callers", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 45}
+      - {label: "Role definitions", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 71}
+      - {label: "Quarterly access review", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 7}
+    solidify: "Identity view: 24h Access session, email PIN on the consoles"
+
+  - id: claude-api
+    label: "Claude API"
+    zone: outside
+    what: "The hosted model behind the agent, reached only through the guardrails container, with a daily spend ceiling and a trace on every call."
+    controls: [SA-9, SC-7, SC-8, AC-4]
+    status: designed
+    status_note: "No process on the current host calls the API today; the agent and the guardrails return with the ARM rebuild, and the ceiling and the tracing are code in the repo."
+    evidence:
+      - {label: "API backend", path: builds/squire/src/squire/llm_backend.py, line: 81}
+      - {label: "Rails backend in front of the API", path: builds/squire/src/squire/llm_backend.py, line: 286}
+      - {label: "Daily spend ceiling", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
+      - {label: "Data flow classification", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 1}
+    solidify: "Tier 1: rails fail open on timeout, model key in the agent's environment"
+
+  - id: allowlisted-range
+    label: "allowlisted source range"
+    zone: outside
+    what: "The only address range allowed to open SSH to the host, set as a Terraform variable and applied to the host's security list."
+    controls: [SC-7, AC-3, CM-7]
+    status: live
+    status_note: "Applied on the current host; it exists because the tunnel is a single point of failure and this is the break-glass path when the tunnel is down."
+    evidence:
+      - {label: "SSH ingress rule from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
+      - {label: "The range as a variable", path: terraform/cd-oci-infrastructure/variables.tf, line: 166}
+    solidify: "POA&M row POAM-021 still describes the previous provider's open SSH rule; re-baseline"
+
+  - id: access
+    label: "Access"
+    zone: edge
+    what: "Identity is checked at the edge before any request reaches the origin: an email one-time PIN for the consoles, a service token for automation callers, a source-scoped bypass for the messaging webhook."
+    controls: [AC-3, IA-2, SC-7, AC-12]
+    status: live
+    status_note: "Live with email one-time PIN and a 24 hour session; single sign-on from Keycloak and a hardware key on the policy are the design."
+    evidence:
+      - {label: "Access application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
+      - {label: "Allow policy, email PIN", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 31}
+      - {label: "Service token policy", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 50}
+      - {label: "Webhook carve-out, source-scoped", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66}
+    solidify: "Tier 2: Access is email OTP, not Keycloak SSO; Identity view: 24h session"
+
+  - id: waf
+    label: "WAF + DDoS"
+    zone: edge
+    what: "The edge blocks scanner user agents, geo-fences the admin paths, watches honeytoken paths, and rate limits the webhook path before traffic reaches the tunnel."
+    controls: [SC-5, SI-4, SC-7]
+    status: live
+    status_note: "The custom ruleset and the rate limit are Terraform and applied; the managed ruleset and the DNS records are dashboard config pending import into the module."
+    evidence:
+      - {label: "Custom WAF ruleset", path: terraform/cd-cloudflare-edge/waf.tf, line: 12}
+      - {label: "Rate limit on the webhook path", path: terraform/cd-cloudflare-edge/waf.tf, line: 57}
+      - {label: "Detection rule on WAF block bursts", path: detections/sigma/cloudflare/waf-block-burst.yml, line: 1}
+      - {label: "Detection rule on edge brute force", path: detections/sigma/cloudflare/access-brute-force.yml, line: 1}
+    solidify: "Control layers: managed ruleset and DNS records pending import"
+
+  - id: cloudflared
+    label: "cloudflared"
+    zone: host
+    what: "The tunnel dials out from the host to the edge, so the site is reachable with no inbound listener; if the tunnel dies the site is unreachable and no port opens."
+    controls: [SC-7, SC-8, CM-7]
+    status: live
+    status_note: "One of the three live containers; the live definition lacks the read-only root that the full design sets, a two line change."
+    evidence:
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 70}
+      - {label: "Full design with read-only root", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 652}
+      - {label: "Host networking accepted as risk", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 615}
+    solidify: "Tier 2: live cloudflared lacks read_only"
+
+  - id: host-sshd
+    label: "host sshd"
+    zone: host
+    what: "The one inbound port on the host: key-only SSH from the allowlisted range, kept as break-glass for when the tunnel is down."
+    controls: [IA-2(1), AC-7, AU-2, SC-7]
+    status: live
+    status_note: "The rule and the key are Terraform on the current host; a successful break-glass login does not yet raise an alert, which is on the list."
+    evidence:
+      - {label: "Ingress rule, SSH only", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
+      - {label: "Key injected at first boot", path: terraform/cd-oci-infrastructure/compute.tf, line: 49}
+      - {label: "Shell spawn detection rule", path: detections/sigma/infra/container-shell-spawn-restricted.yml, line: 1}
+    solidify: "Identity view: no alert on a successful break-glass login; key rotation has no schedule"
+
+  - id: whisper
+    label: "Whisper"
+    zone: net-ai
+    what: "Voice to text on the host, on the sealed segment, so audio never leaves the machine."
+    controls: [SC-7, AC-4, CM-7]
+    status: designed
+    status_note: "Pending the ARM rebuild; the compose definition pins it to the sealed network, which has no route in or out."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 212}
+      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1020-1022}
+    solidify: none
+
+  - id: ollama
+    label: "Ollama"
+    zone: net-ai
+    what: "The local model on the sealed segment, the fallback when the daily spend ceiling on the hosted model trips."
+    controls: [AC-4, SC-7, SA-9]
+    status: designed
+    status_note: "Pending the ARM rebuild, and the agent cannot reach it yet: Squire sits on the core network only, so the fallback path is a compose change plus an end-to-end test."
+    evidence:
+      - {label: "Service definition, sealed network", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 176}
+      - {label: "Squire networks, core only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1014}
+      - {label: "Local backend in the agent", path: builds/squire/src/squire/llm_backend.py, line: 224}
+      - {label: "Ceiling breach flips the backend", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
+    solidify: "Tier 1: Squire has no route to net-ai, Ollama stopped"
+
+  - id: n8n
+    label: "n8n"
+    zone: net-core
+    what: "The orchestration engine: workflows, webhooks, and the bridge that lets the core network talk to the sealed AI segment."
+    controls: [AC-3, AC-6, AU-2, CM-7]
+    status: live
+    status_note: "One of the three live containers, published to loopback and reached only through the tunnel and the edge identity check."
+    evidence:
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
+      - {label: "Full design, bridge to the sealed segment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 121}
+      - {label: "Credential exposure write-up and fix", path: docs/grc/VULN_WRITEUP_N8N_CREDENTIAL_EXPOSURE.md, line: 1}
+    solidify: none
+
+  - id: langfuse
+    label: "Langfuse ×4"
+    zone: net-core
+    what: "Four containers (web, worker, ClickHouse, Redis) that hold a trace of every model call: prompt, response, tokens, cost, and the correlation id into the investigation record."
+    controls: [AU-2, AU-3, AU-12, AU-9]
+    status: designed
+    status_note: "Pending the ARM rebuild; the agent sets the trace id in its telemetry module and the audit trail spec defines what each span carries."
+    evidence:
+      - {label: "Web service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 820}
+      - {label: "Worker, ClickHouse, Redis", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 693}
+      - {label: "Trace id set by the agent", path: builds/squire/src/squire/telemetry.py, line: 17}
+      - {label: "Audit trail field spec", path: docs/grc/AI_AUDIT_TRAIL_SPEC.md, line: 54}
+    solidify: none
+
+  - id: squire
+    label: "Squire"
+    zone: net-core
+    what: "The SOC agent: takes an alert, classifies, enriches, drafts an investigation with citations, and can only recommend actions from an allowlist, never execute them."
+    controls: [AC-6, SI-10, AU-12, SC-7, CM-7]
+    status: designed
+    status_note: "Pending the ARM rebuild; the code, its red team results, and its own system security plan are in the repo, and two fixes are queued: the route to the local model and fail-closed rails."
+    evidence:
+      - {label: "Alert endpoint", path: builds/squire/src/squire/app.py, line: 261}
+      - {label: "Actions allowlist", path: builds/squire/src/squire/actions_allowlist.py, line: 57}
+      - {label: "PII scan before the graph runs", path: builds/squire/src/squire/pre_graph_pii.py, line: 74}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 950}
+      - {label: "Subsystem security plan", path: docs/grc/SQUIRE_SSP.md, line: 1}
+      - {label: "Red team results", path: docs/grc/REDTEAM_RESULTS.md, line: 1}
+    solidify: "Tier 1 items 1 and 2; Identity view: shared-secret header compare, no body size cap"
+
+  - id: guardrails
+    label: "Guardrails"
+    zone: net-core
+    what: "The rails container between the agent and the hosted model: input rails for injection and personal data, output rails for leakage, policy written in Colang."
+    controls: [SI-10, SI-4, SC-7, AC-4]
+    status: designed
+    status_note: "Pending the ARM rebuild; today the code fails open to the API on a rails timeout and the model key sits in the agent's environment, both queued as fixes."
+    evidence:
+      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 894}
+      - {label: "Rails config", path: builds/squire/docker/nemo_config/config.yml, line: 1}
+      - {label: "Input rails", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
+      - {label: "Fail-open path in the agent", path: builds/squire/src/squire/llm_backend.py, line: 331-333}
+      - {label: "Rails configuration doc", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 1}
+      - {label: "Red team finding that added the pre-graph scanner", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 557}
+    solidify: "Tier 1: rails fail open, model key in Squire env"
+
+  - id: vault
+    label: "Vault"
+    zone: net-core
+    what: "Secrets manager for the services, designed to hand out short-lived database credentials through AppRole instead of static passwords in environment files."
+    controls: [SC-12, SC-28, IA-5, AC-6]
+    status: designed
+    status_note: "Pending the ARM rebuild; AppRole is a comment in compose and the migration is an open assessment item, so services read deploy-time environment files today."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 262}
+      - {label: "AppRole and short leases, as designed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 257-258}
+      - {label: "Migration tracked as open", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 267}
+    solidify: "Tier 2: Vault AppRole"
+
+  - id: keycloak
+    label: "Keycloak"
+    zone: net-core
+    what: "The identity provider: one realm with human and agent roles, OIDC clients for the SSH gateway and the agent."
+    controls: [IA-2, IA-4, IA-5, AC-2, AC-3]
+    status: designed
+    status_note: "Pending the ARM rebuild; the realm export is in the repo, and the container runs in development mode in the design and must switch to production mode before it fronts anything external."
+    evidence:
+      - {label: "Realm export, roles and clients", path: keycloak/coredirective-realm.json, line: 1}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 314}
+      - {label: "Development start mode", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 338}
+      - {label: "Role map", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 71}
+    solidify: "Tier 2: Keycloak start-dev"
+
+  - id: postgres
+    label: "Postgres"
+    zone: net-core
+    what: "The state store: workflow state, the agent's investigations with vector search, identity, and trace metadata."
+    controls: [SC-28, CP-9, CP-10, AC-3]
+    status: live
+    status_note: "One of the three live containers; nightly dumps by instance principal to a key-encrypted bucket with a 30 day retention rule and a monthly timed restore, and the SSP backup rows are queued for re-baseline to say so."
+    evidence:
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 83}
+      - {label: "Backup bucket, encrypted, retention rule", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
+      - {label: "Backup writer identity, no long-lived key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
+      - {label: "Recovery plan", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 17}
+    solidify: "Control layers: CP-4, CP-9, CP-10 rows read Partially Implemented; re-baseline with data_protection.tf"
+
+  - id: teleport
+    label: "Teleport"
+    zone: net-core
+    what: "The SSH gateway: every session recorded, MFA on login, elevation by request with a time limit."
+    controls: [IA-2(1), AU-2, AU-12, AC-12, AC-6]
+    status: designed
+    status_note: "Pending the ARM rebuild; the design uses Keycloak OIDC and just-in-time roles, and the previous deployment ran local auth with TOTP and no access-request role, so the connector and one request role are the closing change."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 371}
+      - {label: "Audit event shipper", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 621}
+      - {label: "Connector and request roles, the upgrade path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 190}
+    solidify: "Tier 2: Teleport auth type local, no access-request roles"
+
+  - id: falco
+    label: "Falco, eBPF"
+    zone: net-monitoring
+    what: "The kernel sensor below the workloads: reads syscalls through eBPF, so a compromised container cannot see or stop what is watching it."
+    controls: [SI-4, AU-2, SI-3, IR-5]
+    status: designed
+    status_note: "Pending the ARM rebuild; it runs with the capabilities the sensor needs (SYS_ADMIN and the container socket) as documented accepted risks, and is the one service without no-new-privileges."
+    evidence:
+      - {label: "Sensor definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 473}
+      - {label: "Why it lacks no-new-privileges", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 470-472}
+      - {label: "Capabilities accepted as risk", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 607}
+      - {label: "Container socket accepted as risk", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 608}
+      - {label: "Compromised container playbook", path: docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md, line: 23}
+    solidify: "Tier 2: Falco without NNP, accepted (CIS 5.25)"
+
+  - id: falcosidekick
+    label: "Falcosidekick"
+    zone: net-monitoring
+    what: "The event router: takes sensor alerts and fans them out to the SIEM and the notification channels."
+    controls: [SI-4, AU-6, IR-5]
+    status: designed
+    status_note: "Pending the ARM rebuild; read-only root and no new privileges in the definition."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 530}
+      - {label: "Read-only root", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 548}
+    solidify: none
+
+  - id: event-handler
+    label: "event handler"
+    zone: net-monitoring
+    what: "Streams the SSH gateway's audit events (logins, sessions, elevation) out over mutual TLS to the log pipeline, so a session record exists off the host."
+    controls: [AU-2, AU-9, AU-12, SC-8]
+    status: designed
+    status_note: "Pending the ARM rebuild; it authenticates with a one year identity file, one of the machine identities listed in the SSP."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 621}
+      - {label: "Identity file lifetime", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 618}
+      - {label: "Audit flow in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 185}
+    solidify: none
+
+  - id: fluentd
+    label: "Fluentd"
+    zone: net-monitoring
+    what: "The log pipeline: receives the audit stream over mutual TLS and forwards it to the SIEM, so audit records leave the host and survive it."
+    controls: [AU-9, AU-4, SC-8]
+    status: designed
+    status_note: "Pending the ARM rebuild."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 578}
+      - {label: "Role in the SSP service table", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 168}
+    solidify: none
+
+  - id: datadog-agent
+    label: "Datadog agent"
+    zone: net-monitoring
+    what: "Host and container metrics, logs, and the container inventory, shipped to the SIEM."
+    controls: [SI-4, AU-6, CA-7, CM-8]
+    status: designed
+    status_note: "Pending the ARM rebuild; it needs the host PID namespace and the container socket, both documented accepted risks."
+    evidence:
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 415}
+      - {label: "Host PID namespace", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 420}
+      - {label: "Accepted risk, host PID", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 617}
+    solidify: "Tier 2: Datadog agent holds the DB password and the socket, accepted (CIS 5.15)"
+
+  - id: datadog
+    label: "Datadog"
+    zone: external
+    what: "The SIEM: events, logs, and metrics from the host, the sensor, the gateway, and the edge, with monitors that page on the conditions the playbooks name."
+    controls: [AU-6, SI-4, IR-5, CA-7, AU-11]
+    status: partial
+    status_note: "Ten monitors and two dashboards are defined as Terraform in the archived provider module; nothing on the current host ships to the SIEM until the agent, the sensor, and the log pipeline return with the ARM rebuild, and drift alerts go to the operator's messaging channel meanwhile."
+    evidence:
+      - {label: "Monitor definitions, archived provider module", path: terraform/cd-do-infrastructure/monitoring.tf, line: 52}
+      - {label: "Telemetry flows in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 185-188}
+      - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 135}
+    solidify: "Multi-cloud: 3 of 19 live; Datadog agent and Falco pending"
+
+  - id: object-storage
+    label: "Object storage"
+    zone: external
+    what: "Two buckets off the host: Terraform state (versioned, locked) and database backups, both encrypted with a customer-managed key, backups held 30 days by a retention rule, restore drilled monthly."
+    controls: [CP-6, CP-9, CP-10, SC-12, SC-28]
+    status: live
+    status_note: "Applied on the current provider; the retention rule is deliberately left unlocked so a bad backup found by the drill can still be shortened, and that tradeoff is written down."
+    evidence:
+      - {label: "Customer-managed key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 18}
+      - {label: "State bucket, versioned, encrypted", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 48}
+      - {label: "Backup bucket", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
+      - {label: "30 day retention rule and why it stays unlocked", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 12-14}
+      - {label: "Remote state backend", path: terraform/cd-oci-infrastructure/terraform.tf, line: 19}
+    solidify: "Multi-cloud: retention rule, not lock, by choice"
+
+  - id: pull-request
+    label: "pull request"
+    zone: delivery
+    what: "Every change to infrastructure, policy, or documents enters as a pull request against a protected main branch; there is no other supported path."
+    controls: [CM-3, CM-5, SA-10, CM-4]
+    status: live
+    status_note: "Enforced on the repo, administrators included; the PR pipeline runs with no cloud credentials, so a malicious PR cannot reach a cloud."
+    evidence:
+      - {label: "PR trigger", path: .github/workflows/terraform-pr.yml, line: 12-13}
+      - {label: "Init with no backend and no credentials", path: .github/workflows/terraform-pr.yml, line: 56}
+      - {label: "PR pipeline described", path: docs/grc/SECURE_SDLC.md, line: 481}
+      - {label: "Change policy, standard path", path: docs/grc/POLICY_CHANGE_MANAGEMENT.md, line: 62}
+    solidify: none
+
+  - id: oidc-exchange
+    label: "OIDC exchange"
+    zone: delivery
+    what: "CI trades a short-lived GitHub identity token for a short-lived cloud session bound to a fresh keypair, so no cloud key is stored in CI."
+    controls: [IA-5, AC-6, SC-12, IA-3]
+    status: partial
+    status_note: "Live on the nightly drift check; the PR path runs with no credentials at all, and the exchange keeps one stored client secret that cannot call any cloud API on its own, so the exchange drawn on the PR path is the design."
+    evidence:
+      - {label: "Identity token permission", path: .github/workflows/drift-check.yml, line: 21}
+      - {label: "Request the GitHub token", path: .github/workflows/drift-check.yml, line: 38}
+      - {label: "Exchange for a cloud session", path: .github/workflows/drift-check.yml, line: 50}
+      - {label: "PR path, no credentials", path: .github/workflows/terraform-pr.yml, line: 56}
+    solidify: "Tier 1: OIDC exchange only in drift-check.yml, stored client secret"
+
+  - id: plan-scan-lint
+    label: "plan, scan, lint"
+    zone: delivery
+    what: "Format check, validate, and Checkov static analysis on every pull request; secret, CVE, and code scans as a required check; a real plan against remote state on the nightly job."
+    controls: [SA-11, RA-5, CM-6, SI-2]
+    status: partial
+    status_note: "Format, validate, and Checkov run on every PR and the scan pipeline is a required check; the real plan runs nightly with session credentials, and a PR-time credentialed plan is the queued change."
+    evidence:
+      - {label: "Format check", path: .github/workflows/terraform-pr.yml, line: 52}
+      - {label: "Validate", path: .github/workflows/terraform-pr.yml, line: 60}
+      - {label: "Checkov", path: .github/workflows/terraform-pr.yml, line: 64}
+      - {label: "Nightly plan against live state", path: .github/workflows/drift-check.yml, line: 111}
+      - {label: "Secret scan", path: .github/workflows/security.yml, line: 25}
+      - {label: "CVE and misconfig scan", path: .github/workflows/security.yml, line: 32}
+      - {label: "Static analysis", path: .github/workflows/security.yml, line: 51}
+    solidify: "Tier 1: credentialed plan step on main"
+
+  - id: opa-gates
+    label: "OPA gates, 4 deny"
+    zone: delivery
+    what: "Four deny policies in Rego: no public firewall rule, no unencrypted storage, no missing prevent-destroy, no root SSH key; a violation fails the check."
+    controls: [CM-3, CM-6, SA-11]
+    status: partial
+    status_note: "The policies are tested on every PR against a clean fixture plan and a violating fixture plan; running them on the PR's own plan needs the credentialed plan step, which is the queued change."
+    evidence:
+      - {label: "Deny public firewall", path: terraform/cd-oci-infrastructure/policy/deny_public_firewall.rego, line: 1}
+      - {label: "Deny unencrypted storage", path: terraform/cd-oci-infrastructure/policy/deny_no_encryption.rego, line: 1}
+      - {label: "Deny missing prevent-destroy", path: terraform/cd-oci-infrastructure/policy/deny_missing_prevent_destroy.rego, line: 1}
+      - {label: "Deny root SSH key", path: terraform/cd-oci-infrastructure/policy/deny_root_ssh_key.rego, line: 1}
+      - {label: "Self-test on fixtures", path: .github/workflows/terraform-pr.yml, line: 80}
+      - {label: "Violating fixture plan", path: terraform/cd-oci-infrastructure/policy/testdata/plan_violations.json, line: 1}
+    solidify: "Tier 1: OPA runs on fixture plans"
+
+  - id: human-review
+    label: "human review"
+    zone: delivery
+    what: "A person reads the diff and the check output before anything merges; the pull request is the review record."
+    controls: [CM-3, CM-5, AC-5]
+    status: partial
+    status_note: "Pull requests and two status checks are required on main, administrators included; the repo has one maintainer, so no second approver is required, and that is the separation-of-duties gap the SSP records under AC-5."
+    evidence:
+      - {label: "Code owners, review auto-requested", path: .github/CODEOWNERS, line: 1}
+      - {label: "Change policy, review path", path: docs/grc/POLICY_CHANGE_MANAGEMENT.md, line: 62}
+      - {label: "Pipeline results posted to the PR", path: .github/workflows/terraform-pr.yml, line: 114}
+    solidify: "AC-5 Partially Implemented; single maintainer, 0 required approvals (verified via branch protection API 2026-09-05)"
+
+  - id: apply
+    label: "apply, main only"
+    zone: delivery
+    what: "Terraform apply runs only from main after review and the gates; nothing applies from a branch or a laptop in the design."
+    controls: [CM-3, CM-5, AC-6, CM-2]
+    status: designed
+    status_note: "No workflow applies today; apply runs from the operator's workstation with short-lived credentials from the secrets manager, and an apply job on main behind the identity exchange is the queued change."
+    evidence:
+      - {label: "Apply with a manual approval gate, per policy", path: docs/grc/POLICY_CHANGE_MANAGEMENT.md, line: 135}
+      - {label: "The only credentialed Terraform in CI, plan only", path: .github/workflows/drift-check.yml, line: 111}
+      - {label: "Remote state the apply would use", path: terraform/cd-oci-infrastructure/terraform.tf, line: 19}
+    solidify: "Tier 1: no terraform apply in any workflow"
+
+  - id: drift-check
+    label: "nightly drift check"
+    zone: delivery
+    what: "Every night CI re-plans the live infrastructure against the code; any difference raises an alert to the operator with the details kept private."
+    controls: [CA-7, CM-2, CM-6]
+    status: live
+    status_note: "Runs nightly with the identity exchange session; it covers the runtime cloud's Terraform and not yet the edge module or compose."
+    evidence:
+      - {label: "Schedule", path: .github/workflows/drift-check.yml, line: 17}
+      - {label: "Directory it watches", path: .github/workflows/drift-check.yml, line: 29}
+      - {label: "Read-only plan", path: .github/workflows/drift-check.yml, line: 111}
+      - {label: "Alert, details private", path: .github/workflows/drift-check.yml, line: 135}
+    solidify: "Tier 2: add cd-cloudflare-edge to the drift matrix"
