@@ -7,8 +7,13 @@
 # is ported to ARM. Deployed to the host at /opt/coredirective/.
 #
 # DESIGN NOTES (differences from the master docker-compose.yaml, on purpose):
-#   - Images are UNPINNED (no @sha256): lets Docker pull the correct arch from
-#     each tag's multi-arch index on ARM. Re-pin to arm64 digests once stable.
+#   - Images are pinned tag@digest (re-pinned 2026-09-06). The digest is the
+#     multi-arch INDEX digest (amd64 + arm64 verified in the registry), so
+#     Docker still resolves the arm64 layer on this host and Renovate tracks
+#     the same receipt it tracks in the master file.
+#   - Limits (cpus, memory, pids) match the master file per service. The
+#     tunnel runs read-only with tmpfs for /tmp and the nonroot home, same
+#     as the master file (image user is 65532, not root).
 #   - Secrets come from `env_file: stack.env` using the CONTAINER'S target var
 #     names (POSTGRES_USER, N8N_ENCRYPTION_KEY, TUNNEL_TOKEN, ...), NOT compose
 #     ${VAR} interpolation. The n8n keys contain `$`, which compose corrupts.
@@ -22,13 +27,15 @@
 #   scp this + stack.env to host:/opt/coredirective/
 #   ssh host 'cd /opt/coredirective && sudo chown -R 1000:1000 CD_VOL_N8N \
 #             && sudo docker compose -f docker-compose.oci-core.yaml up -d'
+#   (up -d recreates the three containers so the pins and limits take effect;
+#    direct SSH from an allowlisted range, never through the tunnel)
 # VERIFY:  curl -s -o /dev/null -w '%{http_code}' https://<your-edge-hostname>
 #          -> 302 (Cloudflare Access gate in front of a live origin) = success
 # ============================================================================
 name: coredirective
 services:
   cd-service-db:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pgvector:pg16@sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b
     container_name: cd-service-db
     restart: unless-stopped
     env_file: [ stack.env ]
@@ -42,10 +49,16 @@ services:
       timeout: 5s
       retries: 5
     security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
     networks: [ net-core ]
 
   cd-service-n8n:
-    image: n8nio/n8n:2.17.5
+    image: n8nio/n8n:2.17.5@sha256:81dc967a062bf267d6aa827e5dfb492ce80e366e77f3b8051c07970a653fb69a
     container_name: cd-service-n8n
     restart: unless-stopped
     ports:
@@ -65,16 +78,32 @@ services:
       cd-service-db:
         condition: service_healthy
     security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 2G
+          pids: 512
     networks: [ net-core ]
 
   tunnel-cyber-squire:
-    image: cloudflare/cloudflared:2026.3.0
+    image: cloudflare/cloudflared:2026.3.0@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0
     container_name: tunnel-cyber-squire
     network_mode: host
     restart: unless-stopped
     command: tunnel --no-autoupdate run
     env_file: [ stack.env ]
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/nonroot/.cloudflared
     security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+          pids: 64
 
 networks:
   net-core:

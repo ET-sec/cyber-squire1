@@ -130,6 +130,36 @@ def test_alert_rejects_wrong_token():
     assert r.status_code == 401
 
 
+def test_alert_token_check_is_constant_time(monkeypatch):
+    """The token gate goes through hmac.compare_digest, never ``!=``."""
+    seen: list[tuple[bytes, bytes]] = []
+    real = app_mod.hmac.compare_digest
+
+    def spy(a, b):
+        seen.append((a, b))
+        return real(a, b)
+
+    monkeypatch.setattr(app_mod.hmac, "compare_digest", spy)
+    r = client.post(
+        "/alert",
+        json={"alert": SAMPLE_ALERT},
+        headers={"X-Squire-Token": "WRONG"},
+    )
+    assert r.status_code == 401
+    assert seen == [(b"WRONG", b"test-token")]
+
+
+def test_alert_rejects_non_ascii_token_cleanly():
+    """compare_digest refuses non-ASCII str, so the gate encodes both sides
+    first: a hostile header is a 401, not a 500."""
+    r = client.post(
+        "/alert",
+        json={"alert": SAMPLE_ALERT},
+        headers={b"X-Squire-Token": "t\xe9st".encode("latin-1")},
+    )
+    assert r.status_code == 401
+
+
 # ---------------------- positive path ----------------------
 
 
