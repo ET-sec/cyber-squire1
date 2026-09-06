@@ -33,8 +33,6 @@ OWNER_APPROVED = {
     # numbers are owner-approved; live count re-verified 2026-09-01.
     "containers_live": 3,
     "containers_designed": 19,
-    # n8n workflows: behind an HTTP API, not on disk. Owner-confirmed 14 active.
-    "workflows_n8n_active": 14,
     # AI engine identifiers come from host config files, not always synced locally.
     "openclaw_model": "Claude Fable 5",
     "openclaw_model_id": "claude-fable-5",
@@ -213,7 +211,7 @@ def compute_infra() -> dict:
 
 
 def compute_detection() -> dict:
-    sigma_dir = REPO_ROOT / "detections"
+    sigma_dir = REPO_ROOT / "detections" / "sigma"  # Falco rules under detections/falco/ are not Sigma
     sigma_files: list[Path] = []
     if sigma_dir.exists():
         sigma_files = [p for p in sigma_dir.rglob("*.yml")] + [
@@ -231,10 +229,14 @@ def compute_stack() -> dict:
         workflows = sorted(
             list(wf_dir.glob("*.yml")) + list(wf_dir.glob("*.yaml"))
         )
+    # n8n workflows: the live instance is not on disk and held zero workflows
+    # when verified 2026-09-02, so the public number is the exported
+    # definitions checked into the repo, not an "active" count.
+    n8n_exports = sorted((REPO_ROOT / "COREDIRECTIVE_ENGINE").glob("workflow_*.json"))
     return {
         "containers_live": OWNER_APPROVED["containers_live"],
         "containers_designed": OWNER_APPROVED["containers_designed"],
-        "workflows_n8n_active": OWNER_APPROVED["workflows_n8n_active"],
+        "workflows_n8n_exported": len(n8n_exports),
         "workflows_github_actions": len(workflows),
     }
 
@@ -349,7 +351,7 @@ def main() -> int:
     m = Metrics()
     m.generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     m.sources = {
-        "filesystem_root": str(REPO_ROOT),
+        "filesystem_root": ".",
         "ssp_source": "docs/grc/SSP_*.md",
         "poam_source": "docs/grc/POAM_PLAN_OF_ACTION.md",
         "terraform_source": "terraform/cd-oci-infrastructure/ (active); terraform/cd-aws-security-plane/ (designed, apply scheduled); terraform/cd-do-infrastructure/ (archived)",

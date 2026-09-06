@@ -4,9 +4,9 @@ title: System Security Plan - Squire Autonomous SOC Analyst
 doc_type: ssp
 system_name: Squire Autonomous SOC Analyst
 classification: CUI-INTERNAL
-version: "1.0"
-last_updated: 2026-04-23
-next_review: 2026-10-23
+version: "1.1"
+last_updated: 2026-09-06
+next_review: 2026-12-06
 owner: System Owner
 approver: System Owner (Authorizing Official)
 parent: SSP-OPS-001
@@ -121,7 +121,7 @@ The authorization boundary encompasses:
 - `svc-langfuse-web`, `svc-langfuse-worker`, `svc-langfuse-clickhouse`, `svc-langfuse-redis`
 - The `ir_*` schema within `svc-db` (Postgres 16 + pgvector 0.7)
 - The Cloudflare tunnel routes for `squire.example-ops.com` and `langfuse.example-ops.com`
-- `actions.yml` (recommend-only allow-list) and the Colang rail files under `builds/squire/app/rails/`
+- `actions.yml` (recommend-only allow-list) and the Colang rail files under `builds/squire/docker/nemo_config/rails/`
 - Configuration managed through Doppler project `<SECRETS_PROJECT>`, config `prd`
 
 Out of boundary:
@@ -198,7 +198,7 @@ Squire runs as a deterministic state machine. Each incoming `/alert` request exe
 
 ### 3.3 LLM Backend Abstraction
 
-A three-mode abstraction (`api`, `max`, `ollama`) lives in `builds/squire/app/llm_backend.py`. The default mode is `api` (Anthropic HTTPS). On 402/429/503 from Anthropic, or when `ANTHROPIC_CREDIT_EXHAUSTED=1` is set, the backend falls back to `ollama` against the local `svc-ollama` service. `max` mode targets the OpenClaw gateway on `http://172.17.0.1:18789/v1/chat/completions` for Max-plan routing.
+A three-mode abstraction (`api`, `max`, `ollama`) lives in `builds/squire/src/squire/llm_backend.py`. The default mode is `api` (Anthropic HTTPS). On 402/429/503 from Anthropic, or when `ANTHROPIC_CREDIT_EXHAUSTED=1` is set, the backend falls back to `ollama` against the local `svc-ollama` service. `max` mode targets the OpenClaw gateway on `http://172.17.0.1:18789/v1/chat/completions` for Max-plan routing.
 
 The abstraction isolates node code from backend quirks. Every node requests a completion with only the fields `model`, `messages`, `system`, `max_tokens`, and `temperature`. The backend layer translates these into the provider's wire format. Ollama responses that lack `usage` accounting are treated as `cost_usd=0` with a `degraded_accounting=true` flag so the critique can note that cost observability is limited during fallback.
 
@@ -289,9 +289,9 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `builds/squire/docker-compose.yaml` env block |
-| AC-3 | Implemented | `POST /alert` requires header `x-squire-token` validated against Doppler secret `SQUIRE_INGEST_TOKEN`. Missing or mismatched token returns 401. | `builds/squire/app/api.py::require_token` |
-| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins `net-ai` and `net-core` only. | `builds/squire/docker-compose.yaml` networks block |
+| AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` (`svc-squire` environment block) |
+| AC-3 | Implemented | `POST /alert` requires header `x-squire-token` validated against Doppler secret `SQUIRE_INGEST_TOKEN`. Missing or mismatched token returns 401. | `builds/squire/src/squire/app.py` (token check with `hmac.compare_digest`) |
+| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins `net-ai` and `net-core` only. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block |
 | AC-6 | Implemented | Least privilege on container filesystem: `USER 10001:10001`, `read_only: true`, `tmpfs` for `/tmp`. No `CAP_*` added; `no-new-privileges` set. | `builds/squire/Dockerfile` + compose security_opt |
 | AC-17 | Implemented | All remote administration goes through the Cloudflare zero-trust tunnel or SSH on `alpha-node`. Neither the application nor Langfuse listen on the public internet. | Parent SSP inheritance plus tunnel config |
 
@@ -299,21 +299,21 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| AU-2 | Implemented | Four audit event types: (1) every `/alert` call emits a Langfuse trace with cost, latency, rail outcomes; (2) every pre-graph block writes a row to `ir_pregraph_blocks`; (3) every recommend-only rewrite writes to `ir_sanitization_events`; (4) every replay writes to `ir_replay_events`. | `builds/squire/app/audit.py` |
+| AU-2 | Implemented | Four audit event types: (1) every `/alert` call emits a Langfuse trace with cost, latency, rail outcomes; (2) every pre-graph block writes a row to `ir_pregraph_blocks`; (3) every recommend-only rewrite writes to `ir_sanitization_events`; (4) every replay writes to `ir_replay_events`. | `builds/squire/src/squire/persist.py`; `builds/squire/src/squire/telemetry.py` |
 | AU-3 | Implemented | Audit records include: timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms. | Langfuse schema + `ir_*` DDL in migrations/002 |
-| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to the operations Telegram bot. Weekly human review of red-team regression runs. | `builds/squire/scripts/daily_audit.py` |
+| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to the operations Telegram bot. Weekly human review of red-team regression runs. | No script by that name exists in the repository as of 2026-09-06; the rail-trigger review is a manual Langfuse query until the daily job is written |
 | AU-9 | Implemented | Langfuse writes are append-only from the worker's perspective. The Postgres table holding traces has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly `pg_dump` to DO Spaces (14-day retention). | `svc-db` role `langfuse_rw` grants INSERT, SELECT only |
-| AU-12 | Implemented | Audit generation is immutable at the code path: every graph node is instrumented with `@observe()` from `langfuse.decorators`. Removing the decorator breaks CI because `tests/test_trace_coverage.py` enumerates nodes. | `builds/squire/tests/test_trace_coverage.py` |
+| AU-12 | Implemented | Audit generation is immutable at the code path: every graph node is instrumented with `@observe()` from `langfuse.decorators`. Removing the decorator breaks CI because `tests/test_trace_coverage.py` enumerates nodes. | `builds/squire/src/squire/nodes/draft.py` and `critique.py` carry the observe decorators; no trace-coverage test exists in the repository as of 2026-09-06 |
 
 ### 6.3 CM - Configuration Management
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| CM-2 | Implemented | Baseline is the `docker-compose.yaml` in `builds/squire/` plus the Dockerfile plus `requirements.txt` pinned to exact versions. The baseline is checked into Git and tagged per release. | `builds/squire/requirements.txt` (107 pinned deps) |
-| CM-3 | Implemented | All changes flow through a GitHub pull request. Pre-commit hooks run `ruff`, `mypy`, and `pytest -k redteam` locally. CI runs the full suite plus Trivy on the built image. | `.github/workflows/squire-ci.yml` |
+| CM-2 | Implemented | Baseline is the `docker-compose.yaml` in `builds/squire/` plus the Dockerfile plus `pyproject.toml` with pinned dependencies. The baseline is checked into Git. | `builds/squire/pyproject.toml` |
+| CM-3 | Implemented | All changes flow through a GitHub pull request. Pre-commit hooks run `ruff`, `mypy`, and `pytest -k redteam` locally. CI runs the full suite plus Trivy on the built image. | `.github/workflows/security.yml` (shared pipeline; no Squire-specific workflow exists as of 2026-09-06) |
 | CM-6 | Implemented | Configuration is split between version-controlled files (Dockerfile, compose, rails, actions.yml) and Doppler-managed secrets. No runtime configuration writes exist. | Doppler audit log |
 | CM-7 | Implemented | The container runs only the FastAPI process plus a healthcheck. No shell, no package manager, no extra binaries. `pip install --no-cache-dir` with `--no-deps` verified. | Dockerfile layer count = 7 |
-| CM-8 | Implemented | Component inventory lives in `builds/squire/SBOM.spdx.json` produced by `syft` on every image build. | CI artifact on every successful build |
+| CM-8 | Implemented | Component inventory is the SBOM that `syft` generates in the merge pipeline for the repository filesystem and for each pinned image digest, retained as a CI artifact per run. | `.github/workflows/security.yml` (Generate SBOMs job) |
 
 ### 6.4 IA - Identification and Authentication
 
@@ -329,30 +329,29 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | IR-4 | Implemented | Squire is itself an incident-handling tool. Incidents against Squire (rail bypass, prompt injection success) are captured in `docs/grc/REDTEAM_RESULTS.md` and tracked as POA&M entries. | `docs/grc/REDTEAM_RESULTS.md` |
 | IR-5 | Implemented | Every `/alert` call is monitored through Langfuse. Latency P95 budget is 45 seconds. Cost budget per call is $0.75. Violations fire a Datadog monitor. | Datadog monitor ID `squire_cost_ceiling` |
-| IR-6 | Implemented | Rail triggers and pre-graph blocks route to Telegram within 30 seconds via the `svc-event-shipper` path. | `builds/squire/app/alerting.py` |
+| IR-6 | Implemented | Rail triggers and pre-graph blocks route to Telegram within 30 seconds via the `svc-event-shipper` path. | `builds/squire/src/squire/tools/telegram.py` |
 
 ### 6.6 RA - Risk Assessment
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | RA-3 | Implemented | Risk assessment for Squire is documented in `docs/grc/SQUIRE_AI_RISK_ASSESSMENT.md` covering ten agent-specific risks with heat-map and treatment plan. | `docs/grc/SQUIRE_AI_RISK_ASSESSMENT.md` |
-| RA-5 | Implemented | Trivy scans run on every `svc-squire` image build. Critical CVEs fail the CI pipeline. A separate nightly Trivy pass tracks drift. | `.github/workflows/squire-ci.yml` Trivy step |
-| RA-9 | Implemented | Supply-chain risk is bounded: only `python:3.11-slim` base, all Python deps pinned, `pip-audit` in CI, signature verification on the final image via `cosign`. | `.github/workflows/squire-ci.yml` cosign step |
+| RA-5 | Implemented | Trivy scans run on every `svc-squire` image build. Critical CVEs fail the CI pipeline. A separate nightly Trivy pass tracks drift. | `.github/workflows/security.yml` (Trivy runs on the repository, not on a Squire image build, as of 2026-09-06) |
+| RA-9 | Implemented | Supply-chain risk is bounded: only `python:3.11-slim` base, all Python deps pinned, `pip-audit` in CI, signature verification on the final image via `cosign`. | `.github/workflows/security.yml` (Container Image Verification covers the pinned upstream images; the locally built Squire image is not signed as of 2026-09-06) |
 
 ### 6.7 SA - System and Services Acquisition
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | SA-8 | Implemented | Secure design principles applied: fail closed, defense in depth (pre-graph regex plus NeMo rails plus critique validator), least privilege (no remediation capability, recommend-only), separation of duties (model routing ensures no single prompt decides severity and citations). | This SSP |
-<!-- TODO(et): 127-test count is 2 months old. Re-run the suite and update the number. -->
-| SA-11 | Implemented | Security testing is continuous: pytest suite has 127 tests including 24 red-team regression cases. All 127 passing as of 2026-04-23. | `builds/squire/tests/` |
+| SA-11 | Implemented | Security testing is continuous: the pytest suite collects 151 tests as of 2026-09-06, with red-team alert fixtures under `tests/fixtures/` and the evaluation harness under `tests/eval/`. | `builds/squire/tests/` |
 | SA-15 | Implemented | Development tooling is minimal: `uv`, `ruff`, `mypy`, `pytest`. No proprietary build server. | `builds/squire/pyproject.toml` |
 
 ### 6.8 SC - System and Communications Protection
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| SC-7 | Implemented | Only `svc-squire` receives external traffic through the Cloudflare tunnel. `svc-nemo`, Langfuse, and `svc-db` are on internal networks only. | `builds/squire/docker-compose.yaml` ports block shows `svc-squire` binding `127.0.0.1:8020` |
+| SC-7 | Implemented | Only `svc-squire` receives external traffic through the Cloudflare tunnel. `svc-nemo`, Langfuse, and `svc-db` are on internal networks only. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` ports block binds `svc-squire` to `127.0.0.1:8020` |
 | SC-8 | Implemented | All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container. | Cloudflare config |
 | SC-12 | Implemented | Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on-demand for the ingest token. | Doppler rotation log |
 | SC-28 | Implemented | Data at rest in the `ir_*` tables is encrypted at the volume layer (parent SSP). Langfuse trace data has the same treatment. | Parent SSP LUKS coverage |
@@ -362,19 +361,19 @@ This section covers only controls that are Squire-specific. Inherited controls (
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | SI-3 | Not Applicable | Squire accepts no user uploads; alert payloads are structured JSON from trusted internal sources. | - |
-| SI-4 | Implemented | Four independent integrity checks per `/alert`: (1) pre-graph regex PII scanner; (2) NeMo Colang input rail on draft input; (3) NeMo Colang output rail on draft output; (4) critique node validates citations against retrieved chunk IDs. | `builds/squire/app/graph/` + `builds/squire/app/rails/` |
-| SI-7 | Implemented | Structured output validation: the graph returns a Pydantic model. Any deviation from the schema causes a 500 with `reason_code=SCHEMA_VIOLATION`. | `builds/squire/app/schemas.py` |
-| SI-10 | Implemented | Input validation on `/alert`: Pydantic model with size cap (64 KiB), required fields, and the pre-graph PII scanner. | `builds/squire/app/schemas.py::AlertInput` |
-| SI-12 | Implemented | Information handling and retention: Langfuse retains 30 days. `ir_replay_events` retains indefinitely. PII blocks are retained as the blocked reason code only, never the raw input. | `builds/squire/app/audit.py` |
+| SI-4 | Implemented | Four independent integrity checks per `/alert`: (1) pre-graph regex PII scanner; (2) NeMo Colang input rail on draft input; (3) NeMo Colang output rail on draft output; (4) critique node validates citations against retrieved chunk IDs. | `builds/squire/src/squire/graph.py`; `builds/squire/src/squire/nodes/`; `builds/squire/src/squire/pre_graph_pii.py`; `builds/squire/docker/nemo_config/rails/` |
+| SI-7 | Implemented | Structured output validation: the graph returns a Pydantic model. Any deviation from the schema causes a 500 with `reason_code=SCHEMA_VIOLATION`. | `builds/squire/src/squire/api_models.py` |
+| SI-10 | Implemented | Input validation on `/alert`: Pydantic model with size cap (64 KiB), required fields, and the pre-graph PII scanner. | `builds/squire/src/squire/api_models.py::AlertRequest`; `builds/squire/src/squire/pre_graph_pii.py` |
+| SI-12 | Implemented | Information handling and retention: Langfuse retains 30 days. `ir_replay_events` retains indefinitely. PII blocks are retained as the blocked reason code only, never the raw input. | `builds/squire/src/squire/persist.py` |
 
 ### 6.10 Cost and Iteration Controls (custom family, no direct 800-53 analog)
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| SQ-COST-1 | Implemented | Per-call cost ceiling of $0.75 enforced in `builds/squire/app/cost_guard.py`. The guard tracks cumulative Anthropic spend returned in response headers (`anthropic-input-tokens`, `anthropic-output-tokens`) and aborts the graph if the budget would be exceeded on the next node. Aborted calls return 402 with `reason_code=COST_CEILING_EXCEEDED`. | `builds/squire/app/cost_guard.py` |
+| SQ-COST-1 | Implemented | Per-call cost ceiling of $0.75 enforced in `builds/squire/src/squire/cost_ceiling.py`. The guard tracks cumulative Anthropic spend returned in response headers (`anthropic-input-tokens`, `anthropic-output-tokens`) and aborts the graph if the budget would be exceeded on the next node. Aborted calls return 402 with `reason_code=COST_CEILING_EXCEEDED`. | `builds/squire/src/squire/cost_ceiling.py` |
 <!-- TODO(et): Compose env shows ANTHROPIC_DAILY_CEILING_USD default $5.00. SSP says $10. Confirm production override via Doppler. -->
-| SQ-COST-2 | Implemented | Daily cost ceiling of $10.00 tracked in Redis counter `squire:cost:daily:<yyyy-mm-dd>`. Reset at UTC midnight. When exceeded, the LLM backend abstraction transparently switches to `ollama` mode and a Telegram alert fires. | `builds/squire/app/cost_guard.py::daily_budget_check` |
-| SQ-ITER-1 | Implemented | The investigate node has a hard loop cap of 3 iterations. The critique node has a hard loop cap of 2. Exceeding either returns the best response so far with a `degraded=true` flag. | `builds/squire/app/graph/investigate.py` |
+| SQ-COST-2 | Implemented | Daily cost ceiling of $10.00 tracked in Redis counter `squire:cost:daily:<yyyy-mm-dd>`. Reset at UTC midnight. When exceeded, the LLM backend abstraction transparently switches to `ollama` mode and a Telegram alert fires. | `builds/squire/src/squire/cost_ceiling.py` |
+| SQ-ITER-1 | Implemented | The investigate node has a hard loop cap of 3 iterations. The critique node has a hard loop cap of 2. Exceeding either returns the best response so far with a `degraded=true` flag. | `builds/squire/src/squire/graph.py` (critique iteration cap); `builds/squire/src/squire/nodes/investigate.py` |
 | SQ-LAT-1 | Implemented | Per-call latency budget of 45 seconds (P95). Exceeded calls fire a Datadog monitor tagged `service:squire severity:warn` and log a span with `latency_budget_exceeded=true`. | Datadog monitor ID `squire_latency_p95` |
 
 ## 7. Control Inheritance from Parent SSP
@@ -456,7 +455,7 @@ Constraints:
 
 ## Annex A: actions.yml Recommend-Only Mode
 
-`builds/squire/app/actions.yml` defines the controlled vocabulary Squire uses when producing the "Recommended Actions" section of an investigation. Every verb is framed as a recommendation to a human operator. The rail pipeline enforces two modes: `rewrite` (default) and `reject`.
+`builds/squire/config/actions.yml` defines the controlled vocabulary Squire uses when producing the "Recommended Actions" section of an investigation. Every verb is framed as a recommendation to a human operator. The rail pipeline enforces two modes: `rewrite` (default) and `reject`.
 
 Default mode `rewrite` behavior:
 
@@ -489,7 +488,7 @@ Criterion #16 of the ROADMAP success criteria is satisfied: this SSP documents t
 The critique node is Squire's citation guard. Its job is to reject any investigation narrative that cites a framework code Squire did not retrieve. The guard runs in four passes:
 
 1. **Shape check.** Every cited code must match a known shape: NIST 800-53 `^[A-Z]{2}-\d{1,2}(\(\d+\))?$`; CSF 2.0 subcategory `^(GV|ID|PR|DE|RS|RC)\.[A-Z]{2}-\d{2}$`; MITRE ATT&CK `^T\d{4}(\.\d{3})?$` or `^TA\d{4}$`; AI RMF `^(GV|MP|MS|MG)-\d+\.\d+$`; OWASP LLM `^LLM(0[1-9]|10)$`.
-2. **Provenance check.** Every citation must appear either in a chunk retrieved by the `retrieve` node or in the hard-coded framework registry at `builds/squire/app/frameworks.py`. Citations from neither source are stripped.
+2. **Provenance check.** Every citation must appear either in a chunk retrieved by the `retrieve` node or in the hard-coded framework registry at `builds/squire/src/squire/citations.py`. Citations from neither source are stripped.
 3. **Consistency check.** The severity claimed in the draft must match the severity produced by the classifier. If the draft tries to downgrade a HIGH classification to INFO (see REDTEAM_RESULTS case 05), the critique node overrides.
 4. **Action check.** The recommended actions section is cross-referenced against `actions.yml`. Forbidden verbs are rewritten or the response is rejected per mode.
 
@@ -541,6 +540,7 @@ Sustained load target: 20 alerts per hour. Burst target: 120 alerts per hour for
 | Version | Date | Author | Change |
 |---------|------|--------|--------|
 | 1.0 | 2026-04-23 | System Owner | Initial authorization |
+| 1.1 | 2026-09-06 | System Owner | Evidence paths re-cited to the files that exist under `builds/squire/src/squire/`, `config/`, and `docker/`; cells whose named artifact does not exist say so; test count refreshed. Implementation claims not yet re-verified against code are queued for the repository review. |
 
 Related documents:
 

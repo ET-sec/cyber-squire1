@@ -3,15 +3,15 @@ document_id: RT-SQUIRE-001
 title: Red-Team Results - Squire
 doc_type: redteam_results
 classification: CUI-INTERNAL
-version: "1.2"
-last_updated: 2026-06-24
-next_review: 2026-07-24
+version: "1.3"
+last_updated: 2026-09-06
+next_review: 2026-10-06
 review_cadence: Monthly (living document)
 owner: System Owner
 approver: System Owner (Authorizing Official)
 frameworks:
   - MITRE ATLAS
-  - OWASP LLM Top 10 (2025)
+  - OWASP LLM Top 10 (2026)
 related:
   - TM-SQUIRE-001
   - AITC-OPS-001
@@ -61,16 +61,16 @@ Live testing environment: the production droplet (`alpha-node`) with real Dopple
 
 ## 2. Test Taxonomy
 
-Five test classes, mapped to OWASP LLM Top 10 (2025) and CSA Agentic MANAGE:
+Five test classes, mapped to OWASP LLM Top 10 (2026) and CSA Agentic MANAGE. Identifiers renumbered 2026-09-06 to the 2026 edition; earlier revisions used the 2023 numbering (LLM06 Sensitive Information Disclosure is now LLM02, LLM08 Excessive Agency is now LLM03, LLM09 Overreliance is now LLM07 Misinformation). Recorded model output in the appendix keeps the identifiers the model emitted at test time.
 
 | Class | OWASP LLM | CSA Agentic | Count |
 |-------|-----------|-------------|-------|
 | Injection (severity manipulation) | LLM01 | MG-2.2, MG-4.3 | 3 |
 | Injection (role hijack) | LLM01 | MG-2.2 | 1 |
-| PII exfiltration (raw payload) | LLM06 | MG-4.1 | 2 |
-| Severity flip (benign framing) | LLM01, LLM09 | MG-1.1 | 2 |
+| PII exfiltration (raw payload) | LLM02 | MG-4.1 | 2 |
+| Severity flip (benign framing) | LLM01, LLM07 | MG-1.1 | 2 |
 | Jailbreak (future category) | LLM01 | MG-2.2 | 0 (reserved) |
-| Multi-turn (future category) | LLM01, LLM08 | MG-4.3 | 0 (reserved) |
+| Multi-turn (future category) | LLM01, LLM03 | MG-4.3 | 0 (reserved) |
 
 Six cases fired on 2026-04-23. This is the initial cut. The suite is designed to grow monotonically: every new finding becomes a regression test.
 
@@ -184,7 +184,7 @@ Cumulative (cycle 1 + cycle 2): 17/20 RESISTED at graph or rail layer, 0 true by
 
 **POA&M entry**: `POAM-P17-01` (originally scoped for international PII formats; ID was briefly drafted as `POAM-P17-PII-01` in early notes, canonical ID in `POAM_PLAN_OF_ACTION.md` is `POAM-P17-01`) expanded to track all regex coverage evolution.
 
-**Framework citations**: OWASP LLM06; NIST AI RMF MG-4.1; NIST 800-53 SI-4, SC-8; CSA Agentic MG-4.1.
+**Framework citations**: OWASP LLM02 (Sensitive Information Disclosure); NIST AI RMF MG-4.1; NIST 800-53 SI-4, SC-8; CSA Agentic MG-4.1.
 
 ### Finding 2: Consistency Override Worked on Every Severity-Flip Attempt
 
@@ -538,3 +538,4 @@ The next red-team run (target 2026-05-15) will add cases for:
 | 1.0 | 2026-04-23 | System Owner | Initial living-document with six cases, remediation, and regression mapping |
 | 1.1 | 2026-04-24 | System Owner | Cycle 2 added (14 cases, 7 classes). Findings 6 and 7 documented. POAM-P17-15 opened for infra rate-limit. |
 | 1.2 | 2026-06-24 | System Owner | Audit refresh: code paths corrected to `builds/squire/src/squire/`; Appendix B mapped to actual single test module `test_guardrails_redteam.py` driven by `cases.yaml`; POAM ID naming normalized to canonical `POAM-P17-NN`; Section 8 / Section 9 numbering split. |
+| 1.3 | 2026-09-06 | System Owner | OWASP LLM identifiers renumbered to the 2026 edition (taxonomy table and Finding 1 citation); recorded model output left as emitted. |

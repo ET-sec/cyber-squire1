@@ -12,9 +12,9 @@ nodes:
     status: live
     status_note: "All four walls in this column are live on the current host; what remains is the edge's own login page and the public paths, rated LOW in the register."
     evidence:
-      - {label: "Register D-01, DDoS via tunnel ingress", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 569}
-      - {label: "Register S-05, tunnel origin spoofing", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 345}
-      - {label: "Boundary TB-1", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 206}
+      - {label: "Register D-01, DDoS via tunnel ingress", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 572}
+      - {label: "Register S-05, tunnel origin spoofing", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 348}
+      - {label: "Boundary TB-1", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 207}
     solidify: none
   - id: webhook-caller
     label: "webhook caller"
@@ -24,9 +24,9 @@ nodes:
     status: partial
     status_note: "The two edge walls are live; the four application walls belong to the agent and return with the ARM rebuild, and the orchestration webhook's own application-layer check is an open assessment item."
     evidence:
-      - {label: "Register S-01, spoofed webhook requests", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 293}
+      - {label: "Register S-01, spoofed webhook requests", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 296}
       - {label: "Open finding on webhook input validation", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 284}
-      - {label: "Boundaries TB-2 and TB-7", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 207}
+      - {label: "Boundaries TB-2 and TB-7", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 208}
     solidify: "Threat model: n8n master-cmd webhook has no application-layer auth (CR-001-F4)"
   - id: hostile-prompt
     label: "hostile prompt"
@@ -36,8 +36,8 @@ nodes:
     status: designed
     status_note: "Every wall in this column is agent code pending the ARM rebuild; twenty red-team cases fired at the previous deployment with zero true bypasses, and the three that hit a server error rendered no severity."
     evidence:
-      - {label: "Register T-01, prompt injection", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 364}
-      - {label: "Register I-01, PII through the pipeline", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 496}
+      - {label: "Register T-01, prompt injection", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 367}
+      - {label: "Register I-01, PII through the pipeline", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 499}
       - {label: "Red-team cycles", path: docs/grc/REDTEAM_RESULTS.md, line: 77}
       - {label: "Attack path 1", path: docs/grc/ATTACK_TREE_AI_PIPELINE.md, line: 193}
     solidify: "Threat model: 17/20 resisted, 3 INFRA_ERROR; cycle 1 case 03 was a real bypass, closed same day"
@@ -49,9 +49,9 @@ nodes:
     status: partial
     status_note: "The three live containers carry no-new-privileges on one network; the sealed segment, the kernel sensor, and the secrets manager return with the rebuild."
     evidence:
-      - {label: "Register E-01, container breakout", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 641}
-      - {label: "Register E-04, lateral movement from the AI container", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 681}
-      - {label: "Register S-03, internal identity spoofing", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 319}
+      - {label: "Register E-01, container breakout", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 644}
+      - {label: "Register E-04, lateral movement from the AI container", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 684}
+      - {label: "Register S-03, internal identity spoofing", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 322}
       - {label: "Compromised container playbook", path: docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md, line: 175}
     solidify: none
   - id: stolen-credential
@@ -62,8 +62,8 @@ nodes:
     status: partial
     status_note: "The edge one-time PIN, the allowlisted key path, and the quarterly review are live; the second factor on SSH, the four hour elevation, and off-host session records wait on the gateway in the rebuild."
     evidence:
-      - {label: "Register R-02, SSH session attribution", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 451}
-      - {label: "Register E-03, role misconfiguration", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 668}
+      - {label: "Register R-02, SSH session attribution", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 454}
+      - {label: "Register E-03, role misconfiguration", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 671}
       - {label: "Leaked credential playbook", path: docs/grc/PLAYBOOK_LEAKED_CREDENTIAL.md, line: 110}
     solidify: none
   - id: poisoned-image
@@ -74,8 +74,8 @@ nodes:
     status: partial
     status_note: "The pull request gate and the scanners are live, the live containers pin by digest, and the signature check blocks on the repositories that sign; the sealed segment returns with the rebuild."
     evidence:
-      - {label: "Register T-05, image tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 419}
-      - {label: "Register T-03, state tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 393}
+      - {label: "Register T-05, image tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 422}
+      - {label: "Register T-03, state tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 396}
       - {label: "AI supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
     solidify: "Threat model: cosign reports, does not block; live compose pins by tag"
   # COLUMN 1: internet scanner
@@ -162,12 +162,12 @@ nodes:
     what: "Every account and role is reviewed on a quarterly calendar and the review is recorded, so a role nobody needs does not outlive its owner's task."
     controls: [AC-2, AC-6]
     status: live
-    status_note: "The last review is dated in the record and the next is scheduled; the register's own row still says monthly and is queued to say quarterly."
+    status_note: "The last review is dated in the record and the next is scheduled; the register row says quarterly, matching the cadence."
     evidence:
       - {label: "Last and next review dates", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 5}
       - {label: "Review cadence", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 7}
-      - {label: "Register E-03 to reconcile", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 668}
-    solidify: "Threat model: E-03 says monthly"
+      - {label: "Register E-03", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 671}
+    solidify: "none (E-03 says quarterly since 2026-09-06)"
   - {id: recorded-mtls, label: "recorded, shipped mTLS", zone: identity, from: control-layers/session-recording}
   # COLUMN 6: poisoned image
   - {id: digest-pinned, label: "digest pinned, Tier 1", zone: delivery, from: control-layers/digest-pinning}

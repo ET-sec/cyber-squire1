@@ -68,7 +68,7 @@ a(f'<text x="{RAIL_X}" y="24">LAYER</text>')
 a(f'<text x="{NODE_X0}" y="24">BARRIER</text>')
 a(f'<text x="{CHIP_X0}" y="24">NIST 800-53 REV 5</text>')
 a('</g>')
-a(f'<text x="1672" y="24" font-size="11.5" fill="{DIM}" text-anchor="end">133 controls cited</text>')
+a(f'<text x="1672" y="24" font-size="11.5" fill="{DIM}" text-anchor="end">140 controls cited</text>')
 
 for i,b in enumerate(BANDS):
     y=Y0+PITCH*i

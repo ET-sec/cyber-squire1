@@ -176,7 +176,7 @@ nodes:
     evidence:
       - {label: "Action check", path: builds/squire/src/squire/actions_allowlist.py, line: 57}
       - {label: "Recommendation enforcement", path: builds/squire/src/squire/actions_allowlist.py, line: 72}
-      - {label: "Layer 5 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 682}
+      - {label: "Layer 5 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 696}
     solidify: "Threat model: forbidden-verb filter, allowed_verbs never read"
   - id: spend-ceiling
     label: "spend ceiling"
@@ -188,7 +188,7 @@ nodes:
     evidence:
       - {label: "Daily spend query", path: builds/squire/src/squire/cost_ceiling.py, line: 35}
       - {label: "Breach decision", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
-      - {label: "Layer 4 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 682}
+      - {label: "Layer 4 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 696}
     solidify: "AI trust: cost ceiling fails open on DB error; Tier 1 route to net-ai"
   - {id: langfuse-trace, label: "Langfuse trace", zone: application, from: topology/langfuse}
   - id: webhook-token
@@ -266,23 +266,23 @@ nodes:
     what: "The database is dumped every night by the instance's own identity into the backup bucket; that identity can write and cannot delete."
     controls: [CP-9, IA-3]
     status: live
-    status_note: "Running on the current host; the SSP backup row still reads Partially Implemented and is queued for re-baseline."
+    status_note: "Running on the current host; the SSP backup row reads Implemented on the bucket, the retention rule, and the write-only writer identity."
     evidence:
       - {label: "Backup writer identity", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
       - {label: "Write-only grant", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 102-109}
       - {label: "Recovery plan", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 17}
-    solidify: "Control layers: CP-9 re-baseline"
+    solidify: "none (CP-9 re-baselined 2026-09-06)"
   - id: timed-restore
     label: "timed restore"
     zone: data
     what: "Once a month the latest dump is restored into a temporary container and the time to a usable database is logged, so the backup is proven rather than assumed."
     controls: [CP-4, CP-10]
     status: live
-    status_note: "Scheduled on the current host per the recovery plan; the SSP rows for testing and recovery are queued for re-baseline."
+    status_note: "Scheduled on the current host per the recovery plan; the first timed run restored 76 tables in 5 seconds, and the SSP rows for testing and recovery read Implemented on that record."
     evidence:
       - {label: "Monthly restore test", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 224}
       - {label: "Backup bucket and retention", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
-    solidify: "Control layers: CP-4, CP-10 re-baseline"
+    solidify: "none (CP-4, CP-10 re-baselined 2026-09-06)"
   # DELIVERY
   - {id: pull-request, label: "pull request", zone: delivery, from: topology/pull-request}
   - {id: oidc-exchange, label: "OIDC exchange", zone: delivery, from: topology/oidc-exchange}
