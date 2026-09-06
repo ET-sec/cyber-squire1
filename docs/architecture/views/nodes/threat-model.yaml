@@ -177,11 +177,11 @@ nodes:
     zone: delivery
     what: "Every change is scanned for secrets, CVEs, and misconfigurations, a software bill of materials is generated on merge, and upstream image signatures are checked."
     controls: [RA-5, SI-7, SA-11]
-    status: partial
-    status_note: "The scanners are a required check and block; the signature check reports without blocking, and the fail-closed flip with pinned identities is the queued change."
+    status: live
+    status_note: "The scanners are a required check and block, and since 2026-09-06 the signature check blocks too: pinned identities for the repositories that sign, a pinned key for the access proxy, and an unsigned publisher is recorded rather than passed."
     evidence:
       - {label: "CVE and misconfiguration scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Bill of materials", path: .github/workflows/security.yml, line: 189}
       - {label: "Signature check, blocking", path: .github/workflows/security.yml, line: 164}
-    solidify: "Threat model: cosign continue-on-error, tally never fails the job"
+    solidify: "closed 2026-09-06 with the Cosign fail-closed change (PR #45)"
   - {id: sealed-no-route, label: "sealed: no route home", zone: runtime, from: control-layers/sealed-net-ai}
