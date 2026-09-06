@@ -131,8 +131,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; the transcriber's definition sits on the sealed network and the workflow that routes audio to it is not yet restored on the current host."
     evidence:
-      - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 212}
-      - {label: "On the sealed network only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 243-244}
+      - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
+      - {label: "On the sealed network only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 247-248}
     solidify: "AI trust: transcript holds; workflow restore pending"
   # NET-CORE, row 2
   - id: operator
@@ -165,8 +165,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild together with the transcriber and the workflow that calls it."
     evidence:
-      - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1020-1022}
-      - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 212}
+      - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1024-1026}
+      - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
     solidify: "AI trust: transcript holds"
   # NET-AI, SEALED SEGMENT
   - {id: local-llm, label: "local LLM", zone: net-ai, from: topology/ollama}

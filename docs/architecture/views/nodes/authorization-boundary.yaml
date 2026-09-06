@@ -57,7 +57,7 @@ nodes:
     from: topology/langfuse
     what: "The analytics store behind the traces; holds the spans the worker writes."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 693}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 697}
       - {label: "Audit trail field spec", path: docs/grc/AI_AUDIT_TRAIL_SPEC.md, line: 54}
   - id: redis
     label: Redis
@@ -65,7 +65,7 @@ nodes:
     from: topology/langfuse
     what: "The queue and cache the trace store uses between its web and worker processes."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 733}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 737}
   # NET-AI
   - {id: whisper, label: Whisper, zone: net-ai, from: topology/whisper}
   - {id: ollama, label: Ollama, zone: net-ai, from: topology/ollama}
@@ -256,7 +256,7 @@ nodes:
     evidence:
       - {label: "Signature check, advisory", path: .github/workflows/security.yml, line: 179-181}
       - {label: "SBOM generation", path: .github/workflows/security.yml, line: 253}
-      - {label: "Pinning rule", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 44}
+      - {label: "Pinning rule", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
       - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
     solidify: "Boundary view: Cosign advisory"
   - id: secrets-manager
