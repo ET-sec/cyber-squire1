@@ -14,7 +14,8 @@ path must be tracked on main, every label must appear exactly once as a <text> i
 or designed. The SSP row (name, status, line) is attached to each control at sync time, never typed by hand.
 An entry may say `from: <slug>/<id>` to inherit every field from another table's entry and override some (label and zone
 at least). A table may carry `chips: {zone: ...}`: every box whose label is a control id then gets a generated entry from
-its SSP row (name, status, implementation text) and every occurrence on the drawing is wrapped.
+its SSP row (name, status, implementation text) and every occurrence on the drawing is wrapped. An entry may say
+`repeat: true` when the same box is drawn more than once (one principal in several rows); every occurrence opens it.
 
 Usage:
   python3 scripts/sync_views.py            # dry run, report drift
@@ -221,7 +222,9 @@ def load_nodes(slug, svg):
             if e.get("path") not in repo: errs.append(f"{nid}: evidence path {e.get('path')} is not tracked on main")
             if not re.fullmatch(r"\d+(-\d+)?", str(e.get("line", ""))): errs.append(f"{nid}: evidence line {e.get('line')!r} must be N or N-M")
         k = svg.count(">" + html.escape(n["label"], quote=False) + "</text>")
-        if k != 1: errs.append(f"{nid}: label {n['label']!r} appears {k} times as a <text> in the SVG, need exactly 1")
+        if n.get("repeat"):
+            if k < 2: errs.append(f"{nid}: repeat is set but label {n['label']!r} appears {k} time(s) as a <text> in the SVG")
+        elif k != 1: errs.append(f"{nid}: label {n['label']!r} appears {k} times as a <text> in the SVG, need exactly 1 (or set repeat: true)")
     if errs:
         print(f"nodes/{slug}.yaml: {len(errs)} problem(s)\n  " + "\n  ".join(errs), file=sys.stderr); sys.exit(2)
     if table.get("chips"): nodes += chip_entries(svg, rows, table["chips"])
@@ -235,7 +238,7 @@ def inject_nodes(svg, nodes):
         # the box is the rect plus its label; a dim sub-label that immediately follows the label joins the group so a
         # click anywhere on the box opens the panel (the topology keeps its sub-labels in separate groups, unaffected)
         pat = re.compile(rf'(<rect\b[^>]*/>)(\s*)(<text\b[^>]*>{lab}</text>(?:\s*<text\b[^>]*font-size="11(?:\.5)?"[^>]*>[^<]*</text>)?|<g text-anchor="middle">\s*<text\b[^>]*>{lab}</text>.*?</g>)', re.S)
-        svg, k = pat.subn(lambda m: open_tag + m.group(1) + m.group(2) + m.group(3) + "</g>", svg, count=0 if n.get("chip") else 1)
+        svg, k = pat.subn(lambda m: open_tag + m.group(1) + m.group(2) + m.group(3) + "</g>", svg, count=0 if (n.get("chip") or n.get("repeat")) else 1)
         assert k >= 1, f"node {n['id']}: no rect followed by the label {n['label']!r} in the SVG"
     return svg
 

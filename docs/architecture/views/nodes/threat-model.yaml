@@ -1,0 +1,187 @@
+# Node table for the threat model view: 6 attacker positions plus 31 walls (labels from gen_threat-model.py COLS).
+# The STRIDE letter boxes and the LOW/MEDIUM residual chips repeat across columns and stay unwrapped. An attacker's
+# status is the state of the wall set that meets it on the current host. Entries with `from:` inherit another table's
+# entry and override label and zone at least. See nodes/topology.yaml for the field rules.
+nodes:
+  # ATTACKER POSITIONS
+  - id: internet-scanner
+    label: "internet scanner"
+    zone: "attacker position"
+    what: "Any host on the internet with no credential: it can find the edge login page and the public webhook paths and nothing behind them."
+    controls: [SC-7, SC-5]
+    status: live
+    status_note: "All four walls in this column are live on the current host; what remains is the edge's own login page and the public paths, rated LOW in the register."
+    evidence:
+      - {label: "Register D-01, DDoS via tunnel ingress", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 569}
+      - {label: "Register S-05, tunnel origin spoofing", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 345}
+      - {label: "Boundary TB-1", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 206}
+    solidify: none
+  - id: webhook-caller
+    label: "webhook caller"
+    zone: "attacker position"
+    what: "Someone who learned a public webhook path: they can post into the edge and, with a forged alert, into a recommend-only pipeline."
+    controls: [SC-5, AC-3, IA-5]
+    status: partial
+    status_note: "The two edge walls are live; the four application walls belong to the agent and return with the ARM rebuild, and the orchestration webhook's own application-layer check is an open assessment item."
+    evidence:
+      - {label: "Register S-01, spoofed webhook requests", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 293}
+      - {label: "Open finding on webhook input validation", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 284}
+      - {label: "Boundaries TB-2 and TB-7", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 207}
+    solidify: "Threat model: n8n master-cmd webhook has no application-layer auth (CR-001-F4)"
+  - id: hostile-prompt
+    label: "hostile prompt"
+    zone: "attacker position"
+    what: "Attacker text inside an alert: it reaches the model and can only ever produce text advice, because nothing the agent says executes."
+    controls: [SI-10, SI-4, AC-6]
+    status: designed
+    status_note: "Every wall in this column is agent code pending the ARM rebuild; twenty red-team cases fired at the previous deployment with zero true bypasses, and the three that hit a server error rendered no severity."
+    evidence:
+      - {label: "Register T-01, prompt injection", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 364}
+      - {label: "Register I-01, PII through the pipeline", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 496}
+      - {label: "Red-team cycles", path: docs/grc/REDTEAM_RESULTS.md, line: 77}
+      - {label: "Attack path 1", path: docs/grc/ATTACK_TREE_AI_PIPELINE.md, line: 193}
+    solidify: "Threat model: 17/20 resisted, 3 INFRA_ERROR; cycle 1 case 03 was a real bypass, closed same day"
+  - id: compromised-container
+    label: "compromised container"
+    zone: "attacker position"
+    what: "Code running inside one service: it reaches its own network segment and environment, and a host escape needs a kernel zero-day that lands in the sensor."
+    controls: [AC-4, CM-7, SI-4]
+    status: partial
+    status_note: "The three live containers carry no-new-privileges on one network; the sealed segment, the kernel sensor, and the secrets manager return with the rebuild."
+    evidence:
+      - {label: "Register E-01, container breakout", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 641}
+      - {label: "Register E-04, lateral movement from the AI container", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 681}
+      - {label: "Register S-03, internal identity spoofing", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 319}
+      - {label: "Compromised container playbook", path: docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md, line: 175}
+    solidify: none
+  - id: stolen-credential
+    label: "stolen credential"
+    zone: "attacker position"
+    what: "A password or a laptop in the wrong hands: the edge factor and the key from one range stand in front, and the design adds a recorded session on a four hour clock."
+    controls: [IA-2, AC-12, AC-2]
+    status: partial
+    status_note: "The edge one-time PIN, the allowlisted key path, and the quarterly review are live; the second factor on SSH, the four hour elevation, and off-host session records wait on the gateway in the rebuild."
+    evidence:
+      - {label: "Register R-02, SSH session attribution", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 451}
+      - {label: "Register E-03, role misconfiguration", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 668}
+      - {label: "Leaked credential playbook", path: docs/grc/PLAYBOOK_LEAKED_CREDENTIAL.md, line: 110}
+    solidify: none
+  - id: poisoned-image
+    label: "poisoned image"
+    zone: "attacker position"
+    what: "A container tag nobody here built: it needs a reviewed pull request to enter the compose file and, once running, has no route home from the sealed segment."
+    controls: [CM-5, CM-3, RA-5]
+    status: partial
+    status_note: "The pull request gate and the scanners are live; the live three-container definition pins by version tag, the signature check reports without blocking, and the sealed segment returns with the rebuild."
+    evidence:
+      - {label: "Register T-05, image tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 419}
+      - {label: "Register T-03, state tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 393}
+      - {label: "AI supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
+    solidify: "Threat model: cosign reports, does not block; live compose pins by tag"
+  # COLUMN 1: internet scanner
+  - {id: no-origin-ip, label: "no origin IP in DNS", zone: edge, from: control-layers/dns-proxy}
+  - {id: waf-ddos, label: "WAF, DDoS absorbed", zone: edge, from: topology/waf}
+  - {id: no-ports, label: "no ports, dials out", zone: host, from: topology/cloudflared}
+  - {id: ssh-allowlist, label: "SSH allowlist only", zone: host, from: topology/allowlisted-range}
+  # COLUMN 2: webhook caller
+  - {id: waf-per-ip, label: "WAF and per-IP limit", zone: edge, from: control-layers/rate-limits}
+  - id: edge-auth
+    label: "edge auth, 1 carve-out"
+    zone: edge
+    from: topology/access
+    what: "Identity checked at the edge before the host sees a request, with one path-scoped carve-out for the messaging vendor's published ranges."
+  - {id: token-header, label: "token header on Squire", zone: application, from: control-layers/webhook-token}
+  - id: typed-payload
+    label: "typed payload, schema"
+    zone: application
+    what: "The request model: a typed schema on the alert endpoint, so an off-shape payload is rejected before any node runs."
+    controls: [SI-10]
+    status: designed
+    status_note: "Pending the ARM rebuild; a body-size cap on the endpoint is a queued addition."
+    evidence:
+      - {label: "Request model", path: builds/squire/src/squire/api_models.py, line: 9}
+      - {label: "Alert endpoint", path: builds/squire/src/squire/app.py, line: 65}
+    solidify: "Identity view: no size cap on /alert"
+  - {id: recommend-only, label: "recommend-only actions", zone: application, from: control-layers/actions-allowlist}
+  - id: traced-human
+    label: "traced, human on HIGH"
+    zone: application
+    from: control-layers/hitl-review
+    what: "Every model call is traced by correlation id and a HIGH or CRITICAL finding carries an approval row a person has to close."
+    evidence:
+      - {label: "Route node", path: builds/squire/src/squire/nodes/route.py, line: 1}
+      - {label: "Severity gates", path: docs/grc/HITL_POLICY.md, line: 61}
+      - {label: "Trace identity", path: builds/squire/src/squire/telemetry.py, line: 17}
+  # COLUMN 3: hostile prompt
+  - {id: pii-scrubbed, label: "PII scrubbed pre-graph", zone: application, from: ai-trust/pii-scrub}
+  - {id: jailbreak-pii-rail, label: "jailbreak and PII rail", zone: application, from: ai-trust/input-rail}
+  - {id: output-rail, label: "output rail, citations", zone: application, from: ai-trust/output-checks}
+  - {id: forbidden-verb, label: "forbidden-verb filter", zone: application, from: control-layers/actions-allowlist}
+  - {id: human-gate-high, label: "human gate on HIGH", zone: application, from: control-layers/hitl-review}
+  - {id: spend-cap, label: "spend cap, traced", zone: application, from: control-layers/spend-ceiling}
+  # COLUMN 4: compromised container
+  - {id: three-networks, label: "three bridge networks", zone: runtime, from: control-layers/three-networks}
+  - {id: nnp, label: "no-new-privs, 1 exempt", zone: runtime, from: control-layers/no-new-privileges}
+  - id: socket-sensors
+    label: "socket: 2 sensors only"
+    zone: runtime
+    what: "The container socket is mounted read-only into the two sensors and into no application container, so a compromised service cannot talk to the daemon."
+    controls: [AC-6, CM-7]
+    status: partial
+    status_note: "No container on the current host mounts the socket at all; the two sensors that will are the only holders in the full design, and since read-only limits the file rather than the API, the kernel sensor watches the two that hold it."
+    evidence:
+      - {label: "SIEM agent mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 435}
+      - {label: "Kernel sensor mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 486}
+      - {label: "Live compose, no socket mounts", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
+    solidify: "Threat model: :ro limits the socket file, not the Docker API"
+  - {id: falco-kernel, label: "Falco reads the kernel", zone: runtime, from: topology/falco}
+  - {id: secrets-token, label: "secrets need a token", zone: identity, from: topology/vault}
+  - id: db-credential
+    label: "DB needs a credential"
+    zone: data
+    from: topology/postgres
+    what: "The database accepts nothing without a role and a password; the design replaces the static password with a one hour lease from the secrets manager."
+  # COLUMN 5: stolen credential
+  - {id: otp-edge, label: "one-time PIN at edge", zone: edge, from: topology/access}
+  - id: second-factor-ssh
+    label: "second factor on SSH"
+    zone: host
+    what: "SSH to the host through the gateway requires a time-based second factor; the break-glass path beside it is a key from one range."
+    controls: [IA-2, IA-2(1)]
+    status: designed
+    status_note: "Pending the ARM rebuild; today SSH is the break-glass path, key plus source range, and the gateway with the second factor returns with the rebuild."
+    evidence:
+      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 371}
+      - {label: "Gateway-managed access", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 37}
+      - {label: "Gateway roles", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 83}
+    solidify: "Identity view: Teleport auth local with TOTP on the previous host"
+  - {id: jit-4h, label: "JIT expires in 4h", zone: identity, from: control-layers/jit-elevation}
+  - id: quarterly-review
+    label: "quarterly role review"
+    zone: identity
+    what: "Every account and role is reviewed on a quarterly calendar and the review is recorded, so a role nobody needs does not outlive its owner's task."
+    controls: [AC-2, AC-6]
+    status: live
+    status_note: "The last review is dated in the record and the next is scheduled; the register's own row still says monthly and is queued to say quarterly."
+    evidence:
+      - {label: "Last and next review dates", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 5}
+      - {label: "Review cadence", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 7}
+      - {label: "Register E-03 to reconcile", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 668}
+    solidify: "Threat model: E-03 says monthly"
+  - {id: recorded-mtls, label: "recorded, shipped mTLS", zone: identity, from: control-layers/session-recording}
+  # COLUMN 6: poisoned image
+  - {id: digest-pinned, label: "digest pinned, Tier 1", zone: delivery, from: control-layers/digest-pinning}
+  - {id: reviewed-pr, label: "reviewed PR to change", zone: delivery, from: topology/human-review}
+  - id: scan-sbom-sig
+    label: "scan, SBOM, signature"
+    zone: delivery
+    what: "Every change is scanned for secrets, CVEs, and misconfigurations, a software bill of materials is generated on merge, and upstream image signatures are checked."
+    controls: [RA-5, SI-7, SA-11]
+    status: partial
+    status_note: "The scanners are a required check and block; the signature check reports without blocking, and the fail-closed flip with pinned identities is the queued change."
+    evidence:
+      - {label: "CVE and misconfiguration scan", path: .github/workflows/security.yml, line: 32}
+      - {label: "Bill of materials", path: .github/workflows/security.yml, line: 242}
+      - {label: "Signature check, reporting only", path: .github/workflows/security.yml, line: 200-217}
+    solidify: "Threat model: cosign continue-on-error, tally never fails the job"
+  - {id: sealed-no-route, label: "sealed: no route home", zone: runtime, from: control-layers/sealed-net-ai}
