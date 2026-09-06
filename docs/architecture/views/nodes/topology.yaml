@@ -352,47 +352,50 @@ nodes:
     zone: delivery
     what: "CI trades a short-lived GitHub identity token for a short-lived cloud session bound to a fresh keypair, so no cloud key is stored in CI."
     controls: [IA-5, AC-6, SC-12, IA-3]
-    status: partial
-    status_note: "Live on the nightly drift check; the PR path runs with no credentials at all, and the exchange keeps one stored client secret that cannot call any cloud API on its own, so the exchange drawn on the PR path is the design."
+    status: live
+    status_note: "Runs on every merge to main for the real plan and on the nightly drift check, through one shared action; pull request branches hold no cloud identity by design, and the one stored value is the identity domain client secret, which cannot call any cloud API on its own."
     evidence:
       - {label: "Identity token permission", path: .github/workflows/drift-check.yml, line: 22}
       - {label: "Request the GitHub token", path: .github/actions/oci-session/action.yml, line: 39}
       - {label: "Exchange for a cloud session", path: .github/actions/oci-session/action.yml, line: 53}
+      - {label: "Session minted on every merge", path: .github/workflows/terraform-main.yml, line: 54}
       - {label: "PR path, no credentials", path: .github/workflows/terraform-pr.yml, line: 56}
-    solidify: "Tier 1: OIDC exchange only in drift-check.yml, stored client secret"
+    solidify: "none (exchange on main for the merge-time plan since 2026-09-06; the PR path has no identity by design; client secret stays stored, harmless alone)"
 
   - id: plan-scan-lint
     label: "plan, scan, lint"
     zone: delivery
     what: "Format check, validate, and Checkov static analysis on every pull request; secret, CVE, and code scans as a required check; a real plan against remote state on the nightly job."
     controls: [SA-11, RA-5, CM-6, SI-2]
-    status: partial
-    status_note: "Format, validate, and Checkov run on every PR and the scan pipeline is a required check; the real plan runs nightly with session credentials, and a PR-time credentialed plan is the queued change."
+    status: live
+    status_note: "Format, validate, and Checkov run on every pull request and the scan pipeline is a required check; the real plan against remote state runs on main after every merge and nightly, never on a pull request branch, because those hold no cloud identity by design."
     evidence:
       - {label: "Format check", path: .github/workflows/terraform-pr.yml, line: 52}
       - {label: "Validate", path: .github/workflows/terraform-pr.yml, line: 60}
       - {label: "Checkov", path: .github/workflows/terraform-pr.yml, line: 64}
+      - {label: "Real plan on main after every merge", path: .github/workflows/terraform-main.yml, line: 80}
       - {label: "Nightly plan against live state", path: .github/workflows/drift-check.yml, line: 65}
       - {label: "Secret scan", path: .github/workflows/security.yml, line: 25}
       - {label: "CVE and misconfig scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Static analysis", path: .github/workflows/security.yml, line: 51}
-    solidify: "Tier 1: credentialed plan step on main"
+    solidify: "none (Tier 1 item 4 closed 2026-09-06)"
 
   - id: opa-gates
     label: "OPA gates, 4 deny"
     zone: delivery
     what: "Four deny policies in Rego: no public firewall rule, no unencrypted storage, no missing prevent-destroy, no root SSH key; a violation fails the check."
     controls: [CM-3, CM-6, SA-11]
-    status: partial
-    status_note: "The policies are tested on every PR against a clean fixture plan and a violating fixture plan; running them on the PR's own plan needs the credentialed plan step, which is the queued change."
+    status: live
+    status_note: "The four deny policies run on every pull request against a clean and a violating fixture plan, and on main against the real plan of every merge before anything can be applied; a deny fails the job and sends the report to the operator's chat."
     evidence:
       - {label: "Deny public firewall", path: terraform/cd-oci-infrastructure/policy/deny_public_firewall.rego, line: 1}
       - {label: "Deny unencrypted storage", path: terraform/cd-oci-infrastructure/policy/deny_no_encryption.rego, line: 1}
       - {label: "Deny missing prevent-destroy", path: terraform/cd-oci-infrastructure/policy/deny_missing_prevent_destroy.rego, line: 1}
       - {label: "Deny root SSH key", path: terraform/cd-oci-infrastructure/policy/deny_root_ssh_key.rego, line: 1}
       - {label: "Self-test on fixtures", path: .github/workflows/terraform-pr.yml, line: 80}
+      - {label: "Policies on the real plan, main", path: .github/workflows/terraform-main.yml, line: 116}
       - {label: "Violating fixture plan", path: terraform/cd-oci-infrastructure/policy/testdata/plan_violations.json, line: 1}
-    solidify: "Tier 1: OPA runs on fixture plans"
+    solidify: "none (Tier 1 item 5 closed 2026-09-06)"
 
   - id: human-review
     label: "human review"
@@ -413,12 +416,13 @@ nodes:
     what: "Terraform apply runs only from main after review and the gates; nothing applies from a branch or a laptop in the design."
     controls: [CM-3, CM-5, AC-6, CM-2]
     status: designed
-    status_note: "No workflow applies today; apply runs from the operator's workstation with short-lived credentials from the secrets manager, and an apply job on main behind the identity exchange is the queued change."
+    status_note: "The apply job is merged behind the production environment with a required reviewer and re-plans under the state lock before applying the reviewed change set, but a repository variable keeps it off until the CI identity, read-only today, is granted write; until then apply runs from the operator's workstation with short-lived credentials."
     evidence:
       - {label: "Apply with a manual approval gate, per policy", path: docs/grc/POLICY_CHANGE_MANAGEMENT.md, line: 135}
-      - {label: "The only credentialed Terraform in CI, plan only", path: .github/workflows/drift-check.yml, line: 65}
+      - {label: "Apply job, environment-gated, switched off", path: .github/workflows/terraform-main.yml, line: 146-151}
+      - {label: "Re-plan under the lock, change set confirmed", path: .github/workflows/terraform-main.yml, line: 191}
       - {label: "Remote state the apply would use", path: terraform/cd-oci-infrastructure/terraform.tf, line: 19}
-    solidify: "Tier 1: no terraform apply in any workflow"
+    solidify: "Tier 1 item 3: job merged and gated; CI_APPLY_ENABLED unset and cd-ci read-only; the go is Emmanuel's (grant write, set the variable, first apply with a receipt)"
 
   - id: drift-check
     label: "nightly drift check"
