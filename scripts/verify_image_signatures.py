@@ -25,6 +25,7 @@ import json
 import os
 import re
 import subprocess
+import time
 import sys
 from pathlib import Path
 
@@ -53,10 +54,26 @@ def repo_of(ref: str) -> str:
     return name[:colon] if colon > slash else name
 
 
+TRANSIENT = ("TOOMANYREQUESTS", "Rate exceeded", "429", "timeout", "connection reset")
+RETRY_WAIT = (10, 30)
+
+
 def run(*args: str) -> tuple[bool, str]:
-    proc = subprocess.run(["cosign", *args], capture_output=True, text=True)
-    tail = (proc.stderr.strip().splitlines() or [""])[-1]
-    return proc.returncode == 0, tail
+    """Run cosign; retry twice on a registry rate limit or a transport error.
+
+    Public registries rate-limit anonymous pulls per source address, and GitHub
+    runners share addresses, so a verification job that fails closed must not
+    read a 429 as a bad signature. A signature that does not verify is not
+    transient and returns on the first attempt.
+    """
+    for attempt, wait in enumerate((*RETRY_WAIT, None)):
+        proc = subprocess.run(["cosign", *args], capture_output=True, text=True)
+        tail = (proc.stderr.strip().splitlines() or [""])[-1]
+        if proc.returncode == 0 or wait is None or not any(s in tail for s in TRANSIENT):
+            return proc.returncode == 0, tail
+        print(f"    transient registry error, retry {attempt + 1} in {wait}s: {tail[-120:]}", flush=True)
+        time.sleep(wait)
+    return False, tail
 
 
 def main() -> int:
