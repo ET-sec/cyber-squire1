@@ -76,8 +76,8 @@ nodes:
     status: partial
     status_note: "The nightly drift check reads with this session today; the apply job that would write on main does not exist yet, and apply runs from the operator's workstation with short-lived credentials."
     evidence:
-      - {label: "Drift check plans against the live account", path: .github/workflows/drift-check.yml, line: 6}
-      - {label: "Token exchange, no stored cloud key", path: .github/workflows/drift-check.yml, line: 52-53}
+      - {label: "Drift check plans against the live account", path: .github/workflows/drift-check.yml, line: 7}
+      - {label: "Token exchange, no stored cloud key", path: .github/actions/oci-session/action.yml, line: 53}
       - {label: "Escalation path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
     solidify: "Tier 1: no apply job"
   - id: telegram

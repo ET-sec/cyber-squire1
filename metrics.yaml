@@ -3,7 +3,7 @@
 # Pre-commit hook auto-runs this when source dirs change.
 # Do not hand-edit: changes will be overwritten.
 
-generated_at: '2026-09-06T20:19:56+00:00'
+generated_at: '2026-09-06T20:28:11+00:00'
 generator: build_metrics.py
 version: 1
 
@@ -20,7 +20,7 @@ stack:
   containers_live: 3
   containers_designed: 19
   workflows_n8n_exported: 14
-  workflows_github_actions: 15
+  workflows_github_actions: 16
 
 grc:
   total_documents: 57
@@ -67,7 +67,7 @@ governance:
   poam_auto_findings_total: 75
   poam_auto_findings_open: 0
   poam_auto_findings_closed: 75
-  ci_actions_unpinned: 0
+  ci_actions_unpinned: 3
 
 contact:
   email: "etigoue@tigouetheory.com"

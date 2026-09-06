@@ -18,7 +18,7 @@ nodes:
     status_note: "Every pull request runs the credential-free pipeline and the nightly drift check trades a signed token for a short-lived session on the runtime cloud; the security plane's role is written and not yet applied."
     evidence:
       - {label: "PR pipeline, no credentials", path: .github/workflows/terraform-pr.yml, line: 1}
-      - {label: "Nightly drift check with the token exchange", path: .github/workflows/drift-check.yml, line: 21}
+      - {label: "Nightly drift check with the token exchange", path: .github/workflows/drift-check.yml, line: 22}
       - {label: "Scan pipeline on merge", path: .github/workflows/security.yml, line: 1}
       - {label: "Security plane role for the runner", path: terraform/cd-aws-security-plane/oidc.tf, line: 44}
     solidify: "Tier 1: no apply job; exchange keeps one stored client secret"
@@ -30,7 +30,7 @@ nodes:
     status: partial
     status_note: "Drift-check alerts reach the chat from CI today; the break-glass read alert is in the unapplied security plane and the sensor path returns with the rebuild."
     evidence:
-      - {label: "Drift alert to the chat", path: .github/workflows/drift-check.yml, line: 135}
+      - {label: "Drift alert to the chat", path: .github/workflows/drift-check.yml, line: 89}
       - {label: "Break-glass read alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
       - {label: "Edge stays closed by default", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 31}
     solidify: none
