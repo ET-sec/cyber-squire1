@@ -14,10 +14,11 @@
 #   Update path: Renovate PR. Patch bumps auto-merge after smoke test green.
 #   Major bumps require manual review.
 #
-# Tier 3: stateless or signature-driven (latest acceptable)
+# Tier 3: stateless or signature-driven (digest pinned too, as of 2026-09-06;
+#         a floating tag changes under the scan and leaves nothing to roll back to)
 #   Ollama, Whisper.
-#   Format: image: name:latest (or pinned if already done)
-#   Update path: pulled on container restart. No PRs. Accepted drift.
+#   Format: image: name:tag@sha256:... (Renovate bumps tag and digest together)
+#   Update path: Renovate PR (grouped). Automerge waits on Cosign fail-closed.
 #
 # Tier 0: locally built images (separate pipeline)
 #   cd-service-nemo, cd-service-squire, cd-service-fluentd.
@@ -210,8 +211,11 @@ services:
   # - Keeps voice data private (no external API)
   #
   cd-service-whisper:
-    # Tier 3: stateless inference. :latest-cpu acceptable. Pulled on restart.
-    image: fedirz/faster-whisper-server:latest-cpu
+    # Tier 3: stateless inference. Pinned 2026-09-06 to the image :latest-cpu
+    # resolved to (0.5.0-cpu, multi-arch index, arm64 present); a floating tag
+    # changes under the Trivy scan and leaves nothing to roll back to. Upstream
+    # is archived (renamed speaches); ARM rebuild session A decides the move.
+    image: fedirz/faster-whisper-server:0.5.0-cpu@sha256:760e5e43d427dc6cfbbc4731934b908b7de9c7e6d5309c6a1f0c8c923a5b6030
     container_name: cd-service-whisper
     restart: unless-stopped
     ports:
