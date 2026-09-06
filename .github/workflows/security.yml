@@ -165,7 +165,7 @@ jobs:
     name: Container Image Verification
     runs-on: ubuntu-latest
     needs: security-scan
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name == 'pull_request' || (github.ref == 'refs/heads/main' && github.event_name == 'push')
     permissions:
       contents: read
 
@@ -176,68 +176,15 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
-      - name: Verify upstream image signatures
-        continue-on-error: true
-        run: |
-          IMAGES=(
-            "postgres:16-alpine"
-            "n8nio/n8n:latest"
-            "ollama/ollama:latest"
-            "fedirz/faster-whisper-server:latest-cpu"
-            "hashicorp/vault:1.15"
-            "quay.io/keycloak/keycloak:23.0"
-            "datadog/agent:latest"
-            "cloudflare/cloudflared:latest"
-          )
-
-          echo "## Container Signature Verification Report"
-          echo ""
-
-          VERIFIED=0
-          UNVERIFIED=0
-
-          for IMAGE in "${IMAGES[@]}"; do
-            echo "---"
-            echo "Checking: $IMAGE"
-            if cosign verify \
-              --certificate-oidc-issuer-regexp '.*' \
-              --certificate-identity-regexp '.*' \
-              "$IMAGE" > /dev/null 2>&1; then
-              echo "VERIFIED: $IMAGE"
-              VERIFIED=$((VERIFIED + 1))
-            else
-              echo "UNVERIFIED: $IMAGE (no cosign signature found)"
-              UNVERIFIED=$((UNVERIFIED + 1))
-            fi
-          done
-
-          echo ""
-          echo "## Summary"
-          echo "Verified: $VERIFIED / $((VERIFIED + UNVERIFIED))"
-          echo "Unverified: $UNVERIFIED / $((VERIFIED + UNVERIFIED))"
-
-      - name: Generate image digest manifest
-        run: |
-          IMAGES=(
-            "postgres:16-alpine"
-            "n8nio/n8n:latest"
-            "ollama/ollama:latest"
-            "fedirz/faster-whisper-server:latest-cpu"
-            "hashicorp/vault:1.15"
-            "quay.io/keycloak/keycloak:23.0"
-            "datadog/agent:latest"
-            "cloudflare/cloudflared:latest"
-          )
-
-          echo "## Image Digest Manifest"
-          echo ""
-
-          for IMAGE in "${IMAGES[@]}"; do
-            DIGEST=$(docker manifest inspect "$IMAGE" 2>/dev/null \
-              | jq -r '.manifests[0].digest // .config.digest' 2>/dev/null \
-              || echo "UNAVAILABLE")
-            echo "$IMAGE@$DIGEST"
-          done
+      # Fails closed. Every image the compose files pin is checked against the
+      # publisher's policy in .github/image-signers.json: keyless with a pinned
+      # identity and issuer, or a public key kept in the repo. A signed image
+      # that does not verify, or an image with no policy, fails the job on the
+      # pull request and on main. Publishers that do not sign are reported as
+      # unsigned, never counted as passed. Runs on pull requests so a Renovate
+      # bump cannot auto-merge past it.
+      - name: Verify pinned image signatures against the signer policy
+        run: python3 scripts/verify_image_signatures.py
 
   sbom:
     name: Generate SBOMs
@@ -260,46 +207,46 @@ jobs:
 
 
       # --- Per-image SBOMs ---
-      - name: "SBOM postgres:16-alpine"
+      - name: "SBOM pgvector/pgvector:pg16 (live pin)"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          image: postgres:16-alpine
+          image: pgvector/pgvector:pg16@sha256:ccc6e83d6e35e931dc7c5def2022729d5a6c370318d099181995567ff1fb4d6b
           format: spdx-json
           output-file: sbom-postgres.spdx.json
           artifact-name: sbom-postgres-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: "SBOM n8nio/n8n:latest"
+      - name: "SBOM n8nio/n8n (live pin)"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          image: n8nio/n8n:latest
+          image: n8nio/n8n:2.17.5@sha256:81dc967a062bf267d6aa827e5dfb492ce80e366e77f3b8051c07970a653fb69a
           format: spdx-json
           output-file: sbom-n8n.spdx.json
           artifact-name: sbom-n8n-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: "SBOM hashicorp/vault:1.15"
+      - name: "SBOM hashicorp/vault (pinned)"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          image: hashicorp/vault:1.15
+          image: hashicorp/vault:1.15@sha256:0450896c43b13879b19442b204ce29dd19b5a10fce43d5cf38af17da20f56f4d
           format: spdx-json
           output-file: sbom-vault.spdx.json
           artifact-name: sbom-vault-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: "SBOM datadog/agent:latest"
+      - name: "SBOM datadog/agent (pinned)"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          image: datadog/agent:latest
+          image: datadog/agent:7.78.0@sha256:506c580f21aa53830b47a7ea161760d9a088ed689d17a85521b4138695a9ee59
           format: spdx-json
           output-file: sbom-datadog.spdx.json
           artifact-name: sbom-datadog-${{ github.sha }}-${{ github.run_id }}
 
 
-      - name: "SBOM cloudflare/cloudflared:latest"
+      - name: "SBOM cloudflare/cloudflared (live pin)"
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          image: cloudflare/cloudflared:latest
+          image: cloudflare/cloudflared:2026.3.0@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0
           format: spdx-json
           output-file: sbom-cloudflared.spdx.json
           artifact-name: sbom-cloudflared-${{ github.sha }}-${{ github.run_id }}
