@@ -72,7 +72,7 @@ nodes:
     what: "A container tag nobody here built: it needs a reviewed pull request to enter the compose file and, once running, has no route home from the sealed segment."
     controls: [CM-5, CM-3, RA-5]
     status: partial
-    status_note: "The pull request gate and the scanners are live; the live three-container definition pins by version tag, the signature check reports without blocking, and the sealed segment returns with the rebuild."
+    status_note: "The pull request gate and the scanners are live, the live containers pin by digest, and the signature check blocks on the repositories that sign; the sealed segment returns with the rebuild."
     evidence:
       - {label: "Register T-05, image tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 419}
       - {label: "Register T-03, state tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 393}
@@ -181,7 +181,7 @@ nodes:
     status_note: "The scanners are a required check and block; the signature check reports without blocking, and the fail-closed flip with pinned identities is the queued change."
     evidence:
       - {label: "CVE and misconfiguration scan", path: .github/workflows/security.yml, line: 32}
-      - {label: "Bill of materials", path: .github/workflows/security.yml, line: 242}
-      - {label: "Signature check, reporting only", path: .github/workflows/security.yml, line: 200-217}
+      - {label: "Bill of materials", path: .github/workflows/security.yml, line: 189}
+      - {label: "Signature check, reporting only", path: .github/workflows/security.yml, line: 164}
     solidify: "Threat model: cosign continue-on-error, tally never fails the job"
   - {id: sealed-no-route, label: "sealed: no route home", zone: runtime, from: control-layers/sealed-net-ai}

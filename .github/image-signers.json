@@ -1,0 +1,19 @@
+{
+  "_doc": "Per-publisher signing policy for every image the compose files pin. scripts/verify_image_signatures.py reads this on pull requests and on main and fails closed: a keyless or key entry must verify the exact pinned digest, an image with no entry fails, an unsigned entry is reported (and warns if a signature appears). Surveyed 2026-09-06 with cosign v3.1.2 against the pinned digests.",
+  "falcosecurity/falco": {"type": "keyless", "identity_regexp": "^https://github.com/falcosecurity/falco/", "issuer": "https://token.actions.githubusercontent.com"},
+  "falcosecurity/falcosidekick": {"type": "keyless", "identity_regexp": "^https://github.com/falcosecurity/falcosidekick/", "issuer": "https://token.actions.githubusercontent.com"},
+  "public.ecr.aws/gravitational/teleport-distroless": {"type": "key", "key": ".github/keys/teleport-oci-key-2023-05.pub", "source": "Teleport signs with a key it names teleport-oci-key-2023-05.pub on goteleport.com/security but does not link. This copy is the public key recorded in the Rekor entry (logIndex 1361502545) of Teleport's own signature in its registry namespace; RSA-4096, SHA-256 of the DER starts 65dc6f41fbcac4c9. Pinning it here makes any future image signed with a different key fail."},
+  "public.ecr.aws/gravitational/teleport-plugin-event-handler": {"type": "key", "key": ".github/keys/teleport-oci-key-2023-05.pub", "source": "same key as teleport-distroless"},
+  "cloudflare/cloudflared": {"type": "unsigned", "note": "no cosign signature published"},
+  "n8nio/n8n": {"type": "unsigned", "note": "no cosign signature published"},
+  "pgvector/pgvector": {"type": "unsigned", "note": "no cosign signature published"},
+  "hashicorp/vault": {"type": "unsigned", "note": "no cosign signature published"},
+  "quay.io/keycloak/keycloak": {"type": "unsigned", "note": "no cosign signature published"},
+  "datadog/agent": {"type": "unsigned", "note": "no cosign signature published"},
+  "ollama/ollama": {"type": "unsigned", "note": "no cosign signature published"},
+  "fedirz/faster-whisper-server": {"type": "unsigned", "note": "no cosign signature published; upstream archived"},
+  "langfuse/langfuse": {"type": "unsigned", "note": "no cosign signature published"},
+  "langfuse/langfuse-worker": {"type": "unsigned", "note": "no cosign signature published"},
+  "redis": {"type": "unsigned", "note": "no cosign signature published"},
+  "clickhouse/clickhouse-server": {"type": "unsigned", "note": "no cosign signature published"}
+}
