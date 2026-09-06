@@ -1,0 +1,97 @@
+name: OCI session from the GitHub OIDC token
+description: >-
+  Exchange the job's GitHub OIDC token for an OCI user principal session token
+  (RFC 8693 token exchange) and write the session config that Terraform's OCI
+  provider and backend read. CI holds no stored cloud key. The one stored
+  value is the identity domain confidential app's client secret, which cannot
+  call any cloud API on its own; the identity propagation trust on the OCI side
+  pins the subject to repo:<owner>/<repo>:ref:refs/heads/main, so a session can
+  only be minted from main. The session key pair is generated per run and the
+  UPST is bound to it. Non-obvious parts, kept from the original drift-check
+  recipe: Oracle's token type is urn:oci:token-type:oci-upst, and the Go SDK
+  behind Terraform requires a fingerprint even for SecurityToken auth, so the
+  session key's real fingerprint is written.
+
+inputs:
+  client_id:
+    description: Identity domain confidential app client id
+    required: true
+  client_secret:
+    description: Identity domain confidential app client secret
+    required: true
+  idcs_url:
+    description: Identity domain base URL
+    required: true
+  tenancy_ocid:
+    description: Tenancy OCID for the session config
+    required: true
+  ssh_public_key:
+    description: Public key the compute resource declares, needed as plan context only
+    required: true
+  region:
+    description: Home region for the session config
+    required: false
+    default: us-ashburn-1
+
+runs:
+  using: composite
+  steps:
+    - name: Request GitHub OIDC token
+      shell: bash
+      run: |
+        RESP=$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL")
+        JWT=$(echo "$RESP" | jq -r .value)
+        echo "::add-mask::$JWT"
+        echo "JWT=$JWT" >> "$GITHUB_ENV"
+
+    - name: Generate session keypair (UPST is bound to it)
+      shell: bash
+      run: |
+        openssl genrsa -out session.pem 2048 2>/dev/null
+        openssl rsa -in session.pem -pubout -outform DER 2>/dev/null | base64 -w0 > session_pub.b64
+
+    - name: Exchange JWT for OCI UPST (RFC 8693)
+      shell: bash
+      env:
+        CID: ${{ inputs.client_id }}
+        CSECRET: ${{ inputs.client_secret }}
+        IDCS: ${{ inputs.idcs_url }}
+      run: |
+        B64=$(printf '%s:%s' "$CID" "$CSECRET" | base64 -w0)
+        HTTP=$(curl -sS -o resp.json -w '%{http_code}' -X POST "$IDCS/oauth2/v1/token" \
+          -H "Authorization: Basic $B64" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
+          --data-urlencode "requested_token_type=urn:oci:token-type:oci-upst" \
+          --data-urlencode "public_key=$(cat session_pub.b64)" \
+          --data-urlencode "subject_token=$JWT" \
+          --data-urlencode "subject_token_type=jwt")
+        echo "exchange HTTP status: $HTTP"
+        if [ "$HTTP" != "200" ]; then
+          jq 'del(.access_token, .token)' resp.json || true
+          exit 1
+        fi
+        printf '%s' "$(jq -r '.token // .access_token' resp.json)" > upst.token
+        chmod 600 upst.token session.pem
+        echo "::add-mask::$(cat upst.token)"
+        rm -f resp.json
+
+    - name: Configure OCI session auth for Terraform
+      shell: bash
+      env:
+        TENANCY: ${{ inputs.tenancy_ocid }}
+        REGION: ${{ inputs.region }}
+      run: |
+        mkdir -p ~/.oci
+        FP=$(openssl rsa -in session.pem -pubout -outform DER 2>/dev/null | openssl md5 -c | awk '{print $NF}')
+        printf '[DEFAULT]\nregion=%s\ntenancy=%s\nfingerprint=%s\nsecurity_token_file=%s/upst.token\nkey_file=%s/session.pem\n' \
+          "$REGION" "$TENANCY" "$FP" "$PWD" "$PWD" > ~/.oci/config
+        chmod 600 ~/.oci/config
+
+    - name: Provide SSH public key for plan context
+      shell: bash
+      env:
+        PUBKEY: ${{ inputs.ssh_public_key }}
+      run: |
+        mkdir -p ~/.ssh
+        printf '%s\n' "$PUBKEY" > ~/.ssh/id_ed25519.pub

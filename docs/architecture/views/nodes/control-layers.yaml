@@ -153,7 +153,7 @@ nodes:
     evidence:
       - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
       - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 582}
-      - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 135}
+      - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 89}
     solidify: "Multi-cloud: Datadog agent and Falco pending"
   # APPLICATION
   - {id: input-rails, label: "input rails", zone: application, from: topology/guardrails}

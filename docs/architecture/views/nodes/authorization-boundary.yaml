@@ -123,7 +123,7 @@ nodes:
     evidence:
       - {label: "Policy for the backup writers", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 102}
       - {label: "Policy for object storage and the key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 83}
-      - {label: "Federated session for CI", path: .github/workflows/drift-check.yml, line: 50}
+      - {label: "Federated session for CI", path: .github/workflows/drift-check.yml, line: 40}
     solidify: none
   - id: instance-identity
     label: "instance identity"
@@ -241,7 +241,7 @@ nodes:
     status: partial
     status_note: "Drift alerts reach it today and the edge carve-out for its source ranges is live; the bot workflow on the orchestration engine is pending restore."
     evidence:
-      - {label: "Drift alert", path: .github/workflows/drift-check.yml, line: 135}
+      - {label: "Drift alert", path: .github/workflows/drift-check.yml, line: 89}
       - {label: "Webhook carve-out", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66}
       - {label: "Notification tool in the agent", path: builds/squire/src/squire/tools/telegram.py, line: 1}
     solidify: "Identity view: chat-ID check pending the workflow restore"

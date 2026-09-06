@@ -315,7 +315,7 @@ nodes:
     evidence:
       - {label: "Monitor definitions, archived provider module", path: terraform/cd-do-infrastructure/monitoring.tf, line: 52}
       - {label: "Telemetry flows in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 185-188}
-      - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 135}
+      - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 89}
     solidify: "Multi-cloud: 3 of 19 live; Datadog agent and Falco pending"
 
   - id: object-storage
@@ -355,9 +355,9 @@ nodes:
     status: partial
     status_note: "Live on the nightly drift check; the PR path runs with no credentials at all, and the exchange keeps one stored client secret that cannot call any cloud API on its own, so the exchange drawn on the PR path is the design."
     evidence:
-      - {label: "Identity token permission", path: .github/workflows/drift-check.yml, line: 21}
-      - {label: "Request the GitHub token", path: .github/workflows/drift-check.yml, line: 38}
-      - {label: "Exchange for a cloud session", path: .github/workflows/drift-check.yml, line: 50}
+      - {label: "Identity token permission", path: .github/workflows/drift-check.yml, line: 22}
+      - {label: "Request the GitHub token", path: .github/actions/oci-session/action.yml, line: 39}
+      - {label: "Exchange for a cloud session", path: .github/actions/oci-session/action.yml, line: 53}
       - {label: "PR path, no credentials", path: .github/workflows/terraform-pr.yml, line: 56}
     solidify: "Tier 1: OIDC exchange only in drift-check.yml, stored client secret"
 
@@ -372,7 +372,7 @@ nodes:
       - {label: "Format check", path: .github/workflows/terraform-pr.yml, line: 52}
       - {label: "Validate", path: .github/workflows/terraform-pr.yml, line: 60}
       - {label: "Checkov", path: .github/workflows/terraform-pr.yml, line: 64}
-      - {label: "Nightly plan against live state", path: .github/workflows/drift-check.yml, line: 111}
+      - {label: "Nightly plan against live state", path: .github/workflows/drift-check.yml, line: 65}
       - {label: "Secret scan", path: .github/workflows/security.yml, line: 25}
       - {label: "CVE and misconfig scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Static analysis", path: .github/workflows/security.yml, line: 51}
@@ -416,7 +416,7 @@ nodes:
     status_note: "No workflow applies today; apply runs from the operator's workstation with short-lived credentials from the secrets manager, and an apply job on main behind the identity exchange is the queued change."
     evidence:
       - {label: "Apply with a manual approval gate, per policy", path: docs/grc/POLICY_CHANGE_MANAGEMENT.md, line: 135}
-      - {label: "The only credentialed Terraform in CI, plan only", path: .github/workflows/drift-check.yml, line: 111}
+      - {label: "The only credentialed Terraform in CI, plan only", path: .github/workflows/drift-check.yml, line: 65}
       - {label: "Remote state the apply would use", path: terraform/cd-oci-infrastructure/terraform.tf, line: 19}
     solidify: "Tier 1: no terraform apply in any workflow"
 
@@ -428,8 +428,8 @@ nodes:
     status: live
     status_note: "Runs nightly with the identity exchange session; it covers the runtime cloud's Terraform and not yet the edge module or compose."
     evidence:
-      - {label: "Schedule", path: .github/workflows/drift-check.yml, line: 17}
-      - {label: "Directory it watches", path: .github/workflows/drift-check.yml, line: 29}
-      - {label: "Read-only plan", path: .github/workflows/drift-check.yml, line: 111}
-      - {label: "Alert, details private", path: .github/workflows/drift-check.yml, line: 135}
+      - {label: "Schedule", path: .github/workflows/drift-check.yml, line: 18}
+      - {label: "Directory it watches", path: .github/workflows/drift-check.yml, line: 30}
+      - {label: "Read-only plan", path: .github/workflows/drift-check.yml, line: 65}
+      - {label: "Alert, details private", path: .github/workflows/drift-check.yml, line: 89}
     solidify: "Tier 2: add cd-cloudflare-edge to the drift matrix"

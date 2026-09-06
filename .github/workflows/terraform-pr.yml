@@ -4,7 +4,8 @@ name: Terraform PR Validation
 # active OCI directory. Every check here is credential-free by design: the
 # OIDC trust that mints cloud tokens is pinned to main, so PR branches cannot
 # authenticate (that is the control, not a limitation). The live plan and the
-# OPA check against a real plan run post-merge in drift-check.yml. What a PR
+# OPA check against a real plan run post-merge in terraform-main.yml and
+# nightly in drift-check.yml. What a PR
 # CAN prove without credentials: formatting, validity, Checkov policy
 # compliance, and that the committed OPA policies still catch the violation
 # fixtures and pass the clean fixture.
@@ -136,7 +137,7 @@ jobs:
               '| Checkov | ' + icon(checkov) + ' |',
               '| OPA policy self-test | ' + icon(conftest) + ' |',
               '',
-              'Live plan + OPA against the real plan run post-merge in `drift-check.yml`',
+              'Live plan + OPA against the real plan run post-merge in `terraform-main.yml` (and nightly in `drift-check.yml`)',
               '(the OIDC trust is pinned to main, so PR branches hold no cloud identity).',
               '',
               '*Triggered by @' + context.actor + ' on `' + context.eventName + '`*',
