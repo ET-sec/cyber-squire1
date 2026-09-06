@@ -1,0 +1,133 @@
+# Node table for the identity and access view: 28 boxes on the drawing from 25 entries (labels from
+# gen_identity-access.py TIERS). "operator" is drawn twice and "Squire" three times, so those entries carry
+# `repeat: true` and every occurrence opens the same panel. Entries with `from:` inherit another table's entry and
+# override label and zone at least. See nodes/topology.yaml for the field rules.
+nodes:
+  # TIER 0 BREAK-GLASS
+  - {id: allowlisted-source, label: "allowlisted source", zone: "tier 0, break-glass", from: topology/allowlisted-range}
+  - {id: host-sshd, label: "host sshd", zone: "tier 0, break-glass", from: topology/host-sshd}
+  - id: host-shell
+    label: "host shell"
+    zone: "tier 0, break-glass"
+    what: "A root-capable shell on the host over the break-glass path: no broker, no recording, the whole host in reach, which is why the door is one static key from one range."
+    controls: [AC-6, AC-3, AU-2]
+    status: partial
+    status_note: "The path is live and intended as the tunnel's fallback; a successful break-glass login raises no alert yet and the kernel sensor that would see the session is pending the rebuild."
+    evidence:
+      - {label: "Key set at first boot", path: terraform/cd-oci-infrastructure/compute.tf, line: 49}
+      - {label: "SSH ingress from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
+      - {label: "Unauthorized access playbook", path: docs/grc/PLAYBOOK_UNAUTHORIZED_ACCESS.md, line: 1}
+    solidify: "Identity view: no alert on a successful break-glass login; key rotation has no schedule"
+  # TIER 1 OPERATOR
+  - id: operator
+    label: operator
+    zone: "tier 1, operator"
+    from: topology/users
+    repeat: true
+    what: "The human at the keyboard, holding one of three realm roles: admin, operator, or auditor."
+  - {id: access, label: Access, zone: "tier 1, operator", from: topology/access}
+  - id: admin-consoles
+    label: "admin consoles"
+    zone: "tier 1, operator"
+    what: "The orchestration engine's editor and the identity provider's admin console, each with its own login behind the edge check."
+    controls: [AC-3, IA-2, AC-7]
+    status: partial
+    status_note: "The orchestration console is live behind the edge check with its own login; the identity provider's console returns with the rebuild."
+    evidence:
+      - {label: "Edge application in front of the console", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
+      - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
+      - {label: "Identity provider lockout settings", path: keycloak/coredirective-realm.json, line: 12}
+    solidify: "Identity view: 24h Access session, email PIN; hardware key on Access is the real close"
+  - {id: keycloak, label: Keycloak, zone: "tier 1, operator", from: topology/keycloak}
+  - {id: teleport, label: Teleport, zone: "tier 1, operator", from: topology/teleport}
+  - id: host-ssh-database
+    label: "host SSH, database"
+    zone: "tier 1, operator"
+    what: "What an elevated operator session reaches: a recorded shell on the host and the database, through the gateway rather than the break-glass path."
+    controls: [AC-3, AU-12, AC-12]
+    status: designed
+    status_note: "Pending the ARM rebuild; today an operator reaches the host through the break-glass path and the database only from inside the host."
+    evidence:
+      - {label: "Elevation workflow", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 63}
+      - {label: "Escalation path and safeguards", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
+      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 371}
+    solidify: "Identity view: Teleport auth is local, no access-request role"
+  # TIER 2 SERVICE
+  - id: n8n-and-services
+    label: "n8n and services"
+    zone: "tier 2, service"
+    what: "The machines that need a database credential: the orchestration engine today, the agent and the trace store in the full design."
+    controls: [IA-3, IA-5]
+    status: partial
+    status_note: "The orchestration engine is live and reads its credential from the deploy-time environment file; the short-lived lease from the secrets manager is the design."
+    evidence:
+      - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
+      - {label: "AppRole still a comment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 257-258}
+    solidify: "Tier 2: n8n reads stack.env; first AppRole consumer makes the diagram literal"
+  - {id: vault-approle, label: "Vault AppRole", zone: "tier 2, service", from: topology/vault}
+  - {id: postgres, label: Postgres, zone: "tier 2, service", from: topology/postgres}
+  - {id: ci-runner, label: "CI runner", zone: "tier 2, service", from: multi-cloud/github-actions}
+  - {id: oidc-exchange, label: "OIDC exchange", zone: "tier 2, service", from: topology/oidc-exchange}
+  - id: cloud-api
+    label: "cloud API"
+    zone: "tier 2, service"
+    what: "The runtime cloud's control plane as the CI session sees it: a plan can read every resource and change none."
+    controls: [AC-6, AC-3, CM-5]
+    status: partial
+    status_note: "The nightly drift check reads with this session today; the apply job that would write on main does not exist yet, and apply runs from the operator's workstation with short-lived credentials."
+    evidence:
+      - {label: "Drift check plans against the live account", path: .github/workflows/drift-check.yml, line: 6}
+      - {label: "Token exchange, no stored cloud key", path: .github/workflows/drift-check.yml, line: 52-53}
+      - {label: "Escalation path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
+    solidify: "Tier 1: no apply job"
+  - id: telegram
+    label: Telegram
+    zone: "tier 2, service"
+    what: "The messaging vendor as a caller: its servers deliver the bot's updates to one webhook path from published egress ranges."
+    controls: [SC-7, IA-8]
+    status: live
+    status_note: "The edge carve-out is live and receipted; the vendor is a trusted caller only for that one path."
+    evidence:
+      - {label: "Bypass policy limited to published ranges", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 76-84}
+      - {label: "Design record", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 31-32}
+    solidify: none
+  - {id: access-bypass, label: "Access bypass", zone: "tier 2, service", from: multi-cloud/webhook-carve-out}
+  - id: one-webhook-path
+    label: "one webhook path"
+    zone: "tier 2, service"
+    what: "The single path the carve-out opens: the bot's trigger prefix on the orchestration host, with the chat-ID check on the trigger node as the second gate."
+    controls: [AC-3, SI-10]
+    status: partial
+    status_note: "The path scoping at the edge is live; the trigger workflow with the chat-ID check is not yet restored on the current host."
+    evidence:
+      - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66-69}
+      - {label: "Design record: scoped twice", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 32}
+    solidify: "Identity view: chat-ID check pending the workflow restore"
+  # TIER 3 AGENT
+  - id: alert-source
+    label: "alert source"
+    zone: "tier 3, agent"
+    what: "Whatever posts an alert to the agent: the kernel sensor's router and the SIEM's webhook in the design, both holding the shared secret."
+    controls: [IA-3, IA-5]
+    status: designed
+    status_note: "Pending the ARM rebuild; nothing on the current host posts to the agent because the agent is not running."
+    evidence:
+      - {label: "Sensor alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 530}
+      - {label: "Agent service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 950}
+    solidify: none
+  - {id: webhook-token, label: "webhook token", zone: "tier 3, agent", from: control-layers/webhook-token}
+  - {id: squire, label: Squire, zone: "tier 3, agent", from: topology/squire, repeat: true}
+  - {id: guardrails, label: Guardrails, zone: "tier 3, agent", from: topology/guardrails}
+  - {id: claude-api, label: "Claude API", zone: "tier 3, agent", from: topology/claude-api}
+  - {id: actions-allowlist, label: "actions allowlist", zone: "tier 3, agent", from: control-layers/actions-allowlist}
+  - id: telegram-notify
+    label: "Telegram notify"
+    zone: "tier 3, agent"
+    what: "The agent's only outbound action: a notification to one chat through the orchestration engine's webhook, with the chat ID fixed in configuration."
+    controls: [AC-6, SC-7]
+    status: designed
+    status_note: "Pending the ARM rebuild; the tool posts to one configured chat and cannot address another."
+    evidence:
+      - {label: "Notify tool", path: builds/squire/src/squire/tools/telegram.py, line: 55}
+      - {label: "Chat ID in configuration", path: builds/squire/src/squire/settings.py, line: 83}
+    solidify: none
