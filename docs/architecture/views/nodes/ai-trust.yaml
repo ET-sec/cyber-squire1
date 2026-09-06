@@ -1,0 +1,251 @@
+# Node table for the AI trust view: 21 boxes plus the 7 OWASP tag chips under the screens (labels from
+# gen_ai-trust.py). The chips are not 800-53 ids, so they are written here by hand and point at the catalog rows.
+# Entries with `from:` inherit another table's entry and override label and zone at least. See nodes/topology.yaml.
+nodes:
+  # VENDOR MODELS, OUTSIDE THE HOST
+  - id: frontier-model
+    label: "frontier model"
+    zone: vendor
+    from: topology/claude-api
+    what: "The hosted frontier model behind the three reasoning nodes (investigate, draft, critique), reached only through the guardrails container."
+  - id: classifier
+    label: classifier
+    zone: vendor
+    what: "A structured severity and incident-type call to a hosted model on the regex-scrubbed payload; it returns a label, not prose."
+    controls: [SA-9, SC-8, SI-10]
+    status: designed
+    status_note: "Pending the ARM rebuild; the call goes out on scrubbed text without the input rail in front of it, a documented gap with a queued routing change."
+    evidence:
+      - {label: "Classify node", path: builds/squire/src/squire/nodes/classify.py, line: 98}
+      - {label: "Rail routing covers draft and critique", path: builds/squire/src/squire/llm.py, line: 55-59}
+      - {label: "Pre-graph scanner", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 41}
+    solidify: "AI trust: classify and enrich are not behind the rail"
+  - id: embeddings
+    label: embeddings
+    zone: vendor
+    what: "The embeddings vendor that turns corpus chunks at ingest and the alert query at run time into 1024-dimension vectors."
+    controls: [SA-9, SC-8, SI-12]
+    status: designed
+    status_note: "Pending the ARM rebuild; the query text leaves per alert, which the data flow classification did not say until the code was read, and the documents are queued to match."
+    evidence:
+      - {label: "Provider decision", path: docs/grc/ADR_001_EMBEDDING_PROVIDER.md, line: 46}
+      - {label: "Query embedded per run", path: builds/squire/src/squire/retrievers/grc_retriever.py, line: 121-129}
+      - {label: "Chunk embeddings data class", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 51}
+    solidify: "AI trust: DC-1 query text leaves to the embeddings vendor; update both docs"
+  - id: web-search
+    label: "web search"
+    zone: vendor
+    what: "The search vendor the enrich node queries with indicators and the rule name, under terms of service rather than a data processing agreement."
+    controls: [SA-9, SC-8]
+    status: designed
+    status_note: "Pending the ARM rebuild; the query is built from indicator fields and falls back to a whole-alert digest, and the field allowlist that drops the digest is the queued change."
+    evidence:
+      - {label: "Query built from indicators", path: builds/squire/src/squire/nodes/enrich.py, line: 20}
+      - {label: "Search call", path: builds/squire/src/squire/nodes/enrich.py, line: 61}
+      - {label: "Supply chain register row", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 111}
+    solidify: "AI trust: field allowlist, drop the digest fallback"
+  # NET-CORE, row 1
+  - id: alert-payload
+    label: "alert payload"
+    zone: net-core
+    what: "The alert as it arrives: attacker-influenced text by definition, classified as the highest-sensitivity data class the agent handles."
+    controls: [SI-10, SC-28]
+    status: designed
+    status_note: "Pending the ARM rebuild; the request model and the data classification are in the repo."
+    evidence:
+      - {label: "Request model", path: builds/squire/src/squire/api_models.py, line: 9}
+      - {label: "Data class DC-1", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 48}
+      - {label: "DC-1 handling", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 57}
+    solidify: none
+  - id: token-schema
+    label: "token, schema"
+    zone: net-core
+    from: control-layers/webhook-token
+    what: "The first two checks on an alert: a shared-secret header the orchestration engine holds, then a typed request model that rejects anything off-schema."
+    evidence:
+      - {label: "Token check", path: builds/squire/src/squire/app.py, line: 65}
+      - {label: "Plain compare, queued for constant time", path: builds/squire/src/squire/app.py, line: 77-79}
+      - {label: "Request model", path: builds/squire/src/squire/api_models.py, line: 9}
+  - id: pii-scrub
+    label: "PII scrub"
+    zone: net-core
+    what: "A regex pass over the whole payload before the graph runs: identifiers, card numbers, and secrets are caught and the request is blocked with a redacted snippet."
+    controls: [SI-10, SC-28, SI-12]
+    status: designed
+    status_note: "Pending the ARM rebuild; this layer exists because a red-team case in the first cycle got personal data past the rail, and it closed the same day."
+    evidence:
+      - {label: "Scanner", path: builds/squire/src/squire/pre_graph_pii.py, line: 74}
+      - {label: "Redacted block response", path: builds/squire/src/squire/response_builder.py, line: 29}
+      - {label: "Layer 1 in the guardrails document", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 41}
+      - {label: "The case that created it", path: docs/grc/REDTEAM_RESULTS.md, line: 125}
+    solidify: none
+  - id: input-rail
+    label: "input rail"
+    zone: net-core
+    from: topology/guardrails
+    what: "The guardrails sidecar's input pass: a named-entity recognizer for personal data on every prompt to the generative nodes, with the model-judged check behind it."
+    status_note: "Pending the ARM rebuild; the local PII pass is always on, the model-judged check is commented out until API credit returns, and on a sidecar timeout the code fails open to the API, a queued fix."
+    evidence:
+      - {label: "Input rail", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
+      - {label: "Judge commented out", path: builds/squire/docker/nemo_config/config.yml, line: 12}
+      - {label: "Layer 2 in the guardrails document", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 101}
+      - {label: "Fail-open path", path: builds/squire/src/squire/llm_backend.py, line: 331}
+  - id: model-egress
+    label: "model egress"
+    zone: net-core
+    from: control-layers/spend-ceiling
+    what: "The one place prompts leave for the frontier model: behind the rails, under a per-alert budget and a daily ceiling, with every call traced by correlation id."
+    evidence:
+      - {label: "Ceiling check", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
+      - {label: "Rails backend in front of the API", path: builds/squire/src/squire/llm_backend.py, line: 286}
+      - {label: "Trace identity", path: builds/squire/src/squire/telemetry.py, line: 17}
+  - id: embed
+    label: embed
+    zone: net-core
+    what: "The retrieval step: the alert's query text is embedded through the vendor and matched by cosine similarity against the corpus chunks in the vector store."
+    controls: [SI-12, SC-8]
+    status: designed
+    status_note: "Pending the ARM rebuild; a local embedder for the query, so only corpus chunks ever cross, is the documented option."
+    evidence:
+      - {label: "Query embedding", path: builds/squire/src/squire/retrievers/grc_retriever.py, line: 121}
+      - {label: "Corpus ingest", path: builds/squire/src/squire/ingest/grc_indexer.py, line: 198}
+      - {label: "Provider options", path: docs/grc/ADR_001_EMBEDDING_PROVIDER.md, line: 38}
+    solidify: "AI trust: local_bge option for query embedding"
+  - id: enrich
+    label: enrich
+    zone: net-core
+    what: "The enrich node: builds a short query from the alert's indicators and rule name and asks the search vendor for recent context."
+    controls: [SI-10, SA-9]
+    status: designed
+    status_note: "Pending the ARM rebuild; the query fields are wider than the data flow document says and the allowlist that narrows them is queued."
+    evidence:
+      - {label: "Query builder", path: builds/squire/src/squire/nodes/enrich.py, line: 20}
+      - {label: "Enrich node", path: builds/squire/src/squire/nodes/enrich.py, line: 77}
+      - {label: "Search tool", path: builds/squire/src/squire/tools/tavily.py, line: 25}
+    solidify: "AI trust: field allowlist, drop the digest fallback"
+  - id: voice-note
+    label: "voice note"
+    zone: net-core
+    what: "An operator's audio message arriving through the bot: it is routed to the local transcriber on the sealed segment and never to a vendor."
+    controls: [SC-7, AC-4, SC-28]
+    status: designed
+    status_note: "Pending the ARM rebuild; the transcriber's definition sits on the sealed network and the workflow that routes audio to it is not yet restored on the current host."
+    evidence:
+      - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 212}
+      - {label: "On the sealed network only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 243-244}
+    solidify: "AI trust: transcript holds; workflow restore pending"
+  # NET-CORE, row 2
+  - id: operator
+    label: operator
+    zone: net-core
+    from: topology/users
+    what: "The person who reads the recommendation, decides, and acts; nothing in the pipeline acts on its own."
+  - {id: notify, label: notify, zone: net-core, from: identity-access/telegram-notify}
+  - {id: human-gate, label: "human gate", zone: net-core, from: control-layers/hitl-review}
+  - {id: allowlist, label: allowlist, zone: net-core, from: control-layers/actions-allowlist}
+  - {id: output-checks, label: "output checks", zone: net-core, from: control-layers/output-rails}
+  - id: vector-store
+    label: "vector store"
+    zone: net-core
+    what: "The corpus chunks and their vectors in the database, reached only over the core network, holding the sanitized governance library and nothing personal."
+    controls: [SC-28, AC-3, SI-12]
+    status: partial
+    status_note: "The database with the vector extension is live; the chunk table and its index are migrations that run when the agent returns."
+    evidence:
+      - {label: "Vector migration", path: builds/squire/migrations/002_vector_1024.sql, line: 1}
+      - {label: "Agent tables", path: builds/squire/migrations/001_squire_tables.sql, line: 1}
+      - {label: "Database image with the extension", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 31}
+      - {label: "Chunk embeddings data class", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 51}
+    solidify: none
+  - id: transcript
+    label: transcript
+    zone: net-core
+    what: "What comes back up from the sealed segment: text only; the audio stays where it was transcribed and the text re-enters the pipeline as ordinary alert input under the same scrub."
+    controls: [AC-4, SC-7]
+    status: designed
+    status_note: "Pending the ARM rebuild together with the transcriber and the workflow that calls it."
+    evidence:
+      - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1020-1022}
+      - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 212}
+    solidify: "AI trust: transcript holds"
+  # NET-AI, SEALED SEGMENT
+  - {id: local-llm, label: "local LLM", zone: net-ai, from: topology/ollama}
+  - {id: speech-to-text, label: "speech to text", zone: net-ai, from: topology/whisper}
+  # OWASP 2026 TAGS UNDER THE SCREENS
+  - id: chip-llm02
+    label: "LLM02"
+    zone: "OWASP 2026"
+    what: "Sensitive Information Disclosure: prompts to the vendor may carry operational context, rated High in the catalog; the PII scrub is the first screen against it."
+    controls: []
+    status: designed
+    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    evidence:
+      - {label: "Catalog row LLM02", path: docs/grc/AI_THREAT_CATALOG.md, line: 171}
+    solidify: none
+  - id: chip-llm01-asi01
+    label: "LLM01, ASI01"
+    zone: "OWASP 2026"
+    what: "Prompt Injection and Agent Goal Hijack: alert payloads are attacker-influenced text that reaches the model, rated High; the input rail and the human gate on HIGH are the treatment."
+    controls: []
+    status: designed
+    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    evidence:
+      - {label: "Catalog row LLM01", path: docs/grc/AI_THREAT_CATALOG.md, line: 170}
+      - {label: "Catalog row ASI01", path: docs/grc/AI_THREAT_CATALOG.md, line: 190}
+      - {label: "Attack path 1", path: docs/grc/ATTACK_TREE_AI_PIPELINE.md, line: 193}
+    solidify: none
+  - id: chip-llm06
+    label: "LLM06"
+    zone: "OWASP 2026"
+    what: "Unbounded Consumption: vendor spend and compute need a bound, rated Medium; the per-alert budget and the daily ceiling on model egress are the treatment."
+    controls: []
+    status: designed
+    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    evidence:
+      - {label: "Catalog row LLM06", path: docs/grc/AI_THREAT_CATALOG.md, line: 175}
+    solidify: none
+  - id: chip-llm10-llm07
+    label: "LLM10, LLM07"
+    zone: "OWASP 2026"
+    what: "Improper Output Handling and Misinformation: outputs are consumed downstream and a confident wrong answer can be trusted, rated High and Medium; the output checks on personal data, citations, and verbs are the treatment."
+    controls: []
+    status: designed
+    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    evidence:
+      - {label: "Catalog row LLM10", path: docs/grc/AI_THREAT_CATALOG.md, line: 179}
+      - {label: "Catalog row LLM07", path: docs/grc/AI_THREAT_CATALOG.md, line: 176}
+    solidify: none
+  - id: chip-llm03-asi02
+    label: "LLM03, ASI02"
+    zone: "OWASP 2026"
+    what: "Excessive Agency and Tool Misuse: the agent could trigger broad actions, rated High and Medium; the allowlist that rewrites any action to a recommendation is the treatment."
+    controls: []
+    status: designed
+    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    evidence:
+      - {label: "Catalog row LLM03", path: docs/grc/AI_THREAT_CATALOG.md, line: 172}
+      - {label: "Catalog row ASI02", path: docs/grc/AI_THREAT_CATALOG.md, line: 191}
+    solidify: none
+  - id: chip-llm03-asi09
+    label: "LLM03, ASI09"
+    zone: "OWASP 2026"
+    what: "Excessive Agency and Human-Agent Trust Exploitation: an operator may act on a confident wrong recommendation; the human gate on HIGH and CRITICAL and the citation guard are the treatment."
+    controls: []
+    status: designed
+    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    evidence:
+      - {label: "Catalog row LLM03", path: docs/grc/AI_THREAT_CATALOG.md, line: 172}
+      - {label: "Catalog row ASI09", path: docs/grc/AI_THREAT_CATALOG.md, line: 198}
+      - {label: "Severity gates", path: docs/grc/HITL_POLICY.md, line: 61}
+    solidify: none
+  - id: chip-llm09-asi06
+    label: "LLM09, ASI06"
+    zone: "OWASP 2026"
+    what: "Vector and Embedding Weaknesses and Memory Poisoning: retrieval over the chunk table is the memory surface, rated Medium; ingest is operator-run from a reviewed corpus."
+    controls: []
+    status: designed
+    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    evidence:
+      - {label: "Catalog row LLM09", path: docs/grc/AI_THREAT_CATALOG.md, line: 178}
+      - {label: "Catalog row ASI06", path: docs/grc/AI_THREAT_CATALOG.md, line: 195}
+    solidify: none
