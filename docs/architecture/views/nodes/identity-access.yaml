@@ -50,7 +50,7 @@ nodes:
     evidence:
       - {label: "Elevation workflow", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 63}
       - {label: "Escalation path and safeguards", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
-      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 371}
+      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 375}
     solidify: "Identity view: Teleport auth is local, no access-request role"
   # TIER 2 SERVICE
   - id: n8n-and-services
@@ -62,7 +62,7 @@ nodes:
     status_note: "The orchestration engine is live and reads its credential from the deploy-time environment file; the short-lived lease from the secrets manager is the design."
     evidence:
       - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
-      - {label: "AppRole still a comment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 257-258}
+      - {label: "AppRole still a comment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 261-262}
     solidify: "Tier 2: n8n reads stack.env; first AppRole consumer makes the diagram literal"
   - {id: vault-approle, label: "Vault AppRole", zone: "tier 2, service", from: topology/vault}
   - {id: postgres, label: Postgres, zone: "tier 2, service", from: topology/postgres}
@@ -112,8 +112,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; nothing on the current host posts to the agent because the agent is not running."
     evidence:
-      - {label: "Sensor alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 530}
-      - {label: "Agent service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 950}
+      - {label: "Sensor alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
+      - {label: "Agent service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 954}
     solidify: none
   - {id: webhook-token, label: "webhook token", zone: "tier 3, agent", from: control-layers/webhook-token}
   - {id: squire, label: Squire, zone: "tier 3, agent", from: topology/squire, repeat: true}

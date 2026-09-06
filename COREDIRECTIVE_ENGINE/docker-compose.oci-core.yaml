@@ -24,11 +24,14 @@
 #     dashboard and reconnects automatically wherever cloudflared runs.
 #
 # DEPLOY:
-#   scp this + stack.env to host:/opt/coredirective/
-#   ssh host 'cd /opt/coredirective && sudo chown -R 1000:1000 CD_VOL_N8N \
-#             && sudo docker compose -f docker-compose.oci-core.yaml up -d'
-#   (up -d recreates the three containers so the pins and limits take effect;
-#    direct SSH from an allowlisted range, never through the tunnel)
+#   The host runs this file as /opt/coredirective/docker-compose.yaml (the
+#   compose project's config file), so copy it there under that name:
+#   scp this to host:~/ ; ssh host 'sudo install -m 644 ~/<file> \
+#             /opt/coredirective/docker-compose.yaml && cd /opt/coredirective \
+#             && sudo docker compose up -d'
+#   up -d recreates only the containers whose definition changed. Recreating
+#   the tunnel drops an SSH session that rides the tunnel, so run that step
+#   detached (setsid) or from an allowlisted range.
 # VERIFY:  curl -s -o /dev/null -w '%{http_code}' https://<your-edge-hostname>
 #          -> 302 (Cloudflare Access gate in front of a live origin) = success
 # ============================================================================

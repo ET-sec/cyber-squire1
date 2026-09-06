@@ -80,12 +80,12 @@ nodes:
     what: "The tunnel dials out from the host to the edge, so the site is reachable with no inbound listener; if the tunnel dies the site is unreachable and no port opens."
     controls: [SC-7, SC-8, CM-7]
     status: live
-    status_note: "One of the three live containers; the live definition lacks the read-only root that the full design sets, a two line change."
+    status_note: "One of the three live containers; since 2026-09-06 it runs read-only with scratch space on tmpfs, under a processor, memory, and process cap, from an image pinned by digest, all confirmed on the host."
     evidence:
-      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 70}
-      - {label: "Full design with read-only root", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 652}
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 89}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 656}
       - {label: "Host networking accepted as risk", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 615}
-    solidify: "Tier 2: live cloudflared lacks read_only"
+    solidify: "closed 2026-09-06: read_only, limits, and digest pin on the live tunnel"
 
   - id: host-sshd
     label: "host sshd"
@@ -108,8 +108,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; the compose definition pins it to the sealed network, which has no route in or out."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 212}
-      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1020-1022}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
+      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1024-1026}
     solidify: none
 
   - id: ollama
@@ -120,8 +120,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild, and the agent cannot reach it yet: Squire sits on the core network only, so the fallback path is a compose change plus an end-to-end test."
     evidence:
-      - {label: "Service definition, sealed network", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 176}
-      - {label: "Squire networks, core only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1014}
+      - {label: "Service definition, sealed network", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 177}
+      - {label: "Squire networks, core only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1018}
       - {label: "Local backend in the agent", path: builds/squire/src/squire/llm_backend.py, line: 224}
       - {label: "Ceiling breach flips the backend", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
     solidify: "Tier 1: Squire has no route to net-ai, Ollama stopped"
@@ -135,7 +135,7 @@ nodes:
     status_note: "One of the three live containers, published to loopback and reached only through the tunnel and the edge identity check."
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
-      - {label: "Full design, bridge to the sealed segment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 121}
+      - {label: "Full design, bridge to the sealed segment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 122}
       - {label: "Credential exposure write-up and fix", path: docs/grc/VULN_WRITEUP_N8N_CREDENTIAL_EXPOSURE.md, line: 1}
     solidify: none
 
@@ -147,8 +147,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; the agent sets the trace id in its telemetry module and the audit trail spec defines what each span carries."
     evidence:
-      - {label: "Web service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 820}
-      - {label: "Worker, ClickHouse, Redis", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 693}
+      - {label: "Web service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 824}
+      - {label: "Worker, ClickHouse, Redis", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 697}
       - {label: "Trace id set by the agent", path: builds/squire/src/squire/telemetry.py, line: 17}
       - {label: "Audit trail field spec", path: docs/grc/AI_AUDIT_TRAIL_SPEC.md, line: 54}
     solidify: none
@@ -164,7 +164,7 @@ nodes:
       - {label: "Alert endpoint", path: builds/squire/src/squire/app.py, line: 261}
       - {label: "Actions allowlist", path: builds/squire/src/squire/actions_allowlist.py, line: 57}
       - {label: "PII scan before the graph runs", path: builds/squire/src/squire/pre_graph_pii.py, line: 74}
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 950}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 954}
       - {label: "Subsystem security plan", path: docs/grc/SQUIRE_SSP.md, line: 1}
       - {label: "Red team results", path: docs/grc/REDTEAM_RESULTS.md, line: 1}
     solidify: "Tier 1 items 1 and 2; Identity view: shared-secret header compare, no body size cap"
@@ -177,7 +177,7 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; today the code fails open to the API on a rails timeout and the model key sits in the agent's environment, both queued as fixes."
     evidence:
-      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 894}
+      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 898}
       - {label: "Rails config", path: builds/squire/docker/nemo_config/config.yml, line: 1}
       - {label: "Input rails", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
       - {label: "Fail-open path in the agent", path: builds/squire/src/squire/llm_backend.py, line: 331-333}
@@ -193,8 +193,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; AppRole is a comment in compose and the migration is an open assessment item, so services read deploy-time environment files today."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 262}
-      - {label: "AppRole and short leases, as designed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 257-258}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 266}
+      - {label: "AppRole and short leases, as designed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 261-262}
       - {label: "Migration tracked as open", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 267}
     solidify: "Tier 2: Vault AppRole"
 
@@ -207,8 +207,8 @@ nodes:
     status_note: "Pending the ARM rebuild; the realm export is in the repo, and the container runs in development mode in the design and must switch to production mode before it fronts anything external."
     evidence:
       - {label: "Realm export, roles and clients", path: keycloak/coredirective-realm.json, line: 1}
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 314}
-      - {label: "Development start mode", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 338}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 318}
+      - {label: "Development start mode", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 342}
       - {label: "Role map", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 71}
     solidify: "Tier 2: Keycloak start-dev"
 
@@ -221,7 +221,7 @@ nodes:
     status_note: "One of the three live containers; nightly dumps by instance principal to a key-encrypted bucket with a 30 day retention rule and a monthly timed restore, and the SSP backup rows are queued for re-baseline to say so."
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
-      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 83}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 84}
       - {label: "Backup bucket, encrypted, retention rule", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
       - {label: "Backup writer identity, no long-lived key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
       - {label: "Recovery plan", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 17}
@@ -235,8 +235,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; the design uses Keycloak OIDC and just-in-time roles, and the previous deployment ran local auth with TOTP and no access-request role, so the connector and one request role are the closing change."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 371}
-      - {label: "Audit event shipper", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 621}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 375}
+      - {label: "Audit event shipper", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 625}
       - {label: "Connector and request roles, the upgrade path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 190}
     solidify: "Tier 2: Teleport auth type local, no access-request roles"
 
@@ -248,8 +248,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; it runs with the capabilities the sensor needs (SYS_ADMIN and the container socket) as documented accepted risks, and is the one service without no-new-privileges."
     evidence:
-      - {label: "Sensor definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 473}
-      - {label: "Why it lacks no-new-privileges", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 470-472}
+      - {label: "Sensor definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 477}
+      - {label: "Why it lacks no-new-privileges", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 474-476}
       - {label: "Capabilities accepted as risk", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 607}
       - {label: "Container socket accepted as risk", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 608}
       - {label: "Compromised container playbook", path: docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md, line: 23}
@@ -263,8 +263,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; read-only root and no new privileges in the definition."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 530}
-      - {label: "Read-only root", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 548}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
+      - {label: "Read-only root", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 552}
     solidify: none
 
   - id: event-handler
@@ -275,8 +275,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; it authenticates with a one year identity file, one of the machine identities listed in the SSP."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 621}
-      - {label: "Identity file lifetime", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 618}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 625}
+      - {label: "Identity file lifetime", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 622}
       - {label: "Audit flow in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 185}
     solidify: none
 
@@ -288,7 +288,7 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 578}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 582}
       - {label: "Role in the SSP service table", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 168}
     solidify: none
 
@@ -300,8 +300,8 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; it needs the host PID namespace and the container socket, both documented accepted risks."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 415}
-      - {label: "Host PID namespace", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 420}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 419}
+      - {label: "Host PID namespace", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 424}
       - {label: "Accepted risk, host PID", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 617}
     solidify: "Tier 2: Datadog agent holds the DB password and the socket, accepted (CIS 5.15)"
 

@@ -54,7 +54,7 @@ nodes:
     status_note: "The live compose publishes the orchestration engine to loopback only; the full design does the same for every service that publishes at all."
     evidence:
       - {label: "Loopback publish on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 52}
-      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 121}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 122}
     solidify: none
   - {id: break-glass-ssh, label: "break-glass SSH", zone: host, from: topology/host-sshd}
   - id: cis-baseline
@@ -78,20 +78,21 @@ nodes:
     status_note: "Set on the three live containers and on 18 of 19 in the full design; the kernel sensor is the documented exception because it needs the capabilities it watches."
     evidence:
       - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 77}
-      - {label: "Database in the full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 106}
-      - {label: "The one exception and why", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 470-472}
+      - {label: "Database in the full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 107}
+      - {label: "The one exception and why", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 474-476}
     solidify: "Tier 2: Falco without NNP, accepted (CIS 5.25)"
   - id: resource-limits
     label: "resource limits"
     zone: host
     what: "CPU, memory, and process-count limits on every service, so a runaway or a fork bomb in one container cannot starve the host."
     controls: [SC-6, SC-5]
-    status: partial
-    status_note: "Limits are set on every service in the full design; the live three-container definition carries none yet, a compose change."
+    status: live
+    status_note: "Set on every service in the full design and on all three live containers since 2026-09-06: processor, memory, and process-count caps on the database, n8n, and the tunnel, confirmed by inspecting each container on the host."
     evidence:
-      - {label: "Limits on the database", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 110-111}
+      - {label: "Limits on the live database, n8n, and tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 52}
+      - {label: "Limits on the database, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 111-112}
       - {label: "PID limits and the restart policy tradeoff", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 616}
-    solidify: "oci-core compose has no deploy.resources limits (found 2026-09-05)"
+    solidify: "closed 2026-09-06: PR #43 plus host deploy, inspect-verified on all three"
   # RUNTIME
   - {id: falco, label: "Falco eBPF", zone: runtime, from: topology/falco}
   - id: three-networks
@@ -102,7 +103,7 @@ nodes:
     status: partial
     status_note: "Three networks in the full design; the live host runs the core network alone until the rebuild brings the other services back."
     evidence:
-      - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1018-1025}
+      - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1022-1029}
       - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 80}
       - {label: "Segmentation in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 199}
     solidify: none
@@ -114,34 +115,34 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; the SSP row for information flow describes the core network's egress and is queued for a rewording that names the sealed segment."
     evidence:
-      - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1020-1022}
-      - {label: "Whisper on it", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 243-244}
+      - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1024-1026}
+      - {label: "Whisper on it", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 247-248}
     solidify: "Threat model: SSP AC-4 row wording (net-core unrestricted, net-ai none)"
   - id: read-only-root
     label: "read-only root"
     zone: runtime
     what: "The tunnel and the alert router run on a read-only root filesystem, so a compromise cannot drop a binary or edit a config in place."
     controls: [CM-7, SI-7]
-    status: partial
-    status_note: "Set on both in the full design; the live tunnel definition lacks it, a two line change."
+    status: live
+    status_note: "The live tunnel runs on a read-only root with scratch space on tmpfs since 2026-09-06, confirmed on the host; the alert router carries the same setting in its definition and comes up with the ARM rebuild."
     evidence:
-      - {label: "Tunnel, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 667}
-      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 548}
-      - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 70-77}
-    solidify: "Tier 2: live cloudflared lacks read_only"
+      - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 96}
+      - {label: "Tunnel, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 671}
+      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 552}
+    solidify: "closed for the tunnel 2026-09-06 (PR #43 plus deploy); the alert router follows the rebuild"
   - id: digest-pinning
     label: "digest pinning"
     zone: runtime
     what: "Every image is pinned by content digest rather than by tag, so a pull returns exactly the reviewed bytes; Renovate proposes updates in tiers for review."
     controls: [SI-7, CM-8]
-    status: partial
-    status_note: "Every image in the full design carries a digest and Renovate is configured; the live three-container definition pins by version tag, and the ARM rebuild re-pins by digest."
+    status: live
+    status_note: "Every image in the full design and all three on the live host are pinned by content digest against a multi-architecture index since 2026-09-06; Renovate tracks every tier and proposes bumps as pull requests for review."
     evidence:
-      - {label: "Pinning rule for the compose", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 44}
-      - {label: "Live tunnel image, tag-pinned", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 71}
+      - {label: "Live images, digest-pinned", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 38}
+      - {label: "Pinning rule for the compose", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
       - {label: "Renovate configuration", path: renovate.json, line: 1}
       - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
-    solidify: "ARM rebuild: arm64 digest re-pin"
+    solidify: "closed 2026-09-06: live three pinned to index digests (PR #43); transcriber pinned the same day"
   - id: alerts-off-host
     label: "alerts off-host"
     zone: runtime
@@ -150,8 +151,8 @@ nodes:
     status: designed
     status_note: "Drift alerts reach the operator from CI today; the sensor and log shipping paths from the host return with the ARM rebuild."
     evidence:
-      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 530}
-      - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 578}
+      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
+      - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 582}
       - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 135}
     solidify: "Multi-cloud: Datadog agent and Falco pending"
   # APPLICATION
@@ -164,7 +165,7 @@ nodes:
     evidence:
       - {label: "Output rail", path: builds/squire/docker/nemo_config/rails/output.co, line: 1}
       - {label: "Citation guard and verb rewrite at the API boundary", path: builds/squire/src/squire/app.py, line: 138}
-      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 894}
+      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 898}
   - id: actions-allowlist
     label: "actions allowlist"
     zone: application

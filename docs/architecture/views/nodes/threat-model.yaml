@@ -130,8 +130,8 @@ nodes:
     status: partial
     status_note: "No container on the current host mounts the socket at all; the two sensors that will are the only holders in the full design, and since read-only limits the file rather than the API, the kernel sensor watches the two that hold it."
     evidence:
-      - {label: "SIEM agent mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 435}
-      - {label: "Kernel sensor mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 486}
+      - {label: "SIEM agent mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 439}
+      - {label: "Kernel sensor mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 490}
       - {label: "Live compose, no socket mounts", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
     solidify: "Threat model: :ro limits the socket file, not the Docker API"
   - {id: falco-kernel, label: "Falco reads the kernel", zone: runtime, from: topology/falco}
@@ -151,7 +151,7 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; today SSH is the break-glass path, key plus source range, and the gateway with the second factor returns with the rebuild."
     evidence:
-      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 371}
+      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 375}
       - {label: "Gateway-managed access", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 37}
       - {label: "Gateway roles", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 83}
     solidify: "Identity view: Teleport auth local with TOTP on the previous host"
