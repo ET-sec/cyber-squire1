@@ -78,6 +78,7 @@ jobs:
           echo "init OK"
 
       - name: Terraform Plan (real plan, no lock)
+        # -out and show paths are relative to the -chdir directory, as in drift-check.yml
         id: plan
         env:
           TF_VAR_oci_auth: SecurityToken
@@ -98,7 +99,7 @@ jobs:
             echo "::error::terraform plan errored"
             exit 1
           fi
-          terraform -chdir=$TF_DIR show -json "$PWD/main.tfplan" > plan.json
+          terraform -chdir=$TF_DIR show -json main.tfplan > plan.json
           SUMMARY=$(jq -r '[.resource_changes[]? | select(.change.actions != ["no-op"]) | "\(.change.actions | join("+")) \(.address)"] | join("\n")' plan.json)
           echo "planned changes (addresses only):"
           echo "${SUMMARY:-none}"
@@ -140,7 +141,7 @@ jobs:
 
       - name: Scrub plan files
         if: always()
-        run: rm -f main.tfplan plan.json plan.log conftest.txt upst.token session.pem
+        run: rm -f $TF_DIR/main.tfplan plan.json plan.log conftest.txt upst.token session.pem
 
   apply:
     name: Apply after review
@@ -200,7 +201,7 @@ jobs:
           CODE=${CODE:-0}
           if [ "$CODE" = "1" ]; then grep -m3 "Error:" plan.log || true; echo "::error::re-plan errored"; exit 1; fi
           if [ "$CODE" = "0" ]; then echo "nothing left to apply (state moved since the plan job)"; echo "NOOP=1" >> "$GITHUB_ENV"; exit 0; fi
-          terraform -chdir=$TF_DIR show -json "$PWD/apply.tfplan" > plan.json
+          terraform -chdir=$TF_DIR show -json apply.tfplan > plan.json
           NOW=$(jq -r '[.resource_changes[]? | select(.change.actions != ["no-op"]) | "\(.change.actions | join("+")) \(.address)"] | join("\n")' plan.json)
           if [ "$NOW" != "$REVIEWED" ]; then
             echo "::error::change set differs from the one the plan job reported; refusing to apply"
@@ -223,7 +224,7 @@ jobs:
           REVIEWED: ${{ needs.plan.outputs.changes }}
         run: |
           set +e
-          terraform -chdir=$TF_DIR apply -input=false -no-color "$PWD/apply.tfplan" > apply.log 2>&1
+          terraform -chdir=$TF_DIR apply -input=false -no-color apply.tfplan > apply.log 2>&1
           CODE=$?
           set -e
           if [ "$CODE" -ne 0 ]; then
@@ -243,4 +244,4 @@ jobs:
 
       - name: Scrub plan files
         if: always()
-        run: rm -f apply.tfplan plan.json plan.log apply.log conftest.txt upst.token session.pem
+        run: rm -f $TF_DIR/apply.tfplan plan.json plan.log apply.log conftest.txt upst.token session.pem
