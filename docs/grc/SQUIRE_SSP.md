@@ -289,7 +289,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` (`cd-service-squire` environment block) |
+| AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` (`svc-squire` environment block) |
 | AC-3 | Implemented | `POST /alert` requires header `x-squire-token` validated against Doppler secret `SQUIRE_INGEST_TOKEN`. Missing or mismatched token returns 401. | `builds/squire/src/squire/app.py` (token check with `hmac.compare_digest`) |
 | AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins `net-ai` and `net-core` only. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block |
 | AC-6 | Implemented | Least privilege on container filesystem: `USER 10001:10001`, `read_only: true`, `tmpfs` for `/tmp`. No `CAP_*` added; `no-new-privileges` set. | `builds/squire/Dockerfile` + compose security_opt |
