@@ -305,12 +305,13 @@ nodes:
     zone: delivery
     what: "Upstream image signatures are checked with Cosign on every merge and the tally is reported."
     controls: [SI-7, CM-5]
-    status: partial
-    status_note: "Runs and reports without blocking; the identity match is a wildcard and it checks tags rather than the digests the compose pins, so the fail-closed flip with pinned identities is the queued change."
+    status: live
+    status_note: "Blocks since 2026-09-06 on pull requests and on main: every pinned image is checked against a per-publisher policy, keyless with a pinned identity for the two sensors and a public key kept in the repo for the access proxy; a signed image that fails, or an image with no policy, fails the job. Four of the sixteen image repositories carry a signature; the rest are recorded as unsigned rather than passed."
     evidence:
-      - {label: "Verification step, advisory", path: .github/workflows/security.yml, line: 179-181}
-      - {label: "Tally", path: .github/workflows/security.yml, line: 200-217}
-    solidify: "Boundary view: Cosign advisory, wildcard identity, tags not digests"
+      - {label: "Verification job, blocking", path: .github/workflows/security.yml, line: 164}
+      - {label: "Signer policy", path: .github/image-signers.json, line: 1}
+      - {label: "Verifier", path: scripts/verify_image_signatures.py, line: 1}
+    solidify: "closed 2026-09-06: fail-closed, pinned identities, pinned Teleport key; 12 of 16 repositories publish no signature (supplier gap recorded in the policy)"
   - {id: human-review, label: "human review", zone: delivery, from: topology/human-review}
   - {id: nightly-drift, label: "nightly drift", zone: delivery, from: topology/drift-check}
 chips:

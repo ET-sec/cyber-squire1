@@ -251,11 +251,11 @@ nodes:
     zone: outside
     what: "Where the container images come from; every pull is by digest, the SBOMs are generated in CI, and signatures are checked."
     controls: [SI-7, CM-8, SA-9]
-    status: partial
-    status_note: "Digest pinning and SBOM generation are live; signature verification runs and reports without blocking yet."
+    status: live
+    status_note: "Digest pinning, SBOM generation, and signature verification are live; verification blocks on the repositories that sign and records the rest as unsigned."
     evidence:
-      - {label: "Signature check, advisory", path: .github/workflows/security.yml, line: 179-181}
-      - {label: "SBOM generation", path: .github/workflows/security.yml, line: 253}
+      - {label: "Signature check, blocking", path: .github/workflows/security.yml, line: 164}
+      - {label: "SBOM generation", path: .github/workflows/security.yml, line: 200}
       - {label: "Pinning rule", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
       - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
     solidify: "Boundary view: Cosign advisory"

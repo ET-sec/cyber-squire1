@@ -48,7 +48,7 @@
       "groupName": "Tier 1 security boundary"
     },
     {
-      "description": "Tier 2 (state bearing) — patch auto-merge after CI green, manual on majors",
+      "description": "Tier 2 (state bearing) — patch bumps auto-merge once every check is green (the signature job blocks since 2026-09-06), manual on majors",
       "matchPackageNames": [
         "pgvector/pgvector",
         "n8nio/n8n",
@@ -62,7 +62,7 @@
       ],
       "labels": ["dependencies", "tier-2", "state-bearing"],
       "matchUpdateTypes": ["patch"],
-      "automerge": false,
+      "automerge": true,
       "groupName": "Tier 2 patch bumps"
     },
     {
@@ -83,13 +83,13 @@
       "automerge": false
     },
     {
-      "description": "Tier 3 (stateless inference) — digest pinned like every other tier; automerge turns on once the Cosign step fails closed",
+      "description": "Tier 3 (stateless inference) — digest pinned like every other tier; bumps auto-merge once every check is green",
       "matchPackageNames": [
         "ollama/ollama",
         "fedirz/faster-whisper-server"
       ],
       "labels": ["dependencies", "tier-3", "stateless"],
-      "automerge": false,
+      "automerge": true,
       "groupName": "Tier 3 stateless bumps"
     },
     {
