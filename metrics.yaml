@@ -3,13 +3,13 @@
 # Pre-commit hook auto-runs this when source dirs change.
 # Do not hand-edit: changes will be overwritten.
 
-generated_at: '2026-09-06T15:39:27+00:00'
+generated_at: '2026-09-06T20:16:50+00:00'
 generator: build_metrics.py
 version: 1
 
 sources:
   detections_source: 'detections/'
-  filesystem_root: '/Users/et/cyber-squire-ops'
+  filesystem_root: '.'
   poam_auto_source: 'docs/grc/POAM_AUTO_FINDINGS.md'
   poam_source: 'docs/grc/POAM_PLAN_OF_ACTION.md'
   ssp_source: 'docs/grc/SSP_*.md'
@@ -19,13 +19,13 @@ sources:
 stack:
   containers_live: 3
   containers_designed: 19
-  workflows_n8n_active: 14
+  workflows_n8n_exported: 14
   workflows_github_actions: 15
 
 grc:
   total_documents: 57
   total_files_including_index: 59
-  nist_800_53_controls_cited: 133
+  nist_800_53_controls_cited: 140
   policies: 10
   ir_playbooks: 5
   threat_model_docs: 6
@@ -34,15 +34,15 @@ grc:
   poam_findings_total: 42
   poam_findings_base_cis_checkov_ra: 27
   poam_findings_squire_ai: 15
-  poam_findings_open: 20
-  poam_findings_closed: 7
-  poam_findings_accepted_risk: 15
+  poam_findings_open: 19
+  poam_findings_closed: 9
+  poam_findings_accepted_risk: 14
   stride_threats: 29
   ai_threats_cataloged: 10
   attack_paths_total: 7
   attack_paths_base: 4
   attack_paths_squire_ai: 3
-  trust_boundaries_defined: 7
+  trust_boundaries_defined: 8
   data_flows_cataloged: 40
 
 ai:

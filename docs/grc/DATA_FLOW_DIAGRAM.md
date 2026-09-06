@@ -69,6 +69,7 @@ The DFD serves as:
 | **TB-5** | svc-ai-gateway | Anthropic API (external) | Prompts containing operational context leave boundary |
 | **TB-6** | Monitoring zone | Monitoring platform SaaS (Datadog) | Metrics, logs, traces, alerts leave boundary |
 | **TB-7** | Telegram API | svc-tunnel → svc-ai-gateway | User messages from external messaging platform |
+| **TB-8** | Services (DMZ, Internal) | svc-db | Workflow state, credential store, investigation records and vector chunks enter the data store (added 2026-09-06 to match the STRIDE diagram) |
 
 ### Network Segments
 
