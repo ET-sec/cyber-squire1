@@ -18,6 +18,7 @@ Cross-cutting concerns wired here:
 """
 from __future__ import annotations
 
+import hmac
 import json as _json
 import logging
 import os
@@ -75,7 +76,9 @@ def _auth(
     the token check.
     """
     expected = settings.squire_webhook_token.get_secret_value()
-    if not token_header or token_header != expected:
+    if not token_header or not hmac.compare_digest(
+        token_header.encode("utf-8"), expected.encode("utf-8")
+    ):
         raise HTTPException(status_code=401, detail="unauthorized")
     if internal_header == "1":
         client_host = request.client.host if request.client else ""

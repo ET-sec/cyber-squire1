@@ -83,12 +83,14 @@
       "automerge": false
     },
     {
-      "description": "Tier 3 (stateless inference) — Renovate ignores these, restart pulls latest",
+      "description": "Tier 3 (stateless inference) — digest pinned like every other tier; automerge turns on once the Cosign step fails closed",
       "matchPackageNames": [
         "ollama/ollama",
         "fedirz/faster-whisper-server"
       ],
-      "enabled": false
+      "labels": ["dependencies", "tier-3", "stateless"],
+      "automerge": false,
+      "groupName": "Tier 3 stateless bumps"
     },
     {
       "description": "Group all Cloudflare image bumps into one PR",
