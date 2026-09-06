@@ -27,7 +27,7 @@ crossings=0
 # ===== boundary =====
 a(f'<rect x="{BX}" y="{BY}" width="{BW}" height="{BH}" rx="10" fill="rgba(232,220,192,0.015)" stroke="{BONE}" stroke-width="3" stroke-dasharray="18 9"/>')
 a(t(BX+22,58,"AUTHORIZATION BOUNDARY",13,BONE,700,"start",2))
-a(t(BX+22,76,"one hardened host, 19 services, three Terraform modules, the configuration that changes them; Moderate baseline, 133 controls cited in the SSP",11.5,DIM))
+a(t(BX+22,76,"one hardened host, 19 services, three Terraform modules, the configuration that changes them; Moderate baseline, 140 controls cited in the SSP",11.5,DIM))
 # ===== configuration plane =====
 a(f'<rect x="370" y="88" width="860" height="88" rx="7" fill="rgba(255,255,255,0.015)" stroke="{LINE}" stroke-width="1.5"/>')
 a(t(382,106,"CONFIGURATION ITEMS",12,TEXT,700,"start",2)); a(t(382,142,"versioned here  CM-2 CM-3",11.5,DIM)); a(t(382,157,"executed by the providers",11.5,DIM))
@@ -164,7 +164,7 @@ html=f'''<title>CoreDirective Authorization Boundary</title>
   </svg>
 
   <figcaption>
-    <div class="g"><b>Inside</b>one host, 19 services, three Terraform modules, the configuration that changes them; 133 controls cited, Moderate baseline</div>
+    <div class="g"><b>Inside</b>one host, 19 services, three Terraform modules, the configuration that changes them; 140 controls cited, Moderate baseline</div>
     <div class="c"><b>Crossings</b>{crossings} drawn: direction, protocol class, control; ports and data types on the SSP copy; SA-9 providers, CA-3 links</div>
     <div class="a"><b>Inherited</b>physical, hypervisor, backbone, resolver, DDoS, edge DNS from the providers; six inherited SSP rows, PE family by note</div>
     <div class="r"><b>Exception</b>one inbound port, break-glass SSH from allowlisted sources; everything else rides a tunnel the host dials out</div>

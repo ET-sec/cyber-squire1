@@ -22,8 +22,8 @@ PATH_RE = re.compile(r"(?<![\w/.@-])((?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.(?:ya
 URL_RE = re.compile(r"""(?:href|src)=["'][^"']*["']|https?://[^\s"'<>)]+""")
 
 # Documented gaps. Each entry is tracked in the site handoff; remove the entry when the gap closes.
-KNOWN_CONTROL_GAPS = {"CA-8": "cited on the pen test card, no SSP row yet", "SA-12": "Rev 4 id cited on the supply chain card, SSP has no SR family yet", "SA-15": "cited on the SDLC card, no SSP row yet"}
-KNOWN_PATH_GAPS = {"falco-rules/n8n-outbound.yaml": "Falco showcase card cites a path that is not in the repo; rule text lives in docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md"}
+KNOWN_CONTROL_GAPS = {}  # closed 2026-09-06: CA-8, SA-15, CM-14, SR family rows added to SSP section 5; the supply chain card cites SR-3 now
+KNOWN_PATH_GAPS = {}  # closed 2026-09-06: the Falco showcase rule lives at detections/falco/n8n-outbound.yaml
 
 OPSEC = [
     ("ipv4", re.compile(r"\b(?!0\.0\.0\.0\b)\d{1,3}(?:\.\d{1,3}){3}\b")),

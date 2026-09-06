@@ -15,7 +15,7 @@ Start with the executive summaries, then follow the numbered path below. Each la
     (Security, Architecture,      posture, architecture, and compliance readiness.
      Compliance)                  Read all three in 10 minutes.
          │
- 2. SYSTEM SECURITY PLAN (SSP)   The foundation. 133 NIST 800-53 controls mapped
+ 2. SYSTEM SECURITY PLAN (SSP)   The foundation. 140 NIST 800-53 controls mapped
          │                        to the actual infrastructure. Everything else
          │                        traces back to this document.
          │
@@ -89,7 +89,7 @@ Most documents include cross-references to related documents in their final sect
 
 | Document | Description |
 |----------|-------------|
-| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan, NIST 800-53 control mapping (16 families, 133 controls) plus Phase 17 Squire annex |
+| [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | System Security Plan, NIST 800-53 control mapping (17 families, 140 controls) plus Phase 17 Squire annex |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Plan of Action & Milestones, 42 entries (27 base plus 15 Phase 17 P17 rows) from CIS Docker Bench, Checkov IaC, Falco runtime, risk assessment, and Phase 17 Squire cluster |
 | [POAM_AUTO_FINDINGS.md](POAM_AUTO_FINDINGS.md) | Scanner-generated intake ledger, deduped by finding fingerprint, feeds the curated POA&M |
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Risk Assessment, 17 threats, 5x5 matrix, MITRE ATT&CK mapping |
@@ -235,7 +235,7 @@ Documentation for the Squire autonomous SOC analyst: LangGraph 7-node state mach
 |--------|-------|
 | Documents in this library | 57 |
 | Lines of compliance documentation | ~28,800 (as of 2026-09-01) |
-| NIST 800-53 controls cited in the enterprise SSP | 133 |
+| NIST 800-53 controls cited in the enterprise SSP | 140 |
 | Sigma detection rules | 17 |
 | Auto ledger rows (scanner intake) | 75 (all closed as of 2026-09-01) |
 
@@ -252,7 +252,7 @@ ls docs/grc/*.md | wc -l                                                        
 cat docs/grc/*.md | wc -l                                                        # ~28,800
 
 # Legacy SSP control rows
-grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SSP_SYSTEM_SECURITY_PLAN.md              # 133
+grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SSP_SYSTEM_SECURITY_PLAN.md              # 140
 
 # Squire subsystem SSP control rows
 grep -cE "^\| [A-Z][A-Z]-[0-9]" docs/grc/SQUIRE_SSP.md                            # 36

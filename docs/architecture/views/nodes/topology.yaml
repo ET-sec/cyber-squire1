@@ -44,7 +44,7 @@ nodes:
     evidence:
       - {label: "SSH ingress rule from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
       - {label: "The range as a variable", path: terraform/cd-oci-infrastructure/variables.tf, line: 166}
-    solidify: "POA&M row POAM-021 still describes the previous provider's open SSH rule; re-baseline"
+    solidify: "none (POAM-021 closed 2026-09-06)"
 
   - id: access
     label: "Access"
@@ -218,14 +218,14 @@ nodes:
     what: "The state store: workflow state, the agent's investigations with vector search, identity, and trace metadata."
     controls: [SC-28, CP-9, CP-10, AC-3]
     status: live
-    status_note: "One of the three live containers; nightly dumps by instance principal to a key-encrypted bucket with a 30 day retention rule and a monthly timed restore, and the SSP backup rows are queued for re-baseline to say so."
+    status_note: "One of the three live containers; nightly dumps by instance principal to a key-encrypted bucket with a 30 day retention rule and a monthly timed restore, and the SSP backup rows read Implemented on that evidence."
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
       - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 84}
       - {label: "Backup bucket, encrypted, retention rule", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
       - {label: "Backup writer identity, no long-lived key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
       - {label: "Recovery plan", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 17}
-    solidify: "Control layers: CP-4, CP-9, CP-10 rows read Partially Implemented; re-baseline with data_protection.tf"
+    solidify: "none (CP-4, CP-9, CP-10 re-baselined 2026-09-06)"
 
   - id: teleport
     label: "Teleport"

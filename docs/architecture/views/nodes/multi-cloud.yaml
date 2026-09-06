@@ -103,12 +103,12 @@ nodes:
     what: "The virtual network and its security list: one ingress rule, SSH from the allowlisted range, and nothing else reaches the instance from the internet."
     controls: [SC-7, AC-3, CM-7]
     status: live
-    status_note: "Applied on the current provider; the assessment row that still describes the SSH rule as open to the world is queued for re-baseline."
+    status_note: "Applied on the current provider; the assessment row that described the previous provider's open SSH rule is closed."
     evidence:
       - {label: "Security list", path: terraform/cd-oci-infrastructure/networking.tf, line: 40}
       - {label: "SSH ingress from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
-      - {label: "Assessment row to re-baseline", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 619}
-    solidify: "Public site: POAM-021 re-baseline"
+      - {label: "Assessment row, closed", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 430}
+    solidify: "none (POAM-021 closed 2026-09-06)"
   - id: identity-domain
     label: "identity domain"
     zone: runtime

@@ -4,9 +4,9 @@ title: Plan of Action and Milestones
 doc_type: poam
 system_name: Organization Security Operations Platform
 classification: INTERNAL-USE-ONLY
-version: "1.3"
-last_updated: 2026-06-24
-next_review: 2026-07-24
+version: "1.4"
+last_updated: 2026-09-06
+next_review: 2026-10-06
 owner: System Owner (Platform Administrator)
 contact: admin@example-ops.com
 parent_ssp: SSP-OPS-001
@@ -24,9 +24,9 @@ related:
 **System Name:** Organization Security Operations Platform
 **System Owner:** System Owner (Platform Administrator)
 **Contact:** admin@example-ops.com
-**Document Date:** 2026-03-11 (v1.0), 2026-04-24 (v1.1 Phase 17 entries), 2026-06-24 (v1.3 audit refresh)
+**Document Date:** 2026-03-11 (v1.0), 2026-04-24 (v1.1 Phase 17 entries), 2026-06-24 (v1.3 audit refresh), 2026-09-06 (v1.4 provider re-baseline)
 **Classification:** Internal Use Only
-**Version:** 1.3
+**Version:** 1.4
 
 <!-- TODO(et): 2026-06-24 audit refresh propagated embedding-provider and code-path corrections plus past-due status flags. Many Q2 milestones (POAM-003, POAM-005, POAM-014, POAM-019, POAM-022, POAM-023, POAM-024, POAM-025, POAM-026, POAM-027, POAM-P17-08, POAM-P17-10) need owner verification before flipping to Closed; left as Open with a past-due flag rather than blind-closing. -->
 
@@ -129,9 +129,9 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **NIST 800-53 Control** | SI-7 (Software, Firmware, and Information Integrity), CM-14 (Signed Components) |
 | **Affected Components** | Docker daemon, all image pulls on `alpha-node` |
 | **Compensating Controls** | CI/CD pipeline runs container signature verification (soft-fail) for images that support it. Container vulnerability scanner scans all images for known vulnerabilities on every push and PR. SBOMs generated for 6 key images (svc-db, svc-automation, svc-secrets, svc-monitor, svc-tunnel, repository filesystem). Image digest manifest generated per deployment. |
-| **Remediation Plan** | Enable Docker Content Trust in CI/CD build environment. Maintain an allowlist of unsigned upstream images (svc-detection, svc-detection-router, svc-ai-gateway, svc-transcription) with documented justification. |
-| **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Enable DCT in CI with unsigned image allowlist |
-| **Status** | Open (Past Due) <!-- TODO(et): verify whether DCT shipped in CI; if so, mark Closed with commit ref. --> |
+| **Remediation Plan** | Closed 2026-09-06 with Sigstore verification instead of Docker Content Trust (the upstream publishers that sign use cosign, none use Notary). `scripts/verify_image_signatures.py` checks every digest-pinned image in both compose files against a per-publisher policy (`.github/image-signers.json`) on pull requests and on main with no soft-fail: publishers that sign must verify against their pinned identity or key; publishers that do not sign (12 of 16 repositories) are recorded as unsigned with the digest pin and vulnerability scan as the compensating control; an image with no policy entry fails the job. Renovate cannot automerge past it. Repository PR #45, commit a581208. |
+| **Milestone** | 2026-09-06 Closed (signature verification fail-closed in CI, per-publisher policy with recorded unsigned upstreams) |
+| **Status** | Closed |
 | **Responsible Party** | Platform Administrator |
 
 ---
@@ -430,14 +430,14 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **POA&M ID** | POAM-021 |
 | **Finding Source** | Checkov |
 | **Finding ID** | CKV-CLOUD-004 |
-| **Description** | DigitalOcean Cloud Firewall allows SSH (port 22) from `0.0.0.0/0`. IaC scanner flags unrestricted SSH ingress as a DigitalOcean specific check. |
+| **Description** | The previous provider's cloud firewall allowed SSH (port 22) from `0.0.0.0/0`, flagged by a provider-specific IaC check. On the current provider the host security list accepts SSH only from the operator's allowlisted source addresses, set as the Terraform variable `ssh_allowed_cidrs`, and the OPA policy `deny_public_firewall.rego` fails any plan that opens port 22 to the world. |
 | **Risk Level** | Low |
 | **NIST 800-53 Control** | SC-7 (Boundary Protection), AC-17 (Remote Access) |
-| **Affected Components** | DigitalOcean Cloud Firewall, `alpha-node` VPS |
-| **Compensating Controls** | SSH access is gated behind a zero-trust tunnel with ed25519 key authentication. Direct SSH from the public internet is blocked by the tunnel architecture, the firewall rule exists for tunnel-to-host forwarding. svc-gateway (Teleport) provides session recording and JIT access control for all SSH sessions. |
-| **Remediation Plan** | No action. The firewall rule is intentionally broad because the zero-trust tunnel handles authentication and authorization. Restricting to specific IPs would break the tunnel architecture. |
-| **Milestone** | Accepted Risk, permanent (architectural requirement) |
-| **Status** | Accepted Risk |
+| **Affected Components** | Host security list on the current provider, `alpha-node` |
+| **Compensating Controls** | SSH is key-only (ed25519) and is the break-glass path for when the tunnel is down. Routine administration goes through the zero-trust tunnel with an identity check at the edge. Session recording and just-in-time elevation through svc-gateway return with the ARM rebuild. |
+| **Remediation Plan** | Closed by the 2026-08 provider migration. The open rule no longer exists: the only inbound rule on the security list is TCP 22 from `ssh_allowed_cidrs` (`terraform/cd-oci-infrastructure/networking.tf`, dynamic ingress block), and `deny_public_firewall.rego` blocks regression at plan time. The earlier claim that restricting source addresses would break the tunnel was wrong: the tunnel is an outbound connection from the host and needs no inbound rule. |
+| **Milestone** | 2026-09-06 Closed (re-baselined against the current provider's Terraform) |
+| **Status** | Closed |
 | **Responsible Party** | Platform Administrator |
 
 ### Source 3: Falco Runtime Detection (0 Active Findings)
@@ -616,10 +616,9 @@ The following findings have been formally accepted with documented business just
 | POAM-017 | CIS 5.14 | Low | `unless-stopped` provides better single-node availability than `on-failure:5`. PIDs limits prevent fork bombs. | PIDs limits (64-512), restart count monitoring with alerting |
 | POAM-018 | CIS 5.15 | Low | svc-monitor requires `pid: host` for process-level metrics (vendor requirement). | `no-new-privileges`, resource limits, runtime detection, read-only access |
 | POAM-020 | CKV_TF_1, CKV_TF_2 | Low | No external Terraform modules in use. Checks not applicable. | PR pipeline with 7-step validation (format, init, validate, TFLint, Checkov, plan, OPA) |
-| POAM-021 | CKV-CLOUD-004 | Low | SSH `0.0.0.0/0` is intentional, zero-trust tunnel handles auth. Restricting IPs breaks tunnel architecture. | Zero-trust tunnel, ed25519 key auth, session recording via svc-gateway, JIT access control |
 
-**Total accepted risks:** 15 (4 Medium, 11 Low)
-**Total with active remediation plans:** 11 (POAM-003, POAM-005, POAM-014, POAM-015, POAM-016, POAM-019, POAM-023, POAM-024, POAM-025, POAM-026, POAM-027)
+**Total accepted risks:** 14 (4 Medium, 10 Low). POAM-021 left this table on 2026-09-06: the open SSH rule was retired with the provider migration and the finding is closed.
+**Total with active remediation plans:** 10 (POAM-005, POAM-014, POAM-015, POAM-016, POAM-019, POAM-023, POAM-024, POAM-025, POAM-026, POAM-027)
 
 ---
 
@@ -718,7 +717,7 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 |------------|--------------|------------------|--------|
 | AC-3 | Access Enforcement | POAM-006, POAM-010 | Compensating controls in place |
 | AC-6 | Least Privilege | POAM-001, POAM-002, POAM-004, POAM-005 | Compensating controls in place |
-| AC-17 | Remote Access | POAM-021 | Compensating controls in place |
+| AC-17 | Remote Access | POAM-021 | Closed 2026-09-06 (SSH from the allowlisted range only on the current provider) |
 | AU-2 | Event Logging | POAM-007 | Compensating controls in place |
 | AU-6 | Audit Record Review | POAM-008 | Compensating controls in place |
 | AU-12 | Audit Record Generation | POAM-007 | Compensating controls in place |
@@ -726,16 +725,16 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 | CM-5 | Access Restrictions for Change | POAM-015 | Open, remediation Q3 2026 |
 | CM-6 | Configuration Settings | POAM-001, POAM-002, POAM-005, POAM-008 | Compensating controls in place |
 | CM-7 | Least Functionality | POAM-006, POAM-008, POAM-011, POAM-012, POAM-018 | Compensating controls in place |
-| CM-14 | Signed Components | POAM-003 | Open, remediation Q2 2026 |
+| CM-14 | Signed Components | POAM-003 | Closed 2026-09-06 (signature verification fail-closed in CI) |
 | IR-4 | Incident Handling | POAM-022 | Monitoring active |
 | SA-10 | Developer Configuration Management | POAM-020 | Not applicable |
 | SC-4 | Information in Shared Resources | POAM-007 | Compensating controls in place |
 | SC-6 | Resource Availability | POAM-014, POAM-017 | Open (POAM-014) / Accepted (POAM-017) |
-| SC-7 | Boundary Protection | POAM-013, POAM-016, POAM-021 | Open (POAM-016) / Accepted (others) |
+| SC-7 | Boundary Protection | POAM-013, POAM-016, POAM-021 | Open (POAM-016) / Accepted (POAM-013) / Closed (POAM-021) |
 | SC-39 | Process Isolation | POAM-001, POAM-004, POAM-013, POAM-018 | Compensating controls in place |
 | SI-4 | System Monitoring | POAM-022 | Monitoring active |
 | SI-6 | Security Function Verification | POAM-009, POAM-019 | Accepted (POAM-009) / Open (POAM-019) |
-| SI-7 | Software/Firmware Integrity | POAM-003, POAM-015 | Open, remediation planned |
+| SI-7 | Software/Firmware Integrity | POAM-003, POAM-015 | Closed (POAM-003) / Open (POAM-015) |
 | SC-24 | Fail in Known State | POAM-014, POAM-017 | Compensating controls in place |
 
 ---
@@ -762,6 +761,7 @@ The following NIST SP 800-53 Rev. 5 controls are referenced across POA&M finding
 | 1.1 | 2026-03-11 | Platform Administrator | Added 5 findings from Risk Assessment mitigate treatments (POAM-023 through POAM-027). Fixed SI-17 to SC-24 (invalid NIST control). Total: 37 findings from 4 sources. |
 | 1.2 | 2026-04-24 | Platform Administrator | Added Phase 17 Squire cluster: POAM-P17-01 through P17-15. Cycle 1 red-team findings closed; cycle 2 cluster opened (rails, threat-model residuals, rate-limit infra). |
 | 1.3 | 2026-06-24 | Platform Administrator | Audit refresh: embedding provider and code path corrections propagated from REDTEAM_RESULTS and FRAMEWORK_CROSSWALK_SQUIRE. Past-due flags applied to all milestones that have crossed their target date without an owner status update. MCP01-001 and MCP08-001 in POAM_MCP_2025.md confirmed Closed 2026-05-31. |
+| 1.4 | 2026-09-06 | Platform Administrator | Re-baseline against the current provider: POAM-021 closed (the open SSH rule was retired with the 2026-08 migration; the security list accepts SSH from the allowlisted range only). POAM-003 closed (image signature verification fail-closed in CI, per-publisher policy, commit a581208). Accepted risks 15 to 14. |
 
 ### Sub-POAMs (control-family-specific)
 

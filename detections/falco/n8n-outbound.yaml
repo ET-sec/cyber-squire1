@@ -1,0 +1,39 @@
+# Falco rule: unexpected outbound connection from the automation container.
+#
+# Why this rule exists: n8n is the one service that talks to many outside
+# APIs by design, so a plain "any outbound" rule would page all day. The
+# rule watches for connections whose destination is neither a private
+# address nor one of the vendors n8n is meant to reach, which is the shape
+# of a compromised workflow phoning home or moving laterally.
+#
+# Where it runs: Falco mounts the host's rules directory read-only at
+# /etc/falco/rules.d (COREDIRECTIVE_ENGINE/docker-compose.yaml, cd-service-falco
+# volumes). That directory is a gitignored volume on the host; copy this file
+# there when the runtime rebuild brings Falco back on the current host. The
+# container name below is the compose name; the GRC documents refer to the
+# same container as svc-automation.
+#
+# Tuning: add the CIDRs of the SaaS endpoints n8n legitimately calls to
+# n8n_allowed_destinations as they are confirmed from the container's own
+# connection log, then raise the priority to ERROR once the list is stable.
+
+- list: n8n_allowed_destinations
+  items: []
+
+- macro: is_n8n_container
+  condition: (container.name = "cd-service-n8n")
+
+- rule: Unexpected outbound connection from n8n
+  desc: Detects the n8n container making connections to non-whitelisted IPs
+  condition: >
+    is_n8n_container and
+    evt.type in (connect) and
+    fd.typechar = "4" and
+    not fd.rip in (rfc_1918_addresses) and
+    not fd.rip in (n8n_allowed_destinations)
+  output: >
+    Suspicious outbound connection from n8n
+    (connection=%fd.name container=%container.name image=%container.image.repository
+    proc=%proc.name user=%user.name)
+  priority: WARNING
+  tags: [network, n8n, lateral_movement]

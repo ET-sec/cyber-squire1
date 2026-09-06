@@ -7,7 +7,7 @@
 **NIST 800-53 Controls:** RA-3 (Risk Assessment), RA-5 (Vulnerability Monitoring and Scanning), SA-11 (Developer Testing and Evaluation), SA-15 (Development Process, Standards, and Tools)
 **OWASP References:** OWASP Threat Modeling Cheat Sheet, OWASP LLM Top 10 (2025)
 **Classification:** Internal Use Only
-**Version:** 1.1 (Phase 17 scope extension 2026-04-24)
+**Version:** 1.2 (trust boundary numbering reconciled, register recount 2026-09-06)
 
 > **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
 
@@ -31,6 +31,7 @@
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-12 | Information Security Officer | Initial STRIDE analysis across full architecture including AI systems |
 | 1.1 | 2026-04-24 | Information Security Officer | Phase 17 scope extension added. STRIDE rows for Squire subsystem (svc-squire, svc-nemo, svc-langfuse family). Cross-ref to SQUIRE_THREAT_MODEL pending from 17-14. |
+| 1.2 | 2026-09-06 | Information Security Officer | Trust boundary numbering reconciled between the diagram and section 2.3: TB-4 services to secrets engine, TB-5 AI gateway to the vendor API, TB-6 monitoring zone to SaaS, TB-8 services to database added (TB-5 had been used twice). E-03 access review cadence to quarterly per IAM_ACCESS_REVIEW. Risk distribution recounted from the register: no High residuals, I-02 Moderate counted as Medium. |
 
 ### Trust Boundary Architecture
 
@@ -150,7 +151,7 @@ S=Spoofing  T=Tampering  R=Repudiation  I=Info Disclosure  D=DoS  E=Elevation of
             ▲                   ▲
             │                   │
  ═══════════╪═══════════════════╪═══════════════════════════════════════════════════
-  [TB-6] Services to secrets engine (svc-secrets)
+  [TB-4] Services to secrets engine (svc-secrets)
   Threats: S, T, I, E
   - S: Stolen Vault token used from unauthorized container
   - T: Secret values modified during transit (env var injection)
@@ -159,7 +160,7 @@ S=Spoofing  T=Tampering  R=Repudiation  I=Info Disclosure  D=DoS  E=Elevation of
  ═══════════╪═══════════════════╪═══════════════════════════════════════════════════
             │                   │
  ═══════════╪═══════════════════╪═══════════════════════════════════════════════════
-  [TB-5] Services to database (svc-db)
+  [TB-8] Services to database (svc-db)
   Threats: S, T, R, I
   - S: Credential theft allowing unauthorized database connections
   - T: SQL injection modifying workflow state or n8n credential storage
@@ -184,7 +185,7 @@ S=Spoofing  T=Tampering  R=Repudiation  I=Info Disclosure  D=DoS  E=Elevation of
 └──────────────────────────────────────────────────────────────────────────────────┘
                                                     │
  ═══════════════════════════════════════════════════╪════════════════════════════════
-  [TB-4] net-core to net-monitoring / Monitoring zone to Datadog SaaS
+  [TB-6] net-core to net-monitoring / Monitoring zone to Datadog SaaS
   Threats: S, T, R, I, D
   - S: Forged log entries injected into Fluentd pipeline
   - T: Alert suppression by modifying Falcosidekick routing rules
@@ -206,10 +207,11 @@ S=Spoofing  T=Tampering  R=Repudiation  I=Info Disclosure  D=DoS  E=Elevation of
  │  TB-1     │ Internet to Cloudflare edge          │ S, T, D                      │
  │  TB-2     │ Cloudflare tunnel to DMZ services    │ S, T, R, I, D, E             │
  │  TB-3     │ DMZ to Internal zone (net-ai)        │ S, T, I, E                   │
- │  TB-4     │ net-core to net-monitoring / SaaS     │ S, T, R, I, D               │
- │  TB-5     │ Services to database (svc-db)        │ S, T, R, I                   │
- │  TB-6     │ Services to secrets engine (Vault)   │ S, T, I, E                   │
+ │  TB-4     │ Services to secrets engine (Vault)   │ S, T, I, E                   │
+ │  TB-5     │ AI gateway to Anthropic API (ext)    │ T, I, D                      │
+ │  TB-6     │ net-core to net-monitoring / SaaS     │ S, T, R, I, D               │
  │  TB-7     │ Telegram API to AI gateway           │ S, T, I, D, E               │
+ │  TB-8     │ Services to database (svc-db)        │ S, T, R, I                   │
  │                                                                                │
  │  Highest-risk boundaries: TB-2 (all 6 STRIDE categories), TB-7 (5 categories) │
  │  These correspond to the two primary ingress paths into the platform.          │
@@ -258,6 +260,7 @@ The threat model covers all assets within the authorization boundary as defined 
 | **TB-5** | svc-ai-gateway → Anthropic API (external) | Prompts containing operational context; responses |
 | **TB-6** | Monitoring zone → Datadog SaaS (external) | Metrics, logs, traces, Falco alerts |
 | **TB-7** | Telegram API → svc-tunnel → svc-ai-gateway | User messages from external messaging platform |
+| **TB-8** | Services → svc-db | Workflow state, credential store, investigation records and vector chunks |
 
 ---
 
@@ -673,7 +676,7 @@ Threats where an attacker gains capabilities beyond their authorized level.
 
 | Attribute | Assessment |
 |-----------|------------|
-| **Current Controls** | 3-tier RBAC model (admin/operator/auditor) documented in IAM RBAC Role Map (Implemented); monthly access reviews (Implemented); JIT admin access with 4-hour TTL via svc-gateway (Implemented); Keycloak admin console access restricted (Implemented) |
+| **Current Controls** | 3-tier RBAC model (admin/operator/auditor) documented in IAM RBAC Role Map (Implemented); quarterly access reviews (Implemented); JIT admin access with 4-hour TTL via svc-gateway (Implemented); Keycloak admin console access restricted (Implemented) |
 | **Control Status** | Implemented |
 | **Residual Risk** | **Low** - the single-operator environment limits the attack surface for role misconfiguration; JIT access prevents persistent privilege |
 | **Recommended Mitigation** | Implement automated Keycloak configuration drift detection; add alerting on role assignment changes; document and test the RBAC model quarterly |
@@ -782,9 +785,11 @@ The following table maps every STRIDE threat identified in this analysis to the 
 
 | Residual Risk | Count | Percentage |
 |---------------|-------|------------|
-| **High** | 1 (I-02) | 3% |
-| **Medium** | 14 | 48% |
-| **Low** | 14 | 48% |
+| **High** | 0 | 0% |
+| **Medium** | 16 | 55% |
+| **Low** | 13 | 45% |
+
+Recounted from the register on 2026-09-06. I-02 is rated Moderate in its entry, the term the parent risk register uses for the same band, and is counted as Medium here.
 
 ### 12.2 Top 5 Prioritized Actions
 
