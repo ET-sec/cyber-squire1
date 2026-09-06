@@ -182,6 +182,6 @@ nodes:
     evidence:
       - {label: "CVE and misconfiguration scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Bill of materials", path: .github/workflows/security.yml, line: 189}
-      - {label: "Signature check, reporting only", path: .github/workflows/security.yml, line: 164}
+      - {label: "Signature check, blocking", path: .github/workflows/security.yml, line: 164}
     solidify: "Threat model: cosign continue-on-error, tally never fails the job"
   - {id: sealed-no-route, label: "sealed: no route home", zone: runtime, from: control-layers/sealed-net-ai}
