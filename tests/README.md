@@ -9,9 +9,10 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 
 | Path | Status | Purpose |
 |---|---|---|
+| `tests/README.md` | active | The directory README for tests/, whose contents block is generated from this manifest. |
 | `tests/grc/**` | active | The governance toolchain suite: sanitization, frontmatter conversion, the budget guard, OSCAL signing, the offline reviewer, the inventory scanner, and the MCP server transport. |
-| `tests/repo/**` | active | The Phase 21 gate suite: the manifest checker across its three failure classes and both configuration errors, the repository scope of the public gate, and the review register. |
-| `tests/repo/fixtures/**` | active | Deliberate fixtures: a manifest that parses, one that does not, and a file that carries the exact string the public gate forbids. |
+| `tests/repo/**` | active | The Phase 21 gate suite: the manifest checker across its three failure classes and both configuration errors, the repository scope of the public gate, the review register, and the sweep runner with both of its seeded failures. |
+| `tests/repo/fixtures/**` | active | Deliberate fixtures: a manifest that parses, one that does not, a file carrying the exact string the public gate forbids, and a file carrying a link that resolves to nothing. |
 <!-- /MANIFEST -->
 
 Run them with `python3 -m pytest tests -q`. Every case here is offline: no

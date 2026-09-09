@@ -9,6 +9,7 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 
 | Path | Status | Purpose |
 |---|---|---|
+| `policies/README.md` | active | The directory README for policies/, whose contents block is generated from this manifest. |
 | `policies/grc/**` | active | Three Rego policies over the governance library: required frontmatter, POA and M identifier integrity, and classification. |
 <!-- /MANIFEST -->
 

@@ -102,6 +102,7 @@ entries:
     reason: "It is the first thing a reviewer or a hiring manager reads, and it links every directory a reader needs."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Two stale counts, both from plan 21-06. Lines 127 and 234 say 16 workflows while metrics.yaml says 17 and .github/workflows/ holds 17 files (measured 2026-09-09); this is the document that names metrics.yaml as the single source of numeric truth. Line 100 lists three live services while docs/architecture/STACK_OVERVIEW.md records 8 live containers verified on 2026-09-08, so the front door understates what is running."
 
   - path: "SECURITY.md"
     purpose: "The vulnerability disclosure contact and the response expectation."
@@ -165,6 +166,7 @@ entries:
     reason: "They move the secret boundary from CI to the laptop. On a public repository a pushed branch is already public, so a scan that only runs after the push is a scan that runs too late."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "The dash tell sweeper the pre-commit hook calls has no code fence awareness, so a shell separator inside a fenced block reads as a prose tell and blocks the commit. It lives in the operator's assistant directory, outside every repository, untracked, and is shared with the same gate in repo_sweep.py, so changing it changes commit behaviour in every repository on the machine. Owner decision. Plan 21-12 rewrote the one affected file rather than the sweeper. Recorded by plans 21-08 and 21-11."
 
   # ----------------------------------------------------------------------
   # .github: CI, review policy, and supply chain configuration
@@ -276,6 +278,13 @@ entries:
   # ----------------------------------------------------------------------
   # COREDIRECTIVE_ENGINE: the compose definitions
   # ----------------------------------------------------------------------
+  - path: "COREDIRECTIVE_ENGINE/README.md"
+    purpose: "The directory README for COREDIRECTIVE_ENGINE/, whose contents block is generated from this manifest."
+    status: active
+    reason: "Written by plan 21-08 (SWEEP-05). The tree above it is described row by row with no fallback, so this file needs its own row. It replaced a private operator guide for the retired provider era host, preserved under .planning/archive/readmes-2026-09-09/."
+    last_verified: 2026-09-09
+    review: {every: 180d}
+
   - path: "COREDIRECTIVE_ENGINE/docker-compose.yaml"
     purpose: "The full nineteen service stack definition: databases, orchestration, identity, secrets, inference, observability, and the runtime detection agents."
     status: active
@@ -293,6 +302,13 @@ entries:
   # ----------------------------------------------------------------------
   # builds: the Squire agent, and nothing else
   # ----------------------------------------------------------------------
+  - path: "builds/README.md"
+    purpose: "The directory README for builds/, whose contents block is generated from this manifest."
+    status: active
+    reason: "Tracked through a dated re-include at .gitignore:170, because builds/* is ignored and only squire and this file are re-included. Written by plan 21-08 (SWEEP-05)."
+    last_verified: 2026-09-09
+    review: {every: 180d}
+
   - path: "builds/squire/**"
     purpose: "The Squire agent service: packaging, container definition, dependency manifest, and the readme that explains its graph."
     status: active
@@ -331,6 +347,13 @@ entries:
   # ----------------------------------------------------------------------
   # detections: what the platform watches for
   # ----------------------------------------------------------------------
+  - path: "detections/README.md"
+    purpose: "The directory README for detections/, whose contents block is generated from this manifest."
+    status: active
+    reason: "Written by plan 21-08 (SWEEP-05). The tree above it is described row by row with no fallback, so this file needs its own row."
+    last_verified: 2026-09-09
+    review: {every: 180d}
+
   - path: "detections/falco/**"
     purpose: "Runtime rules for the host: unexpected outbound traffic from the automation container, and the measured host noise exceptions that keep it quiet."
     status: active
@@ -354,6 +377,13 @@ entries:
     reason: "The fallback row for this tree, so a registry or a protocol document added at the docs root is described the day it lands. The subtrees and the documents below carry their own rows."
     last_verified: 2026-09-09
     review: {every: 180d}
+
+  - path: "docs/README.md"
+    purpose: "The documentation entry point: the reading order through the tree, a map of every subtree with its entry point, and a statement of what is deliberately absent."
+    status: active
+    reason: "Written by plan 21-09 (SWEEP-08). Carries the generated MANIFEST:docs block, so it is a gen_folder_readmes.py target as well as a hand written page. The docs/** fallback describes the tree; this row describes the door."
+    last_verified: 2026-09-09
+    review: {every: 90d}
 
   - path: "docs/REPO_MANIFEST.yaml"
     purpose: "This file: one row for every tracked path, with what it is, why it stays, when it was last checked, and what would make somebody look again."
@@ -397,6 +427,7 @@ entries:
     reason: "The fallback row for the architecture tree, which explains the platform to a reader who is not going to read the compose file."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Three findings from plan 21-06. INFORMATION_FLOWS.md is headed 2026-08-31 and says 3 live containers while STACK_OVERVIEW.md, headed 2026-09-08, says 8, so the two architecture documents disagree about the live count. INFORMATION_FLOWS.md line 45 and INFORMATION_FLOWS_1.mmd line 30 both leave a bare dollar zero in a diagram label; it is a real measured result for the Redis dedup rail rather than a price claim, and Phase 28 owns whether a measured zero belongs in a label at all. The rendered docs/architecture/STACK_OVERVIEW.png on disk is stale after the mermaid edit; it is untracked, so no gate sees it, and the render command is in INFORMATION_FLOWS.md lines 331 to 338."
 
   - path: "docs/architecture/decisions/**"
     purpose: "Six decision records, each naming the control it satisfies and the artifact that proves it."
@@ -404,6 +435,7 @@ entries:
     reason: "The record of why the platform is shaped this way. Each row states what proves the decision, so a reviewer can check rather than take it on trust."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Three replacement reasons written by the price sweep in plan 21-06 need a reader who was not the sweep. DR-01 option 2 now reads available immediately in the tenancy already in use, so no new account and no new vendor relationship; confirm that is what the decision turned on. DR-03 option 2 still leads with a cost clause, bills past 20 key versions, rejected on cost with no security payoff at this scale, and the sentence before it carries the real reason. DR-05 now claims the strongest immutability primitive reachable from this footprint; confirm that survives the S3 Object Lock comparison an assessor would run."
 
   - path: "docs/architecture/views/**"
     purpose: "The seven published architecture views: the drawings, the generators that emit them, and the view index."
@@ -415,7 +447,7 @@ entries:
   - path: "docs/architecture/views/nodes/**"
     purpose: "One node table per view: every box on the drawing with its zone, its controls, its honest status, and the file and line that proves it."
     status: active
-    reason: "The evidence anchors live here, 419 of them. Any content edit that shifts a cited line breaks the publish until scripts/site/remap_anchors.py is run once, so this is the most fragile tree in the repository and the most load bearing."
+    reason: "The evidence anchors live here, 417 of them, counted from the yaml on 2026-09-09 by two independent methods. Any content edit that shifts a cited line breaks the publish until scripts/site/remap_anchors.py is run once, so this is the most fragile tree in the repository and the most load bearing."
     last_verified: 2026-09-09
     review: {every: 90d}
 
@@ -425,6 +457,7 @@ entries:
     reason: "The public evidence package, and the corpus the retrieval side of Squire indexes. The fallback row for this tree."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "ADR_001_EMBEDDING_PROVIDER.md still reads MongoDB repositions Voyage into paid-only tier in its risk table. That names a paid tier, which the price rule does not forbid, and it describes a possible vendor action rather than what this platform costs, so plan 21-06 left it deliberately. Phase 28 decides whether the rule extends to naming any tier at all."
 
   - path: "docs/grc/README.md"
     purpose: "The library index: reading order, framework alignment, a table per category, the review schedule, and the reproducible statistics."
@@ -432,6 +465,7 @@ entries:
     reason: "Ninety six documents with no index is a pile. This is what makes it a library."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "The Statistics table reads about 28,800 lines as of 2026-09-01 while its own reproduce command returns 28,914 (measured 2026-09-09). Dated and approximate, so it is not wrong, but it drifts on every governance edit. Derive it from metrics.yaml at the next sync pass instead of stamping it by hand. Recorded by plan 21-09."
 
   - path: "docs/grc/POLICY_*.md"
     purpose: "Ten policies covering access control, change management, incident response, risk, vulnerability management, continuity, recovery, acceptable use, awareness, and AI governance."
@@ -439,6 +473,7 @@ entries:
     reason: "Policy is what a control maps back to. Each carries the frontmatter that grc-validate.yml enforces, so a policy cannot lose its owner or its review date without failing a pull request."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "POLICY_BUSINESS_CONTINUITY.md is a retired provider era baseline by its own status note at line 11, and its rewritten support entitlement item at line 207 still asks a question about an account retired in 2026-08. The real fix is the re-baseline the document already queues, which the item now points at. Recorded by plan 21-06."
 
   - path: "docs/grc/PLAYBOOK_*.md"
     purpose: "Five incident response playbooks: compromised container, leaked credential, unauthorized access, service degradation, and an AI specific incident."
@@ -463,11 +498,12 @@ entries:
     rewrite_later: "It calls Agent_Squire/ the public mirror of the agent code. The directory holds four telemetry stubs and one snippet, so the sentence overstates what is there."
 
   - path: "docs/grc/diagrams/**"
-    purpose: "Rendered evidence graphics and the HTML sources they come from: control coverage, data flow, risk heat map, pipeline, topology, and the stack hero."
+    purpose: "Every evidence graphic the governance library embeds, kept beside the HTML source it renders from, from control coverage and the risk heat map through the topology and the map of the library itself."
     status: active
     reason: "Both halves are kept on purpose. The HTML source is how a graphic is regenerated when a number changes; the rendered file is what a document embeds."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "render.mjs holds five names in its TARGETS list while the directory holds eleven HTML sources, so a bare run silently skips six charts including the library map and the four large topology renders. Per chart invocation is the documented convention, so this is a finding rather than a blocker, but a re-render everything pass would leave a stale image beside changed source. Either complete the list or derive it from the directory. Recorded by plan 21-09."
 
   - path: "docs/grc/oscal/**"
     purpose: "The machine readable form of the system security plan, component definition, and plan of action, with the schemas they validate against."
@@ -475,6 +511,7 @@ entries:
     reason: "It is the format an assessor's tooling can ingest, and the validation summary records that the output actually validates rather than merely existing."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Every POA and M remediation text lives in two places: a row in docs/grc/POAM_PLAN_OF_ACTION.md written by hand, and a hardcoded tuple in scripts/grc/build_oscal.py that generates this output. Nothing compares the two, so they drift silently. POAM-P17-07 drifted that way between plans 21-06 and 21-07 and was reconciled by hand in plan 21-12; the class of drift is open. A check that diffs the markdown table against POAM_ITEMS would close it."
 
   - path: "docs/grc/stix/**"
     purpose: "The STIX 2.1 bundle of the Squire threat model: the threat actors, the attack patterns, and the course of action objects that map to controls."
@@ -507,6 +544,13 @@ entries:
   # ----------------------------------------------------------------------
   # policies: the OPA policies CI runs against the library
   # ----------------------------------------------------------------------
+  - path: "policies/README.md"
+    purpose: "The directory README for policies/, whose contents block is generated from this manifest."
+    status: active
+    reason: "Written by plan 21-08 (SWEEP-05). The tree above it is described row by row with no fallback, so this file needs its own row."
+    last_verified: 2026-09-09
+    review: {every: 180d}
+
   - path: "policies/grc/**"
     purpose: "Three Rego policies over the governance library: required frontmatter, POA and M identifier integrity, and classification."
     status: active
@@ -530,6 +574,7 @@ entries:
     reason: "Most of the automated governance claims are implemented here, and grc-validate.yml, grc-reviewer.yml, and agent-signing.yml all call into it."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Two defects in validate_grc.py, from plans 21-06, 21-08 and 21-11. check_sanitization walks the filesystem with rglob rather than git ls-files, so it reads the gitignored docs/grc/_corrections/ directory and exits 1 locally with 44 issues a CI checkout never sees; a gate that is permanently red locally and green in CI trains an operator to ignore it. check_links validates the file half of a link and never the anchor fragment under either scope, so a link to a heading that does not exist passes as long as the file resolves. Separately, scripts/grc/build_stix_bundle.py is on disk and untracked, which is why the STIX bundle has no reproducible source in the tree."
 
   - path: "scripts/grc/inventory_sources/**"
     purpose: "Six sources the inventory scanner reads: agent cards, compose services, MCP servers, n8n workflows, assistant skills, and a Python grep pass."
@@ -551,6 +596,7 @@ entries:
     reason: "portfolio-sync.yml runs these on every pull request, so a published page cannot cite a path or a line that does not exist."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Two findings about the repository these scripts publish into, recorded by plan 21-10 and kept here because the manifest carries no row for a path outside this tree. The portfolio's DESIGN.md is untracked and has never been committed, so the published site has no versioned source for its own design rules; whether the portfolio versions them is an owner call. The portfolio's index.html still carries a historical monthly bill in the migration card and other bare figures in the simulated terminal output; none matches the price tier pattern and all are measured history, but Phase 28 owns how much cost detail belongs on a hiring surface."
 
   - path: "scripts/site/check_public.py"
     purpose: "The public surface gate: operational security patterns, price tier language, writing tells, and design tells, over the site and, with --repo, over this repository's tracked text."
@@ -558,9 +604,10 @@ entries:
     reason: "The price tier rule lives here once, so two gates can never disagree about the same string. The file is excluded from the scope it enforces, with a dated inline reason, because its job is to carry the pattern it forbids."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "The --repo scope still runs the site OPSEC list by default and reports 1439 hits over 485 tracked files against 0 price tier hits (measured 2026-09-09), none of them a leak: Actions SHA pins, the sanitized 10.100.x block, cd-service-* names, /opt and /root runbook paths. --repo-checks price is the subset that is clean and is what repo_sweep.py calls. Nothing may wire --repo into CI without --repo-checks price. Narrowing the OPSEC patterns for repository scope, with explicit exemptions for those four classes and a test seeding a real identifier to prove the narrowed set still bites, is unowned. The cheapest test case is the six opsec port hits in docs/grc/README.md, all ISO standard identifiers with a publication year. Recorded by plans 21-09 and 21-11."
 
   - path: "scripts/repo/**"
-    purpose: "The repository hygiene gates built in Phase 21: the manifest checker and its allow list, and the review register evaluator."
+    purpose: "The repository hygiene gates built in Phase 21: the manifest checker and its allow list, the review register evaluator, the directory README generator, and the sweep that runs every mechanical gate behind one command."
     status: active
     reason: "These are what stop the sweep from slipping again. The allow list is the one documented hole in the gate, and an empty list is the desired state."
     last_verified: 2026-09-09
@@ -572,6 +619,21 @@ entries:
     reason: "Without it the manifest is a document that goes stale. With it, the manifest is a contract every pull request has to satisfy."
     last_verified: 2026-09-09
     review: {every: 180d}
+
+  - path: "scripts/repo/gen_folder_readmes.py"
+    purpose: "Generates the contents table in every top-level directory README from this manifest, replacing only what sits between the MANIFEST markers."
+    status: active
+    reason: "The MANIFEST: marker namespace belongs to this script. A block between an opening MANIFEST marker and its closing marker is generated from the rows in this file and must not be hand edited; the marker key is the top-level directory name, or root for the repository root. Running it with --check is the drift detector and exits 1 when a block is missing, stale, or in a file that is not a target. Running it with --apply rewrites only what is between the markers."
+    last_verified: 2026-09-09
+    review: {every: 180d}
+
+  - path: "scripts/repo/repo_sweep.py"
+    purpose: "Runs every mechanical gate in one command and prints only failures; the repo-sweep skill in the operator's assistant directory is a wrapper over this file and is not tracked, because that directory is gitignored and logic there could never be reviewed, tested, or run by CI."
+    status: active
+    reason: "Phase 21 SWEEP-06. Exit contract 0 clean, 1 gate failed, 2 gate script missing. Two gates are deliberately excluded and the reasons are in the module docstring: verify-facts.py needs SSH and a live host, gitleaks is already fail closed in both hooks and in security.yml."
+    last_verified: 2026-09-09
+    review: {every: 90d}
+    rewrite_later: "The repository OPSEC scope is reported as a skipped gate, not run. check_public.py --repo reports 1439 hits over the tracked text (measured 2026-09-09) and none is a leak: Actions SHA pins, the sanitized 10.100.x block, cd-service-* names, /opt and /root runbook paths. Narrowing that list for repository scope, with a seeded real identifier proving the narrowed set still bites, is unowned work."
 
   - path: "scripts/git/**"
     purpose: "Two shell helpers: start a branch off current main, and open a pull request with a templated body."
@@ -622,13 +684,20 @@ entries:
   # ----------------------------------------------------------------------
   # terraform: three live planes, three archived
   # ----------------------------------------------------------------------
+  - path: "terraform/README.md"
+    purpose: "The directory README for terraform/, whose contents block is generated from this manifest."
+    status: active
+    reason: "Written by plan 21-08 (SWEEP-05). The tree above it is described row by row with no fallback, so this file needs its own row, and a terraform/** fallback would pre-authorize a cloud plane nobody reviewed."
+    last_verified: 2026-09-09
+    review: {every: 180d}
+
   - path: "terraform/cd-oci-infrastructure/**"
     purpose: "The live infrastructure: compute, networking, data protection, outputs, the remote state backend example, and the cloud init that builds the host."
     status: active
     reason: "This is what runs. Remote state is in a versioned and locked bucket with customer managed key encryption, and the plan runs on every pull request and again on main after merge."
     last_verified: 2026-09-09
     review: {event: provider_terms_change, flag: TRIGGER_PROVIDER_TERMS}
-    rewrite_later: "Two bare figures survive the Phase 21 price sweep. outputs.tf still emits USD 0.00 from the estimated_monthly_cost output, which is a real output value rather than prose, and data_protection.tf line 7 still describes unlimited free key versions. Neither names a price tier, so the gate is clean; both are wording Phase 28 should decide on."
+    rewrite_later: "Two bare figures survive the Phase 21 price sweep. outputs.tf still emits USD 0.00 from the estimated_monthly_cost output, which is a real output value rather than prose, and data_protection.tf line 7 still describes unlimited free key versions. Neither names a price tier, so the gate is clean; both are wording Phase 28 should decide on. Separately, the untracked cloudflare-adopt/waf.tf inside this live directory and the gitignored terraform.tfvars beside it both still carry price tier wording, so the tfvars file disagrees with the tracked example the sweep rewrote, and the waf file would fail the gate the day anyone tracks it. Recorded by plan 21-07."
 
   - path: "terraform/cd-oci-infrastructure/policy/**"
     purpose: "Ten OPA policies over the infrastructure plan, with the fixtures that prove each one both passes and fails."
@@ -657,6 +726,7 @@ entries:
     reason: "The account lapsed and the state bucket went with it. Kept as the working record of a stack that existed, because the earlier cloud setup was lost with no record and that is not happening twice. Its ARCHIVED.md says when it froze and that its host literals were replaced with placeholders."
     last_verified: 2026-09-09
     review: {event: history_rewrite_decided, flag: TRIGGER_HISTORY_REWRITE}
+    rewrite_later: "An untracked waf.tf sits in this directory carrying price tier wording, so it would fail the public gate the day anyone tracks it. Recorded by plan 21-07."
 
   - path: "terraform/cd-do-infrastructure/policy/**"
     purpose: "Ten OPA policies written against the previous provider's plan, with their fixtures."
@@ -671,7 +741,7 @@ entries:
     reason: "The account was suspended and the instance with it. Kept as the record of the network design, and named in .semgrepignore so its findings do not fill every merge scan. Its ARCHIVED.md carries the freeze note."
     last_verified: 2026-09-09
     review: {event: history_rewrite_decided, flag: TRIGGER_HISTORY_REWRITE}
-    rewrite_later: "nat.tf keeps bare monthly figures and an annual savings line in its header comment; the directory is frozen so plan 21-07 changed only the one price-tier string. nat.tf and outputs.tf have also never been terraform fmt clean, which predates Phase 21 and stays that way while the directory is frozen."
+    rewrite_later: "nat.tf keeps bare monthly figures and an annual savings line in its header comment; the directory is frozen so plan 21-07 changed only the one price-tier string. nat.tf and outputs.tf have also never been terraform fmt clean, which predates Phase 21 and stays that way while the directory is frozen. Its README had eight relative links that resolved to nothing a public reader could reach; plan 21-12 replaced them with plain text naming the private runbooks and with links to what exists. Phase 28 owns whether a frozen guide should carry operational instructions at all."
 
   - path: "terraform/simple-ec2/**"
     purpose: "The first single instance configuration, before the automation network replaced it."
@@ -679,10 +749,18 @@ entries:
     reason: "The starting point of the infrastructure work and the smallest readable example in the tree. Named in .semgrepignore alongside the other suspended directory, and carrying its own ARCHIVED.md."
     last_verified: 2026-09-09
     review: {event: history_rewrite_decided, flag: TRIGGER_HISTORY_REWRITE}
+    rewrite_later: "Its README had seven relative links that resolved to nothing a public reader could reach, two to documents deleted in Phase 11 commit 26db2f8 and five to private untracked runbooks; plan 21-12 replaced them with plain text and with links to what exists. Phase 28 owns whether a frozen guide should carry operational instructions at all."
 
   # ----------------------------------------------------------------------
   # tests: what proves the toolchain works
   # ----------------------------------------------------------------------
+  - path: "tests/README.md"
+    purpose: "The directory README for tests/, whose contents block is generated from this manifest."
+    status: active
+    reason: "Written by plan 21-08 (SWEEP-05). The tree above it is described row by row with no fallback, so this file needs its own row."
+    last_verified: 2026-09-09
+    review: {every: 180d}
+
   - path: "tests/grc/**"
     purpose: "The governance toolchain suite: sanitization, frontmatter conversion, the budget guard, OSCAL signing, the offline reviewer, the inventory scanner, and the MCP server transport."
     status: active
@@ -691,14 +769,14 @@ entries:
     review: {every: 180d}
 
   - path: "tests/repo/**"
-    purpose: "The Phase 21 gate suite: the manifest checker across its three failure classes and both configuration errors, the repository scope of the public gate, and the review register."
+    purpose: "The Phase 21 gate suite: the manifest checker across its three failure classes and both configuration errors, the repository scope of the public gate, the review register, and the sweep runner with both of its seeded failures."
     status: active
     reason: "A gate nobody tested is a gate that fails open on its first real edge case. These were written before the manifest existed, which is the order that makes them worth having."
     last_verified: 2026-09-09
     review: {every: 180d}
 
   - path: "tests/repo/fixtures/**"
-    purpose: "Deliberate fixtures: a manifest that parses, one that does not, and a file that carries the exact string the public gate forbids."
+    purpose: "Deliberate fixtures: a manifest that parses, one that does not, a file carrying the exact string the public gate forbids, and a file carrying a link that resolves to nothing."
     status: active
     reason: "These files exist to be found by a scanner, so each is excluded from the scope it seeds with a dated inline reason, and a test asserts the file is tracked before asserting it is unreachable."
     last_verified: 2026-09-09

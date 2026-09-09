@@ -9,6 +9,7 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 
 | Path | Status | Purpose |
 |---|---|---|
+| `detections/README.md` | active | The directory README for detections/, whose contents block is generated from this manifest. |
 | `detections/falco/**` | active | Runtime rules for the host: unexpected outbound traffic from the automation container, and the measured host noise exceptions that keep it quiet. |
 | `detections/sigma/**` | active | Portable detection rules in three families: edge and access events, host and container behaviour, and the AI specific rules covering injection, PII blocks, and cost ceiling breaches. |
 <!-- /MANIFEST -->

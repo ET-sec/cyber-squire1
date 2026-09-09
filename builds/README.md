@@ -8,6 +8,7 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 
 | Path | Status | Purpose |
 |---|---|---|
+| `builds/README.md` | active | The directory README for builds/, whose contents block is generated from this manifest. |
 | `builds/squire/**` | active | The Squire agent service: packaging, container definition, dependency manifest, and the readme that explains its graph. |
 | `builds/squire/config/actions.yml` | active | The action allow list the agent is bound to, currently recommend only. |
 | `builds/squire/docker/nemo_config/**` | active | The guardrail configuration: rails definitions, prompts, and the container that serves them. |
