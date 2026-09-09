@@ -169,7 +169,7 @@ async def invoke_rail(text: str, rail: str) -> RailOutcome:
     response = await http_client.post(
         "http://svc-nemo:8000/v1/rails/check",
         json={"text": text, "rail": rail},
-        timeout=5.0,
+        timeout=60.0,
     )
     content = response.json()["content"]
     if content.startswith("__NEMO_BLOCK__:"):
@@ -177,7 +177,7 @@ async def invoke_rail(text: str, rail: str) -> RailOutcome:
     return RailOutcome.allow()
 ```
 
-Five-second timeout. If `svc-nemo` is unreachable, the rail fails closed: the call is blocked with `reason_code=RAIL_UNAVAILABLE`, `rail_name=input`, and a Telegram alert fires.
+Sixty-second timeout, the value `NEMO_TIMEOUT_SECONDS` carries in the compose file and in the settings object. If `svc-nemo` is unreachable, the rail fails closed: the call is blocked with `reason_code=RAIL_UNAVAILABLE`, `rail_name=input`, and the caller receives a refusal instead of an unchecked model answer.
 
 ### 3.6 Test Coverage
 

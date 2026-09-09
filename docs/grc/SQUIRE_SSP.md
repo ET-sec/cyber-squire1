@@ -350,7 +350,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| SC-7 | Implemented | Only `svc-squire` receives external traffic through the Cloudflare tunnel. `svc-nemo`, Langfuse, and `svc-db` are on internal networks only. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` ports block binds `svc-squire` to `127.0.0.1:8020` |
+| SC-7 | Implemented | `svc-squire` is the only service that takes external traffic, and it is bound to loopback behind the Cloudflare tunnel. `svc-nemo` is the only service permitted to egress to the model API, because it is the container that makes the model call. Langfuse and `svc-db` are on internal networks only. Three layers keep the agent off the model API, named by strength: `svc-squire` receives no model key, its settings object has no field that can hold one, and its hosts file blackholes the model API name. The third is the weakest, since code with a hard coded address would defeat it; the egress allowlist proxy that closes it properly is queued for the rebuild phase. | `COREDIRECTIVE_ENGINE/docker-compose.yaml`: ports block binds `svc-squire` to `127.0.0.1:8020`, the key is set on `svc-nemo` only, and the `extra_hosts` entry carries the blackhole |
 | SC-8 | Implemented | All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container. | Cloudflare config |
 | SC-12 | Implemented | Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on-demand for the ingest token. | Doppler rotation log |
 | SC-28 | Implemented | Data at rest in the `ir_*` tables is encrypted at the volume layer (parent SSP). Langfuse trace data has the same treatment. | Parent SSP LUKS coverage |
@@ -415,14 +415,15 @@ Squire's authorization boundary is the union of:
 
 ### 9.1 Network Segmentation Inside the Boundary
 
-The three Docker networks are cryptographically isolated by Docker bridge VLAN tagging. Squire verifies this isolation through four assertions in `tests/test_network_isolation.py`:
+The three Docker networks are isolated at the Docker bridge layer, and the AI segment is declared `internal: true`, so no container attached to it has a route off the host. Five reachability checks define the intended segmentation:
 
-1. `svc-squire` can reach `svc-db:5432` (pass).
-2. `svc-squire` can reach `svc-nemo:8000` (pass).
-3. `svc-squire` cannot reach `svc-gateway:3080` (fail-expected).
-4. `svc-squire` cannot reach `svc-datadog:8125` directly; Datadog emission goes through the host agent on 127.0.0.1 (fail-expected).
+1. `svc-squire` can reach `svc-db:5432` (expected pass).
+2. `svc-squire` can reach `svc-nemo:8000` (expected pass).
+3. `svc-squire` cannot reach `svc-gateway:3080` (expected fail).
+4. `svc-squire` cannot reach `svc-datadog:8125` directly; Datadog emission goes through the host agent on 127.0.0.1 (expected fail).
+5. `svc-squire` cannot reach the model API host, while `svc-nemo` can (expected fail, then pass).
 
-The assertions run on every CI build and on a daily scheduled workflow against the live droplet. Failure pages the System Owner within five minutes via Datadog monitor `squire_network_isolation_drift`.
+Check 5 was measured on 2026-09-09 with a throwaway container carrying the same hosts entry the compose file gives `svc-squire`, not with the real services: the model API host refused the connection while three other vendor hosts resolved and completed a TLS handshake in the same run, and a control run without the entry reached all four. Checks 1 to 4 state the design's intent and have no automated implementation in the tracked tree today. Neither `svc-squire` nor `svc-nemo` has an image on the current host until the rebuild phase, so there is no running container to assert against. Automating all five against the real services, with an alert on drift, is rebuild-phase work. It has no POA&M item yet, which is itself recorded rather than left unsaid.
 
 ### 9.2 Ingress Path Verification
 

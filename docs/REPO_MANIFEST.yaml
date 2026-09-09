@@ -291,6 +291,7 @@ entries:
     reason: "The most referenced file in the repository, with fifty three evidence anchors on the published views plus the renovate matcher, the image smoke test, and the image signature check. It is the design of record even where a service is not running today."
     last_verified: 2026-09-09
     review: {every: 90d}
+    rewrite_later: "Two findings from phase 22. Four comment lines, 28, 35, 585 and 958, send the reader to docs/runbook/image-rollback.md, which has been gitignored since commit 98ab77e on 2026-06-20 when it was purged as an internal operational document, so a public reader of this file cannot open the document it cites four times; the owner decides between re-tracking the runbook and rewording the pointers, and plan 22-03 declined to reverse a dated security decision on its own. Separately, the api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent, which is rebuild phase work."
 
   - path: "COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml"
     purpose: "The definition of what actually runs on the instance today: the database, the automation service, and the tunnel."
@@ -305,6 +306,7 @@ entries:
     reason: "Tracked by plan 22-03 through a narrow gitignore re-include. The CD_VOL_ rule that keeps volume data out had also been keeping this build source out, so a Tier 0 image compose builds had no source in any clone. Reviewed on the compose cycle because it carries a base image pin, and that pin is what has to move when upstream drops or adds an architecture."
     last_verified: 2026-09-09
     review: {every: 90d}
+    rewrite_later: "fluent.conf sits in the same directory, is still untracked, and is bind mounted at compose line 592, so the runtime configuration of a Tier 0 service has no source in the repository while its build context does. certs/ stays out on purpose. Recorded by plan 22-03."
 
   # ----------------------------------------------------------------------
   # builds: the Squire agent, and nothing else
@@ -326,9 +328,10 @@ entries:
   - path: "builds/squire/src/**"
     purpose: "The application: the FastAPI surface, the analysis graph and its nodes, the guardrail clients, retrieval, persistence, and the cost ceiling."
     status: active
-    reason: "Fifty two evidence anchors across six view node files point into this tree, and the fail open branches in llm_backend.py are the Phase 22 target."
+    reason: "Fifty two evidence anchors across six view node files point into this tree, and llm_backend.py is where the guardrail path is enforced: both former fail open branches return a RAIL_UNAVAILABLE refusal, and no class in the module can call the model provider directly."
     last_verified: 2026-09-09
     review: {every: 90d}
+    rewrite_later: "settings.py keeps openclaw_gateway_url and no module reads it. The gateway fronts Telegram, n8n and the desktop client, and the agent reaches the model through the guardrails sidecar instead, so the field describes a route the application does not take. Decide whether the gateway becomes the model route again or the field goes. Recorded by plan 22-04."
 
   - path: "builds/squire/tests/**"
     purpose: "The Squire suite: unit tests, graph integration, guardrail red team cases, and the evaluation harness."
@@ -336,6 +339,7 @@ entries:
     reason: "The red team cases and the latency budget are the evidence behind the AI security claims, so the tests are part of the argument rather than only part of the build."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Three findings from phase 22. tests/eval/critique_eval.py is an operator run dual judge harness that still calls the model provider directly with a key and names two model slugs; it sits outside the runtime and outside the rails, and nobody owns whether it is documented as an out of band evaluation tool or routed through the sidecar. tests/test_nemo_client.py carries a pre-existing unused pytest import that ruff reports. tests/test_graph_integration.py still says its gated run goes against the provider API, when the call now goes through the rails, and names the retired cd-alpha host alias."
 
   - path: "builds/squire/docker/nemo_config/**"
     purpose: "The guardrail configuration: rails definitions, prompts, and the container that serves them."
@@ -343,6 +347,7 @@ entries:
     reason: "The input and output rails are the enforcement point for prompt injection and data leakage, and the block signal the application parses is defined here."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "Two findings from plan 22-03, both about the Dockerfile and both owned by the rebuild phase. Line 28 sets TRANSFORMERS_CACHE, which the library supersedes with HF_HOME, and line 27 already sets HF_HOME. The spacy en_core_web_lg download needs network at build time and about 560 MB, which is why this image was not built in the buildx window; budget the rebuild for it."
 
   - path: "builds/squire/config/actions.yml"
     purpose: "The action allow list the agent is bound to, currently recommend only."
@@ -465,7 +470,7 @@ entries:
     reason: "The public evidence package, and the corpus the retrieval side of Squire indexes. The fallback row for this tree."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "ADR_001_EMBEDDING_PROVIDER.md still reads MongoDB repositions Voyage into paid-only tier in its risk table. That names a paid tier, which the price rule does not forbid, and it describes a possible vendor action rather than what this platform costs, so plan 21-06 left it deliberately. Phase 28 decides whether the rule extends to naming any tier at all."
+    rewrite_later: "Two findings from plan 22-04. SQUIRE_MODEL_CARD.md sections 3.1, 3.2 and 4 carry latency and cost figures measured on the direct provider backend that phase 22 deleted; they are labelled as historical now, and the rebuild phase should re-measure them through the rails rather than carry a number nobody can reproduce. SQUIRE_SSP.md section 9.1 lists five network reachability checks, of which only the model egress check has been measured and none has an automated implementation, because there is no test_network_isolation.py in the tracked tree and no POA and M item for writing one. Older finding: ADR_001_EMBEDDING_PROVIDER.md still reads MongoDB repositions Voyage into paid-only tier in its risk table. That names a paid tier, which the price rule does not forbid, and it describes a possible vendor action rather than what this platform costs, so plan 21-06 left it deliberately. Phase 28 decides whether the rule extends to naming any tier at all."
 
   - path: "docs/grc/README.md"
     purpose: "The library index: reading order, framework alignment, a table per category, the review schedule, and the reproducible statistics."
@@ -503,7 +508,7 @@ entries:
     reason: "The written form of the AI security control that most of the threat model depends on."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "It calls Agent_Squire/ the public mirror of the agent code. The directory holds four telemetry stubs and one snippet, so the sentence overstates what is there."
+    rewrite_later: "It calls Agent_Squire/ the public mirror of the agent code. The directory holds four telemetry stubs and one snippet, so the sentence overstates what is there. Separately, the section 3.5 invocation snippet is headed builds/squire/app/rails/client.py, a path that does not exist; the real client is builds/squire/src/squire/nemo_client.py and the snippet is an illustration rather than the code. Plan 22-04 corrected the timeout figure in that block from five seconds to the sixty the configuration carries, and left the heading for whoever rewrites the section against the real module."
 
   - path: "docs/grc/diagrams/**"
     purpose: "Every evidence graphic the governance library embeds, kept beside the HTML source it renders from, from control coverage and the risk heat map through the topology and the map of the library itself."
