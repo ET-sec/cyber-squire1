@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     cost_breach_mode: str = Field("ollama", alias="SQUIRE_COST_BREACH_MODE")  # ollama | refuse | warn_only
 
     # LLM backend selector
-    squire_llm_backend: str = Field("api", alias="SQUIRE_LLM_BACKEND")  # api | max | nemo | ollama
+    squire_llm_backend: str = Field("nemo", alias="SQUIRE_LLM_BACKEND")  # max | nemo | ollama
 
     # NeMo Guardrails sidecar (17-10)
     nemo_enabled: bool = Field(False, alias="NEMO_ENABLED")

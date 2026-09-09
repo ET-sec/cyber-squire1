@@ -1,32 +1,35 @@
 """LLM backend abstraction for Squire (criterion #19 - Ollama fallback + degraded mode).
 
-Three backends satisfy the Phase 17 Option A strategy:
+Three backends satisfy the Phase 17 Option A strategy as amended by Phase 22:
 
-  APIBackend    -- Anthropic API (production default on droplet). Uses
-                   langchain_anthropic.ChatAnthropic. Direct Anthropic API:
-                   OpenClaw v2026.4.21 expects `model=openclaw[/<agentId>]`,
-                   not `anthropic/<model-slug>`, so going through the gateway
-                   would require a custom header and a wrapper HTTP call. For
-                   clean code + parity with langchain idioms the APIBackend
-                   calls the Anthropic API directly. The gateway remains the
-                   surface for other clients (n8n, Claude Desktop, Telegram
-                   bot) that need rate-limit + audit passthrough.
+  NeMoBackend   -- NeMo Guardrails sidecar, and the production default. The
+                   sidecar holds the model credential and is the only route
+                   to the hosted model, so every production call is checked
+                   by the rails before it reaches a model. A rail that cannot
+                   answer produces a refusal, never an unchecked answer.
 
   MaxBackend    -- Claude Max subscription routing. Prefers `claude-agent-sdk`
                    if the module is installed; otherwise shells out to the
                    `claude --print` CLI. Requires pre-authenticated `claude`
-                   on the host. DEV-ONLY (Mac); raises clearly on droplet.
+                   on the host. DEV-ONLY (Mac); raises clearly on the server.
 
   OllamaBackend -- Local Ollama HTTP fallback. Resilience path; the
                    cd-service-ollama container is stopped for Phase 17 to free
                    RAM (per 17-02) so invoking this backend also requires the
                    container to be restarted manually (or via HITL runbook).
 
+There is no direct-to-provider backend in this module. Phase 22 (AI-01)
+deleted it, so a guardrail the code cannot reach has no path around it
+either.
+
 `get_backend(name)` is the factory. `invoke_with_fallback(primary, ...)` runs
 the fallback chain:
-    primary=api    -> api -> ollama
-    primary=max    -> max -> api -> ollama
+    primary=nemo   -> nemo -> ollama
+    primary=max    -> max -> ollama
     primary=ollama -> ollama (no fallback)
+
+The chain walks only on a raised exception. A refusal is a returned response,
+so it ends the call where it was made.
 
 When fallback fires, the BackendResponse carries `degraded=True` and
 `degraded_reason`, which the classify/draft/critique nodes propagate into
@@ -71,65 +74,6 @@ class LLMBackend(Protocol):
         temperature: float = 0.2,
         max_tokens: int = 1024,
     ) -> BackendResponse: ...
-
-
-# ----------------------------------------------------------------------
-# Implementation: Anthropic API (production default)
-# ----------------------------------------------------------------------
-
-
-class APIBackend:
-    """Anthropic API via langchain_anthropic.ChatAnthropic.
-
-    Uses ANTHROPIC_API_KEY directly. See module docstring for rationale on why
-    we bypass the OpenClaw gateway for this specific call path.
-    """
-
-    name = "api"
-
-    def invoke(
-        self,
-        messages: list[dict],
-        model_hint: str,
-        temperature: float = 0.2,
-        max_tokens: int = 1024,
-    ) -> BackendResponse:
-        # Import lazily so the module imports even without the optional dep.
-        from langchain_anthropic import ChatAnthropic
-        from langchain_core.messages import HumanMessage, SystemMessage
-
-        from .settings import settings
-
-        model = model_hint.replace("anthropic/", "") if model_hint else ""
-        # Fable 5+ rejects the `temperature` parameter. For those models we
-        # fall back to the Anthropic default by omitting the kwarg entirely.
-        supports_temperature = not model.startswith("claude-fable-5")
-        kwargs = {
-            "model": model,
-            "api_key": settings.anthropic_api_key.get_secret_value(),
-            "max_tokens": max_tokens,
-        }
-        if supports_temperature:
-            kwargs["temperature"] = temperature
-        llm = ChatAnthropic(**kwargs)
-        lc_msgs = []
-        for m in messages:
-            role = m.get("role", "user")
-            content = m.get("content", "")
-            if role == "system":
-                lc_msgs.append(SystemMessage(content=content))
-            else:
-                lc_msgs.append(HumanMessage(content=content))
-
-        resp = llm.invoke(lc_msgs)
-        usage = getattr(resp, "usage_metadata", None) or {}
-        return BackendResponse(
-            content=str(resp.content),
-            input_tokens=int(usage.get("input_tokens", 0) or 0),
-            output_tokens=int(usage.get("output_tokens", 0) or 0),
-            backend=self.name,
-            raw={"usage": usage, "model": model},
-        )
 
 
 # ----------------------------------------------------------------------
@@ -294,10 +238,11 @@ class NeMoBackend:
     :mod:`squire.app` rewrites into the structured block-response JSON
     from :func:`squire.response_builder.build_block_response`.
 
-    Fails open on HTTP errors so a zero-credit Anthropic account (PolicyAI
-    can't judge) or a cold-starting sidecar does not collapse the whole
-    graph. When fail-open fires we still run the direct Anthropic call
-    underneath and mark the response degraded.
+    Fails closed (Phase 22, AI-01). A sidecar that times out, errors, or
+    reports an upstream model failure returns a refusal sentinel whose
+    ``reason_code`` marks the rail unavailable, together with a degraded
+    reason naming the branch that produced it. The sidecar is the only
+    route to the hosted model, so there is no path around it to take.
     """
 
     name = "nemo"
@@ -309,7 +254,13 @@ class NeMoBackend:
         temperature: float = 0.2,
         max_tokens: int = 1024,
     ) -> BackendResponse:
-        from .nemo_client import chat_via_nemo, extract_text, extract_usage, parse_block
+        from .nemo_client import (
+            NeMoBlock,
+            chat_via_nemo,
+            extract_text,
+            extract_usage,
+            parse_block,
+        )
         from .settings import settings
 
         fallback_input = ""
@@ -329,18 +280,32 @@ class NeMoBackend:
                 timeout_s=settings.nemo_timeout_s,
             )
         except Exception as exc:
-            # Fail open: route to APIBackend directly and mark degraded so
-            # the 17-09 X-Squire-Degraded-Mode header fires.
-            log.warning("NeMoBackend: sidecar call failed (%s); failing open to api", exc)
-            resp = APIBackend().invoke(
-                messages=messages,
-                model_hint=model_hint,
-                temperature=temperature,
-                max_tokens=max_tokens,
+            # Fail closed (Phase 22, AI-01). The rails are the only path to the
+            # hosted model, so a sidecar that cannot answer means the call is
+            # refused, not re-routed around the guardrail.
+            log.warning(
+                "NeMoBackend: sidecar call failed (%s); refusing (fail closed)", exc
             )
-            resp.degraded = True
-            resp.degraded_reason = f"nemo_sidecar_unavailable: {type(exc).__name__}"
-            return resp
+            block = NeMoBlock(
+                reason_code="RAIL_UNAVAILABLE",
+                rail_name="input",
+                rule_name=(
+                    "sidecar_timeout"
+                    if "Timeout" in type(exc).__name__
+                    else "sidecar_error"
+                ),
+                input_snippet=fallback_input,
+                raw_event={"exception": type(exc).__name__},
+            )
+            return BackendResponse(
+                content=block.as_sentinel(),
+                backend=self.name,
+                degraded=True,
+                degraded_reason=(
+                    f"nemo_sidecar_unavailable_fail_closed: {type(exc).__name__}"
+                ),
+                raw={"block": block.raw_event, "model": model_hint},
+            )
 
         block = parse_block(data, fallback_input=fallback_input)
         if block is not None:
@@ -355,24 +320,29 @@ class NeMoBackend:
             )
 
         text = extract_text(data)
-        # Fail-open if NeMo returned the generic internal-error placeholder
-        # (happens when PolicyAI self_check or generate step hits upstream
-        # LLM credit exhaustion). Route the real request to the direct
-        # Anthropic API and mark degraded.
+        # Refuse if NeMo returned the generic internal-error placeholder
+        # (happens when PolicyAI self_check or the generate step hits upstream
+        # LLM credit exhaustion). The rails produced no checked answer, so
+        # there is nothing to return but a refusal.
         if text.strip().lower() == "internal server error":
             log.warning(
                 "NeMoBackend: sidecar returned 'Internal server error' "
-                "(upstream LLM failure); failing open to direct api"
+                "(upstream LLM failure); refusing (fail closed)"
             )
-            resp = APIBackend().invoke(
-                messages=messages,
-                model_hint=model_hint,
-                temperature=temperature,
-                max_tokens=max_tokens,
+            block = NeMoBlock(
+                reason_code="RAIL_UNAVAILABLE",
+                rail_name="input",
+                rule_name="upstream_llm_failed",
+                input_snippet=fallback_input,
+                raw_event={"nemo_text": "internal server error"},
             )
-            resp.degraded = True
-            resp.degraded_reason = "nemo_upstream_llm_failed_fail_open"
-            return resp
+            return BackendResponse(
+                content=block.as_sentinel(),
+                backend=self.name,
+                degraded=True,
+                degraded_reason="nemo_upstream_llm_failed_fail_closed",
+                raw={"block": block.raw_event, "model": model_hint},
+            )
 
         in_tokens, out_tokens = extract_usage(data)
         return BackendResponse(
@@ -389,7 +359,6 @@ class NeMoBackend:
 # ----------------------------------------------------------------------
 
 _BACKEND_REGISTRY: dict[str, type] = {
-    "api": APIBackend,
     "max": MaxBackend,
     "nemo": NeMoBackend,
     "ollama": OllamaBackend,
@@ -399,23 +368,23 @@ _BACKEND_REGISTRY: dict[str, type] = {
 def get_backend(name: str | None) -> LLMBackend:
     """Return an instance of the requested backend.
 
-    name in {api, max, ollama}. Unknown or empty defaults to 'api' and emits a
-    warning.
+    name in {max, nemo, ollama}. Unknown or empty defaults to 'nemo' and emits
+    a warning.
     """
-    n = (name or "api").strip().lower()
+    n = (name or "nemo").strip().lower()
     cls = _BACKEND_REGISTRY.get(n)
     if cls is None:
-        log.warning("unknown backend %r, defaulting to api", name)
-        cls = APIBackend
+        log.warning("unknown backend %r, defaulting to nemo", name)
+        cls = NeMoBackend
     return cls()
 
 
-# Fallback chain per Option A strategy (see module docstring).
-# nemo primary falls back to direct api on sidecar failure.
+# Fallback chain per Option A strategy (see module docstring). Every chain
+# ends at the local model, because that is the only remaining backend that can
+# answer when the rails are down and it answers without the hosted model.
 FALLBACK_CHAINS: dict[str, list[str]] = {
-    "api": ["api", "ollama"],
-    "max": ["max", "api", "ollama"],
-    "nemo": ["nemo", "api", "ollama"],
+    "max": ["max", "ollama"],
+    "nemo": ["nemo", "ollama"],
     "ollama": ["ollama"],
 }
 
@@ -432,8 +401,8 @@ def invoke_with_fallback(
     degraded_reason='fell_back_from_{primary}_to_{actual}' are set.
     Raises RuntimeError if the whole chain fails.
     """
-    primary = (primary_name or "api").strip().lower()
-    chain = FALLBACK_CHAINS.get(primary, ["api", "ollama"])
+    primary = (primary_name or "nemo").strip().lower()
+    chain = FALLBACK_CHAINS.get(primary, ["nemo", "ollama"])
     last_err: Exception | None = None
     for bn in chain:
         try:
