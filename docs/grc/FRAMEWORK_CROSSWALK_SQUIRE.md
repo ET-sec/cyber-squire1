@@ -106,7 +106,7 @@ Every `/alert` call is decorated with `@observe()` from `langfuse.decorators`. T
 
 ### Row 3: Pre-graph PII regex scanner
 
-Regex patterns for US SSN, Luhn-valid credit card, email, and US phone run before any LLM token is billed. Blocks return `reason_code=PII_DETECTED_PRE_GRAPH` with zero cost. Verified firing 2026-04-23 against SSN, valid Luhn CC, and US phone; normal alerts pass. This closes the gap discovered in red-team cases 03/04 where the NeMo rail fronted only draft and critique, not the raw payload.
+Regex patterns for US SSN, Luhn-valid credit card, email, and US phone run before any LLM token is billed. Blocks return `reason_code=PII_DETECTED_PRE_GRAPH` without the payload reaching a model. Verified firing 2026-04-23 against SSN, valid Luhn CC, and US phone; normal alerts pass. This closes the gap discovered in red-team cases 03/04 where the NeMo rail fronted only draft and critique, not the raw payload.
 
 ### Row 4: NeMo Colang input rail
 

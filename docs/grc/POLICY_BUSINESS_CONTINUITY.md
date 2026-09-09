@@ -204,7 +204,7 @@ If the primary DigitalOcean region is unavailable:
 | Audience | Trigger | Channel | Owner |
 |----------|---------|---------|-------|
 | Dependent service consumers | Extended outage (>1 hour) | Status page or direct notification | System Owner |
-<!-- TODO(et): Verify the DigitalOcean account is on a paid priority support tier. If on the free tier, remove "priority support tier" language from contact tables. -->
+<!-- TODO(et): Verify what support entitlement the DigitalOcean account actually carried. If it carried none, remove "priority support tier" language from the contact tables. That account was retired 2026-08, so resolve this during the re-baseline noted at the top of this document rather than in isolation. -->
 | Cloud provider support | Provider-side incident suspected | Provider support portal | System Owner |
 | Compliance stakeholders | Data loss or integrity event | Written incident report | Information Security Officer |
 
