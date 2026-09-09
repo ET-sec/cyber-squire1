@@ -252,7 +252,9 @@ docs/Technical_Vault.md
 docs/APPSEC_REPO_ADDITIONS.md
 docs/context/infrastructure.md
 docs/runbook/portfolio-resume-change-management.md
-docs/runbook/image-rollback.md
+# docs/runbook/image-rollback.md is tracked again as of 2026-09-09 (Phase 22,
+# AI-03). The roadmap names it as the record of the host build path decision
+# and the compose file cites it four times. It carries aliases and paths only.
 
 # GTA Ground Truth Audit skill artifacts
 REPO_MAP.yaml

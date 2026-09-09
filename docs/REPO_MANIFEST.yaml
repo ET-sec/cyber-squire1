@@ -291,7 +291,7 @@ entries:
     reason: "The most referenced file in the repository, with fifty three evidence anchors on the published views plus the renovate matcher, the image smoke test, and the image signature check. It is the design of record even where a service is not running today."
     last_verified: 2026-09-09
     review: {every: 90d}
-    rewrite_later: "Two findings from phase 22. Four comment lines, 28, 35, 585 and 958, send the reader to docs/runbook/image-rollback.md, which has been gitignored since commit 98ab77e on 2026-06-20 when it was purged as an internal operational document, so a public reader of this file cannot open the document it cites four times; the owner decides between re-tracking the runbook and rewording the pointers, and plan 22-03 declined to reverse a dated security decision on its own. Separately, the api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent, which is rebuild phase work."
+    rewrite_later: "One finding from phase 22. The api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent, which is rebuild phase work."
 
   - path: "COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml"
     purpose: "The definition of what actually runs on the instance today: the database, the automation service, and the tunnel."
