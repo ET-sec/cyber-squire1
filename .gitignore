@@ -164,6 +164,10 @@ builds/*
 # Squire (autonomous SOC agent) is tracked. Other builds/ subdirs (client
 # work, interview take-homes, student projects) stay ignored by default.
 !builds/squire/
+# The directory README is tracked too, added 2026-09-09 (Phase 21, SWEEP-05).
+# Every top-level directory carries one, and this is the only path under
+# builds/ that a re-include has to name for that to stay true after a reclone.
+!builds/README.md
 builds/squire/.venv/
 builds/squire/.ruff_cache/
 builds/squire/.pytest_cache/

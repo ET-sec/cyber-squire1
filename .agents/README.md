@@ -15,6 +15,19 @@ This directory is the canonical home for CoreDirective's Agent Registry plus per
 
 The bundle filename uses the double-extension form `<agent_id>.card.json.sigstore.json` rather than the single-extension form `<agent_id>.card.sigstore.json` referenced in `20-RESEARCH.md` decision D3. Plan 20-03 sign and verify both produce and consume this exact double-extension shape, and `docs/grc/AGENT_SIGNING.md` "Naming convention" cross-references the variance.
 
+The same files as the repository manifest describes them, with why each one stays:
+
+<!-- MANIFEST:.agents -->
+Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
+
+| Path | Status | Purpose |
+|---|---|---|
+| `.agents/*.card.json` | active | Thirteen agent cards: purpose, owner, model, tools, data classes, and the limits each agent runs under. |
+| `.agents/*.card.json.sigstore.json` | active | The sigstore bundle proving each card was signed by this repository's workflow identity. |
+| `.agents/README.md` | active | How the agent registry and the card signing chain fit together. |
+| `.agents/registry.yaml` | active | One row per agent in the platform, with its owner, runtime location, and the card that describes it. |
+<!-- /MANIFEST -->
+
 ## Sensitivity Tiers
 
 The `sensitivity_tier` field on each registry row classifies blast radius if the agent identity is compromised or misused. Plan 20-02 capability cards and Plan 20-05 capability matrix both inherit this classification.

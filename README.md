@@ -237,6 +237,29 @@ Want to stand this up in your own tenancy? Start at the
 └── .env.example                     Variable names the master compose expects (values come from a secrets manager)
 ```
 
+Every tracked file at the repository root, with what it is and why it stays.
+Each directory above carries its own README with the same table for its tree.
+
+<!-- MANIFEST:root -->
+Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
+
+| Path | Status | Purpose |
+|---|---|---|
+| `.env.example` | active | The variable names the master compose file expects, with no values. |
+| `.gitignore` | active | What git must never track: the private planning tree, the client sites, the resume generator, and the local gitleaks tripwire config. |
+| `.gitleaks.toml` | active | The public gitleaks config: the default rule set plus the sanitization tripwires that can be named in the open. |
+| `.mailmap` | active | Display-only remap of five commit identities to one canonical contributor. |
+| `.pr_agent.toml` | active | Model choice and review settings for the pull request review agent. |
+| `.pre-commit-config.yaml` | active | The pre-commit framework config: gitleaks at commit and push time, plus the terraform fmt, validate, tflint, and checkov hooks. |
+| `.semgrepignore` | active | Paths semgrep skips: the deprecated tree and the two suspended AWS terraform directories. |
+| `CONTRIBUTING.md` | active | How to work in this repository: branch naming, the hook chain, and what a pull request has to carry. |
+| `LICENSE` | active | The license the published tree is offered under. |
+| `README.md` | active | The repository front page: what the platform is, what runs, and where the evidence lives. |
+| `SECURITY.md` | active | The vulnerability disclosure contact and the response expectation. |
+| `metrics.yaml` | active | The canonical numeric facts, generated from the filesystem by scripts/build_metrics.py. |
+| `renovate.json` | active | Dependency update policy: schedule, limits, and the per-tier rules that keep the security boundary images on manual review. |
+<!-- /MANIFEST -->
+
 ## Contact
 
 **Portfolio:** [et-sec.github.io/portfolio](https://et-sec.github.io/portfolio/)
