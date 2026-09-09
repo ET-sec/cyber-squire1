@@ -604,7 +604,7 @@ entries:
     reason: "The price tier rule lives here once, so two gates can never disagree about the same string. The file is excluded from the scope it enforces, with a dated inline reason, because its job is to carry the pattern it forbids."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "The --repo scope still runs the site OPSEC list by default and reports 1439 hits over 485 tracked files against 0 price tier hits (measured 2026-09-09), none of them a leak: Actions SHA pins, the sanitized 10.100.x block, cd-service-* names, /opt and /root runbook paths. --repo-checks price is the subset that is clean and is what repo_sweep.py calls. Nothing may wire --repo into CI without --repo-checks price. Narrowing the OPSEC patterns for repository scope, with explicit exemptions for those four classes and a test seeding a real identifier to prove the narrowed set still bites, is unowned. The cheapest test case is the six opsec port hits in docs/grc/README.md, all ISO standard identifiers with a publication year. Recorded by plans 21-09 and 21-11."
+    rewrite_later: "The --repo scope still runs the site OPSEC list by default and reports 1441 hits over 485 tracked files against 0 price tier hits (measured 2026-09-09, and two of those hits are this note and the one on the sweep row naming the class), none of them a leak: Actions SHA pins, the sanitized 10.100.x block, cd-service-* names, /opt and /root runbook paths. --repo-checks price is the subset that is clean and is what repo_sweep.py calls. Nothing may wire --repo into CI without --repo-checks price. Narrowing the OPSEC patterns for repository scope, with explicit exemptions for those four classes and a test seeding a real identifier to prove the narrowed set still bites, is unowned. The cheapest test case is the six opsec port hits in docs/grc/README.md, all ISO standard identifiers with a publication year. Recorded by plans 21-09 and 21-11."
 
   - path: "scripts/repo/**"
     purpose: "The repository hygiene gates built in Phase 21: the manifest checker and its allow list, the review register evaluator, the directory README generator, and the sweep that runs every mechanical gate behind one command."
@@ -633,7 +633,7 @@ entries:
     reason: "Phase 21 SWEEP-06. Exit contract 0 clean, 1 gate failed, 2 gate script missing. Two gates are deliberately excluded and the reasons are in the module docstring: verify-facts.py needs SSH and a live host, gitleaks is already fail closed in both hooks and in security.yml."
     last_verified: 2026-09-09
     review: {every: 90d}
-    rewrite_later: "The repository OPSEC scope is reported as a skipped gate, not run. check_public.py --repo reports 1439 hits over the tracked text (measured 2026-09-09) and none is a leak: Actions SHA pins, the sanitized 10.100.x block, cd-service-* names, /opt and /root runbook paths. Narrowing that list for repository scope, with a seeded real identifier proving the narrowed set still bites, is unowned work."
+    rewrite_later: "The repository OPSEC scope is reported as a skipped gate, not run. check_public.py --repo reports 1441 hits over the tracked text (measured 2026-09-09) and none is a leak: Actions SHA pins, the sanitized 10.100.x block, cd-service-* names, /opt and /root runbook paths. Narrowing that list for repository scope, with a seeded real identifier proving the narrowed set still bites, is unowned work."
 
   - path: "scripts/git/**"
     purpose: "Two shell helpers: start a branch off current main, and open a pull request with a templated body."
