@@ -1,0 +1,39 @@
+# Manifest gate fixture: the clean case.
+#
+# Deliberate gate fixture. These rows cover every file in the throwaway tree that
+# tests/repo/test_manifest_check.py builds under tmp_path, so a run against that
+# tree exits 0. Nothing here describes the real repository, and no test in this
+# directory reads or writes docs/REPO_MANIFEST.yaml.
+#
+# Date triggers use a far future date on purpose. A relative trigger with a fixed
+# last_verified would turn this fixture into a time bomb that reddens the suite
+# months later for no reason.
+version: 1
+entries:
+  - path: "README.md"
+    purpose: "Front door of the throwaway tree."
+    status: active
+    reason: "Fixture root file, one row per root file is the manifest rule."
+    last_verified: 2026-09-09
+    review: {by: 2099-01-01}
+
+  - path: "docs/**"
+    purpose: "Everything under docs, described once by the glob."
+    status: active
+    reason: "Fixture tree for the glob half of the resolution rule."
+    last_verified: 2026-09-09
+    review: {by: 2099-01-01}
+
+  - path: "docs/grc/POAM_AUTO_FINDINGS.md"
+    purpose: "Machine-generated scanner intake ledger."
+    status: reference
+    reason: "More specific than the docs glob above, so it wins resolution."
+    last_verified: 2026-09-09
+    review: {event: scanner_intake_changes, flag: TRIGGER_SCANNER_INTAKE}
+
+  - path: "scripts/**"
+    purpose: "Tooling in the throwaway tree."
+    status: archived
+    reason: "Third status value, so the fixture exercises all three."
+    last_verified: 2026-09-09
+    review: {by: 2099-01-01}

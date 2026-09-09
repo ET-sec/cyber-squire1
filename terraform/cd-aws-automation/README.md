@@ -292,7 +292,7 @@ curl ifconfig.me
 
 ### 5. Configure Cloudflare Tunnel
 
-See [../../docs/Technical_Vault.md#cloudflare-tunnel-setup](../../docs/Technical_Vault.md) for Cloudflare Tunnel configuration.
+Cloudflare Tunnel configuration for this generation lived in the private Technical Vault runbook, which is not tracked in this repository. The live edge plane is [../cd-cloudflare-edge/](../cd-cloudflare-edge/).
 
 ---
 
@@ -517,11 +517,11 @@ terraform destroy
 
 ## Next Steps
 
-1. **Review architecture**: [../../docs/CD_AWS_AUTOMATION.md](../../docs/CD_AWS_AUTOMATION.md)
+1. **Review architecture**: the standalone guide was removed in Phase 11. [ARCHIVED.md](ARCHIVED.md) and the Terraform files beside it are the surviving record
 2. **Configure workflows**: [../../COREDIRECTIVE_ENGINE/](../../COREDIRECTIVE_ENGINE/)
-3. **Set up monitoring**: [../../docs/Technical_Vault.md#monitoring](../../docs/Technical_Vault.md)
-4. **Operational playbook**: [../../docs/ADHD_Runbook.md](../../docs/ADHD_Runbook.md)
-5. **Private operations manual**: [../../docs/PRIVATE_OPERATIONS_MANUAL.md](../../docs/PRIVATE_OPERATIONS_MANUAL.md) (local only)
+3. **Set up monitoring**: the monitoring section of the private Technical Vault runbook, which is not tracked here
+4. **Operational playbook**: the private operations runbook, which is not tracked here
+5. **Private operations manual**: local only, never tracked
 
 ---
 
@@ -529,11 +529,11 @@ terraform destroy
 
 **Issues?**
 - [Troubleshooting section](#troubleshooting) above
-- [docs/ADHD_Runbook.md](../../docs/ADHD_Runbook.md) - Operational commands
-- [docs/Technical_Vault.md](../../docs/Technical_Vault.md) - Deep-dive specs
+- The private operations runbook, not tracked here: operational commands
+- The private Technical Vault runbook, not tracked here: system specifications
 
 **Security concerns?**
-- Review [../../docs/PRIVATE_OPERATIONS_MANUAL.md](../../docs/PRIVATE_OPERATIONS_MANUAL.md)
+- Review the private operations manual, which is local only
 - Check AWS Security Groups: `aws ec2 describe-security-groups`
 - Audit VPC configuration: `terraform show`
 

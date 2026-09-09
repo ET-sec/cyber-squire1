@@ -34,10 +34,10 @@ from .chunker import GRCChunk, chunk_document
 logger = logging.getLogger("squire.ingest.grc_indexer")
 
 # Voyage API batching.
-# - Free-tier Voyage accounts (no payment method) are capped at 3 RPM + 10K TPM.
+# - Voyage accounts with no payment method on file are capped at 3 RPM + 10K TPM.
 # - Paid accounts go to 300 RPM + 1M TPM.
 # VOYAGE_BATCH_SIZE and VOYAGE_MIN_INTERVAL_S are tunable via env so the indexer
-# can run fast on a paid key and slow on a free-tier key without code changes.
+# can run fast on a paid key and slow on a rate-capped key without code changes.
 VOYAGE_BATCH_SIZE = int(os.environ.get("VOYAGE_BATCH_SIZE", "30"))
 VOYAGE_MIN_INTERVAL_S = float(os.environ.get("VOYAGE_MIN_INTERVAL_S", "21"))
 
@@ -68,7 +68,7 @@ class VoyageEmbedder:
         if not texts:
             return []
 
-        # Respect the per-call floor so free-tier 3 RPM does not 429.
+        # Respect the per-call floor so a rate-capped 3 RPM key does not 429.
         now = time.perf_counter()
         elapsed = now - self._last_call_epoch
         if self._last_call_epoch > 0 and elapsed < VOYAGE_MIN_INTERVAL_S:

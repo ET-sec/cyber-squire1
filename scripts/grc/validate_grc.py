@@ -10,16 +10,19 @@ Runs five checks on docs/grc/:
   4. links         Intra-corpus markdown links of the form [text](path.md) or
                    [text](path.md#anchor) resolve to a file under docs/grc/.
                    External links (http://, https://, mailto:) are skipped.
+                   --links-scope repo widens it to every tracked markdown file
+                   in the repository, resolved against git ls-files.
   5. sanitization  No unsanitized tokens leak into docs/grc/. Tokens come
                    from SANITIZATION_KEY.md (real -> sanitized mapping).
 
-Exit code is 0 on full pass, 1 on any check failure. Each failing check
-prints what failed; the script always runs all five checks before exiting
-so CI surfaces the full picture in one run.
+Exit code is 0 on full pass, 1 on any check failure, 2 on an unknown check
+name. Each failing check prints what failed; the script always runs all five
+checks before exiting so CI surfaces the full picture in one run.
 
 Usage:
   python3 scripts/grc/validate_grc.py
   python3 scripts/grc/validate_grc.py --only frontmatter,oscal
+  python3 scripts/grc/validate_grc.py --only links --links-scope repo
 """
 from __future__ import annotations
 
@@ -27,6 +30,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -75,6 +79,11 @@ OSCAL_OUTPUT_FILES = [
     "squire-poam.oscal.json",
     "squire-component.oscal.json",
 ]
+
+# 2026-09-09 (Phase 21, plan 21-11): files whose job is to carry a dead link so the
+# gate has something to catch. Excluded from the repo link scope only, the same
+# exclusion discipline check_public.py uses for its price-tier fixture.
+LINK_SKIP_DIRS = ("tests/repo/fixtures/",)
 
 # Base list contains only tokens that are safe to name in a public file.
 # Host-specific literals (retired host IPs, host filesystem paths) are
@@ -199,10 +208,62 @@ def check_stix() -> list[str]:
     return errors
 
 
-def check_links() -> list[str]:
+def tracked_paths() -> set[str]:
+    """Every path git tracks, repository-relative.
+
+    The oracle for what a public reader can reach. The working tree also holds
+    gitignored and untracked files, which is how twelve dead links passed on a
+    laptop and 404 on the public repository (measured in plan 21-08).
+    """
+    proc = subprocess.run(
+        ["git", "-C", str(REPO), "ls-files"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return {p for p in proc.stdout.split("\n") if p}
+
+
+def check_links(
+    scope: Path | None = None, tracked: set[str] | None = None
+) -> list[str]:
+    """Markdown links that resolve to nothing.
+
+    Default scope is docs/grc/ resolved against the working tree. That is what
+    grc-validate.yml has always run and what CHECKS["links"] still calls, so the
+    existing job is unchanged.
+
+    Pass scope=REPO together with tracked=tracked_paths() to check every tracked
+    markdown file against the tracked set instead. Under that scope a directory
+    counts as present when git tracks something inside it, because a link to a
+    directory renders on the public repository.
+
+    Limitation worth naming rather than hiding: anchor fragments are not
+    validated under either scope. [text](FILE.md#a-heading-that-does-not-exist)
+    passes as long as FILE.md resolves.
+    """
+    scope = GRC if scope is None else scope
+    scope_root = scope.resolve()
     errors: list[str] = []
     link_re = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
-    for path in GRC.rglob("*.md"):
+    if tracked is None:
+        sources = sorted(scope.rglob("*.md"))
+
+        def present(p: Path) -> bool:
+            return p.exists()
+    else:
+        files = {(REPO / p).resolve() for p in tracked}
+        dirs = {parent for p in files for parent in p.parents}
+        sources = sorted(
+            (REPO / p).resolve()
+            for p in tracked
+            if p.endswith(".md") and not p.startswith(LINK_SKIP_DIRS)
+        )
+
+        def present(p: Path) -> bool:
+            return p in files or p in dirs
+
+    for path in sources:
         text = path.read_text(encoding="utf-8")
         for m in link_re.finditer(text):
             target = m.group(2)
@@ -213,10 +274,10 @@ def check_links() -> list[str]:
                 continue
             resolved = (path.parent / target_clean).resolve()
             try:
-                resolved.relative_to(GRC.resolve())
+                resolved.relative_to(scope_root)
             except ValueError:
                 continue
-            if not resolved.exists():
+            if not present(resolved):
                 rel_doc = path.relative_to(REPO)
                 errors.append(f"{rel_doc}: broken link -> {target}")
     return errors
@@ -259,6 +320,17 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Comma-separated subset: frontmatter,oscal,stix,links,sanitization",
     )
+    ap.add_argument(
+        "--links-scope",
+        choices=("grc", "repo"),
+        default="grc",
+        help=(
+            "Scope for the links check. grc (default) walks docs/grc/ against the "
+            "working tree, which is what grc-validate.yml runs. repo walks every "
+            "tracked markdown file against git ls-files, which is what a public "
+            "reader sees."
+        ),
+    )
     args = ap.parse_args(argv)
     selected = (
         [c.strip() for c in args.only.split(",")] if args.only else list(CHECKS.keys())
@@ -268,9 +340,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"unknown checks: {unknown}", file=sys.stderr)
         return 2
 
+    checks = dict(CHECKS)
+    if args.links_scope == "repo":
+        tracked = tracked_paths()
+        checks["links"] = lambda: check_links(REPO, tracked)
+
     total_failures = 0
     for name in selected:
-        errors = CHECKS[name]()
+        errors = checks[name]()
         if errors:
             print(f"FAIL [{name}] {len(errors)} issue(s):")
             for e in errors:

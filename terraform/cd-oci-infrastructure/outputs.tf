@@ -31,6 +31,6 @@ output "vcn_id" {
 }
 
 output "estimated_monthly_cost" {
-  description = "Always Free tier: A1 up to 4 OCPU / 24GB / 200GB block are $0."
-  value       = "USD 0.00 (Always Free: A1.Flex ${var.instance_ocpus} OCPU / ${var.instance_memory_gb}GB / ${var.boot_volume_gb}GB boot)"
+  description = "Monthly spend for the provisioned shape under the current tenancy allowance."
+  value       = "USD 0.00 (A1.Flex ${var.instance_ocpus} OCPU / ${var.instance_memory_gb}GB / ${var.boot_volume_gb}GB boot)"
 }

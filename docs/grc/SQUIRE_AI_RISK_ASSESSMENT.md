@@ -124,7 +124,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 **Mitigations.**
 
 - Pre-graph regex PII scanner in `builds/squire/app/pre_graph_pii.py` runs on every `/alert` call before any LLM token is billed. Patterns: `regex_us_ssn`, `regex_credit_card` (Luhn-valid only), `regex_email`, `regex_phone_number`.
-- Blocks return 200 with `reason_code=PII_DETECTED_PRE_GRAPH`, `rail_name=pre_graph`, zero cost, zero latency beyond the scan.
+- Blocks return 200 with `reason_code=PII_DETECTED_PRE_GRAPH`, `rail_name=pre_graph`, no tokens spent, no latency beyond the scan.
 - Verified post-remediation 2026-04-23: SSN `123-45-6789` blocked by `regex_us_ssn`; valid Luhn CC `4111-1111-1111-1111` blocked by `regex_credit_card`; US phone `(404) 555-0199` blocked by `regex_phone_number`. Normal shell alerts pass through unchanged.
 - `ir_pregraph_blocks` table logs every block with hash of the raw input. 180-day retention.
 

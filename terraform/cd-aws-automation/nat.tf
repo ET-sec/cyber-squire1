@@ -4,7 +4,7 @@
 # Annual savings: $348
 
 # --- AMI: Amazon Linux 2023 (Latest) ---
-# Free-tier eligible, optimized for AWS, automatic security patches
+# Amazon-maintained AMI, optimized for AWS, automatic security patches
 data "aws_ami" "cd_nat_al2023" {
   most_recent = true
   owners      = ["amazon"]

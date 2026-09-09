@@ -7,7 +7,7 @@
 
 ## Platform
 
-Oracle Cloud (OCI) Always Free Ampere A1 ARM instance (Ubuntu 24.04).
+Oracle Cloud (OCI) Ampere A1 ARM instance, aarch64, 4 OCPU and 24 GB (Ubuntu 24.04).
 Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 
 ## Stack

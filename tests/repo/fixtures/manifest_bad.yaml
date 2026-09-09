@@ -1,0 +1,14 @@
+# Manifest gate fixture: the malformed case.
+#
+# Deliberate gate fixture. This document does not parse, on purpose, so
+# tests/repo/test_manifest_check.py can prove that unparseable YAML is a
+# configuration error (exit 2) and not silently read as an empty manifest.
+# Do not fix the syntax below.
+version: 1
+entries:
+  - path: "README.md"
+    purpose: "the quote on this line is never closed
+    status: active
+    reason: "unreachable"
+    last_verified: 2026-09-09
+    review: {by: 2099-01-01

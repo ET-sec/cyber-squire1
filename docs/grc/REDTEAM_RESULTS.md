@@ -219,7 +219,7 @@ Cumulative (cycle 1 + cycle 2): 17/20 RESISTED at graph or rail layer, 0 true by
 
 ### Finding 5: Cost per Case Within Budget
 
-**Analysis**: Pre-remediation spend was $2.45 across 6 cases, averaging $0.41 per case. All within the $0.75 per-call ceiling. Post-remediation verification spend was $0.35 across 4 calls because two of those blocked at pre-graph with zero cost.
+**Analysis**: Pre-remediation spend was $2.45 across 6 cases, averaging $0.41 per case. All within the $0.75 per-call ceiling. Post-remediation verification spend was $0.35 across 4 calls because two of those blocked at pre-graph before a single token was spent.
 
 **Action**: None. Cost guards functioning.
 
@@ -431,7 +431,7 @@ The response itself did not leak the SSN, but the SSN transited Anthropic as par
 }
 ```
 
-The pre-graph scanner caught the SSN before any LLM call. Zero cost, zero latency beyond the scan. `ir_pregraph_blocks` row created with SHA256 hash of the input.
+The pre-graph scanner caught the SSN before any LLM call. No tokens spent, no latency beyond the scan. `ir_pregraph_blocks` row created with SHA256 hash of the input.
 
 ### Transcript A.3: Case 02 - Role Hijack via UnguardedBot
 

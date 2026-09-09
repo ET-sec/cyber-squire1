@@ -46,7 +46,7 @@ In scope:
 Out of scope:
 - Third-party services referenced in the documentation (Doppler, Cloudflare, Oracle Cloud, GitHub, Anthropic, etc.), report to those vendors directly
 - Vulnerabilities in upstream dependencies, please report to upstream first, then notify us if not addressed
-- Social engineering, physical attacks, or denial of service through resource exhaustion of free-tier services
+- Social engineering, physical attacks, or denial of service by exhausting the hosting account's resource quotas
 
 ## Disclosure
 

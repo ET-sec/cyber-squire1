@@ -42,7 +42,7 @@ The layers communicate through a shared structured response format. Every block 
 
 ### 2.1 Purpose
 
-The pre-graph scanner exists because the NeMo rail system fronts only the draft and critique LLM calls, not the classify, retrieve, or enrich nodes. Before Phase 17 Task 10 remediation, raw PII in an alert payload could be summarized by classify/retrieve/enrich and embedded in the draft prompt context. The SSN or CC would have already transited Anthropic's API by the time the NeMo input rail ran. The scanner closes that gap at zero cost.
+The pre-graph scanner exists because the NeMo rail system fronts only the draft and critique LLM calls, not the classify, retrieve, or enrich nodes. Before Phase 17 Task 10 remediation, raw PII in an alert payload could be summarized by classify/retrieve/enrich and embedded in the draft prompt context. The SSN or CC would have already transited Anthropic's API by the time the NeMo input rail ran. The scanner closes that gap before the payload reaches any model.
 
 ### 2.2 Patterns
 
@@ -256,7 +256,7 @@ Daily audit job aggregates these counters across all traces and flags spikes. A 
 
 Lakera Guard is a commercial detection service for prompt injection. Squire's architecture reserves a Lakera pre-call slot but does not currently invoke it in production. Status:
 
-- **Free-tier status**: the System Owner's Lakera account is on the free tier. API key placeholder in Doppler as `LAKERA_API_KEY` (currently empty).
+- **Account status**: the System Owner's Lakera account is registered but not on a production plan. API key placeholder in Doppler as `LAKERA_API_KEY` (currently empty).
 - **Integration**: `builds/squire/app/rails/lakera_client.py` is a stub that wraps the Lakera Guard API. When the key is set, the stub fires before the NeMo input rail.
 - **Fallback**: When the key is empty, the stub returns `allow` immediately with `degraded=true`.
 - **Planned activation**: Once a production Lakera plan is funded, activate. Current coverage from NeMo input rail plus pre-graph scanner is sufficient for the demo threat model.
@@ -355,7 +355,7 @@ The guardrail configuration surface consists of these files under `builds/squire
 | `app/rails/input.co` | Colang flows for input PII + jailbreak | Medium (new patterns from red-team) |
 | `app/rails/output.co` | Colang flows for output PII + verb check | Low |
 | `app/rails/config.yml` | NeMo server config, presidio thresholds | Low |
-| `app/rails/lakera_client.py` | Lakera Guard stub (free-tier placeholder) | Minimal |
+| `app/rails/lakera_client.py` | Lakera Guard stub (placeholder, key unset) | Minimal |
 | `app/actions.yml` | Recommend-only verb allow-list, rewrite rules | Medium |
 | `app/frameworks.py` | Framework code registry for provenance check | Low (when new framework version releases) |
 | `app/graph/critique.py` | Citation guard four-pass logic | Low |

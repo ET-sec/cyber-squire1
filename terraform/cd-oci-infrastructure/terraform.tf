@@ -1,5 +1,5 @@
 # --- TERRAFORM CONFIGURATION (CD-OCI-INFRASTRUCTURE) ---
-# Oracle Cloud Infrastructure, Always Free tier. Migrated from DigitalOcean
+# Oracle Cloud Infrastructure, Ampere A1 Flex shapes. Migrated from DigitalOcean
 # 2026-08-19 after the DO droplet and its Spaces state bucket were lost.
 #
 # STATE BACKEND: OCI Object Storage (native oci backend, Terraform >= 1.12)

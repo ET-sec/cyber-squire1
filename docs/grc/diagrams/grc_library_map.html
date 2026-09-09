@@ -1,0 +1,194 @@
+<meta charset="utf-8">
+<!-- Source of truth: docs/grc/README.md Document Index, 13 "###" subsections under that heading
+     (the file has 18 "###" in total; the other 5 sit under Statistics and are not families).
+     Per-family counts are the category counts in that file's own pie chart and sum to 57,
+     which reconciles with metrics.yaml grc.total_documents = 57. Verified 2026-09-09.
+     Render: cd docs/grc/diagrams && node render.mjs grc_library_map -->
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:2160px; background:#060907; color:#f2efe4;
+         font-family:'JetBrains Mono','SF Mono',Menlo,monospace; padding:72px 64px 56px; }
+
+  h1 { font-size:84px; letter-spacing:1px; line-height:1.1; }
+  h1 .green { color:#00FF41; }
+  .sub { font-size:40px; color:#b9c2ba; margin-top:22px; max-width:1760px; line-height:1.45; }
+
+  .key { display:flex; gap:44px; margin-top:34px; font-size:28px; color:#b9c2ba; flex-wrap:wrap; }
+  .key span { display:flex; align-items:center; gap:14px; }
+  .kbar { width:44px; height:10px; display:inline-block; }
+  .k-spine { background:#00FF41; } .k-feed { background:#FFB020; }
+  .k-resp { background:#FF8B7D; } .k-flat { background:#f2efe4; }
+
+  .band { margin-top:40px; }
+  .bandhead { font-size:38px; color:#f2efe4; margin-bottom:22px; }
+  .bandhead .bnum { color:#00FF41; margin-right:18px; }
+  .grid { display:grid; gap:28px; }
+  .g1 { grid-template-columns:1fr; }
+  .g2 { grid-template-columns:repeat(2,1fr); }
+  .g3 { grid-template-columns:repeat(3,1fr); }
+
+  .fam { border:3px solid #33413a; background:#0d1310; padding:30px 32px 28px; }
+  .fam .fname { font-size:44px; color:#f2efe4; line-height:1.2; }
+  .fam .fcount { font-size:30px; margin-top:12px; }
+  .fam .fdesc { font-size:30px; color:#b9c2ba; margin-top:18px; line-height:1.5; }
+  .fam .fdocs { font-size:25px; color:#8f9a91; margin-top:18px; line-height:1.5; }
+  .f-spine { border-color:#00FF41; } .f-spine .fcount { color:#00FF41; }
+  .f-feed  { border-color:#FFB020; } .f-feed  .fcount { color:#FFB020; }
+  .f-resp  { border-color:#FF8B7D; } .f-resp  .fcount { color:#FF8B7D; }
+  .f-flat  { border-color:#66756c; } .f-flat  .fcount { color:#f2efe4; }
+
+  .fam .fdocs { color:#a8b3aa; }
+
+  .rail { display:flex; align-items:center; gap:26px; margin:22px 0 0 44px; }
+  .rail .stem { width:5px; height:62px; background:#5b6d63; flex:none; }
+  .rail .rlab { font-size:30px; color:#b9c2ba; line-height:1.45; }
+
+  .footer { margin-top:52px; padding-top:30px; border-top:3px solid #33413a;
+            font-size:28px; color:#a8b3aa; line-height:1.55; }
+</style>
+
+<h1>THE GOVERNANCE LIBRARY, <span class="green">MAPPED</span></h1>
+<div class="sub">Thirteen document families, 57 documents. The core plans are the spine: every other
+family either states a rule the plan implements, hands the plan a finding, or inherits from it. Read
+top to bottom and each family is legible by the time you reach it.</div>
+
+<div class="key">
+  <span><i class="kbar k-spine"></i>Spine and annexes</span>
+  <span><i class="kbar k-feed"></i>Feeds the plan of action</span>
+  <span><i class="kbar k-resp"></i>Response in practice</span>
+  <span><i class="kbar k-flat"></i>Reference and re-indexing</span>
+</div>
+
+<div class="band">
+  <div class="bandhead"><span class="bnum">1</span>Start here</div>
+  <div class="grid g1">
+    <div class="fam f-spine">
+      <div class="fname">Executive summaries</div>
+      <div class="fcount">3 documents</div>
+      <div class="fdesc">Security posture, architecture, and compliance readiness, one page each. Ten minutes to the shape of the whole system, with the numbers that the rest of the library then proves.</div>
+      <div class="fdocs">EXECUTIVE_SUMMARY_SECURITY_POSTURE.md, EXECUTIVE_SUMMARY_ARCHITECTURE.md, EXECUTIVE_SUMMARY_COMPLIANCE.md</div>
+    </div>
+  </div>
+</div>
+
+<div class="rail">
+  <div class="stem"></div>
+  <div class="rlab">Each one-pager compresses the three bands below it, so anything that reads as a claim there has a document under it here.</div>
+</div>
+
+<div class="band">
+  <div class="bandhead"><span class="bnum">2</span>The spine, and the two families bound to it</div>
+  <div class="grid g3">
+    <div class="fam f-flat">
+      <div class="fname">Policies</div>
+      <div class="fcount">10 documents</div>
+      <div class="fdesc">The rule, stated once: access control, change management, incident response, risk, vulnerability management, continuity, recovery, acceptable use, awareness, and AI governance. Each names the control family the plan then claims to implement.</div>
+      <div class="fdocs">POLICY_*.md</div>
+    </div>
+    <div class="fam f-spine">
+      <div class="fname">Core plans</div>
+      <div class="fcount">3 documents</div>
+      <div class="fdesc">The spine. One system security plan holding 140 NIST 800-53 control rows, one plan of action holding 42 findings, one risk assessment behind them. Every other family cites a row of these three.</div>
+      <div class="fdocs">SSP_SYSTEM_SECURITY_PLAN.md, POAM_PLAN_OF_ACTION.md, RISK_ASSESSMENT.md, plus the scanner written auto ledger POAM_AUTO_FINDINGS.md, which is machine generated and counted separately</div>
+    </div>
+    <div class="fam f-flat">
+      <div class="fname">Framework crosswalks</div>
+      <div class="fcount">3 documents</div>
+      <div class="fdesc">The same control set re-indexed for a reader who arrives holding a different framework: HIPAA Security Rule, SOC 2 with ISO 27001, and the handling spec that governs the data those two ask about. No new claim is made here.</div>
+      <div class="fdocs">HIPAA_SECURITY_RULE_CROSSWALK.md, HIPAA_EPHI_HANDLING.md, FRAMEWORK_CROSSWALK_SOC2_ISO27001.md</div>
+    </div>
+  </div>
+</div>
+
+<div class="rail">
+  <div class="stem"></div>
+  <div class="rlab">The plan implements the policies. The crosswalks re-index the plan. Neither adds a control, which is why they sit beside the spine rather than above it.</div>
+</div>
+
+<div class="band">
+  <div class="bandhead"><span class="bnum">3</span>What hands the plan of action its findings</div>
+  <div class="grid g2">
+    <div class="fam f-feed">
+      <div class="fname">Threat modeling</div>
+      <div class="fcount">6 documents</div>
+      <div class="fdesc">Data flow diagram, STRIDE analysis, attack tree, AI threat catalog, AI supply chain risk, and the adversarial test plan. Read in that order: each one names what the next one attacks, and what they surface lands in the risk assessment.</div>
+      <div class="fdocs">DATA_FLOW_DIAGRAM.md, THREAT_MODEL_STRIDE.md, ATTACK_TREE_AI_PIPELINE.md, AI_THREAT_CATALOG.md, AI_SUPPLY_CHAIN_RISK.md, AI_RED_TEAM_PLAN.md</div>
+    </div>
+    <div class="fam f-feed">
+      <div class="fname">Application security</div>
+      <div class="fcount">5 documents</div>
+      <div class="fdesc">A vulnerability writeup with a severity score, a code review, the pipeline that gates every merge, a scan methodology with its baseline results, and the self assessment that consolidates all four. This is the family that turns a control claim into evidence.</div>
+      <div class="fdocs">VULN_WRITEUP_N8N_CREDENTIAL_EXPOSURE.md, CODE_REVIEW_FINDINGS.md, SECURE_SDLC.md, DAST_METHODOLOGY.md, PENTEST_SELF_ASSESSMENT.md</div>
+    </div>
+    <div class="fam f-feed">
+      <div class="fname">Risk register</div>
+      <div class="fcount">1 document</div>
+      <div class="fdesc">Container benchmark findings, each carrying the compensating control that answers it. A finding with no compensating control is a plan of action row instead, which is the boundary between this family and the spine.</div>
+      <div class="fdocs">CIS_RISK_REGISTER.md</div>
+    </div>
+    <div class="fam f-flat">
+      <div class="fname">Architecture decision records</div>
+      <div class="fcount">1 document</div>
+      <div class="fdesc">One record: the embedding provider chosen for retrieval, with the options weighed and the reason the choice held. The infrastructure decision records live in the architecture tree rather than here.</div>
+      <div class="fdocs">ADR_001_EMBEDDING_PROVIDER.md</div>
+    </div>
+  </div>
+</div>
+
+<div class="rail">
+  <div class="stem"></div>
+  <div class="rlab">Findings arrive as plan of action rows. That register is the only place a finding is tracked, which is what keeps two documents from disagreeing about whether something is open.</div>
+</div>
+
+<div class="band">
+  <div class="bandhead"><span class="bnum">4</span>What the policies become in practice</div>
+  <div class="grid g3">
+    <div class="fam f-resp">
+      <div class="fname">Incident response playbooks</div>
+      <div class="fcount">5 documents</div>
+      <div class="fdesc">Compromised container, leaked credential, service degradation, unauthorized access, and an AI specific incident. Each opens with a decision flowchart, because a playbook read during an incident is read fast.</div>
+      <div class="fdocs">PLAYBOOK_*.md</div>
+    </div>
+    <div class="fam f-resp">
+      <div class="fname">Exercises</div>
+      <div class="fcount">1 document</div>
+      <div class="fdesc">A five phase tabletop against the container compromise playbook, with what the exercise found. The second tabletop, the analyst agent jailbreak, sits in the annex below with the subsystem it exercises.</div>
+      <div class="fdocs">TABLETOP_EXERCISE.md</div>
+    </div>
+    <div class="fam f-flat">
+      <div class="fname">IAM</div>
+      <div class="fcount">3 documents</div>
+      <div class="fdesc">Identity and access management: a three tier role map, the access review with its just in time workflow, and a cloud identity assessment. The access control policy, made specific enough to audit.</div>
+      <div class="fdocs">IAM_RBAC_ROLE_MAP.md, IAM_ACCESS_REVIEW.md, GOOGLE_CLOUD_IAM_ASSESSMENT.md</div>
+    </div>
+  </div>
+</div>
+
+<div class="rail">
+  <div class="stem"></div>
+  <div class="rlab">The annexes below inherit every control above and document only what is theirs, so a subsystem never restates the parent plan.</div>
+</div>
+
+<div class="band">
+  <div class="bandhead"><span class="bnum">5</span>Subsystem annexes</div>
+  <div class="grid g2">
+    <div class="fam f-spine">
+      <div class="fname">Squire, the autonomous analyst</div>
+      <div class="fcount">12 documents</div>
+      <div class="fdesc">The largest family. A scoped system security plan with 36 control rows, an AI risk assessment, a threat model, a framework crosswalk, the guardrail configuration, a model card, a data flow classification, an audit trail spec, the human in the loop policy, a supply chain register, executed red team results, and its own tabletop.</div>
+      <div class="fdocs">SQUIRE_*.md, FRAMEWORK_CROSSWALK_SQUIRE.md, GUARDRAILS_CONFIGURATION.md, REDTEAM_RESULTS.md, AI_AUDIT_TRAIL_SPEC.md, HITL_POLICY.md, AI_SUPPLY_CHAIN_REGISTER.md</div>
+    </div>
+    <div class="fam f-spine">
+      <div class="fname">Agent security</div>
+      <div class="fcount">4 documents</div>
+      <div class="fdesc">Card signing that ties every agent definition to the pipeline run that authored it, per agent telemetry, an OWASP Model Context Protocol Top 10 audit, and the sub plan of action tracking what that audit found.</div>
+      <div class="fdocs">AGENT_SIGNING.md, AGENT_TELEMETRY.md, OWASP_MCP_TOP10_AUDIT.md, POAM_MCP_2025.md</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+Thirteen families, 57 documents, counted from the Document Index in docs/grc/README.md and reconciled with metrics.yaml (grc.total_documents = 57).
+The auto written findings ledger is the 58th file and is excluded from the count by the metrics rule, along with the index itself.
+Sanitized public view: no address, hostname, or service name in this library is the real one. Built 2026-09-09.
+</div>

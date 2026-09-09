@@ -59,7 +59,7 @@ jobs:
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
-      # Snyk Open Source dependency scan, free tier.
+      # Snyk Open Source dependency scan, entry plan (monthly test quota applies).
       # Runs alongside Trivy. Trivy covers OS packages and image layers.
       # Snyk covers application dependency manifests (pip, poetry, npm, go.mod)
       # with reachability scoring. continue-on-error keeps the pipeline green

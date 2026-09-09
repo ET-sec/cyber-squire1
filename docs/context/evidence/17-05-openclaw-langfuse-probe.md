@@ -1,6 +1,6 @@
 # OpenClaw + Langfuse Integration (Phase 17-05)
 
-**Chosen path:** PATH C — Deferred to Wave 3 Squire first-party tracing.
+**Chosen path:** PATH C, deferred to Wave 3 Squire first-party tracing.
 **Date:** 2026-04-23
 **OpenClaw version probed:** v2026.4.21
 
@@ -8,7 +8,7 @@
 
 `docker exec openclaw-gateway env | grep -iE "langfuse|trace|otel|observ|telemetry"` returned zero matches.
 
-`/home/node/.openclaw/openclaw.json` contains only `gateway`, `agents`, and `tools` blocks — no `observability` or `telemetry` or `langfuse` key.
+`/home/node/.openclaw/openclaw.json` contains only `gateway`, `agents`, and `tools` blocks, and no `observability` or `telemetry` or `langfuse` key.
 
 `grep -r -l -i langfuse /opt /home /app /usr/local/lib/node_modules` returned zero matches.
 
@@ -20,7 +20,7 @@ Conclusion: OpenClaw v2026.4.21 ships no native Langfuse SDK, OTEL exporter, or 
 
 The plan's default-decision rule permits Path C when:
 1. No native integration exists (confirmed), AND
-2. Path B proxy sidecar exceeds 30 min budget (confirmed — OpenClaw uses WebSockets for node traffic AND HTTP for chat completions, so a transparent intercept would need both protocols handled).
+2. Path B proxy sidecar exceeds 30 min budget (confirmed: OpenClaw uses WebSockets for node traffic AND HTTP for chat completions, so a transparent intercept would need both protocols handled).
 
 **Satisfaction of must_have #1** ("at least one trace appears in Langfuse project 'squire' from an existing Claude call"):
 The Squire service deployed in Wave 3 (plan 17-08a onwards) has first-party Langfuse SDK integration and becomes an existing Claude caller the moment it boots. The smoke trace from 17-09's FastAPI `/alert` probe satisfies this bullet retroactively.
@@ -39,4 +39,4 @@ Since Path C defers, the immediate verification step is "no regression":
 
 ## Rollback
 
-Nothing to roll back — no infrastructure change was made. This is a documentation-only outcome.
+Nothing to roll back, because no infrastructure change was made. This is a documentation-only outcome.

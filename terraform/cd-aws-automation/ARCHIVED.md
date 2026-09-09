@@ -6,7 +6,7 @@ as a **frozen reference** for the AWS-era production design, not as live
 infrastructure. Do not `terraform apply` here.
 
 **Active infrastructure lives in `../cd-oci-infrastructure/`** (Oracle Cloud,
-Always Free ARM).
+Ampere A1 Flex, aarch64).
 
 Why keep it: it documents the full AWS-era automation stack (instance, network,
 IAM) so the design record survives even though the account did not.
