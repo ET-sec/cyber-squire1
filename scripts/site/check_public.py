@@ -63,6 +63,7 @@ REPO_SUFFIXES = (".md", ".yaml", ".yml", ".tf", ".tfvars.example", ".py", ".rego
                  ".json", ".html", ".mmd", ".sh", ".toml")
 REPO_SKIP_FILES = (
     "scripts/site/check_public.py",  # 2026-09-09: this file carries the patterns as literals and would match itself
+    "tests/repo/test_check_public_repo_scope.py",  # 2026-09-09: names every alternative so a dropped one fails loudly
 )
 REPO_SKIP_DIRS = (
     "tests/repo/fixtures/",  # 2026-09-09: gate fixtures hold deliberately bad strings so the tests have something to catch
