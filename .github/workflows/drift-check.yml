@@ -96,6 +96,13 @@ jobs:
             | jq -r '[.resource_changes[] | select(.change.actions != ["no-op"]) | "\(.change.actions | join("+")) \(.address)"] | join("\n")')
           echo "drifted resources (addresses only):"
           echo "$SUMMARY"
+          if [ -z "$SUMMARY" ]; then
+            # Exit code 2 with no resource change is Terraform reporting a change
+            # to output values only. That comes from code, not from the live
+            # tenancy, so it is not drift. The next apply refreshes the outputs.
+            echo "No resource changes. Output values changed in code; live infrastructure matches."
+            exit 0
+          fi
           TEXT=$(printf 'DRIFT DETECTED (drift-check, run %s)\nLive infrastructure no longer matches Terraform:\n%s\nFull plan attached. Codify or revert, never ignore.' \
             "${{ github.run_id }}" "$SUMMARY")
           curl -sS -o /dev/null -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
