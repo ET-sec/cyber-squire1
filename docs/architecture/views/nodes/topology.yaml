@@ -28,8 +28,8 @@ nodes:
     status: designed
     status_note: "No process on the current host calls the API today; the agent and the guardrails return with the ARM rebuild, and the ceiling and the tracing are code in the repo."
     evidence:
-      - {label: "Refusal built when the rails cannot answer", path: builds/squire/src/squire/llm_backend.py, line: 81}
-      - {label: "Rails backend in front of the API", path: builds/squire/src/squire/llm_backend.py, line: 286}
+      - {label: "Refusal built when the rails cannot answer", path: builds/squire/src/squire/llm_backend.py, line: 289-299}
+      - {label: "Rails backend in front of the API", path: builds/squire/src/squire/llm_backend.py, line: 230}
       - {label: "Daily spend ceiling", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
       - {label: "Data flow classification", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 1}
     solidify: "Tier 1: egress allowlist proxy in front of the agent; the model host blackhole is name resolution only"
@@ -111,7 +111,7 @@ nodes:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 142}
       - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 283}
       - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
-      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1024-1026}
+      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
     solidify: none
 
   - id: ollama
@@ -124,8 +124,8 @@ nodes:
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 122}
       - {label: "Service definition, sealed network", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 177}
-      - {label: "Squire networks, core and sealed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1018}
-      - {label: "Local backend in the agent", path: builds/squire/src/squire/llm_backend.py, line: 224}
+      - {label: "Squire networks, core and sealed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1029}
+      - {label: "Local backend in the agent", path: builds/squire/src/squire/llm_backend.py, line: 168}
       - {label: "Ceiling breach flips the backend", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
     solidify: "Tier 1: the agent has no image on the host, so the route to the local model is design only"
 
@@ -183,7 +183,7 @@ nodes:
       - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 898}
       - {label: "Rails config", path: builds/squire/docker/nemo_config/config.yml, line: 1}
       - {label: "Input rails", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
-      - {label: "Fail-closed refusal in the agent", path: builds/squire/src/squire/llm_backend.py, line: 331-333}
+      - {label: "Fail-closed refusal in the agent", path: builds/squire/src/squire/llm_backend.py, line: 282-308}
       - {label: "Rails configuration doc", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 1}
       - {label: "Red team finding that added the pre-graph scanner", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 557}
     solidify: none

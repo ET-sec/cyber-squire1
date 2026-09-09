@@ -104,7 +104,7 @@ nodes:
     status_note: "All three networks exist on the live host since 2026-09-08: the core network for state and orchestration, the sealed one carrying the local model and the transcriber with no route in or out (the model weights had to be pulled through a throwaway container for that reason), and the monitoring one for the sensor, its router, and the agent."
     evidence:
       - {label: "Three networks on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: "281-287"}
-      - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1022-1029}
+      - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1034-1041}
       - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 80}
       - {label: "Segmentation in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 199}
     solidify: none
@@ -116,7 +116,7 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild; the SSP row for information flow describes the core network's egress and is queued for a rewording that names the sealed segment."
     evidence:
-      - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1024-1026}
+      - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
       - {label: "Whisper on it", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 247-248}
     solidify: "Threat model: SSP AC-4 row wording (net-core unrestricted, net-ai none)"
   - id: read-only-root
