@@ -299,6 +299,13 @@ entries:
     last_verified: 2026-09-09
     review: {event: provider_terms_change, flag: TRIGGER_PROVIDER_TERMS}
 
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/Dockerfile"
+    purpose: "The build context for the Fluentd log shipper, one of the three Tier 0 images the stack builds locally rather than pulling."
+    status: active
+    reason: "Tracked by plan 22-03 through a narrow gitignore re-include. The CD_VOL_ rule that keeps volume data out had also been keeping this build source out, so a Tier 0 image compose builds had no source in any clone. Reviewed on the compose cycle because it carries a base image pin, and that pin is what has to move when upstream drops or adds an architecture."
+    last_verified: 2026-09-09
+    review: {every: 90d}
+
   # ----------------------------------------------------------------------
   # builds: the Squire agent, and nothing else
   # ----------------------------------------------------------------------

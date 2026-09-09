@@ -41,12 +41,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Pin nemoguardrails exactly. CPU-only torch via --extra-index-url so the
-# default PyPI index still resolves nemoguardrails. [sdd] pulls presidio.
-# [server] enables the FastAPI OpenAI-compat chat/completions endpoint.
+# Pin nemoguardrails exactly. [sdd] pulls presidio. [server] enables the
+# FastAPI OpenAI-compat chat/completions endpoint.
+#
+# torch is pinned to the plain wheel, not a +cpu local version. Measured
+# 2026-09-09 inside this same base image on the aarch64 host: pip reports
+# "No matching distribution found for torch==2.5.1+cpu", and the versions it
+# does offer are plain 2.5.1 alongside 2.6.0+cpu. On aarch64 the +cpu local
+# version only starts at 2.6.0, and the plain wheel is already CPU only there
+# because upstream publishes no CUDA build for the platform. PyPI serves the
+# aarch64 wheel directly, so the PyTorch cpu extra index bought nothing and
+# was what made the pin unresolvable. Keep 2.5.1, which is the version the
+# nemoguardrails 0.21.0 pin was tested against.
 RUN pip install --upgrade pip \
- && pip install --extra-index-url https://download.pytorch.org/whl/cpu \
-        "torch==2.5.1+cpu" \
+ && pip install \
+        "torch==2.5.1" \
  && pip install \
         "nemoguardrails[sdd,server]==0.21.0" \
         "protobuf>=5.29.5" \

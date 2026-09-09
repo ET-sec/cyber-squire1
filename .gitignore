@@ -52,6 +52,15 @@ docs/PRIVATE_OPERATIONS_MANUAL.md
 COREDIRECTIVE_ENGINE/.env
 COREDIRECTIVE_ENGINE/.env.*
 COREDIRECTIVE_ENGINE/CD_VOL_*/
+# 2026-09-09 (plan 22-03): the rule above is for volume DATA, but it also
+# swallowed the Fluentd build context, so the Dockerfile that compose builds
+# at CD_VOL_FLUENTD existed on one laptop and in no clone. Re-included so a
+# Tier 0 image has a source in the repository, which is what the header of
+# this section already says the policy is. Narrow on purpose: fluent.conf is
+# a runtime bind mount and certs/ are key material, so both stay ignored.
+!COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/
+COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/*
+!COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/Dockerfile
 COREDIRECTIVE_ENGINE/CD_BACKUPS/
 COREDIRECTIVE_ENGINE/credentials_vault.json
 COREDIRECTIVE_ENGINE/workflow_*.json
