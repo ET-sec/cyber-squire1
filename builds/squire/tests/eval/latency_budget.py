@@ -109,7 +109,7 @@ def main() -> int:
     lines.append("## Criterion #26 verdict")
     lines.append("PASS" if not breaches else "FAIL: see breaches above")
 
-    out = Path("/Users/et/cyber-squire-ops/docs/grc/SQUIRE_LATENCY_BUDGET.md")
+    out = Path(__file__).resolve().parents[4] / "docs/grc/SQUIRE_LATENCY_BUDGET.md"
     out.write_text("\n".join(lines) + "\n")
     print(f"wrote {out}; breaches: {len(breaches)}")
     return 0 if not breaches else 2

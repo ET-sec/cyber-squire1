@@ -37,7 +37,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` and merge
   "mcpServers": {
     "grc_corpus": {
       "command": "python3",
-      "args": ["/Users/et/cyber-squire-ops/scripts/grc/grc_mcp_server.py"]
+      "args": ["/path/to/cyber-squire-ops/scripts/grc/grc_mcp_server.py"]
     }
   }
 }

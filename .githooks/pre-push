@@ -15,6 +15,11 @@
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
+GL_CONFIG="$REPO_ROOT/.gitleaks.local.toml"
+if [ ! -f "$GL_CONFIG" ]; then
+  echo "BLOCKED. $GL_CONFIG is missing. It holds the literal tripwires that must not live in the public config; restore it from the private store before committing."
+  exit 1
+fi
 
 if ! command -v gitleaks >/dev/null 2>&1; then
   echo "pre-push: BLOCKED. gitleaks not installed (brew install gitleaks)."
@@ -22,10 +27,10 @@ if ! command -v gitleaks >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! gitleaks git --redact --config "$REPO_ROOT/.gitleaks.toml" \
+if ! gitleaks git --redact --config "$GL_CONFIG" \
     --log-opts "--branches --not --remotes" >/dev/null 2>&1; then
   echo "pre-push: BLOCKED. gitleaks found a secret or tripwire in unpushed commits:"
-  gitleaks git --redact --config "$REPO_ROOT/.gitleaks.toml" \
+  gitleaks git --redact --config "$GL_CONFIG" \
     --log-opts "--branches --not --remotes" 2>&1 \
     | grep -E "RuleID:|File:|Commit:|Line:" | head -16 || true
   echo "The finding is in COMMIT HISTORY, not just the working tree:"

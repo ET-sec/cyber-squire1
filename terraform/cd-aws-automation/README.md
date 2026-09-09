@@ -1,3 +1,5 @@
+> **ARCHIVED.** This configuration is frozen reference for a retired provider generation. Do not `terraform apply` here. See `ARCHIVED.md` in this directory and the active `../cd-oci-infrastructure/`.
+
 # CD-AWS-AUTOMATION Deployment Guide
 
 ## Overview

@@ -17,7 +17,7 @@ The repository moved from a "commit straight to main" pattern to a "branch + PR 
 For any change you want to ship:
 
 ```bash
-cd /Users/et/cyber-squire-ops
+cd ~/cyber-squire-ops
 
 # 1. Start a branch with a typed prefix
 ./scripts/git/new-branch.sh feat/some-change
@@ -101,7 +101,7 @@ The hook is installed via `git config core.hooksPath .githooks` (per-clone setup
 **What it does:**
 - Runs the GTA AI-tells sweep on staged markdown files
 - Hard-blocks commits with em dashes, en dashes, or double-hyphen prose between words
-- Warns (but allows commit) on AI-tell phrases like "leveraging", "robust", "seamlessly"
+- Warns (but allows the commit) on the banned marketing adjectives, buzzwords, and juxtaposition patterns
 
 **If it blocks you:**
 ```bash

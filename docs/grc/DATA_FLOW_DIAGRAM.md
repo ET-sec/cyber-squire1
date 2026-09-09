@@ -30,6 +30,7 @@
 |---------|------|--------|-------------|
 | 1.0 | 2026-03-12 | Information Security Officer | Initial DFD covering all 20 services, 3 networks, 7 trust boundaries |
 | 1.1 | 2026-04-24 | Information Security Officer | Phase 17 scope extension. Added Squire alert pipeline section 11 with +10 data flows, +3 trust boundaries, +6 data stores, +3 external entities. Reconciled totals: 40 flows, 15 stores, 14 entities, 10 boundaries. |
+| 1.2 | 2026-09-08 | Information Security Officer | Trust boundary reconciliation with `THREAT_MODEL_STRIDE.md`: the four Phase 17 crossings in section 11.3 are remapped onto boundaries the model already defines (TB-1, TB-2, TB-5, TB-7, TB-8) and the guardrails hops recorded as intra-zone; TB-8 (services to the data store) was added 2026-09-06. Reconciled total: 8 boundaries. |
 
 ---
 
@@ -66,7 +67,7 @@ The DFD serves as:
 | **TB-2** | Edge security provider | svc-tunnel → DMZ | Authenticated HTTPS traffic enters platform |
 | **TB-3** | DMZ | Internal zone | Workflow queries, AI inference requests cross zone |
 | **TB-4** | DMZ | Sensitive zone | Authentication requests, secret lookups cross zone |
-| **TB-5** | svc-ai-gateway | Anthropic API (external) | Prompts containing operational context leave boundary |
+| **TB-5** | svc-ai-gateway, svc-squire | External AI and search vendors (Anthropic API, Tavily) | Prompts and enrichment queries containing operational context leave the boundary |
 | **TB-6** | Monitoring zone | Monitoring platform SaaS (Datadog) | Metrics, logs, traces, alerts leave boundary |
 | **TB-7** | Telegram API | svc-tunnel → svc-ai-gateway | User messages from external messaging platform |
 | **TB-8** | Services (DMZ, Internal) | svc-db | Workflow state, credential store, investigation records and vector chunks enter the data store (added 2026-09-06 to match the STRIDE diagram) |
@@ -139,7 +140,7 @@ The platform is represented as a single process. All external entities and their
 
 ## 4. Level 1 - System Decomposition
 
-The platform is decomposed into five trust zones with 20 services, 3 Docker networks, and 10 trust boundaries (7 legacy plus 3 Phase 17, see section 11).
+The platform is decomposed into five trust zones with 20 services, 3 Docker networks, and 8 trust boundaries (the table above; section 11.3 maps the Phase 17 flows onto them).
 
 ```
 Legend: [TB-N] = Trust Boundary | [P-NN] = Process | [DS-NN] = Data Store | ──► = Data Flow
@@ -449,7 +450,7 @@ Each trust boundary crossing in this DFD maps to STRIDE threats in `THREAT_MODEL
 
 ## 11. Phase 17 Scope Extension: Squire Autonomous SOC Analyst
 
-**Key Point:** Phase 17 added a new AI-driven SOC analyst subsystem. This extends the Level 2 DFD with 10 new data flows, 3 new trust boundaries, 6 new data stores, and 3 new external entities. The canonical classification of every Squire data class lives in `SQUIRE_DATA_FLOW_CLASSIFICATION.md`.
+**Key Point:** Phase 17 added a new AI-driven SOC analyst subsystem. This extends the Level 2 DFD with 10 new data flows, 6 new data stores, and 3 new external entities; the new flows cross boundaries the model already defines (section 11.3). The canonical classification of every Squire data class lives in `SQUIRE_DATA_FLOW_CLASSIFICATION.md`.
 
 ### 11.1 Phase 17 alert pipeline (Mermaid Level 2)
 
@@ -526,27 +527,28 @@ flowchart LR
 
 | ID | Source | Destination | Data | Encryption | Trust crossing |
 |----|--------|-------------|------|------------|----------------|
-| DF-31 | Alert source | Cloudflare WAF | Raw alert payload JSON | TLS 1.3 | TB-8 (public to CF zone) |
-| DF-32 | Cloudflare WAF | Pre-graph scanner | Filtered alert payload | TLS 1.3 internal | TB-9 (CF to Squire) |
+| DF-31 | Alert source | Cloudflare WAF | Raw alert payload JSON | TLS 1.3 | TB-1 (Internet to the edge) |
+| DF-32 | Cloudflare WAF | Pre-graph scanner | Filtered alert payload | TLS 1.3 internal | TB-2 (edge to the platform) |
 | DF-33 | Pre-graph scanner | classify node | Validated payload | in-process | intra-zone |
-| DF-34 | classify node | NeMo input rail | Classification plus raw text | in-process | TB-10 (Squire to NeMo) |
-| DF-35 | retrieve node | pgvector ir_chunks | Query embedding | in-process | intra-zone |
-| DF-36 | enrich node | Tavily API | Search query | TLS 1.3 | TB-9 (Squire to external) |
-| DF-37 | investigate node | Anthropic API | Prompt plus tool calls | TLS 1.3 | TB-9 (Squire to external) |
-| DF-38 | critique node | NeMo output rail | Draft report | in-process | TB-10 (Squire to NeMo) |
-| DF-39 | route_severity | Telegram bot | HIGH or CRITICAL report | TLS 1.3 | TB-8 (Squire to public) |
-| DF-40 | Squire nodes | Langfuse web | Trace span data | TLS 1.3 internal | TB-11 (Squire to Langfuse) |
+| DF-34 | classify node | NeMo input rail | Classification plus raw text | in-process | intra-zone (guardrails container, internal network) |
+| DF-35 | retrieve node | pgvector ir_chunks | Query embedding | in-process | TB-8 (services to the data store) |
+| DF-36 | enrich node | Tavily API | Search query | TLS 1.3 | TB-5 (outbound to the search vendor) |
+| DF-37 | investigate node | Anthropic API | Prompt plus tool calls | TLS 1.3 | TB-5 (outbound to the AI vendor) |
+| DF-38 | critique node | NeMo output rail | Draft report | in-process | intra-zone (guardrails container, internal network) |
+| DF-39 | route_severity | Telegram bot | HIGH or CRITICAL report | TLS 1.3 | TB-7 (messaging platform) |
+| DF-40 | Squire nodes | Langfuse web | Trace span data | TLS 1.3 internal | intra-zone (trace store on the host; TB-6 applies only when telemetry leaves to the SIEM) |
 
-### 11.3 New trust boundaries (+3)
+### 11.3 Trust boundaries crossed by the Phase 17 flows
 
-<!-- TODO(et): Row count mismatch. Section heading says "+3" and section 11.6 reconciled total is 10, but this table lists 4 boundaries (TB-8 through TB-11). Either drop TB-11 (Squire->Langfuse is observability, may be considered intra-zone) or change to "+4" with reconciled total 11. -->
+Phase 17 added no boundary of its own. Its flows cross boundaries the model already defines, and the two hops into the guardrails container stay inside the internal zone. Reconciled 2026-09-08 against `THREAT_MODEL_STRIDE.md` section 2.3, which this table mirrors; TB-8 (services to the data store) was added 2026-09-06.
 
-| ID | Boundary | Crosses | Controls |
-|----|----------|---------|----------|
-| TB-8 | Public Internet to Cloudflare | Inbound alert ingress, outbound delivery | Cloudflare WAF, rate limit, HMAC token |
-| TB-9 | Squire to external LLM and search | Prompts to Anthropic, queries to Tavily, agent dispatch to OpenClaw | TLS 1.3, per-provider auth, cost ceiling |
-| TB-10 | Squire to NeMo Guardrails | Input rail, output rail | Colang rail definitions, presidio PII detection |
-| TB-11 | Squire to Langfuse observability | Trace span data | Internal TLS, dedicated observability network |
+| Boundary | Phase 17 crossings | Controls at the crossing |
+|----------|--------------------|--------------------------|
+| TB-1, TB-2 | DF-31, DF-32: alert ingress from the public Internet through the edge into the pre-graph scanner | Edge WAF, rate limit, HMAC token, outbound-only tunnel |
+| TB-5 | DF-36, DF-37: enrichment queries to the search vendor and prompts to the AI vendor | TLS 1.3, per-provider auth, daily cost ceiling |
+| TB-7 | DF-39: HIGH and CRITICAL reports to the messaging platform | TLS 1.3, bot token, severity gate |
+| TB-8 | DF-35 and the investigation records: reads of `ir_chunks`, writes of investigation, evidence, and citation rows to svc-db | Least-privilege database role, volume encryption |
+| intra-zone | DF-33, DF-34, DF-38, DF-40: scanner to graph, graph to the guardrails rails, graph to the trace store | Colang rails, Presidio PII detection, internal network only |
 
 ### 11.4 New data stores (+6)
 
@@ -575,7 +577,7 @@ flowchart LR
 | Data flows | 30 | +10 | 40 |
 | Data stores | 9 | +6 | 15 |
 | External entities | 11 | +3 | 14 |
-| Trust boundaries | 7 | +3 | 10 |
+| Trust boundaries | 7 | +1 (TB-8, services to svc-db, added 2026-09-06) | 8 |
 
 ### 11.7 Cross-references
 

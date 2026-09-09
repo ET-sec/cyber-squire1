@@ -241,7 +241,7 @@ Overall system category: MODERATE (driven by integrity).
 |--------|------|----------------|-----------|
 | Falco eBPF alerts | via `svc-detection-router` webhook to `POST /alert` | Internal telemetry | Langfuse 30 days |
 | Datadog monitor webhooks | Cloudflare tunnel to `POST /alert` | Internal telemetry | Langfuse 30 days |
-| Operator replay | authenticated `POST /alert` with `x-squire-replay: true` | Internal telemetry | Langfuse 30 days + `ir_replay_events` permanent |
+| Operator replay | authenticated `POST /alert` with `x-squire-replay: true` | Internal telemetry | Langfuse 30 days; a replay is a new `ir_investigations` row with source `replay` (no separate replay table exists in the migrations) |
 | RAG corpus | `ir_chunks` seeded from 31 sanitized GRC docs | Public (already sanitized) | Permanent until reindex |
 
 ### 5.2 Outbound Data
@@ -257,7 +257,7 @@ Overall system category: MODERATE (driven by integrity).
 
 | Store | Content | Encryption |
 |-------|---------|------------|
-| `svc-db` (`ir_chunks`, `ir_incidents`, `ir_replay_events`) | Vector corpus, replay audit | LUKS at the volume layer; `db-data-volume` |
+| `svc-db` (`ir_investigations`, `ir_evidence`, `ir_citations`, `ir_chunks`) | Investigation records, evidence, citations, vector corpus | LUKS at the volume layer; `db-data-volume` |
 | `svc-langfuse-clickhouse` | Trace analytics | LUKS at the volume layer |
 | `svc-langfuse-redis` | Queue state | Ephemeral, no disk persistence |
 | Doppler | API keys | Provider-managed (Doppler KMS) |
@@ -275,9 +275,8 @@ Embeddings in `ir_chunks.embedding` are 1024-dimension float32 vectors. The deci
 | Data | Retention | Disposition |
 |------|-----------|-------------|
 | Langfuse traces (all nodes, including PII block rows) | 30 days | Langfuse worker cron truncates older rows from ClickHouse |
-| `ir_replay_events` | Indefinite | Manually purged on decommission |
-| `ir_pregraph_blocks` | 180 days | Postgres cron `vacuum_old_blocks` |
-| `ir_sanitization_events` | 180 days | Postgres cron `vacuum_old_blocks` |
+| `ir_investigations`, `ir_evidence`, `ir_citations` | Indefinite | Manually purged on decommission; no retention job exists in the repository |
+| Pre-graph blocks and recommend-only rewrites | Reason code and trace only | Recorded in the Langfuse trace and the response body, not in a dedicated table |
 | `ir_chunks` | Until reindex | Replaced atomically on re-embedding |
 | Nightly `pg_dump` in DO Spaces | 14 days | Spaces lifecycle rule on `nightly/` prefix |
 
@@ -291,7 +290,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` (`svc-squire` environment block) |
 | AC-3 | Implemented | `POST /alert` requires header `x-squire-token` validated against Doppler secret `SQUIRE_INGEST_TOKEN`. Missing or mismatched token returns 401. | `builds/squire/src/squire/app.py` (token check with `hmac.compare_digest`) |
-| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins `net-ai` and `net-core` only. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block |
+| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins `net-core` only in the compose today; the `net-ai` membership the local-model fallback needs is a queued compose change (ARM rebuild, application tier session). | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block and the `svc-squire` service |
 | AC-6 | Implemented | Least privilege on container filesystem: `USER 10001:10001`, `read_only: true`, `tmpfs` for `/tmp`. No `CAP_*` added; `no-new-privileges` set. | `builds/squire/Dockerfile` + compose security_opt |
 | AC-17 | Implemented | All remote administration goes through the Cloudflare zero-trust tunnel or SSH on `alpha-node`. Neither the application nor Langfuse listen on the public internet. | Parent SSP inheritance plus tunnel config |
 
@@ -299,11 +298,11 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| AU-2 | Implemented | Four audit event types: (1) every `/alert` call emits a Langfuse trace with cost, latency, rail outcomes; (2) every pre-graph block writes a row to `ir_pregraph_blocks`; (3) every recommend-only rewrite writes to `ir_sanitization_events`; (4) every replay writes to `ir_replay_events`. | `builds/squire/src/squire/persist.py`; `builds/squire/src/squire/telemetry.py` |
+| AU-2 | Implemented | Audit events: (1) every `/alert` call emits a Langfuse trace with cost, latency, and rail outcomes; (2) every completed investigation, its evidence, and its citations are rows in `ir_investigations`, `ir_evidence`, and `ir_citations`, and a replay is a new investigation row with source `replay`; (3) a pre-graph block returns a structured refusal with a reason code and is traced, not stored in a dedicated table. | `builds/squire/src/squire/persist.py`; `builds/squire/src/squire/telemetry.py` |
 | AU-3 | Implemented | Audit records include: timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms. | Langfuse schema + `ir_*` DDL in migrations/002 |
 | AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to the operations Telegram bot. Weekly human review of red-team regression runs. | No script by that name exists in the repository as of 2026-09-06; the rail-trigger review is a manual Langfuse query until the daily job is written |
 | AU-9 | Implemented | Langfuse writes are append-only from the worker's perspective. The Postgres table holding traces has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly `pg_dump` to DO Spaces (14-day retention). | `svc-db` role `langfuse_rw` grants INSERT, SELECT only |
-| AU-12 | Implemented | Audit generation is immutable at the code path: every graph node is instrumented with `@observe()` from `langfuse.decorators`. Removing the decorator breaks CI because `tests/test_trace_coverage.py` enumerates nodes. | `builds/squire/src/squire/nodes/draft.py` and `critique.py` carry the observe decorators; no trace-coverage test exists in the repository as of 2026-09-06 |
+| AU-12 | Partially Implemented | Every graph node is instrumented with `@observe()` from `langfuse.decorators`. No test enumerates the nodes to enforce the decorator yet; a trace-coverage test is an open item. | `builds/squire/src/squire/nodes/draft.py` and `critique.py` carry the observe decorators |
 
 ### 6.3 CM - Configuration Management
 
@@ -328,7 +327,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | IR-4 | Implemented | Squire is itself an incident-handling tool. Incidents against Squire (rail bypass, prompt injection success) are captured in `docs/grc/REDTEAM_RESULTS.md` and tracked as POA&M entries. | `docs/grc/REDTEAM_RESULTS.md` |
-| IR-5 | Implemented | Every `/alert` call is monitored through Langfuse. Latency P95 budget is 45 seconds. Cost budget per call is $0.75. Violations fire a Datadog monitor. | Datadog monitor ID `squire_cost_ceiling` |
+| IR-5 | Implemented | Every `/alert` call is monitored through Langfuse. Latency P95 budget is 45 seconds. The cost control is a daily ceiling (`ANTHROPIC_DAILY_CEILING_USD`, default $5) summed from `ir_investigations`; there is no per-call budget and no SIEM monitor for it yet. On breach the configured mode applies: refuse with 503, fall back to the local model, or warn only. | `builds/squire/src/squire/cost_ceiling.py`; the breach branch in `app.py` |
 | IR-6 | Implemented | Rail triggers and pre-graph blocks route to Telegram within 30 seconds via the `svc-event-shipper` path. | `builds/squire/src/squire/tools/telegram.py` |
 
 ### 6.6 RA - Risk Assessment
@@ -364,15 +363,15 @@ This section covers only controls that are Squire-specific. Inherited controls (
 | SI-4 | Implemented | Four independent integrity checks per `/alert`: (1) pre-graph regex PII scanner; (2) NeMo Colang input rail on draft input; (3) NeMo Colang output rail on draft output; (4) critique node validates citations against retrieved chunk IDs. | `builds/squire/src/squire/graph.py`; `builds/squire/src/squire/nodes/`; `builds/squire/src/squire/pre_graph_pii.py`; `builds/squire/docker/nemo_config/rails/` |
 | SI-7 | Implemented | Structured output validation: the graph returns a Pydantic model. Any deviation from the schema causes a 500 with `reason_code=SCHEMA_VIOLATION`. | `builds/squire/src/squire/api_models.py` |
 | SI-10 | Implemented | Input validation on `/alert`: Pydantic model with size cap (64 KiB), required fields, and the pre-graph PII scanner. | `builds/squire/src/squire/api_models.py::AlertRequest`; `builds/squire/src/squire/pre_graph_pii.py` |
-| SI-12 | Implemented | Information handling and retention: Langfuse retains 30 days. `ir_replay_events` retains indefinitely. PII blocks are retained as the blocked reason code only, never the raw input. | `builds/squire/src/squire/persist.py` |
+| SI-12 | Implemented | Information handling and retention: Langfuse retains 30 days. Investigation rows retain indefinitely. PII blocks are retained as the blocked reason code only, never the raw input. | `builds/squire/src/squire/persist.py` |
 
 ### 6.10 Cost and Iteration Controls (custom family, no direct 800-53 analog)
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| SQ-COST-1 | Implemented | Per-call cost ceiling of $0.75 enforced in `builds/squire/src/squire/cost_ceiling.py`. The guard tracks cumulative Anthropic spend returned in response headers (`anthropic-input-tokens`, `anthropic-output-tokens`) and aborts the graph if the budget would be exceeded on the next node. Aborted calls return 402 with `reason_code=COST_CEILING_EXCEEDED`. | `builds/squire/src/squire/cost_ceiling.py` |
+| SQ-COST-1 | Planned | Per-call cost ceiling: not implemented. The guard in `cost_ceiling.py` is the daily ceiling below; a per-call budget that aborts the graph mid-run is an open item. | `builds/squire/src/squire/cost_ceiling.py` (daily only) |
 <!-- TODO(et): Compose env shows ANTHROPIC_DAILY_CEILING_USD default $5.00. SSP says $10. Confirm production override via Doppler. -->
-| SQ-COST-2 | Implemented | Daily cost ceiling of $10.00 tracked in Redis counter `squire:cost:daily:<yyyy-mm-dd>`. Reset at UTC midnight. When exceeded, the LLM backend abstraction transparently switches to `ollama` mode and a Telegram alert fires. | `builds/squire/src/squire/cost_ceiling.py` |
+| SQ-COST-2 | Implemented | Daily cost ceiling (`ANTHROPIC_DAILY_CEILING_USD`, default $5) computed as the UTC-day sum of `cost_usd` over `ir_investigations`; there is no Redis counter. On breach the configured mode (`SQUIRE_COST_BREACH_MODE`, default `ollama`) applies: force the local `ollama` backend, refuse with 503 and `daily_cost_ceiling_reached`, or warn only. A database error fails open by design and is logged. | `builds/squire/src/squire/cost_ceiling.py`; `settings.py` |
 | SQ-ITER-1 | Implemented | The investigate node has a hard loop cap of 3 iterations. The critique node has a hard loop cap of 2. Exceeding either returns the best response so far with a `degraded=true` flag. | `builds/squire/src/squire/graph.py` (critique iteration cap); `builds/squire/src/squire/nodes/investigate.py` |
 | SQ-LAT-1 | Implemented | Per-call latency budget of 45 seconds (P95). Exceeded calls fire a Datadog monitor tagged `service:squire severity:warn` and log a span with `latency_budget_exceeded=true`. | Datadog monitor ID `squire_latency_p95` |
 
@@ -445,7 +444,7 @@ Assumptions:
 - The pre-graph PII scanner's regex coverage (SSN, Luhn CC, email, US phone) is sufficient for the demo threat model. Non-US phone formats and uncommon PII types are an accepted residual risk tracked in the Risk Assessment.
 - The 31-document GRC corpus is already sanitized per `SANITIZATION_KEY.md`. No new unsanitized documents enter `ir_chunks` without review.
 - The Cloudflare tunnel is the only public ingress.
-- Anthropic API cost is bounded by both the daily ceiling ($10) and the per-call ceiling ($0.75).
+- Anthropic API cost is bounded by the daily ceiling (default $5); no per-call ceiling exists.
 
 Constraints:
 
@@ -492,7 +491,7 @@ The critique node is Squire's citation guard. Its job is to reject any investiga
 3. **Consistency check.** The severity claimed in the draft must match the severity produced by the classifier. If the draft tries to downgrade a HIGH classification to INFO (see REDTEAM_RESULTS case 05), the critique node overrides.
 4. **Action check.** The recommended actions section is cross-referenced against `actions.yml`. Forbidden verbs are rewritten or the response is rejected per mode.
 
-Citation guard outputs are themselves logged to Langfuse as a named span `critique.citation_guard` with fields: `shape_failures`, `provenance_failures`, `consistency_overrides`, `action_rewrites`. These fields feed the daily audit job.
+Citation guard outputs are themselves logged to Langfuse as a named span `critique.citation_guard` with fields: `shape_failures`, `provenance_failures`, `consistency_overrides`, `action_rewrites`. No scheduled audit job consumes them yet; they are queryable in Langfuse.
 
 Criterion #17 of the ROADMAP success criteria is satisfied: the citation guard design is documented here and referenced from `docs/grc/GUARDRAILS_CONFIGURATION.md`.
 

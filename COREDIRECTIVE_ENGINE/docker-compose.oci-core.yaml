@@ -1,10 +1,10 @@
 # ============================================================================
 # OCI CORE STACK: the minimal live environment on Oracle Ampere A1 (ARM)
 # ============================================================================
-# This is the trimmed, ARM-clean subset that is actually running on the OCI
-# host as of 2026-08-19: database + n8n + Cloudflare tunnel. It exists so the
-# environment is reachable while the full docker-compose.yaml (all 19 services)
-# is ported to ARM. Deployed to the host at /opt/coredirective/.
+# This is the ARM-clean subset that is actually running on the OCI host as of
+# 2026-09-08: database, n8n, tunnel, plus rebuild session A's stateless set
+# (Falco, Falcosidekick, Datadog agent, Whisper, Ollama). The rest of the full
+# docker-compose.yaml (19 services) returns in sessions B and C.
 #
 # DESIGN NOTES (differences from the master docker-compose.yaml, on purpose):
 #   - Images are pinned tag@digest (re-pinned 2026-09-06). The digest is the
@@ -87,7 +87,7 @@ services:
           cpus: '2.00'
           memory: 2G
           pids: 512
-    networks: [ net-core ]
+    networks: [ net-core, net-ai ]
 
   tunnel-cyber-squire:
     image: cloudflare/cloudflared:2026.3.0@sha256:6b599ca3e974349ead3286d178da61d291961182ec3fe9c505e1dd02c8ac31b0
@@ -108,6 +108,180 @@ services:
           memory: 256M
           pids: 64
 
+  # --------------------------------------------------------------------------
+  # ARM rebuild session A (2026-09-08): the stateless set. Same images, index
+  # digests, and limits as the master file (Ollama memory raised, see below).
+  # Falco and the Datadog agent carry the documented accepted risks (CIS 5.25
+  # and 5.15: SYS_ADMIN, host pid, read-only container socket). Off-host
+  # credentials live in monitoring.env (DD_API_KEY, DD_SITE, DATADOG_APIKEY,
+  # DATADOG_HOST, DATADOGLOGS_APIKEY, DATADOGLOGS_HOST), chmod 600, read only
+  # by the two services that ship to the SIEM. The sealed network has no route
+  # out, so model weights are pulled once through a throwaway container on the
+  # default bridge into the same volume (runbook step in the PR description).
+  # --------------------------------------------------------------------------
+  cd-service-ollama:
+    image: ollama/ollama@sha256:0ff452f6a4c3c5bb4ab063a1db190b261d5834741a519189ed5301d50e4434d1
+    container_name: cd-service-ollama
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ./CD_VOL_OLLAMA:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_KEEP_ALIVE=24h
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 6G   # an 8B model at Q4 is ~5 GB resident; the master's 3G fails at load
+          pids: 256
+    networks: [ net-ai ]
+
+  cd-service-whisper:
+    image: fedirz/faster-whisper-server:0.5.0-cpu@sha256:760e5e43d427dc6cfbbc4731934b908b7de9c7e6d5309c6a1f0c8c923a5b6030
+    container_name: cd-service-whisper
+    restart: unless-stopped
+    # The image's CMD is `uv run uvicorn ...`, which resolves build deps from the
+    # package index at every start and cannot on the sealed network. Run the
+    # venv's uvicorn directly; the model cache is warmed once (PR description).
+    command: ["/root/faster-whisper-server/.venv/bin/uvicorn", "--factory", "faster_whisper_server.main:create_app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./CD_VOL_WHISPER:/root/.cache/huggingface
+    environment:
+      # Setting names the 0.5.0 image reads; the master file's WHISPER_MODEL is ignored (fix at rebuild).
+      - WHISPER__MODEL=Systran/faster-whisper-small
+      - WHISPER__INFERENCE_DEVICE=cpu
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 2G   # the master's 1G is OOM-killed loading the small model on this host (exit 137, 2026-09-08)
+          pids: 256
+    networks: [ net-ai ]
+
+  cd-service-falcosidekick:
+    image: falcosecurity/falcosidekick:2.32.0@sha256:1976da72151850aae4436f33a5ed94bdef469f42a9b61c182b4feeb5441fb081
+    container_name: cd-service-falcosidekick
+    restart: unless-stopped
+    env_file: [ monitoring.env ]
+    environment:
+      - DATADOG_MINIMUMPRIORITY=notice
+      - DATADOGLOGS_MINIMUMPRIORITY=notice
+      # falcosidekick-customfields.yaml: every alert carries the sensor's
+      # agent_id so detection events share the dashboards' agent dimension.
+      - CUSTOMFIELDS=stack:coredirective,agent_id:falco_sensor
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:2801/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+          pids: 64
+    networks: [ net-monitoring ]
+
+  cd-service-falco:
+    image: falcosecurity/falco:0.43.0@sha256:88c01fa17bcc03c990a2691d08e7d43d746e32b07dbe9c6eb77bfdb3646cec41
+    container_name: cd-service-falco
+    restart: unless-stopped
+    # Modern eBPF probe: no kernel module, needs the capabilities below and no
+    # AppArmor confinement. Accepted risk CIS 5.25; the one service without
+    # no-new-privileges.
+    cap_drop: [ ALL ]
+    cap_add: [ SYS_ADMIN, SYS_RESOURCE, SYS_PTRACE ]
+    volumes:
+      - /sys/kernel/tracing:/sys/kernel/tracing:ro
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /etc:/host/etc:ro
+      - ./CD_VOL_FALCO/config/falco.yaml:/etc/falco/config.d/falco_override.yaml:ro
+      - ./CD_VOL_FALCO/rules:/etc/falco/rules.d:ro
+      - ./CD_VOL_FALCO/logs:/var/log/falco
+    environment:
+      - HOST_ROOT=/host
+    healthcheck:
+      test: ["CMD", "falco", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt: [ "apparmor:unconfined" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 128
+    depends_on:
+      - cd-service-falcosidekick
+    networks: [ net-monitoring ]
+
+  cd-service-datadog:
+    image: datadog/agent:7.78.0@sha256:506c580f21aa53830b47a7ea161760d9a088ed689d17a85521b4138695a9ee59
+    container_name: cd-service-datadog
+    restart: unless-stopped
+    # Host pid and the read-only container socket are the agent's documented
+    # accepted risk (CIS 5.15). No database credentials: nothing here uses them.
+    pid: host
+    env_file: [ monitoring.env ]
+    environment:
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE_LOGS=name:cd-service-datadog
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_APM_ENABLED=false
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_HOSTNAME=cd-engine
+      - DD_CONTAINER_LABELS_AS_TAGS=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      # /conf.d is the image's drop-in path: the entrypoint copies it over the
+      # defaults. Mounting /etc/datadog-agent/conf.d directly (the master file)
+      # would replace the built-in check configs; fix the master at rebuild.
+      - ./CD_VOL_DATADOG/conf.d:/conf.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "agent health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 256
+    networks: [ net-monitoring ]
+
 networks:
   net-core:
     name: net-core
+  net-ai:
+    name: net-ai
+    internal: true   # sealed: no route in or out; n8n, Ollama, Whisper only
+  net-monitoring:
+    name: net-monitoring

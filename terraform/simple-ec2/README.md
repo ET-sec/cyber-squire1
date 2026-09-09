@@ -1,3 +1,5 @@
+> **ARCHIVED.** This configuration is frozen reference for a retired provider generation. Do not `terraform apply` here. See `ARCHIVED.md` in this directory and the active `../cd-oci-infrastructure/`.
+
 # Simple EC2 Deployment (Quick Start)
 
 ## Overview
@@ -63,7 +65,7 @@ chmod 400 ~/cyber-squire-ops.pem
 ### Step 1: Initialize Terraform
 
 ```bash
-cd /Users/et/cyber-squire-ops
+cd ~/cyber-squire-ops
 terraform init
 ```
 

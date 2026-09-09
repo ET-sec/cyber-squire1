@@ -192,7 +192,7 @@ services:
       resources:
         limits:
           cpus: '2.00'
-          memory: 3G
+          memory: 6G   # an 8B model at Q4 is ~5 GB resident (measured on ARM 2026-09-08)
           pids: 256
     logging:
       driver: json-file
@@ -223,8 +223,8 @@ services:
     volumes:
       - ./CD_VOL_WHISPER:/root/.cache/huggingface:z
     environment:
-      - WHISPER_MODEL=base
-      - WHISPER_LANGUAGE=en
+      - WHISPER__MODEL=Systran/faster-whisper-small   # the 0.5.0 image reads WHISPER__ names
+      - WHISPER__INFERENCE_DEVICE=cpu
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
       interval: 30s
@@ -237,7 +237,7 @@ services:
       resources:
         limits:
           cpus: '1.00'
-          memory: 1G
+          memory: 2G   # 1G was OOM-killed loading the small model (exit 137, 2026-09-08)
           pids: 256
     logging:
       driver: json-file
@@ -441,7 +441,7 @@ services:
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
       - /etc/os-release:/host/etc/os-release:ro
       - /var/log:/host/var/log:ro
-      - ./CD_VOL_DATADOG/conf.d:/etc/datadog-agent/conf.d:ro
+      - ./CD_VOL_DATADOG/conf.d:/conf.d:ro   # drop-in path; mounting conf.d itself hides the built-in checks
     healthcheck:
       test: ["CMD-SHELL", "agent health"]
       interval: 30s

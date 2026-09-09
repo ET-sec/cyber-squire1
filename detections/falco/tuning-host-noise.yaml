@@ -1,0 +1,23 @@
+# Falco tuning: exceptions measured on the live host, not guessed.
+#
+# Method: bring the sensor up with the stock rules plus the custom set, let it
+# run, then count events by rule and by (container, process, file). Every
+# exception below names one benign pairing that dominated the first hour on
+# the current host (2026-09-08, first ARM rebuild session) and would otherwise
+# bury the signal: 640 of 653 "Read sensitive file untrusted" events in that
+# window were the SIEM agent resolving user names from /etc/passwd, the rest
+# were the database health check and container init. Nothing here widens an
+# exception past the exact process and file that fired.
+#
+# Where it runs: /etc/falco/rules.d on the host (see n8n-outbound.yaml for
+# the mount). The stock rule keeps firing for every other reader.
+
+- macro: user_known_read_sensitive_files_activities
+  condition: >
+    (
+      (container.name = "cd-service-datadog" and proc.exepath = "/opt/datadog-agent/bin/agent/agent" and fd.name = "/etc/passwd")
+      or (container.name = "cd-service-db" and proc.name = "pg_isready" and fd.name in ("/etc/passwd", "/etc/shadow"))
+      or (proc.name = "runc:[1:CHILD]" and proc.pname = "runc" and fd.name = "/etc/passwd")
+    )
+  override:
+    condition: replace

@@ -5,7 +5,7 @@ publish_output = true
 max_model_tokens = 100000
 
 [ignore]
-glob = ['docs/grc/**', '.planning/**', '.skills-staging/**', 'CoreDirective/**']
+glob = ['docs/grc/**']
 
 [pr_reviewer]
 require_focused_review = true

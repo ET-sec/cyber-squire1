@@ -46,7 +46,7 @@ from observers._common import configure_logger, log, secrets_seen  # noqa: E402
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-BASE_DIR = Path("/Users/et/cyber-squire-ops").resolve()
+BASE_DIR = Path(__file__).resolve().parents[1]
 FACTS_FILE = BASE_DIR / ".facts" / "stack-facts.yaml"
 VERSION = "0.2.0"  # bump for plugin refactor
 
