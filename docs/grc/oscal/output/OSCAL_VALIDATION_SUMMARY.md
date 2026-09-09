@@ -1,6 +1,6 @@
 # OSCAL 1.1.3 Export Summary
 
-Generated: 2026-09-09T12:38:01Z
+Generated: 2026-09-09T13:43:30Z
 Schema source: usnistgov/OSCAL release v1.2.1
 
 ## squire-ssp.oscal.json

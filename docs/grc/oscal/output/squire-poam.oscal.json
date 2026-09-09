@@ -3,7 +3,7 @@
     "uuid": "0bb83cdb-de8a-585b-8adc-df218a2d19a5",
     "metadata": {
       "title": "Squire Plan of Action and Milestones",
-      "last-modified": "2026-09-09T12:38:01Z",
+      "last-modified": "2026-09-09T13:43:30Z",
       "version": "1.0.0",
       "oscal-version": "1.1.3",
       "parties": [
@@ -178,8 +178,8 @@
       {
         "uuid": "73173e3f-26a2-5013-a84c-4bc2236f1a3f",
         "title": "POAM-P17-07 affecting si-4",
-        "description": "Lakera Guard rail deferred pending re-evaluation of the vendor entry plan. Current rail coverage is NeMo plus pre graph scanner.",
-        "statement": "Lakera Guard rail deferred pending re-evaluation of the vendor entry plan. Current rail coverage is NeMo plus pre graph scanner.",
+        "description": "Lakera Guard rail deferred. Fix is to set LAKERA_API_KEY in Doppler, which arms the existing lakera_client.py stub ahead of the NeMo input rail. Gated on the Operator funding a Lakera production plan. Current rail coverage is NeMo plus pre graph scanner.",
+        "statement": "Lakera Guard rail deferred. Fix is to set LAKERA_API_KEY in Doppler, which arms the existing lakera_client.py stub ahead of the NeMo input rail. Gated on the Operator funding a Lakera production plan. Current rail coverage is NeMo plus pre graph scanner.",
         "status": "open",
         "props": [
           {
@@ -593,7 +593,7 @@
       {
         "uuid": "2d5a24a0-0c3f-56b1-9389-c678d1c99bcd",
         "title": "POAM-P17-07",
-        "description": "Lakera Guard rail deferred pending re-evaluation of the vendor entry plan. Current rail coverage is NeMo plus pre graph scanner.",
+        "description": "Lakera Guard rail deferred. Fix is to set LAKERA_API_KEY in Doppler, which arms the existing lakera_client.py stub ahead of the NeMo input rail. Gated on the Operator funding a Lakera production plan. Current rail coverage is NeMo plus pre graph scanner.",
         "props": [
           {
             "name": "poam-id",

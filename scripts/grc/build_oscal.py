@@ -384,7 +384,7 @@ POAM_ITEMS = [
     ("POAM-P17-04", "Non Luhn CC pass through is expected. Follow up confirmed Luhn valid CC is blocked. Regression test added.", "low", "closed", ["si-10"]),
     ("POAM-P17-05", "Benign framing severity flip attempt. Graph classifier held. Regression test added.", "moderate", "closed", ["si-4"]),
     ("POAM-P17-06", "Drill framing severity flip attempt. Graph classifier held. Regression test added.", "moderate", "closed", ["si-4"]),
-    ("POAM-P17-07", "Lakera Guard rail deferred pending re-evaluation of the vendor entry plan. Current rail coverage is NeMo plus pre graph scanner.", "low", "open", ["si-4"]),
+    ("POAM-P17-07", "Lakera Guard rail deferred. Fix is to set LAKERA_API_KEY in Doppler, which arms the existing lakera_client.py stub ahead of the NeMo input rail. Gated on the Operator funding a Lakera production plan. Current rail coverage is NeMo plus pre graph scanner.", "low", "open", ["si-4"]),
     ("POAM-P17-08", "PolicyAI self check path held in degraded mode pending the next provider access rotation cycle. Critique node still gates draft and enforces severity consistency.", "low", "open", ["si-4"]),
     ("POAM-P17-09", "OpenClaw agent LLM auth not yet configured. Squire calls Anthropic direct, not via OpenClaw gateway.", "low", "open", ["sa-15"]),
     ("POAM-P17-10", "AI supply chain register pending items: Langfuse exact commit pinning, NeMo Guardrails upgrade cadence, pgvector extension provenance.", "low", "open", ["sr-3", "sr-4", "ra-9"]),
