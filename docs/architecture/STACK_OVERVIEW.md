@@ -1,6 +1,6 @@
 # CoreDirective Stack Overview
 
-Current as of 2026-08-31, after the Phase 20.1 cloud hardening pass. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 Always Free instance (ARM, 4 OCPU / 24 GB) at $0/month. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
+Current as of 2026-09-08, after the Phase 20.1 cloud hardening pass and the first ARM rebuild session. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 Always Free instance (ARM, 4 OCPU / 24 GB) at $0/month. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
 
 Acronyms, once: OIDC (OpenID Connect), JWT (JSON Web Token), UPST (user principal session token), KMS (key management service), CMK (customer-managed key), ZTNA (zero trust network access), WAF (web application firewall), SSO (single sign-on), POA&M (Plan of Action and Milestones), IaC (infrastructure as code), CI (continuous integration), PII (personally identifiable information), RAG (retrieval augmented generation), SOC (security operations center), RTO (recovery time objective).
 
@@ -42,7 +42,7 @@ flowchart TB
 
   GH["GitHub public repo<br/>branch protection on main<br/>server-side push protection"]:::sec
 
-  subgraph CIBOX["CI · GitHub Actions (14 workflows, SHA-pinned, least-privilege permissions)"]
+  subgraph CIBOX["CI · GitHub Actions (16 workflows, SHA-pinned, least-privilege permissions)"]
     direction TB
     OIDC["OIDC token exchange<br/>GitHub JWT to OCI UPST<br/>minutes-lived · pinned to repo + main<br/>read-only principal · zero stored cloud keys"]:::sec
     DRIFT["Nightly drift check<br/>read-only terraform plan vs live cloud<br/>exit 2 = drift alert"]:::ci
@@ -59,23 +59,24 @@ flowchart TB
 
   subgraph OCIBOX["COMPUTE · OCI Ampere A1 Always Free (ARM · 4 OCPU / 24 GB · $0/month)"]
     direction TB
-    subgraph LIVEBOX["LIVE (3 containers)"]
+    subgraph LIVEBOX["LIVE (8 containers)"]
       direction LR
       PG[("PostgreSQL 16<br/>+ pgvector")]:::live
       N8N["n8n<br/>workflow engine"]:::live
       CFD["cloudflared<br/>tunnel sidecar"]:::live
+      FALCO["Falco + Falcosidekick<br/>eBPF sensor, events to the SIEM"]:::live
+      DDP["Datadog agent<br/>logs + metrics to the SIEM"]:::live
+      OLL["Ollama + Whisper<br/>sealed network, no route out"]:::live
     end
-    subgraph PENDBOX["DESIGNED · pending ARM rebuild (16 of 19 compose services)"]
+    subgraph PENDBOX["DESIGNED · pending ARM rebuild (11 of 19 compose services)"]
       direction LR
       VAULT2["HashiCorp Vault"]:::pending
       KC["Keycloak"]:::pending
       TP["Teleport<br/>+ event handler"]:::pending
-      FALCO["Falco + Falcosidekick<br/>(rerouting to Splunk)"]:::pending
-      DDP["Datadog agent<br/>+ Fluentd"]:::pending
+      FLU["Fluentd<br/>audit log router"]:::pending
       LFP["Langfuse<br/>web · worker · ClickHouse · Redis"]:::pending
       NEMO["NeMo Guardrails"]:::pending
       SQ["Squire<br/>LangGraph SOC agent"]:::pending
-      OLL["Ollama<br/>+ Whisper (slated for removal)"]:::pending
     end
   end
 
@@ -113,23 +114,26 @@ flowchart TB
 
 ## Runtime: live versus designed
 
-The distinction matters and the public story keeps it honest.
-
-**LIVE (verified against `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` this session):** exactly 3 containers run on the OCI instance.
+**LIVE (verified against `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` and `docker ps` on 2026-09-08):** 8 containers run on the OCI instance.
 
 | Container | Role |
 |-----------|------|
 | PostgreSQL 16 + pgvector | Workflow state and the future RAG store |
 | n8n | Workflow engine, reachable only through the Cloudflare Access gate |
 | cloudflared | Tunnel sidecar, outbound-only connection to the edge |
+| Falco 0.43, modern eBPF | Kernel-level runtime detection; custom rules and the public showcase rule loaded from the host |
+| Falcosidekick | Routes Falco events to the SIEM (Datadog) tagged with the sensor's agent id |
+| Datadog agent | Host metrics, container logs, and the SSH auth log to the SIEM |
+| Ollama | Local model server on the sealed network (llama3.1:8b and qwen3:8b pulled, inference verified on ARM) |
+| Whisper (faster-whisper-server) | Speech to text on the sealed network, small model, transcription verified |
 
 Also live outside the instance: the Cloudflare edge (Access ZTNA, WAF, DNS, tunnel), the Terraform remote state bucket, the KMS key, the backup bucket, the nightly drift check, the scanner-to-POA&M pipeline, and both local git hooks.
 
-**DESIGNED, PENDING ARM REBUILD:** the remaining 16 services of the 19-service master compose file (`COREDIRECTIVE_ENGINE/docker-compose.yaml`) are codified but not running. That list: HashiCorp Vault, Keycloak, Teleport plus its event handler, Falco, Falcosidekick, the Datadog agent, Fluentd, Langfuse (web, worker, ClickHouse, Redis), NeMo Guardrails, Squire, Ollama, and Whisper (slated for removal in the rebuild). They were authored and operated on x86; the blockers are amd64 digest pins that resolve wrong on ARM, local images that need arm64 rebuilds, and identity material (Teleport certs, Keycloak realm, Vault data) that died with the old host and must be regenerated. The compose file is the design record. Nothing in this document claims those services are running.
+**DESIGNED, PENDING ARM REBUILD:** the remaining 11 services of the 19-service master compose file (`COREDIRECTIVE_ENGINE/docker-compose.yaml`) are codified but not running. That list: HashiCorp Vault, Keycloak, Teleport plus its event handler, Fluentd, Langfuse (web, worker, ClickHouse, Redis), NeMo Guardrails, and Squire. Every registry image publishes an arm64 manifest at its pinned index digest (checked 2026-09-08), so the remaining blockers are the three locally built images (Fluentd, NeMo, Squire) that need arm64 builds and the identity material (Teleport certs, Keycloak realm, Vault data) that died with the old host and must be regenerated. The compose file is the design record. Nothing in this document claims those services are running.
 
 ## Identity plane: two trust boundaries
 
-Two different actors authenticate, through two different mechanisms. Conflating them is the common mistake; keeping them separate is the design.
+Two different actors authenticate, through two different mechanisms.
 
 | Boundary | Who | Mechanism | Enemy defeated | How it was verified |
 |----------|-----|-----------|----------------|---------------------|
@@ -156,18 +160,18 @@ Secrets management around both boundaries: Doppler is the single operational sec
 | Scanner findings pipeline: Trivy, Checkov, and Gitleaks output is parsed by `scripts/poam_sync.py` into a script-owned POA&M ledger, keyed by a fingerprint of source, rule, and location so reruns update instead of duplicate. The curated register stays human-owned; rows graduate only on triage | POA&M rot, the compliance document someone forgets to edit | Idempotency proven: rerunning on the same input is a no-op, a new finding appears as exactly one new row |
 | Backup-failure alerting on the host | A detection plane that watches the cloud but not its own safety net | Wired during Phase 20.1, alert path to Telegram |
 
-Falco (kernel-level detection) and the Datadog agent belong to this plane by design and are in the pending-ARM-rebuild tier; the rebuild reroutes Falcosidekick output to Splunk. Until then the detection plane is drift, scanners, and backup health, which is stated plainly rather than padded.
+Falco (kernel-level detection through the modern eBPF probe), Falcosidekick, and the Datadog agent returned to the current host on 2026-09-08 in the first ARM rebuild session: Falco events reach Datadog through Falcosidekick, the agent ships container logs and host metrics, and the first hour of events drove one documented tuning file (`detections/falco/`). The Teleport audit pipeline (event handler, Fluentd) waits on the identity session of the rebuild. Falcosidekick ships to Datadog; the Splunk destination named in an earlier plan is not configured.
 
 ## Pipeline plane: six layers between a keyboard and main
 
-Each layer exists because the previous one can be bypassed. Depth is the point.
+Each layer exists because the previous one can be bypassed.
 
 | # | Layer | Catches | Bypass it defends against |
 |---|-------|---------|---------------------------|
 | 1 | pre-commit hook: gitleaks (default rules plus custom sanitization tripwires) on staged changes, an AI-tell sweep on markdown, and a canonical metric rebuild; fails closed if gitleaks is missing | Secrets and sanitization misses before they enter history | Nothing yet; this is the first gate |
 | 2 | pre-push hook: gitleaks over every commit not yet on a remote | Commits that dodged layer 1 via the no-verify flag or API-created commits | Hook bypass at commit time |
 | 3 | GitHub server-side push protection | Secrets in pushes from any client, including ones without the hooks installed | Local-gate bypass entirely |
-| 4 | CI scans on the pull request: Trivy, Semgrep, Gitleaks, CodeQL, OPA policy checks (8 Rego policies on the IaC), all in 14 workflows that are SHA-pinned with least-privilege permissions blocks | Vulnerable dependencies, insecure IaC, injected workflow tampering | Anything that is not a secret and so passed layers 1 to 3 |
+| 4 | CI scans on the pull request: Trivy, Semgrep, Gitleaks, and CodeQL on every PR; Checkov and the OPA fixture self-test (8 Rego policies on the IaC) on PRs that touch the Terraform; 16 workflows, SHA-pinned with least-privilege permissions blocks | Vulnerable dependencies, insecure IaC, injected workflow tampering | Anything that is not a secret and so passed layers 1 to 3 |
 | 5 | Branch protection on main | Direct pushes that skip review | Merging without the layer 4 checks |
 | 6 | Nightly drift check | Changes made outside the pipeline entirely, in the cloud console | Every layer above; this one watches reality instead of the repo |
 
@@ -201,12 +205,12 @@ exists. The receipt checklist ships in the module README.
 5. **Repo to public**: the layered pipeline above, plus sanitization convention (illustrative addresses like 10.100.1.10 only, no real hostnames, buckets, or identifiers in public docs).
 6. **Workload cloud to security plane** (designed, apply scheduled): evidence flows one way into the AWS vault through a write-only identity; nothing in AWS can reach back into OCI, and the only OCI material there is the sealed break-glass secret whose access alerts.
 
-## Counts verified this session
+## Counts, with the source checked (2026-09-08)
 
 | What | Count | Source checked |
 |------|-------|----------------|
-| Containers live on OCI | 3 | `docker-compose.oci-core.yaml` |
+| Containers live on OCI | 8 | `docker-compose.oci-core.yaml`, `docker ps` |
 | Services designed in the master compose | 19 | `docker-compose.yaml` service list |
-| GitHub Actions workflows (SHA-pinned, permissions blocks) | 14 | `.github/workflows/` |
+| GitHub Actions workflows (SHA-pinned, permissions blocks) | 16 | `.github/workflows/` |
 | OPA Rego policies on the IaC | 8 | `terraform/cd-oci-infrastructure/policy/` |
 | Restore test result | 76 tables, 5 seconds | Phase 20.1 status log |

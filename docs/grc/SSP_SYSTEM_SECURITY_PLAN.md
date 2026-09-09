@@ -488,7 +488,7 @@ The following tables document the implementation status of NIST SP 800-53 Rev. 5
 | Control ID | Control Name | Status | Implementation Description | Evidence Location |
 |-----------|-------------|--------|---------------------------|-------------------|
 | PS-1 | Policy and Procedures | Partially Implemented | The system is currently operated by a single System Owner. Personnel security procedures will be required if additional operators are onboarded. | This document |
-| PS-2 | Position Risk Designation | Not Applicable | Single-operator system. No position categorization required. | N/A |
+| PS-2 | Position Risk Designation | Not Applicable | The platform has a single owner role and no staff positions to categorize; the control has no object to act on. | N/A |
 | PS-3 | Personnel Screening | Not Applicable | Single-operator system. | N/A |
 | PS-4 | Personnel Termination | Partially Implemented | Account deprovisioning procedures exist in `svc-identity` and `svc-gateway`. `svc-gateway` supports immediate session revocation and certificate invalidation. Access request audit trail provides evidence of revocation. | identity provider user management; svc-gateway `tctl users rm` |
 | PS-5 | Personnel Transfer | Not Applicable | Single-operator system. | N/A |

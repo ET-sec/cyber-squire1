@@ -743,7 +743,7 @@ The gaps are around the ISMS scaffolding (management review, internal audit, for
 
 ### 13.4 Threat Modeling and AppSec
 
-- `docs/grc/DATA_FLOW_DIAGRAM.md`: 40 data flows across 10 trust boundaries. Source for A.8.20, A.8.22, A.5.14.
+- `docs/grc/DATA_FLOW_DIAGRAM.md`: 40 data flows across 8 trust boundaries. Source for A.8.20, A.8.22, A.5.14.
 - `docs/grc/THREAT_MODEL_STRIDE.md`: 29 STRIDE threats. Supporting evidence for risk assessment.
 - `docs/grc/SECURE_SDLC.md`: 12 security gates in CI/CD. Source for SOC 2 CC8.1 and ISO A.8.25 through A.8.29.
 - `docs/grc/CODE_REVIEW_FINDINGS.md`: 5 security findings (1 HIGH remediated, 3 MEDIUM accepted, 1 LOW accepted). Source for A.8.28.

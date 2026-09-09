@@ -44,7 +44,7 @@ In scope:
 - Documentation that could mislead operators into insecure configurations
 
 Out of scope:
-- Third-party services referenced in the documentation (Doppler, Cloudflare, DigitalOcean, Anthropic, etc.), report to those vendors directly
+- Third-party services referenced in the documentation (Doppler, Cloudflare, Oracle Cloud, GitHub, Anthropic, etc.), report to those vendors directly
 - Vulnerabilities in upstream dependencies, please report to upstream first, then notify us if not addressed
 - Social engineering, physical attacks, or denial of service through resource exhaustion of free-tier services
 
@@ -71,7 +71,7 @@ Results from these scans inform the POA&M maintained at `docs/grc/POAM_PLAN_OF_A
 
 This repository operates AI agents. Specific AI security guarantees:
 
-- All LLM calls route through a controlled gateway (OpenClaw) with logging
+- In the designed stack every LLM call passes a guardrails sidecar and is traced; no process on the current host calls a hosted model until the agent tier returns in the ARM rebuild (status in `docs/architecture/STACK_OVERVIEW.md`)
 - Human-in-the-loop policy at `docs/grc/HITL_POLICY.md`
 - AI Governance policy at `docs/grc/POLICY_AI_GOVERNANCE.md`
 - Threat model with MITRE ATLAS mappings at `docs/grc/SQUIRE_THREAT_MODEL.md`

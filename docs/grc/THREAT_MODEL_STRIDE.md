@@ -32,6 +32,7 @@
 | 1.0 | 2026-03-12 | Information Security Officer | Initial STRIDE analysis across full architecture including AI systems |
 | 1.1 | 2026-04-24 | Information Security Officer | Phase 17 scope extension added. STRIDE rows for Squire subsystem (svc-squire, svc-nemo, svc-langfuse family). Cross-ref to SQUIRE_THREAT_MODEL pending from 17-14. |
 | 1.2 | 2026-09-06 | Information Security Officer | Trust boundary numbering reconciled between the diagram and section 2.3: TB-4 services to secrets engine, TB-5 AI gateway to the vendor API, TB-6 monitoring zone to SaaS, TB-8 services to database added (TB-5 had been used twice). E-03 access review cadence to quarterly per IAM_ACCESS_REVIEW. Risk distribution recounted from the register: no High residuals, I-02 Moderate counted as Medium. |
+| 1.3 | 2026-09-08 | Information Security Officer | OWASP LLM identifiers moved to the 2026 edition to match `AI_THREAT_CATALOG.md` (Supply Chain LLM04, Excessive Agency LLM03, Unbounded Consumption LLM06, Misinformation LLM07, Hidden Context Exposure LLM08, Improper Output Handling LLM10). |
 
 ### Trust Boundary Architecture
 
@@ -382,7 +383,7 @@ Threats where an attacker modifies data, code, or system state to alter intended
 
 **Trust Boundary:** External model registries → svc-llm (AI-002)
 **Affected Services:** svc-llm
-**OWASP LLM:** LLM03 (Supply Chain)
+**OWASP LLM:** LLM04 (Supply Chain)
 **MITRE ATLAS:** AML.T0018 (Backdoor ML Model)
 **Description:** An attacker compromises upstream model weights (e.g., through a poisoned Ollama model registry entry or a tampered Hugging Face checkpoint). The poisoned model produces subtly altered outputs - biased classifications, hidden trigger phrases, or backdoored behavior - that are consumed by downstream svc-automation workflows.
 
@@ -658,7 +659,7 @@ Threats where an attacker gains capabilities beyond their authorized level.
 
 **Trust Boundary:** svc-ai-gateway → svc-automation → all integrated services
 **Affected Services:** svc-ai-gateway (AI-001), svc-automation
-**OWASP LLM:** LLM06 (Excessive Agency)
+**OWASP LLM:** LLM03 (Excessive Agency)
 **Description:** The AI agent, through its integration with svc-automation, has access to multiple downstream actions (database queries, Telegram messaging, GitHub operations, cloud infrastructure management). If the AI makes an incorrect decision or is manipulated via prompt injection, it could execute privileged actions beyond what the user intended - including infrastructure modifications, data deletion, or credential operations.
 
 | Attribute | Assessment |
@@ -719,15 +720,15 @@ The following threats are AI-specific extensions of traditional STRIDE categorie
 | AI Threat | Primary STRIDE Category | Secondary Category | AI System | Reference |
 |-----------|------------------------|-------------------|-----------|-----------|
 | Prompt Injection | **Tampering** (T-01) | Elevation of Privilege | AI-001 | OWASP LLM01, AI-T02 |
-| Model Weight Poisoning | **Tampering** (T-02) | Information Disclosure | AI-002 | OWASP LLM03 (Supply Chain), LLM04 (Data and Model Poisoning), AI-T06, AML.T0018 |
+| Model Weight Poisoning | **Tampering** (T-02) | Information Disclosure | AI-002 | OWASP LLM04 (Supply Chain), LLM05 (Data and Model Poisoning), AI-T06, AML.T0018 |
 | PII Leakage in Prompts | **Information Disclosure** (I-01) | Repudiation | AI-001 | OWASP LLM02 (Sensitive Information Disclosure), AI-T07 |
-| System Prompt Extraction | **Information Disclosure** (I-03) | Spoofing | AI-001 | OWASP LLM07 (System Prompt Leakage), AI-T10 |
-| Excessive Autonomous Agency | **Elevation of Privilege** (E-02) | Tampering | AI-001 | OWASP LLM06 (Excessive Agency), AI-T09 |
-| AI Denial of Service | **Denial of Service** (D-02) | - | AI-001, AI-002 | OWASP LLM10 (Unbounded Consumption), AI-T08 |
-| Hallucination-Driven Actions | **Tampering** | Repudiation | AI-001, AI-002 | OWASP LLM09 (Misinformation), AI-T01 |
+| System Prompt Extraction | **Information Disclosure** (I-03) | Spoofing | AI-001 | OWASP LLM08 (Hidden Context Exposure, formerly System Prompt Leakage), AI-T10 |
+| Excessive Autonomous Agency | **Elevation of Privilege** (E-02) | Tampering | AI-001 | OWASP LLM03 (Excessive Agency), AI-T09 |
+| AI Denial of Service | **Denial of Service** (D-02) | - | AI-001, AI-002 | OWASP LLM06 (Unbounded Consumption), AI-T08 |
+| Hallucination-Driven Actions | **Tampering** | Repudiation | AI-001, AI-002 | OWASP LLM07 (Misinformation), AI-T01 |
 | Training Data Extraction | **Information Disclosure** | - | AI-001 | OWASP LLM02 (Sensitive Information Disclosure), AI-T10 |
 | AI-Enabled Lateral Movement | **Elevation of Privilege** (E-04) | - | AI-001, AI-002 | AML.T0040 |
-| Improper Output Handling | **Tampering** | Elevation of Privilege | AI-001 | OWASP LLM05 (Improper Output Handling) |
+| Improper Output Handling | **Tampering** | Elevation of Privilege | AI-001 | OWASP LLM10 (Improper Output Handling) |
 
 ### 10.2 Control Coverage for AI STRIDE Threats
 
@@ -833,7 +834,7 @@ See `ATTACK_TREE_AI_PIPELINE.md` Phase 17 Scope Extension for the 3 new Squire-s
 |----------|-------------|
 | [RISK_ASSESSMENT.md](RISK_ASSESSMENT.md) | Quantitative risk analysis (17 scenarios); this STRIDE model provides structural decomposition |
 | [ATTACK_TREE_AI_PIPELINE.md](ATTACK_TREE_AI_PIPELINE.md) | Attack tree for AI inference pipeline compromise, detailed path analysis |
-| [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | Comprehensive AI threat catalog with OWASP/MITRE/NIST mapping |
+| [AI_THREAT_CATALOG.md](AI_THREAT_CATALOG.md) | AI threat catalog with OWASP/MITRE/NIST mapping |
 | [POLICY_AI_GOVERNANCE.md](POLICY_AI_GOVERNANCE.md) | AI governance policy including AI risk register (AI-R01 through AI-R10) |
 | [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) | Control implementations referenced in the Threat-Control Mapping (Section 11) |
 | [POAM_PLAN_OF_ACTION.md](POAM_PLAN_OF_ACTION.md) | Tracks remediation actions for identified gaps |

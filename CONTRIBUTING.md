@@ -1,6 +1,6 @@
 # Contributing
 
-This is currently a solo project, but the contribution workflow is documented for two reasons: future collaborators, and to make the discipline visible.
+The contribution workflow is documented for two reasons: future collaborators, and to make the discipline visible.
 
 ## Workflow
 
@@ -53,7 +53,7 @@ Examples:
 
 ## Writing style
 
-The pre-commit hook automatically scans staged markdown files for AI writing patterns (em dashes, "leveraging", "robust", "seamlessly", and similar) and blocks commits that contain them.
+The pre-commit hook scans staged markdown for machine-writing patterns (em dashes, the marketing adjectives and buzzwords the house style bans, "not X. Y." juxtaposition) and warns; gitleaks findings block, style findings do not.
 
 To install the hook:
 ```bash
