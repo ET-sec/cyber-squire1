@@ -956,6 +956,9 @@ services:
     # Rebuild from builds/squire/. Versioning: YYYYMMDD-<short-sha> on each ship.
     # Rollback: retag prior cd-service-squire image and `docker compose up -d --no-deps cd-service-squire`.
     # See docs/runbook/image-rollback.md for the full procedure.
+    build:
+      context: ../builds/squire
+      dockerfile: Dockerfile
     image: cd-service-squire:dev
     container_name: cd-service-squire
     restart: unless-stopped
@@ -998,6 +1001,12 @@ services:
       SQUIRE_ACTIONS_ALLOWLIST_PATH: /app/config/actions.yml
       SQUIRE_PORT: "8020"
       TAVILY_API_KEY: ${TAVILY_API_KEY}
+    extra_hosts:
+      # Fail closed at the name layer too (Phase 22, AI-02). The model call goes
+      # through cd-service-nemo, which holds the key; the agent has no reason to
+      # resolve the model API host at all. This is the weakest of the three
+      # layers and it is written down as such in the summary and in SOLIDIFY.
+      - "api.anthropic.com:0.0.0.0"
     security_opt:
       - no-new-privileges:true
     deploy:
@@ -1019,6 +1028,7 @@ services:
         max-file: "3"
     networks:
       - net-core
+      - net-ai
 
 networks:
   net-core:
