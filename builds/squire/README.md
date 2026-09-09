@@ -38,8 +38,8 @@ source .venv/bin/activate
 pip install -e '.[dev]'
 
 # With Doppler:
-doppler run --project coredirective-engine --config prd -- pytest tests/ -q
-doppler run --project coredirective-engine --config prd -- uvicorn squire.app:app --port 8020
+doppler run --project coredirective-engine --config prd --command "pytest tests/ -q"
+doppler run --project coredirective-engine --config prd --command "uvicorn squire.app:app --port 8020"
 ```
 
 ## Container
@@ -77,7 +77,7 @@ Phase 17 and requires a later phase with explicit approval flow.
 
 ```bash
 # Apply the initial schema to the target database (name from CD_DB_NAME) on the host
-doppler run --project coredirective-engine --config prd -- bash -c '
+doppler run --project coredirective-engine --config prd --command '
   scp migrations/001_squire_tables.sql cd-alpha:/tmp/
   ssh cd-alpha "docker cp /tmp/001_squire_tables.sql cd-service-db:/tmp/ && \
     docker exec -e PGPASSWORD=\"\$CD_DB_PASS\" cd-service-db \
