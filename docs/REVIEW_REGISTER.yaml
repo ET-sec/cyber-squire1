@@ -1,0 +1,68 @@
+version: 1
+# Items whose review trigger is an event, not a date. Date triggers live in
+# docs/REPO_MANIFEST.yaml and are evaluated by scripts/repo/manifest_check.py on
+# every pull request. These are evaluated nightly by the review-register job in
+# .github/workflows/drift-check.yml. The owner fires one by setting the named
+# repository variable to true in the repository settings; nothing here fires
+# itself, and nothing here can turn a pull request red.
+#
+# Fire one:   gh variable set TRIGGER_AWS_CREDITS --body true -R ET-sec/cyber-squire1
+# Clear one:  gh variable delete TRIGGER_AWS_CREDITS -R ET-sec/cyber-squire1
+#
+# Every field below is required. An unknown field is a configuration error, so a
+# typo cannot silently disable an item. Every flag must also appear in the env
+# block of the review-register job or the item can never fire; a test asserts it.
+items:
+  - id: aws_credits_landed
+    flag: TRIGGER_AWS_CREDITS
+    what: "The AWS security plane apply and the off-provider backup replication."
+    why_now: "Phase 29 is gated on credits. Nothing else in v3.0 waits on it, so it can run in any window once they land."
+    affects:
+      - "terraform/cd-aws-security-plane/**"
+      - "docs/grc/POAM_PLAN_OF_ACTION.md"
+      - ".github/workflows/drift-check.yml"
+    action: "Run /gsd:plan-phase 29. Close the single-provider backup gap tracked as POAM-025 in docs/grc/POAM_PLAN_OF_ACTION.md, attaching the both-sides object listing as evidence, and add the AWS directory to the nightly drift check."
+
+  - id: second_tenant_exists
+    flag: TRIGGER_SECOND_TENANT
+    what: "Every row, document, and diagram that assumes one tenant."
+    why_now: "Phase 27 stands a second tenant up from the template. The moment two exist, any single-tenant sentence is wrong rather than merely narrow."
+    affects:
+      - "docs/REPO_MANIFEST.yaml"
+      - "docs/grc/SSP_SYSTEM_SECURITY_PLAN.md"
+      - "docs/architecture/views/nodes/**"
+      - "README.md"
+    action: "Re-read every manifest row whose reason says tenant zero. Regenerate the SSP and the control responsibility matrix per tenant from the registry, then flip the view node tables to the two-tenant state."
+
+  - id: identity_tier_live
+    flag: TRIGGER_IDENTITY_TIER
+    what: "The identity tier documents that describe services which are not running yet."
+    why_now: "Phase 24 brings Keycloak and the agent tier up on the Ampere host. Until then these files describe a design; after it they describe a system, and the difference has to be visible."
+    affects:
+      - "keycloak/**"
+      - "Agent_Squire/**"
+      - "docs/grc/IAM_RBAC_ROLE_MAP.md"
+      - "docs/grc/IAM_ACCESS_REVIEW.md"
+    action: "Re-verify the realm export against the running realm, re-sign the agent cards whose runtime_location points at a path that does not exist, and move the two IAM documents from designed to implemented with the proving command in each."
+
+  - id: provider_terms_change
+    flag: TRIGGER_PROVIDER_TERMS
+    what: "Every row and page whose reason depends on what a provider currently offers."
+    why_now: "The stack sits where it sits because of terms that can change without notice. A terms change is the one event that would reopen a cost conversation the public surfaces deliberately do not carry."
+    affects:
+      - "terraform/cd-oci-infrastructure/**"
+      - "docs/REPO_MANIFEST.yaml"
+      - "docs/architecture/views/nodes/multi-cloud.yaml"
+      - "docs/architecture/views/nodes/authorization-boundary.yaml"
+    action: "Re-read every manifest row whose reason names a provider. Re-run scripts/site/check_public.py on both repositories before publishing anything about the move, and keep tier and cost language in the private tree."
+
+  - id: grc_librarian_tracking_decided
+    flag: TRIGGER_GRC_LIBRARIAN
+    what: "The owner decision on whether builds/grc_librarian and builds/ir-assistant get tracked."
+    why_now: "Both are on disk and untracked today, which is a decision that was never written down. Whichever way it goes, four things move together and none of them is discoverable from the others."
+    affects:
+      - "docs/REPO_MANIFEST.yaml"
+      - "README.md"
+      - ".github/workflows/grc-validate.yml"
+      - "scripts/repo/manifest_allow_list.yaml"
+    action: "Track them or move them off disk, then update the manifest, the README tree, and the grc-validate.yml path filter that has matched no tracked path since it was written."
