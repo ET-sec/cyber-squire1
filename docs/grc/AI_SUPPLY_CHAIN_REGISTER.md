@@ -76,7 +76,7 @@ Risk Score rubric:
 
 | Component | Version | Provider | License | Hash / Digest | Updated | Next Review | Risk Score | Notes |
 |-----------|---------|----------|---------|---------------|---------|-------------|------------|-------|
-| claude-fable-5 | claude-fable-5 (2026 release) | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 5 | Primary reasoning on investigate, draft, critique. Temperature param rejected by this model, APIBackend handles. |
+| claude-fable-5 | claude-fable-5 (2026 release) | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 5 | Primary reasoning on investigate, draft, critique. Temperature param rejected by this model; the rails backend omits it. |
 | claude-opus-5 | claude-opus-5 | Anthropic PBC | Proprietary (API ToS) | Provider-managed | 2026-09-01 | 2026-11-01 | 4 | Classifier on classify node. Temperature accepted. |
 | text-embedding-3-large | v3-large, 1536 dim | OpenAI | Proprietary (API ToS) | Provider-managed | 2026-04-23 | 2026-06-23 | 4 | Used at corpus embed time, not at runtime. Corpus rebuild required on provider drift. |
 
@@ -109,7 +109,7 @@ Risk Score rubric:
 | ClickHouse | 24.11 alpine | ClickHouse Inc. | Apache 2.0 | Container digest in ROLLBACK_TAGS.md | 2026-04-23 | 2026-06-23 | 3 | Langfuse span store. pids cap 2048, low-resources override required. |
 | Redis | 7.x | Redis (new Redis Source Available License as of 2024) | TBD: verify RSAL vs BSD for the pinned minor | 2026-04-23 | 2026-06-23 | 2 | Hot cache for Langfuse and dedup. Verify pin is pre-RSAL or compliant post-RSAL. |
 | Tavily | commercial API | Tavily | Commercial (ToS-governed) | Provider-managed | 2026-04-23 | 2026-06-23 | 3 | Enrich node web search. Fails open to empty results. |
-| OpenClaw | v2026.3.8 | Anthropic or upstream vendor | TBD: verify license for v2026.x series | 2026-04-23 | 2026-06-23 | 2 | Gateway fronting Telegram, n8n, Claude Desktop. Squire APIBackend currently bypasses OpenClaw for Anthropic calls; one-line switch to route through it. |
+| OpenClaw | v2026.3.8 | Anthropic or upstream vendor | TBD: verify license for v2026.x series | 2026-04-23 | 2026-06-23 | 2 | Gateway fronting Telegram, n8n, Claude Desktop. Squire's direct provider backend was deleted in Phase 22, so nothing in the agent bypasses this gateway; the model call now happens inside the guardrails sidecar, which calls the provider directly. |
 
 ---
 

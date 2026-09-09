@@ -30,9 +30,10 @@ class Settings(BaseSettings):
     langfuse_host: str = Field("http://localhost:3000", alias="LANGFUSE_HOST")
     langfuse_project_id: str | None = Field(None, alias="LANGFUSE_PROJECT_ID")
 
-    # Claude / OpenClaw
-    anthropic_api_key: SecretStr = Field(..., alias="ANTHROPIC_API_KEY")
-    openclaw_anthropic_key: SecretStr | None = Field(None, alias="OPENCLAW_ANTHROPIC_KEY")
+    # Claude routing: a gateway URL and two model slugs, no credential.
+    # Squire holds no model key. The key lives on the guardrails container
+    # (cd-service-nemo), which is the container that calls the model.
+    # Phase 22, AI-02.
     openclaw_gateway_url: str = Field("http://172.17.0.1:18789", alias="OPENCLAW_GATEWAY_URL")
     claude_model_primary: str = Field("anthropic/claude-fable-5", alias="SQUIRE_MODEL_PRIMARY")
     claude_model_secondary: str = Field("anthropic/claude-opus-5", alias="SQUIRE_MODEL_SECONDARY")
@@ -57,7 +58,7 @@ class Settings(BaseSettings):
     cost_breach_mode: str = Field("ollama", alias="SQUIRE_COST_BREACH_MODE")  # ollama | refuse | warn_only
 
     # LLM backend selector
-    squire_llm_backend: str = Field("api", alias="SQUIRE_LLM_BACKEND")  # api | max | nemo | ollama
+    squire_llm_backend: str = Field("nemo", alias="SQUIRE_LLM_BACKEND")  # max | nemo | ollama
 
     # NeMo Guardrails sidecar (17-10)
     nemo_enabled: bool = Field(False, alias="NEMO_ENABLED")

@@ -129,5 +129,5 @@ nodes:
     status_note: "Pending the ARM rebuild; the tool posts to one configured chat and cannot address another."
     evidence:
       - {label: "Notify tool", path: builds/squire/src/squire/tools/telegram.py, line: 55}
-      - {label: "Chat ID in configuration", path: builds/squire/src/squire/settings.py, line: 83}
+      - {label: "Chat ID in configuration", path: builds/squire/src/squire/settings.py, line: 84}
     solidify: none

@@ -51,11 +51,11 @@ Squire talks to these models through a `LLMBackend` interface with three impleme
 
 | Mode | Implementation | Use Case |
 |------|----------------|----------|
-| `api` | Direct Anthropic REST, Voyage AI REST | Production |
+| `nemo` | Guardrails sidecar in front of the hosted model | Production, and the default |
 | `max` | `claude` CLI over Max subscription | Development on Mac |
 | `ollama` | Local Qwen or Llama via svc-ollama | Outage fallback, air-gap demo |
 
-Backend selection is driven by `SQUIRE_BACKEND` environment variable with runtime override via `x-squire-backend` header on `/alert`. Ollama fallback is not a silent failover; degraded mode sets `state.backend_degraded=true` and the response envelope surfaces the flag to downstream consumers.
+Backend selection is driven by the `SQUIRE_LLM_BACKEND` environment variable, which defaults to `nemo`. There is no per-request backend header; the only runtime override is the cost ceiling, which sets the variable for the duration of one alert. Ollama fallback is not a silent failover; degraded mode sets `state.backend_degraded=true` and the response envelope surfaces the flag to downstream consumers.
 
 ### 1.3 Architecture at a Glance
 
@@ -125,13 +125,13 @@ Factors that meaningfully shift Squire's behavior, drawn from evaluation data an
 
 ### 3.1 Alert Modality
 
-- **Shell exec signals** (Falco `shell_in_container`, `sudo_potential_privilege_escalation`): best-performing modality, p95 latency 55s on API backend
+- **Shell exec signals** (Falco `shell_in_container`, `sudo_potential_privilege_escalation`): best-performing modality, p95 latency 55s, measured on the direct provider backend that Phase 22 removed
 - **Credential leak signals** (gitleaks webhook, Datadog security signals): second best, p95 latency 62s
 - **Ambiguous DDOS-shaped signals**: worst, p95 latency 78s, citation validity rate drops to 82%
 
 ### 3.2 Backend Choice
 
-- `api` backend: p95 latency 55-80s, cost $0.12-$0.38 per invocation
+- direct provider backend, measured before Phase 22 removed it: p95 latency 55-80s, cost $0.12-$0.38 per invocation
 - `max` backend: p95 latency 3-5 min (CLI overhead, subscription-speed), cost $0 marginal
 - `ollama` backend: p95 latency 25-40s, citation validity drops to ~45% (local models do not follow the citation contract consistently)
 
@@ -156,7 +156,7 @@ Observed on the current 62-test suite plus 10 canonical integration fixtures, ca
 <!-- TODO(et): REDTEAM_RESULTS.md shows 6 executed cases. Update pass rate with actual result. -->
 | Red-team pass rate (17-11, pending) | > 85% | deferred until credit restored | deferred |
 
-Per-node timing (Fable 5 primary, API backend):
+Per-node timing (Fable 5 primary, measured on the direct provider backend that Phase 22 removed):
 
 | Node | p50 | p95 |
 |------|-----|-----|
@@ -230,12 +230,12 @@ Squire's outputs describe attack techniques, which could in theory assist an att
 
 ## 8. Caveats and Limitations
 
-- **Provider-dependent operation.** API backend requires an active Anthropic account. The Ollama fallback is functional but citation quality degrades.
+- **Provider-dependent operation.** The hosted model path requires an active Anthropic account, and the key for it lives on the guardrails sidecar rather than in the agent. The Ollama fallback is functional but citation quality degrades.
 - **Single-tenant.** No tenant isolation in the codebase. Multi-tenant use would require namespacing `ir_*` tables and per-tenant cost ceilings.
 - **No continuous re-embedding.** Corpus drift is a manual catch today.
 - **NeMo rails partial.** Presidio PII rail is live. PolicyAI self-check is commented out pending the next provider-access rotation cycle. GLiNER and PINT v2 deferred.
 - **Cost ceiling is best-effort.** Two concurrent sub-ceiling reads can both pass; Redis atomic counter upgrade is Phase 18+.
-- **Temperature quirk.** Fable 5 rejects the `temperature` parameter. APIBackend omits it for that model. Downstream code that relies on deterministic sampling should account for this.
+- **Temperature quirk.** Fable 5 rejects the `temperature` parameter. The backend omits it for that model. Downstream code that relies on deterministic sampling should account for this.
 - **Citation contract is model-dependent.** Fable 5 and Opus 5 respect the structured citation format in prompts. Local models under the `ollama` backend follow the contract inconsistently. Citation validity rate of 45% on Ollama is the dominant limitation of the degraded path.
 - **Critique loop is self-scoring.** The critique node evaluates its own prior draft. Adversarial pressure that survives the critique loop is possible. The red-team suite in plan 17-11 is the primary evidence that the loop catches common failure modes; the suite runs in the next validation cycle.
 - **Cost telemetry is post-hoc.** Token costs are read back from provider response metadata. A sustained provider pricing change between the token count and the cost calculation could under-report cost. The cost ceiling is still enforced on the model-reported token count, which is the reliable figure.
@@ -267,7 +267,7 @@ For full component inventory including licenses, hashes, and risk scores, see AI
 
 ## 10. Degraded Mode Semantics
 
-Squire treats the `ollama` backend as a degraded fallback, not an equal peer to the API backend. The backend abstraction is intentional so the fallback path is code-complete, but the semantics of a degraded invocation differ in three ways that operators must understand.
+Squire treats the `ollama` backend as a degraded fallback, not an equal peer to the hosted model behind the rails. The backend abstraction is intentional so the fallback path is code-complete, but the semantics of a degraded invocation differ in three ways that operators must understand.
 
 ### 10.1 Output Envelope Flag
 
@@ -285,11 +285,11 @@ Ollama invocations have no provider-reported token cost. Cost accounting under `
 
 Three triggers promote degraded mode:
 
-1. Explicit operator choice via `SQUIRE_BACKEND=ollama` or the `x-squire-backend: ollama` header
-2. API backend failure (HTTP 5xx from Anthropic, timeouts, or `credit_balance_too_low`) and `SQUIRE_FALLBACK_OLLAMA=true`
+1. Explicit operator choice via `SQUIRE_LLM_BACKEND=ollama`
+2. A daily spend ceiling breach with `SQUIRE_COST_BREACH_MODE=ollama`, which overrides the backend for the rest of that alert and stamps the degraded flag
 3. Air-gap or interview-demo operating mode where external API calls are policy-prohibited
 
-The second trigger is opt-in. A Squire with fallback disabled surfaces the API failure as a 500 response rather than silently downgrading, which is the safer default for production use.
+A guardrail failure is not on this list, and there is no `SQUIRE_FALLBACK_OLLAMA` setting: no such field exists in the settings object. Since Phase 22 the rails are the only route to the hosted model, so a sidecar that times out, errors, or returns an upstream failure produces a refusal carrying `reason_code=RAIL_UNAVAILABLE`, not a downgrade. A refusal is a returned response, so the `nemo` chain stops there rather than walking to `ollama`; the local model is reached only through an operator choice, a ceiling breach, or an exception raised outside the refusal branches.
 
 ---
 

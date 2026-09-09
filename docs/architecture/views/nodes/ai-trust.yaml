@@ -84,12 +84,12 @@ nodes:
     zone: net-core
     from: topology/guardrails
     what: "The guardrails sidecar's input pass: a named-entity recognizer for personal data on every prompt to the generative nodes, with the model-judged check behind it."
-    status_note: "Pending the ARM rebuild; the local PII pass is always on, the model-judged check is commented out until API credit returns, and on a sidecar timeout the code fails open to the API, a queued fix."
+    status_note: "Pending the ARM rebuild; the local PII pass is always on, the model-judged check is commented out until API credit returns, and on a sidecar timeout the code refuses the call instead of routing around the rail."
     evidence:
       - {label: "Input rail", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
       - {label: "Judge commented out", path: builds/squire/docker/nemo_config/config.yml, line: 12}
       - {label: "Layer 2 in the guardrails document", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 101}
-      - {label: "Fail-open path", path: builds/squire/src/squire/llm_backend.py, line: 331}
+      - {label: "Fail-closed refusal when the sidecar cannot answer", path: builds/squire/src/squire/llm_backend.py, line: 282-308}
   - id: model-egress
     label: "model egress"
     zone: net-core
@@ -97,7 +97,7 @@ nodes:
     what: "The one place prompts leave for the frontier model: behind the rails, under a per-alert budget and a daily ceiling, with every call traced by correlation id."
     evidence:
       - {label: "Ceiling check", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
-      - {label: "Rails backend in front of the API", path: builds/squire/src/squire/llm_backend.py, line: 286}
+      - {label: "Rails backend in front of the API", path: builds/squire/src/squire/llm_backend.py, line: 230}
       - {label: "Trace identity", path: builds/squire/src/squire/telemetry.py, line: 17}
   - id: embed
     label: embed
@@ -165,7 +165,7 @@ nodes:
     status: designed
     status_note: "Pending the ARM rebuild together with the transcriber and the workflow that calls it."
     evidence:
-      - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1024-1026}
+      - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
       - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
     solidify: "AI trust: transcript holds"
   # NET-AI, SEALED SEGMENT

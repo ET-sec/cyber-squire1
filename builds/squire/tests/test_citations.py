@@ -10,7 +10,6 @@ os.environ.setdefault("CD_DB_PASS", "x")
 os.environ.setdefault("CD_DB_NAME", "x")
 os.environ.setdefault("LANGFUSE_PUBLIC_KEY", "x")
 os.environ.setdefault("LANGFUSE_SECRET_KEY", "x")
-os.environ.setdefault("ANTHROPIC_API_KEY", "x")
 os.environ.setdefault("SQUIRE_WEBHOOK_TOKEN", "x")
 
 from squire.citations import (  # noqa: E402

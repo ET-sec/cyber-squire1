@@ -40,7 +40,7 @@ def llm_invoke(
     """Invoke an LLM via the configured primary backend + fallback chain.
 
     Reads `settings.squire_llm_backend` (SQUIRE_LLM_BACKEND env var, default
-    'api'). Returns a BackendResponse with .content, .input_tokens,
+    'nemo'). Returns a BackendResponse with .content, .input_tokens,
     .output_tokens, .backend, .degraded, and .degraded_reason.
 
     When ``through_nemo=True`` AND ``settings.nemo_enabled`` is True, the

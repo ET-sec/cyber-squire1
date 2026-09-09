@@ -15,7 +15,7 @@ Two flavors:
   Langfuse. Expect ~$1.50 per invocation so each run costs ~$3.
 
   Requires:
-    ANTHROPIC_API_KEY, CD_DB_*, VOYAGE_API_KEY,
+    CD_DB_*, VOYAGE_API_KEY,
     LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST,
     SQUIRE_WEBHOOK_TOKEN,
     and either:
@@ -42,7 +42,6 @@ os.environ.setdefault("CD_DB_PASS", "x")
 os.environ.setdefault("CD_DB_NAME", "x")
 os.environ.setdefault("LANGFUSE_PUBLIC_KEY", "x")
 os.environ.setdefault("LANGFUSE_SECRET_KEY", "x")
-os.environ.setdefault("ANTHROPIC_API_KEY", "x")
 os.environ.setdefault("SQUIRE_WEBHOOK_TOKEN", "x")
 
 

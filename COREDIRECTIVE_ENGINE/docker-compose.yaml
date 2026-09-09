@@ -956,6 +956,9 @@ services:
     # Rebuild from builds/squire/. Versioning: YYYYMMDD-<short-sha> on each ship.
     # Rollback: retag prior cd-service-squire image and `docker compose up -d --no-deps cd-service-squire`.
     # See docs/runbook/image-rollback.md for the full procedure.
+    build:
+      context: ../builds/squire
+      dockerfile: Dockerfile
     image: cd-service-squire:dev
     container_name: cd-service-squire
     restart: unless-stopped
@@ -977,12 +980,14 @@ services:
       SQUIRE_EMBEDDING_MODEL: voyage-3-large
       SQUIRE_EMBEDDING_DIM: "1024"
       VOYAGE_MIN_INTERVAL_S: "0.2"
-      SQUIRE_LLM_BACKEND: ${SQUIRE_LLM_BACKEND:-api}
+      SQUIRE_LLM_BACKEND: ${SQUIRE_LLM_BACKEND:-nemo}
       NEMO_ENABLED: ${NEMO_ENABLED:-true}
       NEMO_BASE_URL: http://cd-service-nemo:8000/v1
       NEMO_CONFIG_ID: default
       NEMO_TIMEOUT_SECONDS: "60"
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      # No ANTHROPIC_API_KEY here on purpose (Phase 22, AI-02). The model key
+      # lives on cd-service-nemo, the guardrails container that makes the call.
+      # Do not restore this line as a missing variable.
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
       LANGFUSE_HOST: ${LANGFUSE_PUBLIC_URL:-http://cd-service-langfuse-web:3000}
@@ -996,6 +1001,12 @@ services:
       SQUIRE_ACTIONS_ALLOWLIST_PATH: /app/config/actions.yml
       SQUIRE_PORT: "8020"
       TAVILY_API_KEY: ${TAVILY_API_KEY}
+    extra_hosts:
+      # Fail closed at the name layer too (Phase 22, AI-02). The model call goes
+      # through cd-service-nemo, which holds the key; the agent has no reason to
+      # resolve the model API host at all. This is the weakest of the three
+      # layers and it is written down as such in the summary and in SOLIDIFY.
+      - "api.anthropic.com:0.0.0.0"
     security_opt:
       - no-new-privileges:true
     deploy:
@@ -1017,6 +1028,7 @@ services:
         max-file: "3"
     networks:
       - net-core
+      - net-ai
 
 networks:
   net-core:

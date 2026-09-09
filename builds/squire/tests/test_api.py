@@ -23,7 +23,6 @@ os.environ.setdefault("CD_DB_PASS", "x")
 os.environ.setdefault("CD_DB_NAME", "x")
 os.environ.setdefault("LANGFUSE_PUBLIC_KEY", "x")
 os.environ.setdefault("LANGFUSE_SECRET_KEY", "x")
-os.environ.setdefault("ANTHROPIC_API_KEY", "x")
 # Force the webhook token to a known value for this test module. The global
 # settings object is lazily instantiated on first attribute access; test_healthz
 # may have imported first with a different token, so overwrite then reset the
