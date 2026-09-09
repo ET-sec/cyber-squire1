@@ -120,3 +120,48 @@ jobs:
             -F "chat_id=$TG_CHAT" -F "document=@plan.log;filename=drift-error-${{ github.run_id }}.txt"
           echo "::error::terraform plan errored; log sent to Telegram."
           exit 1
+
+  review-register:
+    # Event triggered review items (Phase 21, SWEEP-03). Deliberately a separate
+    # job: it needs no cloud identity, and a Terraform plan failure in the drift
+    # job must not be able to suppress it. It takes none of the id-token
+    # permission granted above and does not use needs:, so it runs on the same
+    # nightly schedule whatever the drift job does. The owner fires an item by
+    # setting the named repository variable; nothing here fires itself.
+    #
+    # Force one without changing anything else:
+    #   gh variable set TRIGGER_GRC_LIBRARIAN --body true -R ET-sec/cyber-squire1
+    #   gh workflow run drift-check.yml -R ET-sec/cyber-squire1
+    #   gh variable delete TRIGGER_GRC_LIBRARIAN -R ET-sec/cyber-squire1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+      - name: Evaluate the register
+        id: fired
+        env:
+          TRIGGER_AWS_CREDITS: ${{ vars.TRIGGER_AWS_CREDITS }}
+          TRIGGER_SECOND_TENANT: ${{ vars.TRIGGER_SECOND_TENANT }}
+          TRIGGER_IDENTITY_TIER: ${{ vars.TRIGGER_IDENTITY_TIER }}
+          TRIGGER_PROVIDER_TERMS: ${{ vars.TRIGGER_PROVIDER_TERMS }}
+          TRIGGER_GRC_LIBRARIAN: ${{ vars.TRIGGER_GRC_LIBRARIAN }}
+        run: |
+          # The script prints nothing when no item fires, so zero bytes means
+          # nothing to send. It also writes fired_count to $GITHUB_OUTPUT; the
+          # two agree by construction, and the byte count is what gates the post.
+          python3 scripts/repo/review_register.py --format text > fired.txt
+          echo "count=$(wc -c < fired.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+      - name: Post fired items to Telegram
+        if: steps.fired.outputs.count != '0'
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          TEXT=$(printf 'REVIEW TRIGGER FIRED (run %s)\n%s' "${{ github.run_id }}" "$(cat fired.txt)")
+          curl -sS -o /dev/null -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+            --data-urlencode "chat_id=$TG_CHAT" --data-urlencode "text=$TEXT"
+          echo "Telegram alert sent for the fired review items."
