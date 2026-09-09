@@ -1,0 +1,17 @@
+# Differences between docs/REPO_MANIFEST.yaml and the tracked tree that are
+# known and accepted. Every entry here is a hole in the gate, so an empty list
+# is the desired state and the only state that needs no explanation.
+#
+# Entry shape:
+#   - kind:   "shadow" | "orphan" | "expired"
+#     path:   "<exact path or glob>"   # a tracked path for shadow, a manifest
+#                                        row pattern for orphan and expired
+#     reason: "why this difference is accepted, with the date it was accepted"
+#     added:  YYYY-MM-DD
+#
+# Rules:
+#   1. Every entry carries a dated reason. "Temporary" with no date is how a
+#      suppression becomes permanent.
+#   2. Delete the entry the day the gap closes. A stale entry hides real drift.
+#   3. An entry is not a place to park work. If the row is wrong, fix the row.
+known_gaps: []
