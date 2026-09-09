@@ -187,12 +187,12 @@ nodes:
     what: "A per-alert budget stops a runaway call and a daily ceiling flips the agent to the local model, so a prompt cannot run up the vendor bill."
     controls: [SC-6, SA-9]
     status: designed
-    status_note: "Pending the ARM rebuild; today the daily sum returns zero on a database error (fails open) and the local fallback has no route yet, both queued."
+    status_note: "Pending the ARM rebuild; the daily sum still returns zero on a database error (fails open), and the local fallback now has a route on the sealed segment."
     evidence:
       - {label: "Daily spend query", path: builds/squire/src/squire/cost_ceiling.py, line: 35}
       - {label: "Breach decision", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
       - {label: "Layer 4 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 696}
-    solidify: "AI trust: cost ceiling fails open on DB error; Tier 1 route to net-ai"
+    solidify: "AI trust: cost ceiling fails open on DB error"
   - {id: langfuse-trace, label: "Langfuse trace", zone: application, from: topology/langfuse}
   - id: webhook-token
     label: "webhook token"

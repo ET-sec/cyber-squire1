@@ -28,11 +28,11 @@ nodes:
     status: designed
     status_note: "No process on the current host calls the API today; the agent and the guardrails return with the ARM rebuild, and the ceiling and the tracing are code in the repo."
     evidence:
-      - {label: "API backend", path: builds/squire/src/squire/llm_backend.py, line: 81}
+      - {label: "Refusal built when the rails cannot answer", path: builds/squire/src/squire/llm_backend.py, line: 81}
       - {label: "Rails backend in front of the API", path: builds/squire/src/squire/llm_backend.py, line: 286}
       - {label: "Daily spend ceiling", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
       - {label: "Data flow classification", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 1}
-    solidify: "Tier 1: rails fail open on timeout, model key in the agent's environment"
+    solidify: "Tier 1: egress allowlist proxy in front of the agent; the model host blackhole is name resolution only"
 
   - id: allowlisted-range
     label: "allowlisted source range"
@@ -120,14 +120,14 @@ nodes:
     what: "The local model on the sealed segment, the fallback when the daily spend ceiling on the hosted model trips."
     controls: [AC-4, SC-7, SA-9]
     status: live
-    status_note: "Live on the current host since 2026-09-08 on the sealed network with llama3.1:8b and qwen3:8b pulled and inference verified on ARM; n8n reaches it, the agent does not yet, because Squire sits on the core network only until the application tier session of the rebuild."
+    status_note: "Live on the current host since 2026-09-08 on the sealed network with llama3.1:8b and qwen3:8b pulled and inference verified on ARM; n8n reaches it, and the agent joined the sealed segment in the design in Phase 22; on the host it reaches nothing until the application tier session of the rebuild builds its image."
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 122}
       - {label: "Service definition, sealed network", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 177}
-      - {label: "Squire networks, core only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1018}
+      - {label: "Squire networks, core and sealed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1018}
       - {label: "Local backend in the agent", path: builds/squire/src/squire/llm_backend.py, line: 224}
       - {label: "Ceiling breach flips the backend", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
-    solidify: "Tier 1: Squire has no route to net-ai, Ollama stopped"
+    solidify: "Tier 1: the agent has no image on the host, so the route to the local model is design only"
 
   - id: n8n
     label: "n8n"
@@ -178,15 +178,15 @@ nodes:
     what: "The rails container between the agent and the hosted model: input rails for injection and personal data, output rails for leakage, policy written in Colang."
     controls: [SI-10, SI-4, SC-7, AC-4]
     status: designed
-    status_note: "Pending the ARM rebuild; today the code fails open to the API on a rails timeout and the model key sits in the agent's environment, both queued as fixes."
+    status_note: "Pending the ARM rebuild; a rails timeout returns a refusal rather than a call to the model, and the model key is held by this container alone."
     evidence:
       - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 898}
       - {label: "Rails config", path: builds/squire/docker/nemo_config/config.yml, line: 1}
       - {label: "Input rails", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
-      - {label: "Fail-open path in the agent", path: builds/squire/src/squire/llm_backend.py, line: 331-333}
+      - {label: "Fail-closed refusal in the agent", path: builds/squire/src/squire/llm_backend.py, line: 331-333}
       - {label: "Rails configuration doc", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 1}
       - {label: "Red team finding that added the pre-graph scanner", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 557}
-    solidify: "Tier 1: rails fail open, model key in Squire env"
+    solidify: none
 
   - id: vault
     label: "Vault"

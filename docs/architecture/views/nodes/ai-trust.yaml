@@ -84,12 +84,12 @@ nodes:
     zone: net-core
     from: topology/guardrails
     what: "The guardrails sidecar's input pass: a named-entity recognizer for personal data on every prompt to the generative nodes, with the model-judged check behind it."
-    status_note: "Pending the ARM rebuild; the local PII pass is always on, the model-judged check is commented out until API credit returns, and on a sidecar timeout the code fails open to the API, a queued fix."
+    status_note: "Pending the ARM rebuild; the local PII pass is always on, the model-judged check is commented out until API credit returns, and on a sidecar timeout the code refuses the call instead of routing around the rail."
     evidence:
       - {label: "Input rail", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
       - {label: "Judge commented out", path: builds/squire/docker/nemo_config/config.yml, line: 12}
       - {label: "Layer 2 in the guardrails document", path: docs/grc/GUARDRAILS_CONFIGURATION.md, line: 101}
-      - {label: "Fail-open path", path: builds/squire/src/squire/llm_backend.py, line: 331}
+      - {label: "Fail-closed refusal when the sidecar cannot answer", path: builds/squire/src/squire/llm_backend.py, line: 331}
   - id: model-egress
     label: "model egress"
     zone: net-core
