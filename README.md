@@ -7,7 +7,7 @@
 [![Drift Check](https://github.com/ET-sec/cyber-squire1/actions/workflows/drift-check.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/drift-check.yml)
 [![GRC Validate](https://github.com/ET-sec/cyber-squire1/actions/workflows/grc-validate.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/grc-validate.yml)
 
-**A multi-cloud security platform built, broken, and rebuilt in public: cloud IAM with zero standing credentials, ransomware-proof backups, nightly drift detection, and a compliance library that updates itself. Runs across two clouds on a $0/month footprint, with a third generation of infrastructure code in the repo.**
+**A multi-cloud security platform built, broken, and rebuilt in public: cloud IAM with zero standing credentials, ransomware-proof backups, nightly drift detection, and a compliance library that updates itself. Runs across two clouds on a single Ampere A1 instance, with a third generation of infrastructure code in the repo.**
 
 Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | AI Security Engineer | CISSP, SecurityX, CCNA, Security+ | BA Economics, Andrew Young School
 
@@ -18,8 +18,8 @@ Built and operated by [Emmanuel Tigoue](https://et-sec.github.io/portfolio/) | A
 In August 2026 the cloud provider hosting this platform failed, taking the
 server and its infrastructure records with it. Nothing of value was lost,
 because the entire system lived in this repository as code. The rebuild, onto
-Oracle Cloud's free tier, became the proof: every security control here was
-rebuilt, then **verified by trying to defeat it**. The receipts are below.
+an Oracle Cloud Ampere A1 instance, became the proof: every security control
+here was rebuilt, then **verified by trying to defeat it**. Receipts below.
 
 What that means if you are not an engineer: this repository shows that the
 things companies pay security teams for (backups ransomware cannot delete,
@@ -61,7 +61,7 @@ state and the compute it describes never share a vendor failure domain.
 | Recruiter or hiring manager | The [overview diagram](docs/grc/diagrams/stack_overview_hero.png) and the [verified controls](#every-control-verified-by-attacking-it) table below | 2 min |
 | Security engineer | [`docs/architecture/`](docs/architecture/STACK_OVERVIEW.md) for the layered design, then [`terraform/cd-oci-infrastructure/`](terraform/cd-oci-infrastructure/) for the code | 20 min |
 | GRC / compliance reviewer | The [GRC library index](docs/grc/README.md): 57 documents mapped to NIST 800-53 | browse |
-| Someone who wants to run this | [Replication guide](terraform/cd-oci-infrastructure/README.md#run-this-yourself-replication): clone to `terraform plan` in your own tenancy, $0 | 1 hr |
+| Someone who wants to run this | [Replication guide](terraform/cd-oci-infrastructure/README.md#run-this-yourself-replication): clone to `terraform plan` in your own tenancy | 1 hr |
 
 ## The picture
 
@@ -97,9 +97,9 @@ the state, identity, data protection, and drift controls.
 
 ## What runs where
 
-**Live on Oracle Cloud (Always Free ARM, $0/month):** PostgreSQL 16 with
-pgvector, n8n orchestration, Cloudflare Tunnel. Fronted by Cloudflare Access
-(zero-trust identity checks at the edge; the origin is never exposed).
+**Live on Oracle Cloud (Ampere A1, aarch64, 4 OCPU and 24 GB):** PostgreSQL 16
+with pgvector, n8n orchestration, Cloudflare Tunnel. Fronted by Cloudflare
+Access (zero-trust identity checks at the edge; the origin is never exposed).
 
 **Live in the pipeline (no server needed):** nightly infrastructure drift
 detection, secret scanning at four layers, scanner findings flowing into a

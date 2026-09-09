@@ -26,7 +26,7 @@ The `sensitivity_tier` field on each registry row classifies blast radius if the
 | `high` | Read or write access to customer data, workspace APIs, or third-party send-actions (Telegram, Notion, GitHub). Compromise can move money, post in operator channels, or modify production state. | `blue_squire`, `red_squire`, `openclaw`, `master_orchestrator`, `n8n_telegram_supervisor`, `cdirective_bot`, `coredirective_bot` |
 | `critical` | Actuator on production infrastructure (Terraform apply, Cloudflare DNS, droplet shell, payment systems). Compromise can take services offline or move material amounts of money. Reserved; no entry in this registry currently qualifies. | (none yet) |
 
-When in doubt promote upward. A row tagged `high` that turns out to be `medium` costs nothing; a row tagged `medium` that turns out to be `high` skips controls.
+When in doubt promote upward. A row tagged `high` that turns out to be `medium` carries a control it did not need; a row tagged `medium` that turns out to be `high` skips one it did.
 
 ## Adding a New Agent
 
