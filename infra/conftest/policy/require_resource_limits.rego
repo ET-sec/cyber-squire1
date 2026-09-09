@@ -1,9 +1,10 @@
 # DENY: Services must declare memory limits
 #
 # An unbounded container can OOM-kill the whole host. The CoreDirective
-# stack runs on one Always Free ARM instance; the design is 19 containers. Without limits,
-# one runaway service (Ollama loading a too-large model, n8n stuck workflow,
-# Datadog memory leak) takes the whole platform down.
+# stack runs on one shared ARM host with a fixed 24 GB memory ceiling and a
+# 19-container design. Without limits, one runaway service (Ollama loading a
+# too-large model, n8n stuck workflow, Datadog memory leak) takes the whole
+# platform down.
 #
 # Accepts both Compose v2 syntax (mem_limit) and v3 syntax (deploy.resources.limits.memory).
 

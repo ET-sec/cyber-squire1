@@ -41,7 +41,7 @@ multi-region, watching the regions where nothing should ever appear.
 Checkov: 135 passed, 0 failed, 11 skips each carrying its reason inline.
 
 Monitoring rationale: the alert path is EventBridge to Lambda to Telegram
-because it is push-based, near-zero cost, and wakes the operator. Log analytics
+because it is push-based, has no idle footprint, and wakes the operator. Log analytics
 is Athena over the vault on demand. A managed SIEM (Datadog or Splunk) is a
 documented future lane, not enabled by default: at this scale a standing
 SIEM adds cost and surface without adding detection the trail and rules do

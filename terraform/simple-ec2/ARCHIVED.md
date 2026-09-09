@@ -6,7 +6,7 @@ and the EC2 instance this config managed is gone. These files are kept as a
 Do not `terraform apply` here.
 
 **Active infrastructure lives in `../cd-oci-infrastructure/`** (Oracle Cloud,
-Always Free ARM).
+Ampere A1 Flex, aarch64).
 
 Why keep it: it documents the earliest single-instance EC2 layout the stack
 started on, so the lineage from AWS to DigitalOcean to OCI stays traceable.

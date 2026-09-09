@@ -2,8 +2,8 @@
 # Phase 20.1-03. Customer-managed encryption + ransomware-resistant backups.
 #
 # Design notes:
-# - Vault type DEFAULT (shared partition). Virtual private vaults are NOT in
-#   the Always Free tier; do not change vault_type.
+# - Vault type DEFAULT (shared partition). Virtual private vaults are outside
+#   this tenancy's entitlement; do not change vault_type.
 # - protection_mode SOFTWARE: unlimited free key versions. HSM would bill past
 #   20 versions. Do not change without a costed decision record.
 # - Envelope model: this key (the KEK) wraps per-object data keys inside the

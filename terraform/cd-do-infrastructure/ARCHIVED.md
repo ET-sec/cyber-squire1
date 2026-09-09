@@ -5,7 +5,7 @@ Spaces state bucket were lost when the account lapsed. These files are kept as a
 not as live infrastructure. Do not `terraform apply` here.
 
 **Active infrastructure lives in `../cd-oci-infrastructure/`** (Oracle Cloud,
-Always Free ARM). The Cloudflare layer (Access/ZTNA, WAF, DNS, tunnel) and the
+Ampere A1 Flex, aarch64). The Cloudflare layer (Access/ZTNA, WAF, DNS, tunnel) and the
 per-agent machine-identity work carry over from here to there.
 
 Why keep it: it documents the exact DO-era stack (droplet, VPC, firewall,

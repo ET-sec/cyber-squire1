@@ -62,12 +62,12 @@ variable "oci_region" {
 }
 
 variable "compartment_ocid" {
-  description = "Compartment to build in. Free tier uses the root compartment (== tenancy OCID)."
+  description = "Compartment to build in. Leave empty for the root compartment (== tenancy OCID)."
   type        = string
   default     = ""
 }
 
-# --- COMPUTE (Always Free Ampere A1) ---
+# --- COMPUTE (Ampere A1 Flex, aarch64) ---
 
 variable "instance_name" {
   description = "Hostname for the primary instance"
@@ -76,35 +76,35 @@ variable "instance_name" {
 }
 
 variable "instance_ocpus" {
-  description = "OCPUs for the A1.Flex shape. Always Free ceiling is 4 total across all A1 instances."
+  description = "OCPUs for the A1.Flex shape. The tenancy allowance is 4 total across all A1 instances."
   type        = number
   default     = 4
 
   validation {
     condition     = var.instance_ocpus >= 1 && var.instance_ocpus <= 4
-    error_message = "instance_ocpus must be 1-4 (Always Free A1 ceiling)."
+    error_message = "instance_ocpus must be 1-4 (A1 allowance ceiling)."
   }
 }
 
 variable "instance_memory_gb" {
-  description = "Memory in GB for A1.Flex. Always Free ceiling is 24GB total."
+  description = "Memory in GB for A1.Flex. The tenancy allowance is 24GB total."
   type        = number
   default     = 24
 
   validation {
     condition     = var.instance_memory_gb >= 6 && var.instance_memory_gb <= 24
-    error_message = "instance_memory_gb must be 6-24 (Always Free A1 ceiling)."
+    error_message = "instance_memory_gb must be 6-24 (A1 allowance ceiling)."
   }
 }
 
 variable "boot_volume_gb" {
-  description = "Boot volume size in GB. Always Free block storage ceiling is 200GB total."
+  description = "Boot volume size in GB. The block storage allowance is 200GB total."
   type        = number
   default     = 150
 
   validation {
     condition     = var.boot_volume_gb >= 50 && var.boot_volume_gb <= 200
-    error_message = "boot_volume_gb must be 50-200 (Always Free block storage ceiling)."
+    error_message = "boot_volume_gb must be 50-200 (block storage allowance ceiling)."
   }
 }
 
