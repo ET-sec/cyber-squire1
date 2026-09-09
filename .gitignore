@@ -164,6 +164,10 @@ builds/*
 # Squire (autonomous SOC agent) is tracked. Other builds/ subdirs (client
 # work, interview take-homes, student projects) stay ignored by default.
 !builds/squire/
+# The directory README is tracked too, added 2026-09-09 (Phase 21, SWEEP-05).
+# Every top-level directory carries one, and this is the only path under
+# builds/ that a re-include has to name for that to stay true after a reclone.
+!builds/README.md
 builds/squire/.venv/
 builds/squire/.ruff_cache/
 builds/squire/.pytest_cache/
@@ -171,6 +175,10 @@ builds/squire/**/__pycache__/
 builds/squire/src/squire.egg-info/
 builds/squire/.coverage
 builds/squire/htmlcov/
+# Resume generator moved to the private tree 2026-09-09 (Phase 21, SWEEP-04).
+# Not platform content. History keeps every version; the working copy lives at
+# CoreDirective/builds/resume-rebuild/.
+builds/resume-rebuild/
 .skills-staging/
 .claude/
 get-shit-done/
@@ -246,10 +254,6 @@ docs/context/
 # GTA per-doc audit sidecars (local only)
 docs/grc/_corrections/
 
-# Resume rebuild private data
-builds/resume-rebuild/resume_data.json
-builds/resume-rebuild/test_fixture.json
-builds/resume-rebuild/output/
 .private/
 stack.env
 COREDIRECTIVE_ENGINE/stack.env
@@ -262,10 +266,6 @@ terraform/cd-aws-security-plane/lambda/*.zip
 # cd-cloudflare-edge: local-only backend and real zone values
 terraform/cd-cloudflare-edge/backend.hcl
 terraform/cd-cloudflare-edge/terraform.tfvars
-
-# Built resumes carry contact details; the .gitkeep stays
-builds/resume-rebuild/output/*.docx
-builds/resume-rebuild/output/*.pdf
 
 # Literal gitleaks tripwires (the hooks refuse to run without this file)
 .gitleaks.local.toml

@@ -81,7 +81,7 @@ nodes:
     what: "One ARM instance under Terraform with remote state; the shape, the boot hardening, and the key injection are code."
     controls: [CM-2, CM-8, SC-7]
     status: live
-    status_note: "Applied on the current provider's Always Free tier; the instance is the single host behind every service on the drawing."
+    status_note: "Applied on the current provider as one Ampere A1 Flex shape, 4 OCPU and 24 GB; the instance is the single host behind every service on the drawing."
     evidence:
       - {label: "Instance", path: terraform/cd-oci-infrastructure/compute.tf, line: 22}
       - {label: "Boot configuration", path: terraform/cd-oci-infrastructure/cloud-init.yaml, line: 1}

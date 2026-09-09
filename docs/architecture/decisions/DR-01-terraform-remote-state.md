@@ -8,8 +8,8 @@ Terraform state for `cd-oci-infrastructure` lived as a local file next to the co
 
 ## Options considered
 1. **Cloudflare R2 (S3-compatible)** with Terraform native S3 locking (`use_lockfile`, TF >= 1.10). Wins on vendor decoupling: state survives the death of the compute account. Blocked today: R2 is not enabled on the account (API error 10042) and enabling it is a dashboard action with terms acceptance that an agent should not perform.
-2. **OCI Object Storage via native `oci` backend** (TF >= 1.12). Available immediately, free tier, native state locking, bucket versioning as the recovery layer. Weakness: state lives with the compute vendor again, the exact anti-pattern that burned us in the DO era.
-3. **HCP Terraform (Terraform Cloud) free tier.** Fully decoupled, managed locking and encryption. Rejected for now: introduces a third-party SaaS dependency and an account signup for a problem two clouds already solve.
+2. **OCI Object Storage via native `oci` backend** (TF >= 1.12). Available immediately in the tenancy already in use, so no new account and no new vendor relationship; native state locking, bucket versioning as the recovery layer. Weakness: state lives with the compute vendor again, the exact anti-pattern that burned us in the DO era.
+3. **HCP Terraform (Terraform Cloud).** Fully decoupled, managed locking and encryption. Rejected for now: introduces a third-party SaaS dependency and an account signup for a problem two clouds already solve.
 
 ## Decision
 Option 2 now, option 1 as a queued migration once R2 is enabled by the operator. Backend migration is a two-command operation (`terraform init -migrate-state`), so sequencing convenience first and decoupling second costs almost nothing, and performing the migration twice is itself demonstrable operational skill. Mitigation for the vendor-coupling weakness in the interim: bucket versioning is enabled, so state history survives an accidental overwrite or delete of the current object.

@@ -529,7 +529,7 @@
             "created": "2026-04-24T00:00:00.000Z",
             "modified": "2026-04-24T00:00:00.000Z",
             "name": "Pre graph PII scanner",
-            "description": "Regex based scanner runs on raw alert body before any LLM call. Patterns cover US SSN, Luhn valid credit card, email, US phone. Blocks at zero millisecond zero cost with structured response reason_code PII_DETECTED_PRE_GRAPH.",
+            "description": "Regex based scanner runs on raw alert body before any LLM call. Patterns cover US SSN, Luhn valid credit card, email, US phone. Blocks at zero milliseconds and zero LLM tokens with structured response reason_code PII_DETECTED_PRE_GRAPH.",
             "labels": [
                 "squire",
                 "control_id:squire-c2"

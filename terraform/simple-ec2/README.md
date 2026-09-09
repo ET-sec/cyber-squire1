@@ -241,7 +241,7 @@ terraform apply
 cp terraform.tfstate terraform.tfstate.backup.$(date +%Y%m%d)
 ```
 
-**Database Backups**: See [../../docs/PRIVATE_OPERATIONS_MANUAL.md](../../docs/PRIVATE_OPERATIONS_MANUAL.md) for rclone + Google Drive backup procedure.
+**Database Backups**: the rclone and Google Drive backup procedure lived in the private operations manual, which is local only and not tracked in this repository.
 
 ### Security Updates
 
@@ -368,10 +368,10 @@ For production-grade security, use [../cd-aws-automation/](../cd-aws-automation/
 
 ## Next Steps
 
-1. **Review full documentation**: [../../docs/TERRAFORM_DEPLOYMENT_GUIDE.md](../../docs/TERRAFORM_DEPLOYMENT_GUIDE.md)
-2. **Understand architecture**: [../../docs/ARCHITECTURE_DIAGRAMS.md](../../docs/ARCHITECTURE_DIAGRAMS.md)
+1. **Review full documentation**: the deployment guide was removed in Phase 11. [ARCHIVED.md](ARCHIVED.md) records when this directory froze and why
+2. **Understand architecture**: [../../docs/architecture/](../../docs/architecture/)
 3. **Configure n8n workflows**: See [../../COREDIRECTIVE_ENGINE/](../../COREDIRECTIVE_ENGINE/)
-4. **Set up monitoring**: [../../docs/Technical_Vault.md#monitoring](../../docs/Technical_Vault.md)
+4. **Set up monitoring**: the monitoring section of the private Technical Vault runbook, which is not tracked here
 
 ---
 
@@ -379,10 +379,10 @@ For production-grade security, use [../cd-aws-automation/](../cd-aws-automation/
 
 **Issues?** Check:
 - [Troubleshooting section](#troubleshooting) above
-- [docs/ADHD_Runbook.md](../../docs/ADHD_Runbook.md) - Copy-paste operational commands
-- [docs/Technical_Vault.md](../../docs/Technical_Vault.md) - Deep-dive system specs
+- The private operations runbook, not tracked here: operational commands to copy and paste
+- The private Technical Vault runbook, not tracked here: system specifications
 
-**Security concerns?** Review [../../docs/PRIVATE_OPERATIONS_MANUAL.md](../../docs/PRIVATE_OPERATIONS_MANUAL.md) (local only, git-ignored)
+**Security concerns?** Review the private operations manual, which is local only and git-ignored
 
 ---
 

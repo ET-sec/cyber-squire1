@@ -28,7 +28,7 @@ can only write).
 
 ## Options considered
 1. **AWS as the security and evidence plane (chosen).** S3 Object Lock is
-   the strongest immutability primitive available at free-tier cost;
+   the strongest immutability primitive reachable from this footprint;
    CloudTrail gives tamper-evident audit down to per-object S3 data events; GitHub
    federation is first-class. Everything here is a control, nothing is a
    workload: one Lambda, no VPC, no standing compute.

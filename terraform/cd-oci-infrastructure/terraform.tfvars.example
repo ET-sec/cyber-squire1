@@ -9,7 +9,7 @@ oci_region = "us-ashburn-1"
 # referenced by your backend.hcl).
 tfstate_bucket_name = "your-terraform-state-bucket"
 
-# Root compartment is fine on the free tier: leave empty to use the tenancy.
+# The root compartment is fine for a single-tenancy build: leave empty to use it.
 compartment_ocid = ""
 
 # CIDRs allowed to reach SSH directly (day-to-day access should go through

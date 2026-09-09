@@ -1,0 +1,28 @@
+name: repo-gate
+# Fails when a tracked path has no manifest row, when a row matches nothing,
+# or when a row's review date has passed. Phase 21, SWEEP-02.
+#
+# No path filter on purpose: the failure this catches is a file appearing
+# somewhere nobody described, so the gate has to see every pull request.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+      - name: Every tracked path has a manifest row
+        run: python3 scripts/repo/manifest_check.py --format human
+      - name: JSON report for the log
+        if: always()
+        run: python3 scripts/repo/manifest_check.py --format json || true

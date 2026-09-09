@@ -6,49 +6,24 @@ Governance, Risk, and Compliance documentation for the Organization Security Ope
 
 All documents are sanitized for public repository safety. No real IPs, domains, service names, or credentials appear in any file. See `SANITIZATION_KEY.md` (gitignored, local only) for the reverse mapping.
 
-## How to Read This Library
+## Reading order
 
-Start with the executive summaries, then follow the numbered path below. Each layer builds on the one before it.
+Written for someone who has never seen this library: an auditor tracing a control to the file that implements it, or a hiring reviewer deciding whether the engineering behind it is real. The map shows how the families bind to each other. The numbered path under it is the order to read them in.
 
-```
- 1. EXECUTIVE SUMMARIES          Start here. Three one-pagers covering security
-    (Security, Architecture,      posture, architecture, and compliance readiness.
-     Compliance)                  Read all three in 10 minutes.
-         │
- 2. SYSTEM SECURITY PLAN (SSP)   The foundation. 140 NIST 800-53 controls mapped
-         │                        to the actual infrastructure. Everything else
-         │                        traces back to this document.
-         │
- 3. THREAT MODELING               Understand what we're defending against.
-    (DFD > STRIDE > Attack Tree   Read in order: data flows first, then threats,
-     > AI Threats > Supply Chain  then attack paths, then AI-specific risks.
-     > Red Team Plan)             Each doc cross-references the previous one.
-         │
- 4. POLICIES (10 documents)       The governance framework. Each policy maps to
-         │                        specific NIST control families. Read the ones
-         │                        relevant to your area of interest.
-         │
- 5. APPLICATION SECURITY          The proof. Real vulnerability findings, code
-    (Vuln Writeup > Code Review   review results, DAST scan data, and pen test
-     > Secure SDLC > DAST         assessment. Read in order: finding, review,
-     > Pen Test)                  pipeline, testing, assessment.
-         │
- 6. INCIDENT RESPONSE             Five playbooks covering container compromise,
-    (5 Playbooks + Tabletop)      leaked credentials, DDoS, unauthorized access,
-         │                        and AI incidents. Each has a decision flowchart
-         │                        at the top for quick reference.
-         │
- 7. RISK TRACKING                 The open items. POA&M tracks 42 entries across
-    (POA&M + Auto Ledger +        5 assessment sources (includes Phase 17 Squire
-     CIS Risk Register            cluster). A scanner-fed auto ledger and nightly
-     + Risk Assessment)           Terraform drift detection feed new findings in
-                                  without manual entry. The CIS Risk Register
-                                  documents compensating controls for each finding.
-         │
- 8. IAM                           Identity and access management. RBAC role map,
-    (RBAC > Access Review         access review process, and Google Cloud IAM
-     > Google Cloud IAM)          assessment.
-```
+![Map of the governance library: thirteen document families in five bands, running from the executive summaries at the top, through the core plans that form the spine, the families that hand findings to the plan of action, the response documents, and the two subsystem annexes at the bottom.](diagrams/grc_library_map.png)
+
+*Thirteen families, 57 documents. The core plans are the spine: the system security plan holds the control rows and the plan of action holds the findings, and every other family either states a rule the plan implements, hands the plan a finding, or inherits from it. Source `diagrams/grc_library_map.html`, rendered with `node render.mjs grc_library_map`.*
+
+1. **Executive summaries.** [Security posture](EXECUTIVE_SUMMARY_SECURITY_POSTURE.md), [architecture](EXECUTIVE_SUMMARY_ARCHITECTURE.md), [compliance readiness](EXECUTIVE_SUMMARY_COMPLIANCE.md). Three one-pagers, ten minutes for all three. They come first because they name every number the rest of the library then has to prove.
+2. **[System security plan](SSP_SYSTEM_SECURITY_PLAN.md).** The foundation: 140 NIST 800-53 controls mapped onto the running infrastructure rather than onto a template. Second, because everything after this traces back to a row in it.
+3. **Threat modeling.** [Data flow diagram](DATA_FLOW_DIAGRAM.md), then [STRIDE](THREAT_MODEL_STRIDE.md), then the [attack tree](ATTACK_TREE_AI_PIPELINE.md), then the [AI threat catalog](AI_THREAT_CATALOG.md), then [AI supply chain risk](AI_SUPPLY_CHAIN_RISK.md) and the [adversarial test plan](AI_RED_TEAM_PLAN.md). In that order, because each one names what the next one attacks: the flows first, then the threats against them, then the paths an attacker strings together, then what changes when the target is a model.
+4. **[Policies](#policies).** Ten documents, one per governance area. Fourth, because a policy is easier to judge once you know the threat it answers. Each maps to a NIST control family, so read the ones that touch your area rather than all ten.
+5. **Application security.** [Vulnerability writeup](VULN_WRITEUP_N8N_CREDENTIAL_EXPOSURE.md), [code review](CODE_REVIEW_FINDINGS.md), [secure SDLC](SECURE_SDLC.md), [DAST methodology](DAST_METHODOLOGY.md), [pen test self-assessment](PENTEST_SELF_ASSESSMENT.md). The proof, in that order: one real finding with a severity, the review that caught the rest, the pipeline that gates every merge, the scan data, and the assessment that consolidates all four.
+6. **Incident response.** [Five playbooks](#incident-response-playbooks) and a [tabletop exercise](TABLETOP_EXERCISE.md). Sixth, because a containment step only means something once you know what is being contained. Each playbook opens with a decision flowchart, because a playbook read during an incident is read fast.
+7. **Risk tracking.** The [plan of action](POAM_PLAN_OF_ACTION.md) holds 42 entries across five assessment sources including the Phase 17 cluster, the [auto ledger](POAM_AUTO_FINDINGS.md) is fed by the scanners with no human in the loop, the [CIS risk register](CIS_RISK_REGISTER.md) carries a compensating control per benchmark finding, and the [risk assessment](RISK_ASSESSMENT.md) sits behind all three. Seventh, because this is where every finding above ends up and where the honest answer to what is still open lives.
+8. **IAM.** [RBAC role map](IAM_RBAC_ROLE_MAP.md), [access review](IAM_ACCESS_REVIEW.md), [cloud IAM assessment](GOOGLE_CLOUD_IAM_ASSESSMENT.md). Identity and access management closes the core path, because it is the control a reader wants specifics on once the rest has earned trust.
+
+The two subsystem annexes, [Squire](#squire-phase-17) and [agent security](#agent-security-phase-20), sit outside that path. Read them when the autonomous analyst is what you came for. Both inherit from the plan above instead of restating it, so neither is a starting point.
 
 Most documents include cross-references to related documents in their final section.
 

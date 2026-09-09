@@ -46,7 +46,7 @@ flowchart TB
     TUN["Tunnel<br/>outbound-only connector<br/>origin exposes nothing inbound"]:::edge
   end
 
-  subgraph OCIBOX["COMPUTE · OCI Ampere A1 Always Free (ARM · 4 OCPU / 24 GB · $0/month)"]
+  subgraph OCIBOX["COMPUTE · OCI Ampere A1 (ARM · aarch64 · 4 OCPU / 24 GB)"]
     direction TB
     subgraph LIVEBOX["LIVE (8 containers)"]
       direction LR

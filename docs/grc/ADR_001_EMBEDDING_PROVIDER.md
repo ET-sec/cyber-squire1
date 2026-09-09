@@ -39,7 +39,7 @@ Self-hosted embedding model running inside the Squire container. 1024-dimensiona
 
 The embedding provider Anthropic officially recommends for Claude-based retrieval systems. 1024-dimensional vectors.
 
-- **Cost:** Approximately $0.06 for the bulk ingest at one cent per ten thousand tokens on the indicative rate at decision time; free tier covers it. <!-- TODO(et): verify the per-million-token rate against the current Voyage AI pricing page; published rates have ranged from approximately $0.06 to $0.18 per million tokens across model classes; update this figure on next review. -->
+- **Cost:** Approximately $0.06 for the bulk ingest at one cent per ten thousand tokens on the indicative rate at decision time. <!-- TODO(et): verify the per-million-token rate against the current Voyage AI pricing page; published rates have ranged from approximately $0.06 to $0.18 per million tokens across model classes; update this figure on next review. -->
 - **Data path:** Equivalent to Option A (alert text traverses the public internet).
 - **Ecosystem fit:** Clean integration with the Anthropic stack Squire already uses.
 
@@ -50,7 +50,7 @@ Squire will use **Option C (Voyage AI `voyage-3-large`)** as the default embeddi
 The choice is driven by four factors:
 
 1. **Anthropic-native stack coherence.** The rest of Squire runs on Claude Fable 5 (reasoning) and Claude Opus 5 (classification). Voyage is the embedding provider Anthropic explicitly recommends in its RAG documentation, producing a clean single-vendor narrative while still matching or exceeding OpenAI quality on MTEB retrieval benchmarks.
-2. **Zero marginal cost.** Voyage's free tier covers 200 million tokens per month. Squire's 41-document corpus is approximately 1 million tokens after chunking, so the free tier has 200 times the headroom for the initial ingest and every subsequent re-embed. Under the current 12-week-year financial constraint, zero is the right price.
+2. **Token headroom the corpus cannot exhaust.** Voyage allows 200 million tokens per month. Squire's 41-document corpus is approximately 1 million tokens after chunking, so the monthly allowance carries the initial ingest 200 times over, plus every subsequent re-embed. Under the current 12-week-year constraint, an option that needs a spend commitment before the first ingest is out of reach.
 3. **Ownership trajectory.** MongoDB acquired Voyage AI in February 2024. MongoDB is the database layer most commonly deployed alongside pgvector-style vector stacks in AI security products, and their GitHub Education benefit is one the System Owner can activate as a peripheral resume-building step. Using Voyage positions the stack inside an ecosystem that is actively consolidating.
 4. **Dimension alignment with the air-gap fallback.** Voyage returns 1024-dimensional vectors by default. `BAAI/bge-large-en-v1.5` (Option B, the air-gap fallback) also returns 1024-dimensional vectors. Standardizing on 1024 dims across both the commercial and air-gapped deployment modes means swapping providers never requires a re-index or another schema migration. The 1024 choice is the dimension that makes operational portability free.
 
@@ -83,7 +83,7 @@ For deployments that can tolerate cloud embeddings for non-sensitive corpus docu
 | Risk | Mitigation |
 | --- | --- |
 | Voyage API outage blocks Squire retrieval | At query time, Squire falls back to the already-indexed `ir_chunks` rows (no re-embed needed for stored corpus). For the alert-side embed, degraded mode returns an explicit error with a code that the LangGraph router converts into a human-escalation path. |
-| Voyage price change or free-tier revocation | Provider abstraction at the retriever module makes a swap to OpenAI, local BGE, or another vendor a single env var change; bulk re-embed fits inside the free tier of most alternatives. |
+| Voyage price change or allowance revocation | Provider abstraction at the retriever module makes a swap to OpenAI, local BGE, or another vendor a single env var change; the bulk re-embed is 1 million tokens, small enough for any alternative to absorb. |
 | MongoDB repositions Voyage into paid-only tier | Schema already sits on 1024 dims, so Option B (local BAAI/bge-large) becomes the default escape hatch with no migration. |
 | Interviewer challenge on data residency | This ADR is the defensive artifact. Option B is a documented, supported deployment mode, not a future roadmap item. |
 | Embedding dimension drift across providers | Locked on 1024 dims for both Option C and Option B; no migration required when switching between the two. |

@@ -1,5 +1,5 @@
 # --- COMPUTE (CD-OCI-INFRASTRUCTURE) ---
-# Ampere A1 Flex instance (aarch64), Always Free. Image and availability
+# Ampere A1 Flex instance (aarch64), 4 OCPU / 24 GB. Image and availability
 # domain are resolved via data sources so no region-specific OCIDs are
 # hardcoded. cloud-init installs Docker + Compose so the host is ready for
 # the stack on first boot.

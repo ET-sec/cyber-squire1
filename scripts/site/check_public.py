@@ -7,10 +7,11 @@ Runs against a portfolio checkout (default ~/portfolio) and this repo. Files: in
   3. Every NIST 800-53 ID printed on the page has a row in SSP section 5
   4. Every repo path cited on the page (yaml, yml, tf, py, md, rego) exists on main (git ls-files)
   5. --links: every external href answers (2xx or 3xx; 429 and 999 accepted from LinkedIn)
+  6. --repo: OPSEC and price-tier patterns over this repository's own tracked text files, which are a public surface too
 These checks match patterns and compare sets. Anything that needs reading for meaning (a claim against the repo, a duplicated
 section, a stale number) is a review job, not this script's.
 
-Usage: python3 scripts/site/check_public.py [--portfolio PATH] [--links] [--links-only]
+Usage: python3 scripts/site/check_public.py [--portfolio PATH] [--repo] [--repo-checks all|price] [--links] [--links-only]
 """
 import argparse, http.client, os, pathlib, re, subprocess, sys, urllib.parse
 
@@ -44,9 +45,43 @@ TELLS = [
 ]
 BOX_SHADOW = re.compile(r"box-shadow")
 
+# Price tier language. Rule (Phase 21, SWEEP-07): the provider is named, the price
+# tier is not. Provider and hardware names stay: Oracle Cloud, Ampere A1, aarch64,
+# Always On. Each alternative requires a specific following word, so "free of",
+# "credential-free", "hands-free", and "free-form" do not match.
+PRICE = [
+    ("price tier", re.compile(
+        r"\b(?:always\s+free|free[\s-]tier|zero\s+cost|no\s+cost|costs?\s+nothing)\b"
+        r"|\$0\s*(?:/|\s+per\s+)\s*(?:mo|month)", re.I)),
+]
+
+# --repo scope: this repository is public, so its tracked tree is a public surface.
+# The scope runs OPSEC and PRICE only. TELLS is deliberately out of it: the buzzword
+# regex above matches ordinary technical prose, and prose tells belong to
+# sweep_ai_tells.py, driven by scripts/repo/repo_sweep.py.
+REPO_SUFFIXES = (".md", ".yaml", ".yml", ".tf", ".tfvars.example", ".py", ".rego",
+                 ".json", ".html", ".mmd", ".sh", ".toml")
+REPO_SKIP_FILES = (
+    "scripts/site/check_public.py",  # 2026-09-09: this file carries the patterns as literals and would match itself
+    "tests/repo/test_check_public_repo_scope.py",  # 2026-09-09: names every alternative so a dropped one fails loudly
+)
+REPO_SKIP_DIRS = (
+    "tests/repo/fixtures/",  # 2026-09-09: gate fixtures hold deliberately bad strings so the tests have something to catch
+)
+
 def files(pf):
     out = [pf / "index.html", pf / "README.md", pf / "sitemap.xml"] + sorted((pf / "views").glob("*.html"))
     return [f for f in out if f.exists()]
+
+def repo_files():
+    """Tracked text-bearing files in this repository, minus the two documented exclusions."""
+    out = []
+    for p in sorted(t for t in tracked() if t):
+        if p in REPO_SKIP_FILES or p.startswith(REPO_SKIP_DIRS): continue
+        name = p.rsplit("/", 1)[-1]
+        if name.endswith(REPO_SUFFIXES) or (p.startswith(".github/") and "." not in name):
+            out.append(ROOT / p)
+    return out
 
 def hits(pattern, text, allow=None):
     """(line number, match, context) per hit; allow(match, line, rule) skips a hit, rule = the last line that opened a CSS block."""
@@ -108,11 +143,21 @@ def check_links(pf):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--portfolio", default=os.path.expanduser("~/portfolio"))
+    ap.add_argument("--portfolio", default=None, help="portfolio checkout to scan (default ~/portfolio)")
+    ap.add_argument("--repo", action="store_true",
+                    help="also scan this repository's tracked text files for OPSEC and price-tier patterns")
+    ap.add_argument("--repo-checks", choices=("all", "price"), default="all",
+                    help="which pattern lists the --repo scope runs (default all; price is the subset that "
+                         "reports nothing on this tree today, see the note in the --repo block)")
     ap.add_argument("--links", action="store_true"); ap.add_argument("--links-only", action="store_true")
-    a = ap.parse_args(); pf = pathlib.Path(a.portfolio); fails = 0
-    if not (pf / "index.html").exists(): print(f"config error: no index.html under {pf}", file=sys.stderr); sys.exit(2)
-    if not a.links_only:
+    a = ap.parse_args()
+    # --repo alone is a self-contained scope, so it must not require a portfolio checkout.
+    # The portfolio scan still runs by default, and whenever --portfolio or a link check is asked for.
+    want_portfolio = a.portfolio is not None or a.links or a.links_only or not a.repo
+    pf = pathlib.Path(a.portfolio if a.portfolio is not None else os.path.expanduser("~/portfolio")); fails = 0
+    if want_portfolio and not (pf / "index.html").exists():
+        print(f"config error: no index.html under {pf}", file=sys.stderr); sys.exit(2)
+    if want_portfolio and not a.links_only:
         ids, repo = ssp_ids(), tracked()
         for f in files(pf):
             text = f.read_text(encoding="utf-8"); rel = f.relative_to(pf)
@@ -120,6 +165,9 @@ def main():
             for name, pat in OPSEC:
                 allow = (lambda m, line, rule: any(on_domain(h, "credly.com") for h in re.findall(r'href="([^"]+)"', line))) if name == "long hex id" else None
                 for n, m, ctx in hits(pat, text, allow): print(f"FAIL opsec {name}: {rel}:{n}: {m}   | {ctx}"); fails += 1
+            # 1b. price tier over the whole file
+            for name, pat in PRICE:
+                for n, m, ctx in hits(pat, text): print(f"FAIL {name}: {rel}:{n}: {m}   | {ctx}"); fails += 1
             # 2. tells over the whole file; box-shadow allowed only on a hover rule (brand-motion exception)
             # brand-motion exception (ROE 2026-09-05): the cursor glow gradient and the hover glow shadow stay
             for name, pat in TELLS:
@@ -139,6 +187,31 @@ def main():
                 if p in KNOWN_PATH_GAPS: print(f"known gap path {p} on {rel}: {KNOWN_PATH_GAPS[p]}"); continue
                 print(f"FAIL path {p} cited on {rel} is not tracked on main"); fails += 1
         print(f"checks 1-4: {'ok' if not fails else str(fails) + ' hit(s)'} over {len(files(pf))} files")
+    if a.repo:
+        # 6. this repository's own tracked text. OPSEC and PRICE only, see the note above REPO_SUFFIXES.
+        # --repo-checks price runs PRICE alone. Measured 2026-09-09 (Phase 21, plan 21-11): the OPSEC
+        # half reports 1437 hits over this tree and none of them is a leak. They are Actions SHA pins,
+        # which are the supply-chain control; the sanitized 10.100.x addresses the GRC library prints on
+        # purpose; cd-service-* container names the compose file and the runbooks name; and /opt and
+        # /root paths in host runbooks. The list was written for a published web page and does not
+        # transfer to a repository tree unchanged. Narrowing it is recorded for plan 21-12. Until then
+        # scripts/repo/repo_sweep.py calls the price subset and reports the OPSEC half as a skipped
+        # gate rather than a passing one.
+        scoped = repo_files(); repo_fails = 0; run_opsec = a.repo_checks == "all"
+        for f in scoped:
+            try:
+                text = f.read_text(encoding="utf-8")
+            except (UnicodeDecodeError, OSError):
+                continue  # binary or unreadable, nothing for a text pattern to match
+            rel = f.relative_to(ROOT)
+            for name, pat in (OPSEC if run_opsec else []):
+                allow = (lambda m, line, rule: any(on_domain(h, "credly.com") for h in re.findall(r'href="([^"]+)"', line))) if name == "long hex id" else None
+                for n, m, ctx in hits(pat, text, allow): print(f"FAIL opsec {name}: {rel}:{n}: {m}   | {ctx}"); repo_fails += 1
+            for name, pat in PRICE:
+                for n, m, ctx in hits(pat, text): print(f"FAIL {name}: {rel}:{n}: {m}   | {ctx}"); repo_fails += 1
+        label = "repo scope" if run_opsec else "repo scope, price only"
+        print(f"check 6 {label}: {'ok' if not repo_fails else str(repo_fails) + ' hit(s)'} over {len(scoped)} tracked files")
+        fails += repo_fails
     if a.links or a.links_only:
         n, bad = check_links(pf)
         for u, code in bad: print(f"FAIL link {code}: {u}"); fails += 1
