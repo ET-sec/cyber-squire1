@@ -149,6 +149,7 @@ jobs:
           TRIGGER_IDENTITY_TIER: ${{ vars.TRIGGER_IDENTITY_TIER }}
           TRIGGER_PROVIDER_TERMS: ${{ vars.TRIGGER_PROVIDER_TERMS }}
           TRIGGER_GRC_LIBRARIAN: ${{ vars.TRIGGER_GRC_LIBRARIAN }}
+          TRIGGER_HISTORY_REWRITE: ${{ vars.TRIGGER_HISTORY_REWRITE }}
         run: |
           # The script prints nothing when no item fires, so zero bytes means
           # nothing to send. It also writes fired_count to $GITHUB_OUTPUT; the

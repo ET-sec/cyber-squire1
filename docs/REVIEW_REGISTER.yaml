@@ -66,3 +66,14 @@ items:
       - ".github/workflows/grc-validate.yml"
       - "scripts/repo/manifest_allow_list.yaml"
     action: "Track them or move them off disk, then update the manifest, the README tree, and the grc-validate.yml path filter that has matched no tracked path since it was written."
+
+  - id: history_rewrite_decided
+    flag: TRIGGER_HISTORY_REWRITE
+    what: "The three archived terraform directories, and the four manifest rows that keep them."
+    why_now: "Git history still carries old literal identifiers from before the sanitization sweeps, and whether to rewrite it is an owner decision that has not been made. A rewrite touches every one of these files anyway, so it is the one moment when keeping them and moving them out cost the same."
+    affects:
+      - "terraform/cd-do-infrastructure/**"
+      - "terraform/cd-aws-automation/**"
+      - "terraform/simple-ec2/**"
+      - "docs/REPO_MANIFEST.yaml"
+    action: "Decide for each archived directory whether it stays tracked or moves to the private tree with its ARCHIVED.md. Re-read the four manifest rows that defer to this event, then re-run gitleaks over the rewritten history before any push, because a rewrite replays every commit through the pre-push net."

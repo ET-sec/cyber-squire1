@@ -14,4 +14,29 @@
 #      suppression becomes permanent.
 #   2. Delete the entry the day the gap closes. A stale entry hides real drift.
 #   3. An entry is not a place to park work. If the row is wrong, fix the row.
-known_gaps: []
+known_gaps:
+  # Two builds/ directories that are on disk and untracked, recorded here rather
+  # than as manifest rows. A row whose path matches nothing today is reported as
+  # an orphan, so writing the decision as a row would turn a recorded decision
+  # into a gate failure. These entries carry no hole in the gate: neither row
+  # exists, so neither suppression can fire until somebody writes one.
+  - kind: orphan
+    path: "builds/grc_librarian/**"
+    reason: >-
+      On disk, untracked, and staying that way by owner decision as of
+      2026-09-09. It is referenced by an optional import in
+      scripts/grc/grc_mcp_server.py that is wrapped in try and except with a
+      logged fallback, and by a dead path filter in grc-validate.yml that has
+      never matched a tracked path. Tracking it is a separate decision and
+      belongs in the review register under grc_librarian_tracking_decided, not
+      in the manifest.
+    added: 2026-09-09
+  - kind: orphan
+    path: "builds/ir-assistant/**"
+    reason: >-
+      On disk, untracked, and staying that way by owner decision as of
+      2026-09-09. Nothing in the tracked tree references it: no workflow, no
+      script, no test, and no evidence anchor. Tracking it is a separate
+      decision and belongs in the review register under
+      grc_librarian_tracking_decided alongside its sibling, not in the manifest.
+    added: 2026-09-09
