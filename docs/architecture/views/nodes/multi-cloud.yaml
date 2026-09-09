@@ -87,7 +87,7 @@ nodes:
   - id: hardened-host
     label: "hardened host"
     zone: runtime
-    what: "One ARM instance on the free tier running the compose stack: no inbound port except SSH from one range, every container with no-new-privileges, the benchmark exceptions written down."
+    what: "One Ampere A1 Flex ARM instance, 4 OCPU and 24 GB, running the compose stack: no inbound port except SSH from one range, every container with no-new-privileges, the benchmark exceptions written down."
     controls: [CM-6, CM-2, SC-7]
     status: partial
     status_note: "The instance, its security list, and its first-boot configuration are Terraform on the current provider; eight of the nineteen services run today and the rest wait on the ARM rebuild."
