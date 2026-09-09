@@ -1,6 +1,6 @@
 # CoreDirective Stack Overview
 
-Current as of 2026-09-08, after the Phase 20.1 cloud hardening pass and the first ARM rebuild session. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 Always Free instance (ARM, 4 OCPU / 24 GB) at $0/month. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
+Current as of 2026-09-08, after the Phase 20.1 cloud hardening pass and the first ARM rebuild session. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 instance (ARM, aarch64, 4 OCPU / 24 GB), and that 24 GB is the ceiling on how many of the design's services run at once. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
 
 Acronyms, once: OIDC (OpenID Connect), JWT (JSON Web Token), UPST (user principal session token), KMS (key management service), CMK (customer-managed key), ZTNA (zero trust network access), WAF (web application firewall), SSO (single sign-on), POA&M (Plan of Action and Milestones), IaC (infrastructure as code), CI (continuous integration), PII (personally identifiable information), RAG (retrieval augmented generation), SOC (security operations center), RTO (recovery time objective).
 
@@ -57,7 +57,7 @@ flowchart TB
     TUN["Tunnel<br/>outbound-only connector<br/>origin exposes nothing inbound"]:::edge
   end
 
-  subgraph OCIBOX["COMPUTE · OCI Ampere A1 Always Free (ARM · 4 OCPU / 24 GB · $0/month)"]
+  subgraph OCIBOX["COMPUTE · OCI Ampere A1 (ARM · aarch64 · 4 OCPU / 24 GB)"]
     direction TB
     subgraph LIVEBOX["LIVE (8 containers)"]
       direction LR
@@ -188,7 +188,7 @@ EventBridge), native GitHub OIDC federation pinned to this repo
 and main, a region guard that denies created principals everything outside
 the home region, and CloudTrail with log file validation archiving into
 the vault. Nothing else runs there: no VPC, no standing compute beyond one
-alert Lambda, near-zero cost by design.
+alert Lambda, which wakes only when the break-glass secret is read.
 
 Status follows house rules: the Terraform is public and gate-checked
 (`terraform/cd-aws-security-plane/`, Checkov 134 passed, 0 failed, 11
