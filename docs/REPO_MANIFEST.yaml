@@ -377,6 +377,7 @@ entries:
     reason: "The fallback row for this tree, so a registry or a protocol document added at the docs root is described the day it lands. The subtrees and the documents below carry their own rows."
     last_verified: 2026-09-09
     review: {every: 180d}
+    rewrite_later: "The writing tells gate warns on nine tracked documents, seven of them under docs/grc/, and a warn never changes an exit code so none of them fails the sweep. Read on 2026-09-09, none is a defect the gate should have caught. Three juxtaposition hits are regex false positives on Not applicable, Not required, and Not the agent claim. GROUND_TRUTH_AUDIT_PROTOCOL.md is the document that lists the banned words, so it names them by definition. The remaining hits are the word comprehensive inside a quoted NIST PM-9 control statement, two named assessment artifacts, and three schedule labels, where the word is the standard vocabulary rather than a flourish. Phase 28 owns whether the phrase list should exempt quoted control text and whether the juxtaposition pattern needs a stop list."
 
   - path: "docs/README.md"
     purpose: "The documentation entry point: the reading order through the tree, a map of every subtree with its entry point, and a statement of what is deliberately absent."
