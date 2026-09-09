@@ -977,12 +977,14 @@ services:
       SQUIRE_EMBEDDING_MODEL: voyage-3-large
       SQUIRE_EMBEDDING_DIM: "1024"
       VOYAGE_MIN_INTERVAL_S: "0.2"
-      SQUIRE_LLM_BACKEND: ${SQUIRE_LLM_BACKEND:-api}
+      SQUIRE_LLM_BACKEND: ${SQUIRE_LLM_BACKEND:-nemo}
       NEMO_ENABLED: ${NEMO_ENABLED:-true}
       NEMO_BASE_URL: http://cd-service-nemo:8000/v1
       NEMO_CONFIG_ID: default
       NEMO_TIMEOUT_SECONDS: "60"
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      # No ANTHROPIC_API_KEY here on purpose (Phase 22, AI-02). The model key
+      # lives on cd-service-nemo, the guardrails container that makes the call.
+      # Do not restore this line as a missing variable.
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
       LANGFUSE_HOST: ${LANGFUSE_PUBLIC_URL:-http://cd-service-langfuse-web:3000}

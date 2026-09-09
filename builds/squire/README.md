@@ -49,7 +49,7 @@ docker build -t cd-service-squire:dev -f Dockerfile .
 docker run --rm -p 8020:8020 \
   -e CD_DB_USER=x -e CD_DB_PASS=x -e CD_DB_NAME=x \
   -e LANGFUSE_PUBLIC_KEY=pk -e LANGFUSE_SECRET_KEY=sk \
-  -e ANTHROPIC_API_KEY=x -e SQUIRE_WEBHOOK_TOKEN=x \
+  -e SQUIRE_WEBHOOK_TOKEN=x \
   cd-service-squire:dev
 curl http://127.0.0.1:8020/health
 ```
@@ -60,12 +60,12 @@ curl http://127.0.0.1:8020/health
 |----------|---------|
 | `CD_DB_USER` / `CD_DB_PASS` / `CD_DB_NAME` | Postgres connection |
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_HOST` | Tracing |
-| `ANTHROPIC_API_KEY` / `OPENCLAW_ANTHROPIC_KEY` | LLM auth |
+| `ANTHROPIC_API_KEY` | Not set on Squire and not read by it. The model credential lives on the guardrails container `cd-service-nemo`, which is the container that calls the model (Phase 22, AI-02) |
 | `SQUIRE_WEBHOOK_TOKEN` | Shared-secret for webhook auth |
 | `LANGFUSE_REDIS_PASSWORD` | Dedup Redis auth |
 | `ANTHROPIC_DAILY_CEILING_USD` | Cost ceiling (default 5.00) |
 | `SQUIRE_COST_BREACH_MODE` | `ollama` | `refuse` | `warn_only` |
-| `SQUIRE_LLM_BACKEND` | `api` | `max` | `ollama` |
+| `SQUIRE_LLM_BACKEND` | `nemo` (default) \| `max` \| `ollama` |
 
 ## Phase 17 boundaries
 
