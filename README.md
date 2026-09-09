@@ -1,7 +1,7 @@
 # CoreDirective Automation Engine
 
 [![Live Portfolio](https://img.shields.io/badge/Portfolio-Live-00FF41?style=flat-square)](https://et-sec.github.io/portfolio/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3dff8b.svg?style=flat-square)](LICENSE)
 [![CodeQL](https://github.com/ET-sec/cyber-squire1/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/codeql.yml)
 [![Security Scan](https://github.com/ET-sec/cyber-squire1/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/security.yml)
 [![Drift Check](https://github.com/ET-sec/cyber-squire1/actions/workflows/drift-check.yml/badge.svg?branch=main)](https://github.com/ET-sec/cyber-squire1/actions/workflows/drift-check.yml)
@@ -25,8 +25,8 @@ What that means if you are not an engineer: this repository shows that the
 things companies pay security teams for (backups ransomware cannot delete,
 pipelines that cannot leak credentials, infrastructure that reports when
 someone changes it by hand, compliance paperwork that stays current by
-itself) can be designed, built, tested, and documented by one operator, and
-that every claim can be traced to evidence.
+itself) can be designed, built, tested, and documented end to end, with every
+claim traceable to evidence.
 
 ## Multi-cloud, on purpose
 
@@ -50,9 +50,8 @@ watcher does not live in the house it watches.
 The platform's first generation also ran on AWS, and that original
 infrastructure code (VPC, EC2, NAT, security groups) ships in this
 repository as archived reference alongside the second-generation
-DigitalOcean configuration. Portability is not a slide-deck claim here: the
-design has survived two live cross-cloud migrations because every piece of
-it is code. The R2 state split is queued for the same reason, so Terraform
+DigitalOcean configuration. The design has survived two live cross-cloud migrations because every
+piece of it is code. The R2 state split is queued for the same reason, so Terraform
 state and the compute it describes never share a vendor failure domain.
 
 ## Find your way (pick your lane)
@@ -72,7 +71,8 @@ Deeper cuts, one click each:
 [network topology](docs/grc/diagrams/network_topology.png) ·
 [data flows](docs/grc/diagrams/data_flow.png) ·
 [trust boundaries](docs/grc/diagrams/security_boundaries.png) ·
-[full architecture doc](docs/architecture/STACK_OVERVIEW.md)
+[full architecture doc](docs/architecture/STACK_OVERVIEW.md) ·
+[the seven architecture views as code](docs/architecture/views/README.md), rendered clickable on the [live site](https://et-sec.github.io/portfolio/)
 
 ---
 
@@ -123,9 +123,10 @@ Six layers stand between a mistake and production, each one tested:
 2. **Laptop, push time:** every unpushed commit is rescanned, because history
    is an attack surface and hooks can be dodged.
 3. **GitHub server-side:** push protection on known secret formats.
-4. **CI on every PR:** Gitleaks, Trivy, Semgrep, CodeQL, Checkov, OPA policy
-   checks, DAST. All 14 workflows pinned to commit SHAs with least-privilege
-   permissions. Currently unpinned actions: zero.
+4. **CI on every PR:** Gitleaks, Trivy, Semgrep, CodeQL; on PRs that touch
+   the relevant paths, Checkov, the OPA fixture self-test, and DAST. All 16
+   workflows pinned to commit SHAs with least-privilege permissions; the only
+   unpinned `uses:` are three in-repo composite actions.
 5. **Branch protection:** nothing reaches main without a PR and green
    required checks. The cloud trusts only tokens minted for main.
 6. **Nightly drift check:** anything that went around the pipeline entirely
@@ -159,7 +160,7 @@ Six layers stand between a mistake and production, each one tested:
 ## GRC Compliance Library
 
 57 governance, risk, and compliance documents aligned to NIST SP 800-53
-Rev. 5 Moderate baseline, FIPS 199, and the CIS Docker Benchmark, citing 133
+Rev. 5 Moderate baseline, FIPS 199, and the CIS Docker Benchmark, citing 140
 distinct controls. Sanitized for public hosting: personal identifiers and
 internal topology are replaced with generic equivalents, while product names
 (Vault, Keycloak, Teleport, Falco, Datadog, Cloudflare, Trivy) are preserved
@@ -187,8 +188,9 @@ to show the real stack.
 Active IaC lives in [`terraform/cd-oci-infrastructure/`](terraform/cd-oci-infrastructure/):
 Oracle Cloud compute and networking, KMS vault and customer-managed key,
 retention-locked backup storage, and least-privilege identity policies, with
-8 OPA/Rego policies enforced by conftest on every PR and remote state in
-versioned, locked object storage. The retired DigitalOcean configuration is
+8 OPA/Rego policies (self-tested on fixtures for every Terraform PR, run by
+conftest against the real plan after every merge and nightly) and remote state
+in versioned, locked object storage. The retired DigitalOcean configuration is
 preserved in [`terraform/cd-do-infrastructure/`](terraform/cd-do-infrastructure/)
 as an archived reference, including the Datadog monitors and dashboards that
 return with the ARM rebuild.
@@ -202,21 +204,37 @@ Want to stand this up in your own tenancy? Start at the
 .
 ├── README.md                        You are here
 ├── metrics.yaml                     Canonical numbers (machine-generated)
+├── SECURITY.md                      How to report a vulnerability, what is in scope
+├── CONTRIBUTING.md                  Branch, hook, and review workflow
 ├── docs/
-│   ├── architecture/                Layered architecture + rendered diagrams
+│   ├── architecture/                Layered architecture, decision records, the seven views as code
+│   │   └── views/                   Generators and node tables behind the portfolio drawings
 │   └── grc/                         57 GRC documents, NIST 800-53 aligned
 │       ├── README.md                Library index (start here for GRC)
 │       ├── POAM_AUTO_FINDINGS.md    Self-updating scanner findings ledger
 │       └── diagrams/                Rendered visuals + HTML sources
 ├── terraform/
-│   ├── cd-oci-infrastructure/       ACTIVE: OCI + data protection + OPA policies
-│   ├── cd-do-infrastructure/        Archived DigitalOcean reference
-│   ├── cd-aws-automation/           Legacy AWS reference
-│   └── simple-ec2/                  Legacy quick-start reference
-├── .github/workflows/               14 pipelines, all SHA-pinned
+│   ├── cd-oci-infrastructure/       ACTIVE: OCI compute, KMS, locked backups, OPA policies
+│   ├── cd-cloudflare-edge/          ACTIVE: edge access policies and WAF as code
+│   ├── cd-aws-security-plane/       DESIGNED: evidence vault in a second cloud, apply gated
+│   ├── cd-do-infrastructure/        Archived DigitalOcean generation
+│   ├── cd-aws-automation/           Archived first AWS generation
+│   └── simple-ec2/                  Archived AWS quick start
+├── COREDIRECTIVE_ENGINE/            Docker Compose: the 19-service design and the live subset
+├── builds/                          Squire, the SOC analyst agent (source, tests, migrations), and content build tools
+├── detections/                      17 Sigma rules and the Falco rules the sensor loads on the host
+├── .agents/                         Signed agent cards and the registry the daily inventory scan checks
+├── policies/                        Rego policies for the GRC library itself (front matter, classification, POA&M ids)
+├── infra/                           Conftest policies that gate the compose file (no privileged, limits, health checks)
+├── keycloak/                        Sanitized realm export for the identity service
+├── Agent_Squire/                    Telemetry tagging stubs for the four agent roles; the agent itself is in builds/squire
+├── tests/                           Tests for the GRC tooling under scripts/grc
+├── templates/                       Jinja template for the generated LinkedIn summary
+├── scripts/                         build_metrics, poam_sync, sync_views, image and fact verifiers
+├── .github/workflows/               16 pipelines, every third-party action SHA-pinned
 ├── .githooks/                       Commit + push gates (secrets, style, metrics)
-├── COREDIRECTIVE_ENGINE/            Docker Compose definitions for the platform
-└── scripts/                         build_metrics, poam_sync, operational tooling
+├── renovate.json                    Dependency and image update policy by tier
+└── .env.example                     Variable names the master compose expects (values come from a secrets manager)
 ```
 
 ## Contact

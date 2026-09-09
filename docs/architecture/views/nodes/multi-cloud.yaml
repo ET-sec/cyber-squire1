@@ -81,7 +81,7 @@ nodes:
     evidence:
       - {label: "State backend", path: terraform/cd-oci-infrastructure/terraform.tf, line: 5}
       - {label: "State bucket, versioned, key-encrypted", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 48}
-      - {label: "Migration queued", path: docs/architecture/STACK_OVERVIEW.md, line: 85}
+      - {label: "Migration queued", path: docs/architecture/STACK_OVERVIEW.md, line: 86}
     solidify: "Multi-cloud: R2 migration queued"
   # RUNTIME
   - id: hardened-host
@@ -90,11 +90,11 @@ nodes:
     what: "One ARM instance on the free tier running the compose stack: no inbound port except SSH from one range, every container with no-new-privileges, the benchmark exceptions written down."
     controls: [CM-6, CM-2, SC-7]
     status: partial
-    status_note: "The instance, its security list, and its first-boot configuration are Terraform on the current provider; three of the nineteen services run today and the rest wait on the ARM rebuild."
+    status_note: "The instance, its security list, and its first-boot configuration are Terraform on the current provider; eight of the nineteen services run today and the rest wait on the ARM rebuild."
     evidence:
       - {label: "Instance", path: terraform/cd-oci-infrastructure/compute.tf, line: 22}
       - {label: "First-boot configuration", path: terraform/cd-oci-infrastructure/cloud-init.yaml, line: 1}
-      - {label: "Live compose, three services", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
+      - {label: "Live compose, eight services", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
       - {label: "Live and designed counts", path: metrics.yaml, line: 20-21}
     solidify: "Tier 3: 3 of 19 live"
   - id: vcn-one-port

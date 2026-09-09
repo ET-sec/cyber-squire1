@@ -12,7 +12,7 @@ This document describes the system that makes drift impossible going forward. It
 |---|---|---|
 | **Filesystem** | the repo on disk | every count derivable by walking files |
 | **`metrics.yaml`** | repo root | canonical numeric facts, derived from filesystem |
-| **`REPO_MAP.yaml`** | repo root | every file path, type, last-modified, regen rules |
+| **`REPO_MAP.yaml`** | repo root (gitignored, local only) | every file path, type, last-modified, regen rules |
 | **CLAUDE.md / owner approval** | repo + global | values not derivable from disk (containers public count, n8n workflow count) |
 
 Filesystem wins ties. `metrics.yaml` and `REPO_MAP.yaml` are derived, not hand-edited. CLAUDE.md and the `OWNER_APPROVED` block of `build_metrics.py` is where humans pin values that the filesystem cannot answer (e.g. remote-host state).

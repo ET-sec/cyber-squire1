@@ -2,9 +2,9 @@
 """render-artifacts.py
 Render Jinja2 templates from stack-facts.yaml into artifacts/.
 
-Reads /Users/et/cyber-squire-ops/.facts/stack-facts.yaml,
-renders /Users/et/cyber-squire-ops/templates/<allowed>.j2,
-writes /Users/et/cyber-squire-ops/artifacts/<allowed-output>.
+Reads <repo>/.facts/stack-facts.yaml,
+renders <repo>/templates/<allowed>.j2,
+writes <repo>/artifacts/<allowed-output>.
 
 Exit codes match verify-facts.py:
   0  success
@@ -35,7 +35,7 @@ from jinja2.sandbox import SandboxedEnvironment
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-BASE_DIR = Path("/Users/et/cyber-squire-ops").resolve()
+BASE_DIR = Path(__file__).resolve().parents[1]
 FACTS_FILE = BASE_DIR / ".facts" / "stack-facts.yaml"
 TEMPLATE_DIR = BASE_DIR / "templates"
 ARTIFACT_DIR = BASE_DIR / "artifacts"

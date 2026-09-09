@@ -17,7 +17,7 @@ The repository moved from a "commit straight to main" pattern to a "branch + PR 
 For any change you want to ship:
 
 ```bash
-cd /Users/et/cyber-squire-ops
+cd ~/cyber-squire-ops
 
 # 1. Start a branch with a typed prefix
 ./scripts/git/new-branch.sh feat/some-change

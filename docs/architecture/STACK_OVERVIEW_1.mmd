@@ -31,7 +31,7 @@ flowchart TB
 
   GH["GitHub public repo<br/>branch protection on main<br/>server-side push protection"]:::sec
 
-  subgraph CIBOX["CI · GitHub Actions (14 workflows, SHA-pinned, least-privilege permissions)"]
+  subgraph CIBOX["CI · GitHub Actions (16 workflows, SHA-pinned, least-privilege permissions)"]
     direction TB
     OIDC["OIDC token exchange<br/>GitHub JWT to OCI UPST<br/>minutes-lived · pinned to repo + main<br/>read-only principal · zero stored cloud keys"]:::sec
     DRIFT["Nightly drift check<br/>read-only terraform plan vs live cloud<br/>exit 2 = drift alert"]:::ci
@@ -48,23 +48,24 @@ flowchart TB
 
   subgraph OCIBOX["COMPUTE · OCI Ampere A1 Always Free (ARM · 4 OCPU / 24 GB · $0/month)"]
     direction TB
-    subgraph LIVEBOX["LIVE (3 containers)"]
+    subgraph LIVEBOX["LIVE (8 containers)"]
       direction LR
       PG[("PostgreSQL 16<br/>+ pgvector")]:::live
       N8N["n8n<br/>workflow engine"]:::live
       CFD["cloudflared<br/>tunnel sidecar"]:::live
+      FALCO["Falco + Falcosidekick<br/>eBPF sensor, events to the SIEM"]:::live
+      DDP["Datadog agent<br/>logs + metrics to the SIEM"]:::live
+      OLL["Ollama + Whisper<br/>sealed network, no route out"]:::live
     end
-    subgraph PENDBOX["DESIGNED · pending ARM rebuild (16 of 19 compose services)"]
+    subgraph PENDBOX["DESIGNED · pending ARM rebuild (11 of 19 compose services)"]
       direction LR
       VAULT2["HashiCorp Vault"]:::pending
       KC["Keycloak"]:::pending
       TP["Teleport<br/>+ event handler"]:::pending
-      FALCO["Falco + Falcosidekick<br/>(rerouting to Splunk)"]:::pending
-      DDP["Datadog agent<br/>+ Fluentd"]:::pending
+      FLU["Fluentd<br/>audit log router"]:::pending
       LFP["Langfuse<br/>web · worker · ClickHouse · Redis"]:::pending
       NEMO["NeMo Guardrails"]:::pending
       SQ["Squire<br/>LangGraph SOC agent"]:::pending
-      OLL["Ollama<br/>+ Whisper (slated for removal)"]:::pending
     end
   end
 

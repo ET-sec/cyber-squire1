@@ -31,7 +31,7 @@ OWNER_APPROVED = {
     # Container counts: the OCI instance runs a 3-container core (Postgres+pgvector,
     # n8n, tunnel client) while the 19-service design is rebuilt for ARM. Both
     # numbers are owner-approved; live count re-verified 2026-09-01.
-    "containers_live": 3,
+    "containers_live": 8,
     "containers_designed": 19,
     # AI engine identifiers come from host config files, not always synced locally.
     "openclaw_model": "Claude Fable 5",

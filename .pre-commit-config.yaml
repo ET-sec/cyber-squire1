@@ -15,7 +15,7 @@ repos:
     hooks:
       - id: gitleaks-tripwires
         name: Gitleaks (default rules + tripwires, staged changes)
-        entry: gitleaks git --pre-commit --staged --redact --verbose --config .gitleaks.toml
+        entry: gitleaks git --pre-commit --staged --redact --verbose --config .gitleaks.local.toml
         language: system
         pass_filenames: false
       # Second net at push time: catches commits that dodged the commit hook
@@ -23,7 +23,7 @@ repos:
       # every local commit not yet on any remote.
       - id: gitleaks-unpushed
         name: Gitleaks (all unpushed commits, push-time net)
-        entry: bash -c 'gitleaks git --redact --config .gitleaks.toml --log-opts "--branches --not --remotes"'
+        entry: bash -c 'gitleaks git --redact --config .gitleaks.local.toml --log-opts "--branches --not --remotes"'
         language: system
         pass_filenames: false
         always_run: true

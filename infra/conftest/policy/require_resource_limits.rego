@@ -1,7 +1,7 @@
 # DENY: Services must declare memory limits
 #
-# An unbounded container can OOM-kill the entire droplet. The CoreDirective
-# stack runs on a single 8GB droplet hosting 14 containers. Without limits,
+# An unbounded container can OOM-kill the whole host. The CoreDirective
+# stack runs on one Always Free ARM instance; the design is 19 containers. Without limits,
 # one runaway service (Ollama loading a too-large model, n8n stuck workflow,
 # Datadog memory leak) takes the whole platform down.
 #

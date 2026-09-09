@@ -1,7 +1,7 @@
 // Node panel QC: 31 clickable boxes on the topology, panel opens on click and on Enter, closes on Escape and outside click,
 // focus returns to the box, no navigation, panel inside the viewport, no console errors. Page and standalone, 1440 and 390.
 // Usage: node scripts/site/nodecheck_portfolio.mjs [outdir] [slug=count ...]   default topology=31   (PORTFOLIO=/path/to/portfolio to override)
-import pkg from '/Users/et/cyber-squire-ops/node_modules/playwright/index.js'; const { chromium } = pkg;
+import pkg from 'playwright'; const { chromium } = pkg;
 import fs from 'fs'; import os from 'os';
 const out = (process.argv[2] || '/tmp/portfolio-shots') + '/'; fs.mkdirSync(out, { recursive: true });
 const pf = process.env.PORTFOLIO || os.homedir() + '/portfolio';

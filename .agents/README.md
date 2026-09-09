@@ -10,7 +10,7 @@ This directory is the canonical home for CoreDirective's Agent Registry plus per
 |------|---------|
 | `registry.yaml` | Single source of truth listing every LLM-calling agent. Validated by `scripts/grc/registry_schema.json`. |
 | `<agent_id>.card.json` | Google A2A v1.0 Agent Card for one agent. Authored once per registry row where `is_ai_agent: true`. |
-| `<agent_id>.card.json.sigstore.json` | Cosign keyless-OIDC sigstore bundle (protobuf format) signing the card above. Produced by `.github/workflows/sign-agent-cards.yml` (Plan 20-03). |
+| `<agent_id>.card.json.sigstore.json` | Cosign keyless-OIDC sigstore bundle (protobuf format) signing the card above. Produced by `.github/workflows/agent-signing.yml` (Plan 20-03). |
 | `README.md` | This file. Operator doc for tier semantics, add-new-agent workflow, capability and auth vocabulary. |
 
 The bundle filename uses the double-extension form `<agent_id>.card.json.sigstore.json` rather than the single-extension form `<agent_id>.card.sigstore.json` referenced in `20-RESEARCH.md` decision D3. Plan 20-03 sign and verify both produce and consume this exact double-extension shape, and `docs/grc/AGENT_SIGNING.md` "Naming convention" cross-references the variance.
@@ -36,7 +36,7 @@ Six steps. Do not skip any.
 2. Validate the row. The one-liner from the registry header comment runs the JSON Schema check locally:
    `python3 -c "import json,yaml,jsonschema; jsonschema.validate(yaml.safe_load(open('.agents/registry.yaml')), json.load(open('scripts/grc/registry_schema.json')))"`
 3. Author `.agents/<agent_id>.card.json` to the Google A2A v1.0 Agent Card spec (`name`, `description`, `version`, `url`, `skills[]` required; `capabilities`, `securitySchemes` optional). The spec lives at `https://a2a-protocol.org/latest/specification/`.
-4. Commit and push on a feature branch. The `sign-agent-cards.yml` workflow (Plan 20-03) signs the card via keyless Cosign OIDC and commits the `.sigstore.json` bundle back to the branch. The PR-gate workflow (Plan 20-04) verifies every card has a valid bundle before merge.
+4. Commit and push on a feature branch. The `agent-signing.yml` workflow (Plan 20-03) signs the card via keyless Cosign OIDC and commits the `.sigstore.json` bundle back to the branch. The PR-gate workflow (Plan 20-04) verifies every card has a valid bundle before merge.
 5. Update `docs/grc/AGENTIC_IAM_CAPABILITY_MATRIX.md` with one new row carrying the CSA Agentic NIST AI RMF Profile seven dimensions plus `worst_case_if_compromised`.
 6. Wire telemetry. Add `agent_id:<agent_id>` to the Datadog tag set for that runtime (env var on container, `tracer.set_tags` for Python, n8n header for workflow events, `FALCOSIDEKICK_CUSTOMFIELDS` for sensors). Cardinality budget is roughly 20 distinct values across the whole registry; never add per-session or per-request siblings.
 

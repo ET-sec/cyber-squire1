@@ -1,6 +1,6 @@
 # Contributing
 
-This is currently a solo project, but the contribution workflow is documented for two reasons: future collaborators, and to make the discipline visible.
+The contribution workflow is documented for two reasons: future collaborators, and to make the discipline visible.
 
 ## Workflow
 

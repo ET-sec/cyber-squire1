@@ -189,7 +189,7 @@ def main() -> int:
         signs = " ".join("".join(r["agreement"][d]["signs"]) for d in DIMENSIONS)
         lines.append(f"| {c['id']} | {c['family']} | {c['expected_severity']} | {signs} |")
 
-    out_doc = Path("/Users/et/cyber-squire-ops/docs/grc/SQUIRE_SELF_CRITIQUE_EVAL.md")
+    out_doc = Path(__file__).resolve().parents[4] / "docs/grc/SQUIRE_SELF_CRITIQUE_EVAL.md"
     out_doc.write_text("\n".join(lines) + "\n")
     print(f"wrote {out_doc}")
     print(f"verdict: {'PASS' if overall_pass else 'FAIL'} ({dimensions_passing}/5 dimensions)")

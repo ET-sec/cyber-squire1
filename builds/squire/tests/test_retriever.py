@@ -84,7 +84,7 @@ def test_chunker_fixture_playbook_produces_sensible_chunks():
 def test_chunker_real_playbook_produces_enough_chunks():
     from squire.ingest.chunker import chunk_document
 
-    real = Path("/Users/et/cyber-squire-ops/docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md")
+    real = Path(__file__).resolve().parents[3] / "docs/grc/PLAYBOOK_COMPROMISED_CONTAINER.md"
     if not real.exists():
         pytest.skip("real GRC corpus not present at expected path")
     chunks = chunk_document(real)

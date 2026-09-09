@@ -2,7 +2,8 @@
 // reports document height, horizontal overflow (with the overflowing elements), and console errors.
 // Usage: node scripts/site/render_portfolio.mjs [outdir]   (PORTFOLIO=/path/to/portfolio to override)
 import { createRequire } from "module"; const require = createRequire(import.meta.url);
-import pkg from '/Users/et/cyber-squire-ops/node_modules/playwright/index.js'; const { chromium } = pkg;
+import pkg from 'playwright';
+const PORTFOLIO = process.env.PORTFOLIO_DIR || (process.env.HOME + '/portfolio'); const { chromium } = pkg;
 const out = (process.argv[2] || '/tmp/portfolio-shots') + '/';
 import fs from 'fs'; fs.mkdirSync(out, { recursive: true });
 const site = 'file://' + (process.env.PORTFOLIO || require('os').homedir() + '/portfolio') + '/index.html';
@@ -37,7 +38,7 @@ await shoot(820, 1180, 'd820', false);
 for (const [w, h, tag] of [[1470, 830, 'v1470'], [390, 844, 'v390']]) {
   const page = await browser.newPage({ viewport: { width: w, height: h } });
   page.on('pageerror', e => errors.push(tag + ': ' + e.message));
-  await page.goto('file:///Users/et/portfolio/views/topology.html'); await page.waitForTimeout(800);
+  await page.goto(`file://${PORTFOLIO}/views/topology.html`); await page.waitForTimeout(800);
   await page.screenshot({ path: out + tag + '_topology.png', fullPage: false }); await page.close();
 }
 console.log('errors:', errors.length ? errors.join('\n') : 'none');

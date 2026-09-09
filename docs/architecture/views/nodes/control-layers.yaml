@@ -75,7 +75,7 @@ nodes:
     what: "A process inside a container cannot gain more privilege than it started with, so a setuid binary or a capability trick inside a compromised service goes nowhere."
     controls: [AC-6, CM-7]
     status: partial
-    status_note: "Set on the three live containers and on 18 of 19 in the full design; the kernel sensor is the documented exception because it needs the capabilities it watches."
+    status_note: "Set on seven of the eight live containers and on 18 of 19 in the full design; the kernel sensor is the documented exception because it needs the capabilities it watches."
     evidence:
       - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 77}
       - {label: "Database in the full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 107}
@@ -87,7 +87,7 @@ nodes:
     what: "CPU, memory, and process-count limits on every service, so a runaway or a fork bomb in one container cannot starve the host."
     controls: [SC-6, SC-5]
     status: live
-    status_note: "Set on every service in the full design and on all three live containers since 2026-09-06: processor, memory, and process-count caps on the database, n8n, and the tunnel, confirmed by inspecting each container on the host."
+    status_note: "Set on every service in the full design and on all eight live containers: the database, n8n, and the tunnel since 2026-09-06, the sensor, its router, the agent, the local model, and the transcriber since 2026-09-08, all confirmed by inspecting each container on the host."
     evidence:
       - {label: "Limits on the live database, n8n, and tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 52}
       - {label: "Limits on the database, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 111-112}
@@ -100,9 +100,10 @@ nodes:
     zone: runtime
     what: "Three bridge networks: core for state and orchestration, a sealed one for the local models, and one for the sensors; a container reaches only what its network reaches."
     controls: [AC-4, SC-7]
-    status: partial
-    status_note: "Three networks in the full design; the live host runs the core network alone until the rebuild brings the other services back."
+    status: live
+    status_note: "All three networks exist on the live host since 2026-09-08: the core network for state and orchestration, the sealed one carrying the local model and the transcriber with no route in or out (the model weights had to be pulled through a throwaway container for that reason), and the monitoring one for the sensor, its router, and the agent."
     evidence:
+      - {label: "Three networks on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: "281-287"}
       - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1022-1029}
       - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 80}
       - {label: "Segmentation in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 199}
@@ -136,7 +137,7 @@ nodes:
     what: "Every image is pinned by content digest rather than by tag, so a pull returns exactly the reviewed bytes; Renovate proposes updates in tiers for review."
     controls: [SI-7, CM-8]
     status: live
-    status_note: "Every image in the full design and all three on the live host are pinned by content digest against a multi-architecture index since 2026-09-06; Renovate tracks every tier and proposes bumps as pull requests for review."
+    status_note: "Every image in the full design and all eight on the live host are pinned by content digest against a multi-architecture index since 2026-09-06; Renovate tracks every tier and proposes bumps as pull requests for review."
     evidence:
       - {label: "Live images, digest-pinned", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 38}
       - {label: "Pinning rule for the compose", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
@@ -148,9 +149,11 @@ nodes:
     zone: runtime
     what: "Sensor alerts and audit logs leave the host as they happen, so a compromise cannot erase the record of itself."
     controls: [AU-9, SI-4, IR-5]
-    status: designed
-    status_note: "Drift alerts reach the operator from CI today; the sensor and log shipping paths from the host return with the ARM rebuild."
+    status: partial
+    status_note: "Falco events and host logs leave to the SIEM through Falcosidekick and the agent since 2026-09-08; the Teleport audit pipeline (event handler, Fluentd) returns with the identity session, and drift alerts reach the operator from CI."
     evidence:
+      - {label: "Live router on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 173}
+      - {label: "Live agent on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 238}
       - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
       - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 582}
       - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 89}

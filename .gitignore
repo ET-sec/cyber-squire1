@@ -262,3 +262,10 @@ terraform/cd-aws-security-plane/lambda/*.zip
 # cd-cloudflare-edge: local-only backend and real zone values
 terraform/cd-cloudflare-edge/backend.hcl
 terraform/cd-cloudflare-edge/terraform.tfvars
+
+# Built resumes carry contact details; the .gitkeep stays
+builds/resume-rebuild/output/*.docx
+builds/resume-rebuild/output/*.pdf
+
+# Literal gitleaks tripwires (the hooks refuse to run without this file)
+.gitleaks.local.toml
