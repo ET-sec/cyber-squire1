@@ -25,6 +25,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 METRICS_PATH = REPO_ROOT / "metrics.yaml"
+WORKLOAD_PATH = REPO_ROOT / "docs" / "metrics" / "workload.json"
+WORKLOAD_LANES = ("coredirective", "empire", "filler")
 
 # Owner-approved public values not derivable from disk (or where disk would mislead).
 OWNER_APPROVED = {
@@ -52,6 +54,7 @@ class Metrics:
     infra: dict = field(default_factory=dict)
     governance: dict = field(default_factory=dict)
     contact: dict = field(default_factory=dict)
+    workload: dict = field(default_factory=dict)
 
 
 def grep_count(pattern: str, paths: list[Path]) -> int:
@@ -291,6 +294,76 @@ def compute_ai() -> dict:
     }
 
 
+def compute_workload(path: Path = WORKLOAD_PATH) -> dict:
+    """Flat scalars from the hand run snapshot at docs/metrics/workload.json.
+
+    The snapshot is the artifact; this only reads it, so nothing reaches the
+    host at build time and the numbers reproduce from a clean clone. A clone
+    with no snapshot yet gets an empty dict and no workload section.
+
+    The hours figure is recomputed from the per workflow rows rather than
+    trusted, and a snapshot whose own total disagrees is rejected instead of
+    published. Same for the lane split and the event total: a number on a public
+    page that nobody checked is the failure mode this repository has a rule
+    about.
+    """
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    rows = data.get("workflows", [])
+    events = data["events_handled_per_week"]
+
+    total_minutes = 0
+    for row in rows:
+        lane = row.get("lane", "")
+        if lane not in WORKLOAD_LANES:
+            raise ValueError(
+                f"{path.name}: {row.get('name')} carries lane {lane!r}; "
+                f"expected one of {', '.join(WORKLOAD_LANES)}"
+            )
+        minutes = row.get("minutes_manual", 0) or 0
+        if lane == "filler" and minutes:
+            raise ValueError(
+                f"{path.name}: {row.get('name')} is in the filler lane and "
+                f"carries minutes_manual {minutes}. Filler can never inflate "
+                "hours saved."
+            )
+        total_minutes += row.get("runs", 0) * minutes
+
+    if rows and sum(row.get("runs", 0) for row in rows) != events:
+        raise ValueError(
+            f"{path.name}: the per workflow runs sum to "
+            f"{sum(row.get('runs', 0) for row in rows)}, the event total says "
+            f"{events}. Re-run the snapshot."
+        )
+
+    by_lane = data.get("events_by_lane")
+    if by_lane is not None and sum(by_lane.values()) != events:
+        raise ValueError(
+            f"{path.name}: events_by_lane sums to {sum(by_lane.values())}, the "
+            f"event total says {events}. Re-run the snapshot."
+        )
+
+    hours = round(total_minutes / 60, 1)
+    hours = int(hours) if float(hours).is_integer() else hours
+    stated = data.get("operator_hours_saved_per_week")
+    if stated is not None and abs(float(stated) - hours) > 0.05:
+        raise ValueError(
+            f"{path.name}: operator_hours_saved_per_week reads {stated}, the "
+            f"rows recompute to {hours}. Re-run the snapshot rather than "
+            "editing the total."
+        )
+
+    return {
+        "events_handled_per_week": events,
+        "operator_hours_saved_per_week": hours,
+        "window_days": data["window_days"],
+        "measured_at": data["measured_at"],
+        "workflows_measured": data["workflows_measured"],
+        "workflows_active": data["workflows_active"],
+    }
+
+
 def compute_contact() -> dict:
     return {
         "email": "etigoue@tigouetheory.com",
@@ -329,7 +402,12 @@ def emit_yaml(m: Metrics) -> str:
         ("infra", m.infra),
         ("governance", m.governance),
         ("contact", m.contact),
+        # workload is emitted last on purpose: a new section here would shift
+        # the anchored container counts inside stack:, which views cite by line.
+        ("workload", m.workload),
     ):
+        if not section:
+            continue
         out.append(f"{section_name}:")
         for k, v in section.items():
             if isinstance(v, bool):
@@ -358,6 +436,7 @@ def main() -> int:
         "detections_source": "detections/",
         "workflows_source": ".github/workflows/",
         "poam_auto_source": "docs/grc/POAM_AUTO_FINDINGS.md",
+        "workload_source": "docs/metrics/workload.json (hand run snapshot from scripts/site/workload_snapshot.py; one event is one successful top level execution in the window, sub-workflow runs excluded, an orchestrator run nested inside a supervisor run excluded so one bot command counts once, command line runs counted)",
     }
     m.stack = compute_stack()
     m.grc = compute_grc()
@@ -366,6 +445,7 @@ def main() -> int:
     m.infra = compute_infra()
     m.governance = compute_governance()
     m.contact = compute_contact()
+    m.workload = compute_workload()
 
     yaml_text = emit_yaml(m)
 
