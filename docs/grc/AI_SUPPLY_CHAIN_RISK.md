@@ -337,7 +337,7 @@ An ML Bill of Materials extends the concept of a Software Bill of Materials (SBO
 | **Training data** | Undisclosed; Qwen technical report describes data categories but not specific datasets |
 | **Training data provenance** | **Partially documented** - training methodology published; specific data sources not disclosed |
 | **Container image** | ollama/ollama |
-| **Container tag** | Pinned by index digest in the compose file (Ollama 0.17.7); a bump is a reviewed digest change |
+| **Container tag** | Pinned by index digest in the compose file (Ollama 0.34.0, re-pinned 2026-09-10); a bump is a reviewed digest change |
 | **Runtime dependencies** | Go binary, llama.cpp (compiled into Ollama) |
 | **Model storage** | llm-model-volume (persistent Docker volume on alpha-node) |
 | **Model hash (SHA256)** | Stored in Ollama manifest (`ollama show qwen3.5:9b --modelfile`) |
