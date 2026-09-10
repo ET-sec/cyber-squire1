@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-build_metrics.py — derive canonical numeric facts for cyber-squire1 from the filesystem.
+build_metrics.py: derive canonical numeric facts for cyber-squire1 from the filesystem.
 
 Writes `metrics.yaml` at repo root. Every count is computed from disk, never copied
 from existing claims in README or resume or portfolio. If a source doc disagrees with
