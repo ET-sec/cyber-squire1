@@ -130,12 +130,15 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_NUM_PARALLEL=1        # one inference at a time; a second request queues instead of doubling memory and CPU
+      - OLLAMA_MAX_LOADED_MODELS=1   # the 9B alone fills the cap; a second model waits for the first to unload
     security_opt: [ "no-new-privileges:true" ]
+    cpu_shares: 512   # half the default weight: all four cores when the box is idle, yields to n8n and Postgres under contention
     deploy:
       resources:
         limits:
-          cpus: '2.00'
-          memory: 6G   # an 8B model at Q4 is ~5 GB resident; the master's 3G fails at load
+          cpus: '4.00'   # every core on the host. qwen3.5 re-reads its prompt each turn (hybrid attention, no prefix reuse in llama.cpp yet), so cores are the latency lever: measured 2026-09-10 at 2 cores 85 to 106 s per tool call, at 4 cores 46 to 57 s
+          memory: 8G     # qwen3.5:9b is 5.9 GiB resident at 8k context; 7.25 GiB was the peak seen across the 2026-09-10 benchmark. A blowout kills this container only
           pids: 256
     networks: [ net-ai ]
 
