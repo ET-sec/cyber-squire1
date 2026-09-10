@@ -57,7 +57,7 @@ Consequences, recorded plainly:
 
 - The 2026-09-01 "live finding" about the orchestrator's raw-SQL action described a workflow that is not deployed. It is a design finding against the exported definition, not a live exposure.
 - The edge fix in this record is still correct and still needed. It is a precondition for the bot, not the whole repair.
-- Eleven DO-era workflow exports exist in the repo's engine directory (health checks, error handler, finance and status tools, Gumroad, YouTube, Gmail labels, security pulse). Exports of the master orchestrator and the Telegram supervisor were not found on local disk; the agent cards under `.agents/` are the only surviving description of them.
+- Fourteen DO-era workflow exports exist in the repository's engine directory, and they include the master orchestrator and the Telegram supervisor. They are gitignored, so a query against the tracked set cannot see them, which is where the claim that the two flagship definitions were lost came from. All fourteen were restored to the tenant zero instance in Phase 23.
 
 ## The interview version
 
@@ -69,8 +69,8 @@ The 2026-09-01 assessment stated the orchestrator endpoint had no authentication
 
 ## Residuals
 
-- **Restore the SOAR layer on OCI.** Re-import the eleven surviving exports, rebuild the orchestrator and Telegram supervisor from their agent cards with the header-auth and chat-ID controls designed in, recreate credentials from Doppler. This is a rebuild, scheduled after the exam window.
-- Header Auth credential on the orchestrator webhook node and Restrict to Chat IDs on the Telegram Trigger node (workflow-side; needs an n8n change window).
+- **Restore the SOAR layer on OCI.** Done in Phase 23: all fourteen exports imported at the ids the signed registry names, credentials recreated from Doppler, every trigger path fired once, and the active set decided rather than inherited. The bot answers a real command end to end.
+- Header Auth on the orchestrator webhook node and a chat allowlist ahead of every reply path: both applied in Phase 23 and measured, an unauthenticated call answering 403 and an update from an unknown chat producing no reply and no log row.
 - Import the remaining Cloudflare resources into `cd-cloudflare-edge`.
 - Per-agent service tokens replacing the shared automation token.
 - A drift-check leg for the edge plane. Tradeoff to document when done: it needs a scoped read-only Cloudflare token stored in CI, which is the first stored cloud credential in the pipeline since the OIDC migration.

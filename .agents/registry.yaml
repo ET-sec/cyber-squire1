@@ -143,6 +143,7 @@ agents:
       - invoke_gmail
       - invoke_workspace_admin
       - invoke_excel
+      - invoke_status
     data_access:
       - "all_workspace_apis"
       - "postgres:n8n_db"
