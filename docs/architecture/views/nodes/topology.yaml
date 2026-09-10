@@ -120,7 +120,7 @@ nodes:
     what: "The local model on the sealed segment, the fallback when the daily spend ceiling on the hosted model trips."
     controls: [AC-4, SC-7, SA-9]
     status: live
-    status_note: "Live on the current host since 2026-09-08 on the sealed network with llama3.1:8b and qwen3:8b pulled and inference verified on ARM; n8n reaches it, and the agent joined the sealed segment in the design in Phase 22; on the host it reaches nothing until the application tier session of the rebuild builds its image."
+    status_note: "Live on the current host since 2026-09-08 on the sealed network with qwen3.5:9b pulled 2026-09-10 after a seven-model benchmark on the host and inference verified on ARM (qwen3:8b and llama3.1:8b remain on the volume); n8n reaches it, and the agent joined the sealed segment in the design in Phase 22; on the host it reaches nothing until the application tier session of the rebuild builds its image."
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 122}
       - {label: "Service definition, sealed network", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 177}
