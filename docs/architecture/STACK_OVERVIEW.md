@@ -124,7 +124,7 @@ flowchart TB
 | Falco 0.43, modern eBPF | Kernel-level runtime detection; custom rules and the public showcase rule loaded from the host |
 | Falcosidekick | Routes Falco events to the SIEM (Datadog) tagged with the sensor's agent id |
 | Datadog agent | Host metrics, container logs, and the SSH auth log to the SIEM |
-| Ollama | Local model server on the sealed network (llama3.1:8b and qwen3:8b pulled, inference verified on ARM) |
+| Ollama | Local model server on the sealed network (qwen3.5:9b pulled 2026-09-10 after a seven-model benchmark on the host, inference verified on ARM; qwen3:8b and llama3.1:8b remain on the volume) |
 | Whisper (faster-whisper-server) | Speech to text on the sealed network, small model, transcription verified |
 
 Also live outside the instance: the Cloudflare edge (Access ZTNA, WAF, DNS, tunnel), the Terraform remote state bucket, the KMS key, the backup bucket, the nightly drift check, the scanner-to-POA&M pipeline, and both local git hooks.

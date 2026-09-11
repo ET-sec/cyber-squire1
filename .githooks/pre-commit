@@ -8,8 +8,8 @@
 #    WARNS on AI-tell phrases and "not X. Y." juxtaposition.
 #
 # 2. Canonical metric rebuild
-#    When staged changes touch docs/grc/, terraform/, detections/,
-#    .github/workflows/, or COREDIRECTIVE_ENGINE/docker-compose.yaml,
+#    When staged changes touch docs/grc/, docs/metrics/, terraform/,
+#    detections/, .github/workflows/, or the engine docker-compose file,
 #    rerun scripts/build_metrics.py and the GTA build_manifest.py.
 #    Stage the regenerated metrics.yaml + REPO_MAP.yaml so they ride
 #    into the same commit. Metrics drift is impossible by construction.
@@ -34,7 +34,7 @@ STAGED_ALL=$(git diff --cached --name-only --diff-filter=ACM || true)
 STAGED_MD=$(echo "$STAGED_ALL" | grep -E '\.md$' || true)
 
 # Patterns that should trigger metrics rebuild.
-METRIC_SOURCES_RE='^(docs/grc/|terraform/|detections/|\.github/workflows/|COREDIRECTIVE_ENGINE/docker-compose\.ya?ml$)'
+METRIC_SOURCES_RE='^(docs/grc/|docs/metrics/|terraform/|detections/|\.github/workflows/|COREDIRECTIVE_ENGINE/docker-compose\.ya?ml$)'
 STAGED_SOURCE=$(echo "$STAGED_ALL" | grep -E "$METRIC_SOURCES_RE" || true)
 
 # ---------------------------------------------------------------------------

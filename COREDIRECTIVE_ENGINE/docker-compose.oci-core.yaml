@@ -120,7 +120,7 @@ services:
   # default bridge into the same volume (runbook step in the PR description).
   # --------------------------------------------------------------------------
   cd-service-ollama:
-    image: ollama/ollama@sha256:0ff452f6a4c3c5bb4ab063a1db190b261d5834741a519189ed5301d50e4434d1
+    image: ollama/ollama@sha256:684d8674b4315fa18f4f0e973a118ec2652ed96f67563277839985175858e0ba   # 0.34.0 (2026-09-05). Re-pinned 2026-09-10: 0.17.7 estimated 8.0 GiB for qwen3.5:9b and refused to load it under the 8G cap; 0.34.0 measured 5.9 GiB resident on this host and is the build the model benchmark ran on
     container_name: cd-service-ollama
     restart: unless-stopped
     ports:
@@ -130,12 +130,15 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_NUM_PARALLEL=1        # one inference at a time; a second request queues instead of doubling memory and CPU
+      - OLLAMA_MAX_LOADED_MODELS=1   # the 9B alone fills the cap; a second model waits for the first to unload
     security_opt: [ "no-new-privileges:true" ]
+    cpu_shares: 512   # half the default weight: all four cores when the box is idle, yields to n8n and Postgres under contention
     deploy:
       resources:
         limits:
-          cpus: '2.00'
-          memory: 6G   # an 8B model at Q4 is ~5 GB resident; the master's 3G fails at load
+          cpus: '4.00'   # every core on the host. qwen3.5 re-reads its prompt each turn (hybrid attention, no prefix reuse in llama.cpp yet), so cores are the latency lever: measured 2026-09-10 at 2 cores 85 to 106 s per tool call, at 4 cores 46 to 57 s
+          memory: 8G     # qwen3.5:9b is 5.9 GiB resident at 8k context; 7.25 GiB was the peak seen across the 2026-09-10 benchmark. A blowout kills this container only
           pids: 256
     networks: [ net-ai ]
 
