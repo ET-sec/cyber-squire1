@@ -95,7 +95,7 @@ nodes:
       - {label: "Instance", path: terraform/cd-oci-infrastructure/compute.tf, line: 22}
       - {label: "First-boot configuration", path: terraform/cd-oci-infrastructure/cloud-init.yaml, line: 1}
       - {label: "Live compose, eight services", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
-      - {label: "Live and designed counts", path: metrics.yaml, line: 20-21}
+      - {label: "Live and designed counts", path: metrics.yaml, line: 21-22}
     solidify: "Tier 3: 3 of 19 live"
   - id: vcn-one-port
     label: "VCN, one port"

@@ -108,8 +108,8 @@ nodes:
     status: live
     status_note: "Live on the current host since 2026-09-08 on the sealed network, which has no route in or out; the small model is served from a cache warmed once, and a transcription round trip was verified from a client on that network."
     evidence:
-      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 142}
-      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 283}
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 145}
+      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 286}
       - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
       - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
     solidify: none
@@ -251,7 +251,7 @@ nodes:
     status: live
     status_note: "Live on the current host since 2026-09-08 through the modern eBPF probe, with the custom rules, the public showcase rule, and one measured tuning file loaded; it runs with SYS_ADMIN and the read-only container socket as documented accepted risks, the one service without no-new-privileges."
     evidence:
-      - {label: "Live sensor definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 202}
+      - {label: "Live sensor definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 205}
       - {label: "Tuning measured on the host", path: detections/falco/tuning-host-noise.yaml, line: 1}
       - {label: "Sensor definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 477}
       - {label: "Why it lacks no-new-privileges", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 474-476}
@@ -268,7 +268,7 @@ nodes:
     status: live
     status_note: "Live on the current host since 2026-09-08 with a read-only root and no new privileges; Falco events reach the SIEM through it, accepted with 202, tagged with the sensor's agent id."
     evidence:
-      - {label: "Live router definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 173}
+      - {label: "Live router definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 176}
       - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
       - {label: "Read-only root", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 552}
     solidify: none
@@ -306,7 +306,7 @@ nodes:
     status: live
     status_note: "Live on the current host since 2026-09-08 with the host PID namespace and the read-only container socket as documented accepted risks; it ships container logs, host metrics, and the SSH auth log, and its key validated against the SIEM."
     evidence:
-      - {label: "Live agent definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 238}
+      - {label: "Live agent definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 241}
       - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 419}
       - {label: "Host PID namespace", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 424}
       - {label: "Accepted risk, host PID", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 617}
@@ -320,7 +320,7 @@ nodes:
     status: partial
     status_note: "The agent and the Falco path ship to it from the current host since 2026-09-08; the ten monitors and two dashboards are still Terraform in the archived provider module and are not applied for this host, so drift alerts still go to the operator's messaging channel."
     evidence:
-      - {label: "Live agent and router on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 173}
+      - {label: "Live agent and router on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 176}
       - {label: "Monitor definitions, archived provider module", path: terraform/cd-do-infrastructure/monitoring.tf, line: 52}
       - {label: "Telemetry flows in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 185-188}
       - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 89}
