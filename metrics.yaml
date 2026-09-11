@@ -3,7 +3,7 @@
 # Pre-commit hook auto-runs this when source dirs change.
 # Do not hand-edit: changes will be overwritten.
 
-generated_at: '2026-09-09T19:31:22+00:00'
+generated_at: '2026-09-11T13:05:30+00:00'
 generator: build_metrics.py
 version: 1
 
@@ -15,12 +15,13 @@ sources:
   ssp_source: 'docs/grc/SSP_*.md'
   terraform_source: 'terraform/cd-oci-infrastructure/ (active); terraform/cd-aws-security-plane/ (designed, apply scheduled); terraform/cd-do-infrastructure/ (archived)'
   workflows_source: '.github/workflows/'
+  workload_source: 'docs/metrics/workload.json (hand run snapshot from scripts/site/workload_snapshot.py; one event is one successful top level execution in the window, sub-workflow runs excluded, an orchestrator run nested inside a supervisor run excluded so one bot command counts once, command line runs counted)'
 
 stack:
   containers_live: 8
   containers_designed: 19
   workflows_n8n_exported: 14
-  workflows_github_actions: 17
+  workflows_github_actions: 18
 
 grc:
   total_documents: 57
@@ -74,3 +75,11 @@ contact:
   github: "ET-sec"
   portfolio_url: "https://et-sec.github.io/portfolio/"
   linkedin: "https://www.linkedin.com/in/emmanuel-tigoue"
+
+workload:
+  events_handled_per_week: 20
+  operator_hours_saved_per_week: 0
+  window_days: 7
+  measured_at: "2026-09-10"
+  workflows_measured: 8
+  workflows_active: 8

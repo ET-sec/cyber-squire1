@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# commit-msg hook: verify who is writing this commit, at commit time.
+#
+# The commit's author and every co-author must be an approved identity, or the
+# commit is refused. An identity gate, not a keyword filter: it names no tool,
+# it refuses anyone not on the approved list. The pre-push hook and the
+# authorship-guard workflow re-check the same rule, so a --no-verify cannot land
+# an unapproved identity on main.
+#
+# Approved identities are data, not code (the repo forbids PII in source):
+#   CD_AUTHORS_OK env, and/or .githooks/authors.allow (gitignored).
+#
+# Install: git config core.hooksPath .githooks
+set -euo pipefail
+
+msg_file="$1"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+PUBLIC_OK="157398893+ET-sec@users.noreply.github.com noreply@github.com"
+
+approved=""
+[ -n "${CD_AUTHORS_OK:-}" ] && approved="$approved $CD_AUTHORS_OK"
+if [ -f "$REPO_ROOT/.githooks/authors.allow" ]; then
+  approved="$approved $(grep -vE '^[[:space:]]*(#|$)' "$REPO_ROOT/.githooks/authors.allow" | tr '\n' ' ')"
+fi
+if [ -z "$(printf '%s' "$approved" | tr -d ' ')" ]; then
+  echo "commit-msg BLOCKED: no approved-author list configured (CD_AUTHORS_OK or .githooks/authors.allow)."
+  exit 1
+fi
+AUTHORS_OK="$approved $PUBLIC_OK"
+
+# 1. The commit's own author must be approved.
+ae="${GIT_AUTHOR_EMAIL:-$(git config user.email 2>/dev/null || echo '')}"
+an="${GIT_AUTHOR_NAME:-$(git config user.name 2>/dev/null || echo '')}"
+case " $AUTHORS_OK " in
+  *" $ae "*) : ;;
+  *) echo "commit-msg BLOCKED: author not approved: $an <$ae>."; exit 1 ;;
+esac
+
+# 2. Every co-author must be approved.
+emails=$(grep -iE '^co-authored-by:' "$msg_file" | sed -E 's/.*<([^>]+)>.*/\1/' || true)
+bad=""
+for em in $emails; do
+  case " $AUTHORS_OK " in
+    *" $em "*) : ;;
+    *) bad="$bad $em" ;;
+  esac
+done
+if [ -n "$bad" ]; then
+  echo "commit-msg BLOCKED: co-author(s) not approved:$bad"
+  exit 1
+fi
+
+exit 0

@@ -1,0 +1,43 @@
+name: authorship-guard
+# Identity gate for the pipeline. Verifies every commit on a pull request or a
+# push is authored, committed, and co-authored by an approved identity, and
+# blocks it otherwise. Fail-closed. Make the "authorship" check REQUIRED on main
+# (branch protection) so an unapproved identity cannot be merged, only reported.
+#
+# Approved identities come from the AUTHORSHIP_ALLOW repository variable, so no
+# address lives in source. No path filter: an unapproved identity can ride any
+# file, so the gate sees every pull request and every push to main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  authorship:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Every commit is by an approved identity
+        env:
+          CD_AUTHORS_OK: ${{ vars.AUTHORSHIP_ALLOW }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ZERO=0000000000000000000000000000000000000000
+          if [ -n "${PR_HEAD:-}" ]; then
+            RANGE="${PR_BASE}..${PR_HEAD}"
+          elif [ -n "${PUSH_BEFORE:-}" ] && [ "${PUSH_BEFORE}" != "$ZERO" ]; then
+            RANGE="${PUSH_BEFORE}..${PUSH_AFTER}"
+          else
+            RANGE="${PUSH_AFTER}"
+          fi
+          echo "checking range: $RANGE"
+          bash scripts/repo/check_authorship.sh "$RANGE"

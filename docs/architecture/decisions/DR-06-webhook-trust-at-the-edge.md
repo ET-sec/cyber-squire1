@@ -29,7 +29,7 @@ So the real finding was not "the webhook is open." It was "the edge is closed so
 ## Decision
 
 1. **The edge stays closed by default.** Access keeps gating every path on the automation host. Machine callers present a service token; humans get a one-time PIN.
-2. **One carve-out, scoped twice.** A path-scoped Access application covers only the Telegram Trigger webhook prefix, and its bypass policy includes only Telegram's published ranges (`149.154.160.0/20`, `91.108.4.0/22`). The WAF geo-fence and header-anomaly rules exempt the same ranges. The webhook prefix is treated as a secret and lives in gitignored variables.
+2. **One carve-out, scoped twice.** A path-scoped Access application covers only the Telegram Trigger webhook prefix, and its bypass policy includes only Telegram's published ranges, the fourteen in `core.telegram.org/resources/cidr.txt` since 2026-09-11 (the two-range guide list let the geo-fence answer 403 to a delivery that day). The WAF geo-fence and header-anomaly rules exempt the same ranges. The webhook prefix is treated as a secret and lives in gitignored variables.
 3. **The edge becomes code.** A new Terraform root, `terraform/cd-cloudflare-edge`, adopts the live rulesets and the n8n Access resources by import (never by create) and holds state under its own key in the same locked, versioned bucket as the compute plane. The remaining Cloudflare resources (other Access apps, DNS, tunnel ingress, per-agent tokens) are imported in follow-up passes.
 4. **Second layer on the orchestrator.** The Squire caller now presents both the Access service-token headers and an application-layer token header. The matching Header Auth credential on the orchestrator's webhook node closes CR-001-F4 for real instead of by acceptance.
 
@@ -57,7 +57,7 @@ Consequences, recorded plainly:
 
 - The 2026-09-01 "live finding" about the orchestrator's raw-SQL action described a workflow that is not deployed. It is a design finding against the exported definition, not a live exposure.
 - The edge fix in this record is still correct and still needed. It is a precondition for the bot, not the whole repair.
-- Eleven DO-era workflow exports exist in the repo's engine directory (health checks, error handler, finance and status tools, Gumroad, YouTube, Gmail labels, security pulse). Exports of the master orchestrator and the Telegram supervisor were not found on local disk; the agent cards under `.agents/` are the only surviving description of them.
+- Fourteen DO-era workflow exports exist in the repository's engine directory, and they include the master orchestrator and the Telegram supervisor. They are gitignored, so a query against the tracked set cannot see them, which is where the claim that the two flagship definitions were lost came from. All fourteen were restored to the tenant zero instance in Phase 23.
 
 ## The interview version
 
@@ -69,8 +69,8 @@ The 2026-09-01 assessment stated the orchestrator endpoint had no authentication
 
 ## Residuals
 
-- **Restore the SOAR layer on OCI.** Re-import the eleven surviving exports, rebuild the orchestrator and Telegram supervisor from their agent cards with the header-auth and chat-ID controls designed in, recreate credentials from Doppler. This is a rebuild, scheduled after the exam window.
-- Header Auth credential on the orchestrator webhook node and Restrict to Chat IDs on the Telegram Trigger node (workflow-side; needs an n8n change window).
+- **Restore the SOAR layer on OCI.** Done in Phase 23: all fourteen exports imported at the ids the signed registry names, credentials recreated from Doppler, every trigger path fired once, and the active set decided rather than inherited. The bot answers a real command end to end.
+- Header Auth on the orchestrator webhook node and a chat allowlist ahead of every reply path: both applied in Phase 23 and measured, an unauthenticated call answering 403 and an update from an unknown chat producing no reply and no log row.
 - Import the remaining Cloudflare resources into `cd-cloudflare-edge`.
 - Per-agent service tokens replacing the shared automation token.
 - A drift-check leg for the edge plane. Tradeoff to document when done: it needs a scoped read-only Cloudflare token stored in CI, which is the first stored cloud credential in the pipeline since the OIDC migration.

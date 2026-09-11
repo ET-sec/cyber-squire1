@@ -1,0 +1,128 @@
+{
+  "measured_at": "2026-09-10",
+  "window_days": 7,
+  "events_handled_per_week": 20,
+  "operator_hours_saved_per_week": 0,
+  "workflows_measured": 8,
+  "workflows_active": 8,
+  "counts_cli_runs": true,
+  "events_by_lane": {
+    "coredirective": 16,
+    "empire": 0,
+    "filler": 4
+  },
+  "workflows": [
+    {
+      "id": "UIf3v1ZNN98OtUge",
+      "name": "MASTER_ORCHESTRATOR_V1",
+      "lane": "coredirective",
+      "runs": 5,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "el07Swns2MrSSpOK",
+      "name": "System: Error Handler",
+      "lane": "coredirective",
+      "runs": 5,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "iO6PfPdk0SSPBTWb",
+      "name": "Telegram Supervisor Agent",
+      "lane": "coredirective",
+      "runs": 5,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "nhtwRpJATQoaZpxL",
+      "name": "Content Research Pipeline",
+      "lane": "filler",
+      "runs": 1,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "EWQEr6TnXGS48Gmg",
+      "name": "Gmail Label & Filter Creator",
+      "lane": "filler",
+      "runs": 1,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "bjv2gtSnBvXJ4Kxp",
+      "name": "Tool: ADHD Commander",
+      "lane": "filler",
+      "runs": 1,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "6m44uhpOKDQ6nmSd",
+      "name": "Tool: Finance Manager",
+      "lane": "filler",
+      "runs": 1,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "9ZFZFOqGCVWVlAmt",
+      "name": "Tool: Security Scan",
+      "lane": "coredirective",
+      "runs": 1,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "HrjxPHJ7yVznvRDg",
+      "name": "CoreDirective API Health Check",
+      "lane": "coredirective",
+      "runs": 0,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "D6ZdnaRLlVmkjm3W",
+      "name": "Gumroad Solvency Engine",
+      "lane": "empire",
+      "runs": 0,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "7wofWVjdOYquQIYV",
+      "name": "Mission: Financial War Room",
+      "lane": "filler",
+      "runs": 0,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "3trAv8CMqPop9W3f",
+      "name": "Tool: System Status",
+      "lane": "coredirective",
+      "runs": 0,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "CPBPZ1obRFnuPOE3",
+      "name": "🎬 YouTube Content Factory",
+      "lane": "filler",
+      "runs": 0,
+      "minutes_manual": 0,
+      "timed_on": null
+    },
+    {
+      "id": "tx8lsLkCygTywAaW",
+      "name": "🔧 Telegram Webhook Health Check",
+      "lane": "coredirective",
+      "runs": 0,
+      "minutes_manual": 0,
+      "timed_on": null
+    }
+  ]
+}

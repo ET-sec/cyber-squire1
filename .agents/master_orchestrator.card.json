@@ -109,6 +109,12 @@
       "name": "Excel",
       "description": "Reads or appends rows in a Microsoft Excel workbook via the Graph API.",
       "tags": ["workspace", "data"]
+    },
+    {
+      "id": "status_action",
+      "name": "Status",
+      "description": "Returns the platform status the System Status sub-workflow reads from the n8n database and the local model endpoint: whether n8n answers, how many published workflows the database holds against the total, whether the Ollama endpoint responds, and the Eastern timestamp of the reading.",
+      "tags": ["observability", "workspace"]
     }
   ]
 }

@@ -103,7 +103,7 @@ nodes:
     status: live
     status_note: "All three networks exist on the live host since 2026-09-08: the core network for state and orchestration, the sealed one carrying the local model and the transcriber with no route in or out (the model weights had to be pulled through a throwaway container for that reason), and the monitoring one for the sensor, its router, and the agent."
     evidence:
-      - {label: "Three networks on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: "281-287"}
+      - {label: "Three networks on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: "284-290"}
       - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1034-1041}
       - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 80}
       - {label: "Segmentation in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 199}
@@ -152,8 +152,8 @@ nodes:
     status: partial
     status_note: "Falco events and host logs leave to the SIEM through Falcosidekick and the agent since 2026-09-08; the Teleport audit pipeline (event handler, Fluentd) returns with the identity session, and drift alerts reach the operator from CI."
     evidence:
-      - {label: "Live router on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 173}
-      - {label: "Live agent on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 238}
+      - {label: "Live router on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 176}
+      - {label: "Live agent on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 241}
       - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
       - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 582}
       - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 89}

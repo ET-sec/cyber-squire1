@@ -280,3 +280,4 @@ terraform/cd-cloudflare-edge/terraform.tfvars
 
 # Literal gitleaks tripwires (the hooks refuse to run without this file)
 .gitleaks.local.toml
+.githooks/authors.allow
