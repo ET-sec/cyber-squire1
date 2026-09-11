@@ -30,7 +30,7 @@ bot could not receive a single update from its own edge.
 
 The fix keeps the edge closed by default and opens exactly one thing: the
 Telegram Trigger path, for Telegram's published ranges only
-(`149.154.160.0/20`, `91.108.4.0/22`). The webhook path prefix is treated
+(the fourteen ranges in core.telegram.org/resources/cidr.txt). The webhook path prefix is treated
 as a secret and lives in the gitignored tfvars. The remaining trust for
 that path is enforced in n8n (Restrict to Chat IDs on the trigger node)
 and by the per-IP rate limit.

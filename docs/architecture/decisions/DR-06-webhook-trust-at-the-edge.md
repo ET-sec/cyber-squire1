@@ -29,7 +29,7 @@ So the real finding was not "the webhook is open." It was "the edge is closed so
 ## Decision
 
 1. **The edge stays closed by default.** Access keeps gating every path on the automation host. Machine callers present a service token; humans get a one-time PIN.
-2. **One carve-out, scoped twice.** A path-scoped Access application covers only the Telegram Trigger webhook prefix, and its bypass policy includes only Telegram's published ranges (`149.154.160.0/20`, `91.108.4.0/22`). The WAF geo-fence and header-anomaly rules exempt the same ranges. The webhook prefix is treated as a secret and lives in gitignored variables.
+2. **One carve-out, scoped twice.** A path-scoped Access application covers only the Telegram Trigger webhook prefix, and its bypass policy includes only Telegram's published ranges, the fourteen in `core.telegram.org/resources/cidr.txt` since 2026-09-11 (the two-range guide list let the geo-fence answer 403 to a delivery that day). The WAF geo-fence and header-anomaly rules exempt the same ranges. The webhook prefix is treated as a secret and lives in gitignored variables.
 3. **The edge becomes code.** A new Terraform root, `terraform/cd-cloudflare-edge`, adopts the live rulesets and the n8n Access resources by import (never by create) and holds state under its own key in the same locked, versioned bucket as the compute plane. The remaining Cloudflare resources (other Access apps, DNS, tunnel ingress, per-agent tokens) are imported in follow-up passes.
 4. **Second layer on the orchestrator.** The Squire caller now presents both the Access service-token headers and an application-layer token header. The matching Header Auth credential on the orchestrator's webhook node closes CR-001-F4 for real instead of by acceptance.
 
