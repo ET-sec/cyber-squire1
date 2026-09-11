@@ -126,7 +126,8 @@ def test_lanes_are_checked_and_filler_can_never_carry_minutes(tmp_path):
     data = snapshot(rows)
     assert all(r["lane"] in build_metrics.WORKLOAD_LANES for r in data["workflows"])
     assert sum(data["events_by_lane"].values()) == data["events_handled_per_week"]
-    assert build_metrics.compute_workload(write(tmp_path, data))["events_handled_per_week"] == 6
+    result = build_metrics.compute_workload(write(tmp_path, data))
+    assert result["events_handled_per_week"] == 6
 
     rows[2]["minutes_manual"] = 5
     with pytest.raises(ValueError, match="filler"):
