@@ -1,13 +1,12 @@
 name: authorship-guard
-# Fail-closed authorship gate for the pipeline. Blocks a pull request or a push
-# whose commits are authored, committed, or co-authored by anyone but the
-# maintainer, or whose messages carry a Claude/anthropic or bot trailer.
+# Identity gate for the pipeline. Verifies every commit on a pull request or a
+# push is authored, committed, and co-authored by an approved identity, and
+# blocks it otherwise. Fail-closed. Make the "authorship" check REQUIRED on main
+# (branch protection) so an unapproved identity cannot be merged, only reported.
 #
-# Prevention, not detection: make the "authorship" check REQUIRED on main
-# (branch protection) so a violating commit cannot be merged, only reported.
-#
-# No path filter on purpose: the failure this catches can ride any file, so the
-# gate has to see every pull request and every push to main.
+# Approved identities come from the AUTHORSHIP_ALLOW repository variable, so no
+# address lives in source. No path filter: an unapproved identity can ride any
+# file, so the gate sees every pull request and every push to main.
 on:
   pull_request:
   push:
@@ -23,8 +22,9 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
-      - name: Only the maintainer may author or co-author commits
+      - name: Every commit is by an approved identity
         env:
+          CD_AUTHORS_OK: ${{ vars.AUTHORSHIP_ALLOW }}
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           PR_HEAD: ${{ github.event.pull_request.head.sha }}
           PUSH_BEFORE: ${{ github.event.before }}

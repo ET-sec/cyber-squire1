@@ -1,48 +1,52 @@
 #!/usr/bin/env bash
-# commit-msg hook: fail-closed authorship at the earliest point, commit time.
+# commit-msg hook: verify who is writing this commit, at commit time.
 #
-# Prevention, not detection. A commit that would carry a Claude/anthropic or bot
-# co-author, a session trailer, a generated-with footer, or an automated author
-# is refused here before it exists. The pre-push hook and the authorship-guard
-# workflow re-check the same rule so a --no-verify cannot land it on main.
+# The commit's author and every co-author must be an approved identity, or the
+# commit is refused. An identity gate, not a keyword filter: it names no tool,
+# it refuses anyone not on the approved list. The pre-push hook and the
+# authorship-guard workflow re-check the same rule, so a --no-verify cannot land
+# an unapproved identity on main.
 #
-# No personal email lives in this file (the repo forbids PII in tracked code):
-# the author is screened by denylist, co-authors by the one public no-reply.
+# Approved identities are data, not code (the repo forbids PII in source):
+#   CD_AUTHORS_OK env, and/or .githooks/authors.allow (gitignored).
 #
-# Install: git config core.hooksPath .githooks   (already the repo default)
+# Install: git config core.hooksPath .githooks
 set -euo pipefail
 
 msg_file="$1"
-COAUTHORS_OK="${CD_COAUTHORS_OK:-157398893+ET-sec@users.noreply.github.com}"
-DENY_RE='claude|anthropic|\[bot\]|poam-sync-bot|actions@github\.com'
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+PUBLIC_OK="157398893+ET-sec@users.noreply.github.com noreply@github.com"
 
-# 1. The commit's own author identity must not be automated.
+approved=""
+[ -n "${CD_AUTHORS_OK:-}" ] && approved="$approved $CD_AUTHORS_OK"
+if [ -f "$REPO_ROOT/.githooks/authors.allow" ]; then
+  approved="$approved $(grep -vE '^[[:space:]]*(#|$)' "$REPO_ROOT/.githooks/authors.allow" | tr '\n' ' ')"
+fi
+if [ -z "$(printf '%s' "$approved" | tr -d ' ')" ]; then
+  echo "commit-msg BLOCKED: no approved-author list configured (CD_AUTHORS_OK or .githooks/authors.allow)."
+  exit 1
+fi
+AUTHORS_OK="$approved $PUBLIC_OK"
+
+# 1. The commit's own author must be approved.
 ae="${GIT_AUTHOR_EMAIL:-$(git config user.email 2>/dev/null || echo '')}"
 an="${GIT_AUTHOR_NAME:-$(git config user.name 2>/dev/null || echo '')}"
-if printf '%s\n%s\n' "$ae" "$an" | grep -qiE "$DENY_RE"; then
-  echo "commit-msg BLOCKED: automated author identity: $an <$ae>."
-  exit 1
-fi
+case " $AUTHORS_OK " in
+  *" $ae "*) : ;;
+  *) echo "commit-msg BLOCKED: author not approved: $an <$ae>."; exit 1 ;;
+esac
 
-# 2. Message trailers and footers.
-if grep -qiE '^(co-authored-by:.*(claude|anthropic)|claude-session:)' "$msg_file" \
-   || grep -qiE 'generated with \[claude code\]' "$msg_file"; then
-  echo "commit-msg BLOCKED: the message carries a Claude/anthropic co-author,"
-  echo "session, or generated-with trailer. Remove those lines and commit again."
-  exit 1
-fi
-
-# 3. Every co-author line must be on the allowlist.
+# 2. Every co-author must be approved.
 emails=$(grep -iE '^co-authored-by:' "$msg_file" | sed -E 's/.*<([^>]+)>.*/\1/' || true)
 bad=""
 for em in $emails; do
-  case " $COAUTHORS_OK " in
+  case " $AUTHORS_OK " in
     *" $em "*) : ;;
     *) bad="$bad $em" ;;
   esac
 done
 if [ -n "$bad" ]; then
-  echo "commit-msg BLOCKED: non-maintainer co-author(s):$bad"
+  echo "commit-msg BLOCKED: co-author(s) not approved:$bad"
   exit 1
 fi
 

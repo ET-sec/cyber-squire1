@@ -10,13 +10,14 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 
 | Path | Status | Purpose |
 |---|---|---|
-| `.githooks/**` | active | The three hooks core.hooksPath points at: pre-commit runs gitleaks fail closed, sweeps staged markdown for dash tells, and rebuilds metrics.yaml; commit-msg refuses a Claude/anthropic or bot co-author, session, or generated-with trailer and an automated author; pre-push rescans every commit being pushed for both secrets and authorship. The authorship rule is shared with scripts/repo/check_authorship.sh and the authorship-guard workflow. |
+| `.githooks/**` | active | The three hooks core.hooksPath points at: pre-commit runs gitleaks fail closed, sweeps staged markdown for dash tells, and rebuilds metrics.yaml; commit-msg verifies the commit's author and co-authors are approved identities; pre-push rescans every commit being pushed for both secrets and identity. The identity rule is shared with scripts/repo/check_authorship.sh and the authorship-guard workflow, with the approved list held in config, not in source. |
 <!-- /MANIFEST -->
 
 Install them with `git config core.hooksPath .githooks`. `pre-commit` runs
 gitleaks fail closed, sweeps staged markdown for dash tells, and rebuilds
-`metrics.yaml` when a counted source changes. `commit-msg` refuses a Claude/anthropic or bot co-author, session, or
-generated-with trailer and an automated author. `pre-push` rescans every commit
-being pushed for secrets and authorship. The authorship rule is shared with
-`scripts/repo/check_authorship.sh` and the `authorship-guard` workflow, so the
-laptop and the pipeline enforce it identically.
+`metrics.yaml` when a counted source changes. `commit-msg` verifies the commit's author and co-authors are approved
+identities. `pre-push` rescans every commit being pushed for secrets and
+identity. The identity rule is shared with `scripts/repo/check_authorship.sh`
+and the `authorship-guard` workflow, so the laptop and the pipeline enforce it
+identically. The approved list lives in config (a gitignored file locally, the
+AUTHORSHIP_ALLOW repository variable in CI), never in source.

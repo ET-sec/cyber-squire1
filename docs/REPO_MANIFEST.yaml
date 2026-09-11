@@ -161,7 +161,7 @@ entries:
   # .githooks: the local gates
   # ----------------------------------------------------------------------
   - path: ".githooks/**"
-    purpose: "The three hooks core.hooksPath points at: pre-commit runs gitleaks fail closed, sweeps staged markdown for dash tells, and rebuilds metrics.yaml; commit-msg refuses a Claude/anthropic or bot co-author, session, or generated-with trailer and an automated author; pre-push rescans every commit being pushed for both secrets and authorship. The authorship rule is shared with scripts/repo/check_authorship.sh and the authorship-guard workflow."
+    purpose: "The three hooks core.hooksPath points at: pre-commit runs gitleaks fail closed, sweeps staged markdown for dash tells, and rebuilds metrics.yaml; commit-msg verifies the commit's author and co-authors are approved identities; pre-push rescans every commit being pushed for both secrets and identity. The identity rule is shared with scripts/repo/check_authorship.sh and the authorship-guard workflow, with the approved list held in config, not in source."
     status: active
     reason: "They move the secret and authorship boundary from CI to the laptop. On a public repository a pushed branch is already public, so a scan that only runs after the push is a scan that runs too late."
     last_verified: 2026-09-11

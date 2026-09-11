@@ -1,39 +1,50 @@
 #!/usr/bin/env bash
-# check_authorship.sh: fail-closed authorship gate for this repository.
+# check_authorship.sh: verify who wrote each commit.
 #
-# The maintainer is the sole contributor and intends to stay so. A tool that
-# adds a Co-Authored-By or session trailer, or a workflow that commits as a bot,
-# is the only thing that ever put another name on the contributor graph. This
-# refuses those, at three layers that share one rule:
-#   - .githooks/commit-msg  (earliest, at commit time)
-#   - .githooks/pre-push    (last local exit before commits go public)
-#   - .github/workflows/authorship-guard.yml  (the pipeline; a --no-verify commit
-#                                              is still stopped at the merge)
+# Every commit's author, committer, and any co-author must be an approved
+# identity. Anything else is blocked. Fail-closed: an unapproved identity, or no
+# configured list at all, stops the commit or push. This is an identity gate,
+# not a keyword filter: it does not name or single out any one tool, it simply
+# refuses anyone who is not on the approved list.
 #
-# Prevention, not detection: every check below BLOCKS, none merely warns.
+# One rule, three layers:
+#   - .githooks/commit-msg  (at commit time)
+#   - .githooks/pre-push    (the commits being pushed)
+#   - .github/workflows/authorship-guard.yml  (required check on main)
 #
-# No personal email lives in this file (the repo forbids PII in tracked code).
-# Identity is screened by DENYLIST: automated and assistant identities are
-# refused, the maintainer's own address passes because it is not on the list.
-# Co-authors are screened by an ALLOWLIST of the one public no-reply address,
-# since the maintainer never co-authors their own commits, so any co-author line
-# is by definition someone else and is blocked.
+# The approved list is data, not code, and carries no address in the tracked
+# tree (the repo forbids PII in source):
+#   - CD_AUTHORS_OK  env, space or newline separated (CI sets it from the
+#     AUTHORSHIP_ALLOW repository variable), and/or
+#   - .githooks/authors.allow  gitignored, one address per line.
+# Two public GitHub no-reply addresses are always allowed as committers so the
+# web merge button and Actions commits pass.
 #
 # Usage:
 #   check_authorship.sh <range...>   e.g. origin/main..HEAD, or  <sha> --not --remotes
 #   check_authorship.sh              no arg: every local commit not on a remote
-#
-# Widen the co-author allowlist only if a second real human ever contributes:
-#   CD_COAUTHORS_OK="a@x b@y" check_authorship.sh ...
 set -euo pipefail
 
-# The only identity permitted on a Co-Authored-By line: the maintainer's public
-# GitHub no-reply address. Override to add a genuine second contributor.
-COAUTHORS_OK="${CD_COAUTHORS_OK:-157398893+ET-sec@users.noreply.github.com}"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+# Public, non-PII identities always permitted as committer (GitHub web merge and
+# this repo's Actions runner). Not enough on their own to author.
+PUBLIC_OK="157398893+ET-sec@users.noreply.github.com noreply@github.com"
 
-# Automated / assistant identities that may never author, commit, or co-author.
-# Matched case-insensitively against names, emails, and co-author lines.
-DENY_RE='claude|anthropic|\[bot\]|poam-sync-bot|actions@github\.com'
+approved=""
+[ -n "${CD_AUTHORS_OK:-}" ] && approved="$approved $CD_AUTHORS_OK"
+if [ -f "$REPO_ROOT/.githooks/authors.allow" ]; then
+  approved="$approved $(grep -vE '^[[:space:]]*(#|$)' "$REPO_ROOT/.githooks/authors.allow" | tr '\n' ' ')"
+fi
+approved="$(printf '%s' "$approved" | tr -s ' ')"
+
+if [ -z "$(printf '%s' "$approved" | tr -d ' ')" ]; then
+  echo "authorship: BLOCKED. No approved-author list is configured."
+  echo "Set CD_AUTHORS_OK, or create .githooks/authors.allow (one address per line)."
+  exit 1
+fi
+
+AUTHORS_OK="$approved"                 # who may author or co-author
+COMMITTERS_OK="$approved $PUBLIC_OK"   # who may commit
 
 if [ "$#" -gt 0 ]; then
   commits=$(git rev-list "$@" 2>/dev/null || true)
@@ -59,28 +70,17 @@ while IFS= read -r c; do
   cn=$(git show -s --format='%cn' "$c")
   short=$(git show -s --format='%h %s' "$c")
 
-  # 1. Author and committer identity: deny the automated set.
-  if printf '%s\n%s\n%s\n%s\n' "$ae" "$ce" "$an" "$cn" | grep -qiE "$DENY_RE"; then
-    echo "BLOCKED $short"
-    echo "  automated identity on author/committer: $an <$ae> / $cn <$ce>"
-    fail=1
+  if ! in_list "$ae" "$AUTHORS_OK"; then
+    echo "BLOCKED $short"; echo "  author not approved: $an <$ae>"; fail=1
   fi
-
-  # 2. Message trailers and footers.
-  msg=$(git show -s --format='%B' "$c")
-  if printf '%s' "$msg" | grep -qiE '^(co-authored-by:.*(claude|anthropic)|claude-session:)'; then
-    echo "BLOCKED $short"; echo "  message carries a Claude co-author or session trailer"; fail=1
+  if ! in_list "$ce" "$COMMITTERS_OK"; then
+    echo "BLOCKED $short"; echo "  committer not approved: $cn <$ce>"; fail=1
   fi
-  if printf '%s' "$msg" | grep -qiE 'generated with \[claude code\]'; then
-    echo "BLOCKED $short"; echo "  message carries a generated-with footer"; fail=1
-  fi
-
-  # 3. Every Co-Authored-By line must be on the allowlist.
-  coauth=$(printf '%s' "$msg" | grep -iE '^co-authored-by:' | sed -E 's/.*<([^>]+)>.*/\1/' || true)
+  coauth=$(git show -s --format='%B' "$c" | grep -iE '^co-authored-by:' | sed -E 's/.*<([^>]+)>.*/\1/' || true)
   while IFS= read -r em; do
     [ -z "$em" ] && continue
-    if ! in_list "$em" "$COAUTHORS_OK"; then
-      echo "BLOCKED $short"; echo "  co-author not allowlisted: <$em>"; fail=1
+    if ! in_list "$em" "$AUTHORS_OK"; then
+      echo "BLOCKED $short"; echo "  co-author not approved: <$em>"; fail=1
     fi
   done <<EOF
 $coauth
@@ -91,13 +91,13 @@ EOF
 
 if [ "$fail" -ne 0 ]; then
   echo ""
-  echo "authorship gate FAILED (fail-closed). Only the maintainer may author or"
-  echo "co-author commits here. Fix the offending commit before pushing:"
-  echo "  git commit --amend --reset-author        (fix a wrong author on the tip)"
-  echo "  git rebase -i <base>                      (drop a trailer deeper in history)"
-  echo "Do not bypass this gate."
+  echo "authorship gate FAILED (fail-closed). Every commit must be authored,"
+  echo "committed, and co-authored by an approved identity. Fix the commit:"
+  echo "  git commit --amend --reset-author        (wrong author on the tip)"
+  echo "  git rebase -i <base>                      (an identity deeper in history)"
+  echo "or add a genuinely approved contributor to the list. Do not bypass."
   exit 1
 fi
 
-echo "authorship: clean over $n commit(s)."
+echo "authorship: clean over $n commit(s), all approved identities."
 exit 0
