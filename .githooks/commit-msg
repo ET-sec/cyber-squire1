@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# commit-msg hook: fail-closed authorship at the earliest point, commit time.
+#
+# Prevention, not detection. A commit that would carry a Claude/anthropic or bot
+# co-author, a session trailer, a generated-with footer, or an automated author
+# is refused here before it exists. The pre-push hook and the authorship-guard
+# workflow re-check the same rule so a --no-verify cannot land it on main.
+#
+# No personal email lives in this file (the repo forbids PII in tracked code):
+# the author is screened by denylist, co-authors by the one public no-reply.
+#
+# Install: git config core.hooksPath .githooks   (already the repo default)
+set -euo pipefail
+
+msg_file="$1"
+COAUTHORS_OK="${CD_COAUTHORS_OK:-157398893+ET-sec@users.noreply.github.com}"
+DENY_RE='claude|anthropic|\[bot\]|poam-sync-bot|actions@github\.com'
+
+# 1. The commit's own author identity must not be automated.
+ae="${GIT_AUTHOR_EMAIL:-$(git config user.email 2>/dev/null || echo '')}"
+an="${GIT_AUTHOR_NAME:-$(git config user.name 2>/dev/null || echo '')}"
+if printf '%s\n%s\n' "$ae" "$an" | grep -qiE "$DENY_RE"; then
+  echo "commit-msg BLOCKED: automated author identity: $an <$ae>."
+  exit 1
+fi
+
+# 2. Message trailers and footers.
+if grep -qiE '^(co-authored-by:.*(claude|anthropic)|claude-session:)' "$msg_file" \
+   || grep -qiE 'generated with \[claude code\]' "$msg_file"; then
+  echo "commit-msg BLOCKED: the message carries a Claude/anthropic co-author,"
+  echo "session, or generated-with trailer. Remove those lines and commit again."
+  exit 1
+fi
+
+# 3. Every co-author line must be on the allowlist.
+emails=$(grep -iE '^co-authored-by:' "$msg_file" | sed -E 's/.*<([^>]+)>.*/\1/' || true)
+bad=""
+for em in $emails; do
+  case " $COAUTHORS_OK " in
+    *" $em "*) : ;;
+    *) bad="$bad $em" ;;
+  esac
+done
+if [ -n "$bad" ]; then
+  echo "commit-msg BLOCKED: non-maintainer co-author(s):$bad"
+  exit 1
+fi
+
+exit 0

@@ -3,7 +3,7 @@
 # Pre-commit hook auto-runs this when source dirs change.
 # Do not hand-edit: changes will be overwritten.
 
-generated_at: '2026-09-11T11:57:33+00:00'
+generated_at: '2026-09-11T12:52:10+00:00'
 generator: build_metrics.py
 version: 1
 
@@ -21,7 +21,7 @@ stack:
   containers_live: 8
   containers_designed: 19
   workflows_n8n_exported: 14
-  workflows_github_actions: 17
+  workflows_github_actions: 18
 
 grc:
   total_documents: 57

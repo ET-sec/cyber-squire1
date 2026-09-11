@@ -1,0 +1,43 @@
+name: authorship-guard
+# Fail-closed authorship gate for the pipeline. Blocks a pull request or a push
+# whose commits are authored, committed, or co-authored by anyone but the
+# maintainer, or whose messages carry a Claude/anthropic or bot trailer.
+#
+# Prevention, not detection: make the "authorship" check REQUIRED on main
+# (branch protection) so a violating commit cannot be merged, only reported.
+#
+# No path filter on purpose: the failure this catches can ride any file, so the
+# gate has to see every pull request and every push to main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  authorship:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Only the maintainer may author or co-author commits
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ZERO=0000000000000000000000000000000000000000
+          if [ -n "${PR_HEAD:-}" ]; then
+            RANGE="${PR_BASE}..${PR_HEAD}"
+          elif [ -n "${PUSH_BEFORE:-}" ] && [ "${PUSH_BEFORE}" != "$ZERO" ]; then
+            RANGE="${PUSH_BEFORE}..${PUSH_AFTER}"
+          else
+            RANGE="${PUSH_AFTER}"
+          fi
+          echo "checking range: $RANGE"
+          bash scripts/repo/check_authorship.sh "$RANGE"
