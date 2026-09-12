@@ -151,7 +151,7 @@ jobs:
           fi
           git config user.name "Emmanuel Tigoue"
           git config user.email "157398893+ET-sec@users.noreply.github.com"
-          BRANCH="bot/poam-sync"
+          BRANCH="automation/poam-ledger"
           git checkout -B "$BRANCH"
           git add docs/grc/POAM_AUTO_FINDINGS.md
           git commit -m "chore(grc): poam_sync ledger update from scanner run ${{ github.run_id }}"
