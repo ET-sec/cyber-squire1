@@ -75,6 +75,15 @@ tags = ["infrastructure"]
 
 [allowlist]
 description = "Known rotated/revoked secrets in git history. Telegram bot token was revoked on 2026-03-08."
+# The 555 exchange (NNN) 555-NNNN is reserved for fiction and testing and is
+# never a real number, so the us-phone-number rule must not flag it. These are
+# the intentional fixtures that prove the PII blocker works, in the PII test and
+# in two GRC evidence documents. Allowlisting the reserved range keeps real
+# phone numbers detectable while ending the false positives (was POAM-AUTO-0076
+# to 0078, all us-phone-number, 2026-09-12).
+regexes = [
+  '''\([0-9]{3}\)\s*555-[0-9]{4}''',
+]
 commits = [
   "b1cd5c8ad6ef23129a132238df27b8c9deb60d98",
   "266200151b40c9ef00085d01732d7620958b03b5",
