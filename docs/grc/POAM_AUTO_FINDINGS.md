@@ -81,3 +81,6 @@ compensating controls and milestones; this file is the raw intake queue.
 | POAM-AUTO-0073 | ae217712bfbf | gitleaks | HIGH | internal-hostnames | terraform/cd-do-infrastructure/checks.tf:29 | 2026-08-31 | 2026-08-31 | Closed |
 | POAM-AUTO-0074 | e517a96bbadf | gitleaks | HIGH | droplet-ip | tests/grc/test_grc_reviewer_offline.py:41 | 2026-08-31 | 2026-08-31 | Closed |
 | POAM-AUTO-0075 | fbe2a46e8ef2 | gitleaks | HIGH | droplet-ip | tests/grc/test_grc_reviewer_offline.py:131 | 2026-08-31 | 2026-08-31 | Closed |
+| POAM-AUTO-0076 | 60c4bb586168 | gitleaks | HIGH | us-phone-number | builds/squire/tests/test_pre_graph_pii.py:49 | 2026-09-12 | 2026-09-12 | Open |
+| POAM-AUTO-0077 | 4dfca39c269e | gitleaks | HIGH | us-phone-number | docs/grc/REDTEAM_RESULTS.md:175 | 2026-09-12 | 2026-09-12 | Open |
+| POAM-AUTO-0078 | 82d5e2aa6535 | gitleaks | HIGH | us-phone-number | docs/grc/SQUIRE_AI_RISK_ASSESSMENT.md:128 | 2026-09-12 | 2026-09-12 | Open |
