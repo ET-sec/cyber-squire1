@@ -22,7 +22,7 @@ related:
   - RT-SQUIRE-001
 ---
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-12):** this agent control crosswalk maps the controls of the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # Framework Crosswalk: Squire Controls
 

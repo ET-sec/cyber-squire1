@@ -22,7 +22,7 @@ related:
   - POAM-OPS-001
 ---
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-12):** this agent system security plan describes the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # System Security Plan: Squire Autonomous SOC Analyst
 
@@ -290,7 +290,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` (`svc-squire` environment block) |
 | AC-3 | Implemented | `POST /alert` requires header `x-squire-token` validated against Doppler secret `SQUIRE_INGEST_TOKEN`. Missing or mismatched token returns 401. | `builds/squire/src/squire/app.py` (token check with `hmac.compare_digest`) |
-| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins `net-core` only in the compose today; the `net-ai` membership the local-model fallback needs is a queued compose change (ARM rebuild, application tier session). | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block and the `svc-squire` service |
+| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` carries both `net-core` and `net-ai`, which is what gives the local-model fallback a route while leaving the sealed segment without a route out. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block and the `svc-squire` service |
 | AC-6 | Implemented | Least privilege on container filesystem: `USER 10001:10001`, `read_only: true`, `tmpfs` for `/tmp`. No `CAP_*` added; `no-new-privileges` set. | `builds/squire/Dockerfile` + compose security_opt |
 | AC-17 | Implemented | All remote administration goes through the Cloudflare zero-trust tunnel or SSH on `alpha-node`. Neither the application nor Langfuse listen on the public internet. | Parent SSP inheritance plus tunnel config |
 
@@ -350,7 +350,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| SC-7 | Implemented | `svc-squire` is the only service that takes external traffic, and it is bound to loopback behind the Cloudflare tunnel. `svc-nemo` is the only service permitted to egress to the model API, because it is the container that makes the model call. Langfuse and `svc-db` are on internal networks only. Three layers keep the agent off the model API, named by strength: `svc-squire` receives no model key, its settings object has no field that can hold one, and its hosts file blackholes the model API name. The third is the weakest, since code with a hard coded address would defeat it; the egress allowlist proxy that closes it properly is queued for the rebuild phase. | `COREDIRECTIVE_ENGINE/docker-compose.yaml`: ports block binds `svc-squire` to `127.0.0.1:8020`, the key is set on `svc-nemo` only, and the `extra_hosts` entry carries the blackhole |
+| SC-7 | Implemented | `svc-squire` is the only service that takes external traffic, and it is bound to loopback behind the Cloudflare tunnel. `svc-nemo` is the only service permitted to egress to the model API, because it is the container that makes the model call. Langfuse and `svc-db` are on internal networks only. Three layers keep the agent off the model API, named by strength: `svc-squire` receives no model key, its settings object has no field that can hold one, and its hosts file blackholes the model API name. The third is the weakest, since code with a hard coded address would defeat it, and the egress allowlist that closes it is recorded privately with its plan number. | `COREDIRECTIVE_ENGINE/docker-compose.yaml`: ports block binds `svc-squire` to `127.0.0.1:8020`, the key is set on `svc-nemo` only, and the `extra_hosts` entry carries the blackhole |
 | SC-8 | Implemented | All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container. | Cloudflare config |
 | SC-12 | Implemented | Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on-demand for the ingest token. | Doppler rotation log |
 | SC-28 | Implemented | Data at rest in the `ir_*` tables is encrypted at the volume layer (parent SSP). Langfuse trace data has the same treatment. | Parent SSP LUKS coverage |

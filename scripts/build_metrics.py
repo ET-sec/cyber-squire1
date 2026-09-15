@@ -30,15 +30,15 @@ WORKLOAD_LANES = ("coredirective", "empire", "filler")
 
 # Owner-approved public values not derivable from disk (or where disk would mislead).
 OWNER_APPROVED = {
-    # Container counts: the OCI instance runs a 3-container core (Postgres+pgvector,
-    # n8n, tunnel client) while the 19-service design is rebuilt for ARM. Both
-    # numbers are owner-approved; live count re-verified 2026-09-01.
+    # Container counts: both numbers are owner-approved. The live count is
+    # re-verified from docker ps on the host on the date beside it (2026-09-12);
+    # the design count is the service list in the master compose file.
     "containers_live": 8,
     "containers_designed": 19,
     # AI engine identifiers come from host config files, not always synced locally.
     "openclaw_model": "Claude Fable 5",
     "openclaw_model_id": "claude-fable-5",
-    "ollama_model": "Qwen 3 8B",
+    "ollama_model": "Qwen 3.5 9B",
     "whisper_engine": "faster-whisper",
 }
 
@@ -191,8 +191,8 @@ def compute_grc() -> dict:
 
 def compute_infra() -> dict:
     # Active IaC is the OCI directory (2026-08-19 migration). The archived
-    # DO directory still holds the Datadog monitor/dashboard definitions
-    # (codified, pending the ARM rebuild), so those counts come from there.
+    # DO directory still holds the Datadog monitor and dashboard definitions,
+    # so those counts come from there.
     tf_dir = REPO_ROOT / "terraform" / "cd-oci-infrastructure"
     aws_plane_dir = REPO_ROOT / "terraform" / "cd-aws-security-plane"
     legacy_dir = REPO_ROOT / "terraform" / "cd-do-infrastructure"
@@ -432,7 +432,7 @@ def main() -> int:
         "filesystem_root": ".",
         "ssp_source": "docs/grc/SSP_*.md",
         "poam_source": "docs/grc/POAM_PLAN_OF_ACTION.md",
-        "terraform_source": "terraform/cd-oci-infrastructure/ (active); terraform/cd-aws-security-plane/ (designed, apply scheduled); terraform/cd-do-infrastructure/ (archived)",
+        "terraform_source": "terraform/cd-oci-infrastructure/ (active); terraform/cd-aws-security-plane/ (held behind an apply gate); terraform/cd-do-infrastructure/ (archived)",
         "detections_source": "detections/",
         "workflows_source": ".github/workflows/",
         "poam_auto_source": "docs/grc/POAM_AUTO_FINDINGS.md",

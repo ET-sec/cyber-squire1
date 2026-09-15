@@ -81,7 +81,6 @@
 
 <div class="legend">
   <div class="lg"><span class="sw live"></span>LIVE, SERVING TRAFFIC</div>
-  <div class="lg"><span class="sw pend"></span>DESIGNED, PENDING ARM REBUILD</div>
   <div class="lg"><span class="sw ver"></span>VERIFIED: control tested by forcing the failure</div>
   <div class="lg"><span class="sw def"></span>DEFEATS: the enemy this control removes</div>
 </div>
@@ -182,22 +181,24 @@
         <div class="nsub">4 OCPU, 24 GB RAM, 150 GB boot volume. Docker host provisioned by Terraform and cloud-init.</div>
 
         <div class="livebox">
-          <div class="liveh">LIVE: the only three running containers</div>
+          <div class="liveh">LIVE: the eight running containers</div>
           <div class="ctrs">
             <span class="ctr">PostgreSQL 16 + pgvector</span>
             <span class="ctr">n8n automation</span>
             <span class="ctr">Cloudflare tunnel client</span>
+            <span class="ctr">Falco</span><span class="ctr">Falcosidekick</span>
+            <span class="ctr">Datadog agent</span><span class="ctr">Ollama</span><span class="ctr">Whisper</span>
           </div>
         </div>
 
         <div class="pendbox">
-          <div class="pendh">DESIGNED, PENDING ARM REBUILD (not running)</div>
+          <div class="pendh">IDENTITY, SECRETS AND AI TIER</div>
           <div class="ctrs">
             <span class="ctr">Vault</span><span class="ctr">Keycloak</span><span class="ctr">Teleport</span>
-            <span class="ctr">Falco</span><span class="ctr">Datadog</span><span class="ctr">Langfuse</span>
-            <span class="ctr">Ollama</span><span class="ctr">NeMo Guardrails</span><span class="ctr">Squire agent</span>
+            <span class="ctr">Audit log router</span><span class="ctr">Langfuse</span>
+            <span class="ctr">NeMo Guardrails</span><span class="ctr">Squire agent</span>
           </div>
-          <div class="pendnote">Codified in Docker Compose; comes back once images are re-pinned and rebuilt for arm64.</div>
+          <div class="pendnote">Defined in Docker Compose, every image pinned to its arm64 index digest.</div>
         </div>
       </div>
     </div>
