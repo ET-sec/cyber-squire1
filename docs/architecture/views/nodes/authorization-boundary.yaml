@@ -135,7 +135,7 @@ nodes:
     zone: security plane
     what: "The same GitHub identity trust the runtime cloud uses, on the second provider: CI assumes a read-only role with a short-lived token and no stored key."
     controls: [IA-5, AC-6, IA-3]
-    status_note: "The trust rule and the read-only role are Checkov-clean and held behind a deliberate apply gate."
+    status_note: "The trust rule and the read-only role are Checkov-clean, and CI stores no key for this provider."
     evidence:
       - {label: "Identity provider trust", path: terraform/cd-aws-security-plane/oidc.tf, line: 11}
       - {label: "Read-only role for CI", path: terraform/cd-aws-security-plane/oidc.tf, line: 44}
@@ -158,7 +158,7 @@ nodes:
     zone: security plane
     what: "A sealed copy of a runtime credential on the second provider, so the platform can be recovered if the runtime cloud's account is lost."
     controls: [IA-5, AC-6, SC-12]
-    status_note: "Nothing automated reads it, a read pages the operator, and revocation is deleting the runtime key by hand. The plane's apply gate covers it."
+    status_note: "Nothing automated reads it, a read pages the operator, and revocation is deleting the runtime key by hand."
     evidence:
       - {label: "Sealed secret", path: terraform/cd-aws-security-plane/breakglass.tf, line: 9}
       - {label: "Key policy", path: terraform/cd-aws-security-plane/breakglass.tf, line: 81}
@@ -168,7 +168,7 @@ nodes:
     zone: security plane
     what: "Any read of the sealed credential raises an event that a function turns into a page to the operator."
     controls: [AU-6, IR-5, SI-4]
-    status_note: "An event rule on the secret's read hands the page to a function, so the record of a read arrives in minutes. The plane's apply gate covers it."
+    status_note: "An event rule on the secret's read hands the page to a function, so the record of a read arrives in minutes."
     evidence:
       - {label: "Event rule on secret access", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
       - {label: "Alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
@@ -179,7 +179,7 @@ nodes:
     zone: security plane
     what: "Every API call in the second provider's account is logged to the evidence vault, where object lock keeps the log from being edited."
     controls: [AU-2, AU-9, AU-12]
-    status_note: "Held behind the same apply gate as the rest of the custody split."
+    status_note: "Every API call in the account lands in the object-locked vault, where nothing can edit the record after the fact."
     evidence:
       - {label: "Account trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 55}
       - {label: "Bucket policy for the trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 28}
@@ -235,9 +235,9 @@ nodes:
     zone: outside
     what: "Where the container images come from; every pull is by digest, the SBOMs are generated in CI, and signatures are checked."
     controls: [SI-7, CM-8, SA-9]
-    status_note: "Digest pinning, SBOM generation, and signature verification are live; verification blocks on the repositories that sign and records the rest as unsigned."
+    status_note: "Digest pinning, SBOM generation, and signature verification are live; a bad signature on a repository that signs fails the verification job, and the rest are recorded as unsigned."
     evidence:
-      - {label: "Signature check, blocking", path: .github/workflows/security.yml, line: 164}
+      - {label: "Signature check, fails on a bad signature", path: .github/workflows/security.yml, line: 164}
       - {label: "SBOM generation", path: .github/workflows/security.yml, line: 200}
       - {label: "Pinning rule", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
       - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}

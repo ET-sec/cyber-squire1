@@ -203,7 +203,7 @@ doppler secrets set SQUIRE_INTERVIEW_TOKENS="$REMAINING" \
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
 ```
 
-Note: the additive allow-list consumer side (`SQUIRE_INTERVIEW_TOKENS` parsing in `app.py`) is planned under plan 17-15, which wires the portfolio-facing interview demo surface. This policy defines the procedure ahead of the mechanism; once 17-15 lands, the above flow activates without policy changes.
+Note: the additive allow-list consumer side (`SQUIRE_INTERVIEW_TOKENS` parsing in `app.py`) is held, and the interview demo surface it serves is a separate delivery. This policy defines the procedure for the interview token population, and the flow above needs no policy change to run.
 
 ### 6.4 Leak Response
 

@@ -6,7 +6,7 @@
 
 mode: recommend_only
 phase: "17"
-rationale: "Phase 17 is a demo-grade autonomous SOC analyst. Squire recommends; a human operator executes. Autonomous execution is out of scope until a future phase with explicit approval flow."
+rationale: "A demo-grade autonomous SOC analyst: Squire recommends and a human operator executes. Autonomous execution is out of scope in recommend_only mode, which carries no approval flow."
 
 allowed_verbs:
   # Verbs that are allowed in the recommended_actions output field.

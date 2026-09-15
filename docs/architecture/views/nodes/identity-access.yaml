@@ -33,7 +33,7 @@ nodes:
     status_note: "The orchestration console sits behind the edge check with its own login, and the identity provider's console sits behind the same check."
     evidence:
       - {label: "Edge application in front of the console", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
-      - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
+      - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 63}
       - {label: "Identity provider lockout settings", path: keycloak/coredirective-realm.json, line: 12}
     solidify: "SOL-identity-access-02"
   - {id: keycloak, label: Keycloak, zone: "tier 1, operator", from: topology/keycloak}
@@ -57,7 +57,7 @@ nodes:
     controls: [IA-3, IA-5]
     status_note: "The orchestration engine is live and reads its credential from the deploy-time environment file; the short-lived lease from the secrets manager is the design."
     evidence:
-      - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
+      - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 63}
       - {label: "AppRole still a comment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 261-262}
     solidify: "SOL-identity-access-04"
   - {id: vault-approle, label: "Vault AppRole", zone: "tier 2, service", from: topology/vault}

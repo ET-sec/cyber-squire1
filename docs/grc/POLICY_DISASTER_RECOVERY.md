@@ -24,7 +24,7 @@ This plan is a companion to GRC-BCP-001 (Business Continuity Plan) and focuses s
 
 This plan covers the recovery of:
 
-- The production VPS (`alpha-node`) and all 20 services (19 Compose-managed containers plus 1 standalone service)
+- The production VPS (`alpha-node`), all 19 Compose-managed service containers, and the standalone service beside them
 - PostgreSQL databases and persistent data volumes
 - Infrastructure-as-code state and definitions
 - CI/CD pipeline configurations
@@ -78,7 +78,7 @@ This plan covers the recovery of:
 
 **Description:** DigitalOcean's hosting region becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
 
-**Impact:** All 20 services offline (19 Compose-managed + 1 standalone). No remote access via tunnel or direct SSH. Datadog may still have historical data.
+**Impact:** All 19 Compose-managed services offline. No remote access via tunnel or direct SSH. Datadog may still have historical data.
 
 **Detection:** Datadog alerts on host unreachable; Cloudflare health checks fail; manual verification via provider status page.
 
@@ -102,7 +102,7 @@ This plan covers the recovery of:
 
 **Description:** The VPS operating system becomes unbootable, the disk is corrupted, or a kernel panic renders the host non-functional. DigitalOcean infrastructure is operational but the specific instance is damaged.
 
-**Impact:** All 20 services offline (19 Compose-managed + 1 standalone). Data on local volumes may be lost or inaccessible.
+**Impact:** All 19 Compose-managed services offline. Data on local volumes may be lost or inaccessible.
 
 **Detection:** SSH connection refused or timeout; Datadog reports host down; DigitalOcean console shows instance in error state.
 
@@ -409,7 +409,7 @@ Step 10: Document rotation in change log
 | PostgreSQL backup restore | Monthly | Restore latest dump to temporary container | Data integrity verified; row counts match |
 | IaC plan validation | Monthly | IaC plan against production state | Zero unexpected changes |
 | Single container recovery | Quarterly | Destroy and recreate one Tier 2 service | Service operational within RTO |
-| Full stack rebuild (test instance) | Annually | Complete Playbook 6.1 on separate VPS | All 20 services pass validation checklist within 4 hours |
+| Full stack rebuild (test instance) | Annually | Complete Playbook 6.1 on separate VPS | All 19 services pass validation checklist within 4 hours |
 | Ransomware scenario tabletop | Annually | Walk through Scenario D with all roles | All steps executable; no missing procedures |
 | Backup integrity audit | Quarterly | Verify all backup items exist and are current | All items in Section 5.1 present and within retention window |
 

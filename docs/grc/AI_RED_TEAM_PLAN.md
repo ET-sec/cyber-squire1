@@ -965,7 +965,7 @@ Testing SHALL be immediately suspended if any of the following occur:
 |---------|-------------|-----------------|-------------------------|------------------|
 | Q1 2026 | 2026-03-12 (initial planned) | All 6 categories, full baseline | N/A (first assessment) | NOT EXECUTED on 2026-03-12. Actual first execution was 2026-04-23 (cycle 1) and 2026-04-24 (cycle 2) against svc-squire (AI-004). See `REDTEAM_RESULTS.md`. |
 | Q2 2026 | 2026-06-02 to 2026-06-06 (planned) | Categories 1, 2, 4 (highest risk) | Full re-test of Q1 failures | Window passed. Cycle 2 (2026-04-24) substitutes in part; a dedicated Q2 window run is not documented. <!-- TODO(et): confirm whether the planned Q2 2026 window executed; if cycle 2 stands in for Q2, state that explicitly here. --> |
-| Q3 2026 | 2026-09-01 to 2026-09-05 | Categories 3, 5, 6 plus regression | Re-test Q2 failures plus new controls | Pending. |
+| Q3 2026 | 2026-09-01 to 2026-09-05 | Categories 3, 5, 6 plus regression | Re-test Q2 failures plus new controls | Not run in the Q3 window. |
 | Q4 2026 | 2026-12-01 to 2026-12-05 | All 6 categories, annual comprehensive | Full regression suite | Pending. |
 
 ### 5.2 Test Rotation Matrix
@@ -1155,7 +1155,7 @@ Each quarterly testing cycle produces a summary report containing:
 | ART-EA-002 | ATC-07 | E-02 | 1.1.3 | LLM08 | - | Planned (no evidence) <!-- TODO(et): verify execution status --> |
 | ART-EA-003 | ATC-06, ATC-07 | E-04 | 4.x | LLM08 | AML.T0040 | Adjacent execution via AI-004 cycle 2 case 18 (action-verb smuggling, INFRA_ERROR). <!-- TODO(et): re-fire to convert INFRA_ERROR to a real result. --> |
 | ART-EA-004 | ATC-07 | E-02 | 1.1.3 | LLM08 | - | Planned (no evidence) <!-- TODO(et): verify execution status --> |
-| ART-SC-001 | ATC-04 | T-02 | 2.1.x | LLM03 | AML.T0018 | Planned (no evidence). Supply Chain family is currently unaudited. <!-- TODO(et): verify execution status --> |
+| ART-SC-001 | ATC-04 | T-02 | 2.1.x | LLM03 | AML.T0018 | Planned (no evidence). Supply Chain family is currently unaudited. |
 | ART-SC-002 | ATC-04 | T-02 | 2.1.x | LLM03 | AML.T0018 | Out of scope today: model update test assumes svc-llm/Ollama, but the Squire fallback cannot reach svc-ollama because of net-ai isolation. <!-- TODO(et): retain or rewrite for net-core path. --> |
 | ART-SC-003 | ATC-04 | T-05 | 2.3.1 | LLM03 | AML.T0018 | Planned (no evidence) <!-- TODO(et): verify execution status --> |
 | ART-SC-004 | ATC-04 | T-02 | 2.2.1 | LLM03 | AML.T0018 | Planned (no evidence) <!-- TODO(et): verify execution status --> |

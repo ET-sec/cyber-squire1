@@ -6,7 +6,7 @@ Acronyms, once: OIDC (OpenID Connect), JWT (JSON Web Token), UPST (user principa
 
 The reasoning behind each control (options weighed, blast radius, verification method) lives in the [decision records](decisions/README.md).
 
-**Multi-cloud posture.** The running platform deliberately splits trust across vendors: OCI holds compute, storage, and keys; Cloudflare holds the edge (Access, WAF, DNS, tunnel); GitHub issues the pipeline's identity. This is the third cloud generation of the same design: generation one ran on AWS (its IaC is archived in `terraform/cd-aws-automation/` and `terraform/simple-ec2/`), generation two on DigitalOcean (`terraform/cd-do-infrastructure/`, archived), and each migration was survivable because the entire system is code. Terraform state sits in versioned, locked object storage under a customer-managed key, so the record of the infrastructure outlives the host it describes.
+**Multi-cloud posture.** The running platform deliberately splits trust across vendors: OCI holds compute, storage, and keys; Cloudflare holds the edge (Access, WAF, DNS, tunnel); GitHub issues the pipeline's identity. This is the third cloud generation of the same design: generation one ran on AWS (its IaC is archived in `terraform/cd-aws-automation/` and `terraform/simple-ec2/`), generation two on DigitalOcean (`terraform/cd-do-infrastructure/`, archived), and each migration was survivable because the entire system is code. Terraform state sits in versioned, locked object storage under a customer-managed key.
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {

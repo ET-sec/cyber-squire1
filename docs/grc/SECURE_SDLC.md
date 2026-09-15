@@ -49,7 +49,7 @@ This Secure SDLC applies to all code, configuration, and infrastructure managed 
 - **Infrastructure-as-Code:** 19 Terraform files defining Cloud Provider resources (droplet, firewall, DNS, Spaces, volumes, Cloudflare tunnel configuration)
 - **Docker Compose:** 19-service container orchestration stack
 - **OPA Policies:** 8 Rego policy files (249 lines) enforcing security, naming, and operational standards <!-- TODO(et): verify the count and line total against the current `terraform/cd-do-infrastructure/policy/` directory. -->
-- **CI/CD Workflows:** 12 GitHub Actions workflow files (`agent-inventory.yml`, `agent-signing.yml`, `agent-verify.yml`, `compose-admission.yml`, `dast-zap.yml`, `grc-librarian-eval.yml`, `grc-reviewer.yml`, `grc-validate.yml`, `image-smoke.yml`, `pr-agent.yml`, `security.yml`, `terraform-pr.yml`)
+- **CI/CD Workflows:** 18 GitHub Actions workflow files (`agent-inventory.yml`, `agent-signing.yml`, `agent-verify.yml`, `authorship-guard.yml`, `auto-label.yml`, `codeql.yml`, `dast-zap.yml`, `drift-check.yml`, `grc-reviewer.yml`, `grc-validate.yml`, `image-smoke.yml`, `portfolio-sync.yml`, `pr-agent.yml`, `repo-gate.yml`, `security.yml`, `stale.yml`, `terraform-main.yml`, `terraform-pr.yml`)
 - **Container Images:** Upstream images consumed from public registries. See Section 8 for the current verified roster, image digests, and SBOM coverage.
 - **Automation Workflows:** n8n workflow definitions exported as JSON
 

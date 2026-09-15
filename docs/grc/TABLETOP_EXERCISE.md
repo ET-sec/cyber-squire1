@@ -565,9 +565,9 @@ Complete this template within 5 business days of the exercise.
 |----------|-----------|---------------|----------------|
 | Operation Phantom Container (Container Compromise) | Semi-annual | [Date of first run] | [+6 months] |
 | [SQUIRE_TABLETOP_EXERCISE.md](SQUIRE_TABLETOP_EXERCISE.md): Squire Jailbreak and Containment | Quarterly | [Date of first run] | next slot |
-| [Future: Supply Chain Compromise scenario] | Semi-annual | - | [TBD] |
-| [Future: Insider Threat scenario] | Annual | - | [TBD] |
-| [Future: DigitalOcean Outage / DRP scenario] | Annual | - | [TBD] |
+| Supply chain compromise scenario | Semi-annual | - | [TBD] |
+| Insider threat scenario | Annual | - | [TBD] |
+| Cloud provider outage and disaster recovery scenario | Annual | - | [TBD] |
 
 ### Scheduling Notes
 

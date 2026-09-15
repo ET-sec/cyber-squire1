@@ -178,7 +178,7 @@ ATLAS ID references per the AML.T code set as of 2026-04. Each tactic below has 
 
 | Tactic ID | Name | Primary control | Supporting control | Residual |
 |-----------|------|-----------------|-------------------|----------|
-| AML.T0051 | Prompt Injection | NeMo input rail (presidio + planned PolicyAI) | Pre-graph scanner + critique-loop consistency + actions.yml rewrite | MEDIUM |
+| AML.T0051 | Prompt Injection | NeMo input rail (presidio, with PolicyAI in the rail design) | Pre-graph scanner + critique-loop consistency + actions.yml rewrite | MEDIUM |
 <!-- TODO(et): AML.T0041 is not a current MITRE ATLAS technique ID under that label. T0024 (Exfiltration via ML Inference API) likely covers the row below. Consolidate or remap to a real ATLAS technique. -->
 | AML.T0024 | Exfiltration via ML Inference API | Per-call cost ceiling $0.75, daily ceiling $10 | Token auth + 60-day rotation | LOW |
 | AML.T0029 | Denial of ML Service | Cost ceiling + iteration cap (3) + invocation timeout (30s) | Cloudflare rate limit + Redis dedup | LOW |
@@ -193,10 +193,10 @@ ATLAS ID references per the AML.T code set as of 2026-04. Each tactic below has 
 
 **Mitigating controls:**
 
-- NeMo input rail with presidio + planned PolicyAI layer. Config: `svc-nemo-config/config.yml`. Plan reference: phase 17 plan 17-10, the NeMo sidecar, which lives in the private planning tree and is not published with this repository. See [GUARDRAILS_CONFIGURATION.md](GUARDRAILS_CONFIGURATION.md) for rail topology.
+- NeMo input rail with presidio, and a PolicyAI layer beside it in the rail design. Config: `svc-nemo-config/config.yml`. See [GUARDRAILS_CONFIGURATION.md](GUARDRAILS_CONFIGURATION.md) for rail topology.
 - Pre-graph PII scanner (`builds/squire/src/squire/pre_graph_pii.py`) runs before any LLM call. Does not address non-PII injection, but narrows the exposure surface for exfil variants.
 - Critique-loop consistency override: the critique node re-evaluates severity and containment recommendation against the classifier output; a severity flip from `CRITICAL` on raw alert to `LOW` in draft triggers an override back to classifier severity ([REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) case R-03).
-- actions.yml allow-list: draft-node output passes through a filter that rewrites destructive verbs ("stop", "rm", "delete", "shutdown") to `recommend:` phrasing. Plan reference: phase 17 plan 17-09, the allow-list, which lives in the private planning tree and is not published with this repository.
+- actions.yml allow-list: draft-node output passes through a filter that rewrites destructive verbs ("stop", "rm", "delete", "shutdown") to `recommend:` phrasing.
 
 **Residual risk: MEDIUM.** Novel injection patterns can bypass presidio-based rails, which are PII-detector-centric and not behavioral. The critique consistency check and the actions.yml rewrite are the defense-in-depth against bypass. Red-team cycle 2 (plan 17-11) will exercise attack tree leaf A.2 (poisoned ir_chunk) and A.3 (Tavily directive injection) to quantify this residual further.
 
@@ -213,7 +213,7 @@ ATLAS ID references per the AML.T code set as of 2026-04. Each tactic below has 
 **Mitigating controls:**
 
 - Per-call cost ceiling of $0.75 at the graph runner. Exceeds the average real-alert invocation cost (typically $0.12 to $0.38 per case) by a safety margin while still capping a runaway extraction loop at a single call.
-- Daily cost ceiling of $10 enforced by Redis counter keyed on UTC day; requests past the ceiling are rejected with `429 COST_CEILING_HIT` before any LLM call. Plan reference: phase 17 plan 17-08b, the cost caps, which lives in the private planning tree and is not published with this repository.
+- Daily cost ceiling of $10 enforced by Redis counter keyed on UTC day; requests past the ceiling are rejected with `429 COST_CEILING_HIT` before any LLM call.
 - Token auth on `/alert` with `x-squire-token` rotated every 60 days. Token stored in Doppler only.
 - Cloudflare edge rate limit of 100 req/min per IP on squire.example-ops.com.
 - Langfuse volumetrics dashboard alerts when `invocations_per_hour > 30` (typical operational baseline is <5).
