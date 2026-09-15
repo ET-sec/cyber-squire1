@@ -72,7 +72,7 @@ nodes:
     zone: edge
     what: "Where Terraform state lives: a versioned, locked bucket, so a lost host cannot take the record of the infrastructure with it."
     controls: [CP-9, CM-8, SC-28]
-    status_note: "State is versioned and locked in the runtime cloud's object store under the customer-managed key, so the record of the infrastructure outlives the host it describes."
+    status_note: "State is versioned and locked in the runtime cloud's object store under the customer-managed key."
     evidence:
       - {label: "State backend", path: terraform/cd-oci-infrastructure/terraform.tf, line: 5}
       - {label: "State bucket, versioned, key-encrypted", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 48}
@@ -101,7 +101,7 @@ nodes:
       - {label: "Security list", path: terraform/cd-oci-infrastructure/networking.tf, line: 40}
       - {label: "SSH ingress from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
       - {label: "Assessment row, closed", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 430}
-    solidify: "none (POAM-021 closed 2026-09-06)"
+    solidify: "SOL-multi-cloud-13"
   - id: identity-domain
     label: "identity domain"
     zone: runtime
@@ -135,7 +135,7 @@ nodes:
     zone: security
     what: "The security plane's trust in the CI runner: the same signed token, accepted only from this repository's main branch, for a read-only role that lives at most an hour."
     controls: [IA-5, AC-6, IA-8]
-    status_note: "The trust accepts this repository's main branch alone, for a role that lives at most an hour, inside a custody plane held behind a deliberate apply gate."
+    status_note: "The trust accepts this repository's main branch alone, and the role it grants lives at most an hour and carries read permissions only."
     evidence:
       - {label: "Identity provider trust", path: terraform/cd-aws-security-plane/oidc.tf, line: 11}
       - {label: "Role pinned to the repository and main", path: terraform/cd-aws-security-plane/oidc.tf, line: 44}
@@ -147,7 +147,7 @@ nodes:
     zone: security
     what: "A sealed copy of a runtime credential kept with a different vendor, read by a human only when the runtime cloud's own door is gone."
     controls: [CP-2, IA-5, AC-6]
-    status_note: "Nothing automated reads it, revocation is deleting the runtime key by hand in minutes, and the custody plane around it sits behind a deliberate apply gate."
+    status_note: "Nothing automated reads it, and revocation is deleting the runtime key by hand in minutes."
     evidence:
       - {label: "Sealed secret", path: terraform/cd-aws-security-plane/breakglass.tf, line: 9}
       - {label: "Event rule on any read", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
@@ -158,7 +158,7 @@ nodes:
     zone: security
     what: "A bucket with Object Lock in compliance mode, a customer-managed key, and a 30 day window, so evidence written from the runtime cloud survives the runtime cloud."
     controls: [AU-9, CP-9, SC-28]
-    status_note: "The object lock is the one control in this custody plane that survives the account's own root, and the plane sits behind a deliberate apply gate."
+    status_note: "The object lock is the one control in this custody plane that survives the account's own root."
     evidence:
       - {label: "Bucket", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 19}
       - {label: "Object Lock", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 39}
@@ -169,7 +169,7 @@ nodes:
     zone: security
     what: "Any read of the sealed credential lands on the trail, matches an event rule, and a function pages the operator's chat with the caller named."
     controls: [AU-6, SI-4, IR-6]
-    status_note: "The event rule hands any read to a function that pages the operator's chat with the caller named, inside a custody plane behind a deliberate apply gate."
+    status_note: "The event rule hands any read to a function that pages the operator's chat with the caller named."
     evidence:
       - {label: "Event rule", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
       - {label: "Alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
@@ -180,7 +180,7 @@ nodes:
     zone: security
     what: "A multi-region trail with log file validation, written into the locked bucket, so every API call in the plane has a record nobody can edit."
     controls: [AU-2, AU-9, AU-10]
-    status_note: "Every call in the plane lands in the locked bucket, and the plane sits behind a deliberate apply gate."
+    status_note: "Every call in the plane lands in the locked bucket, where the object lock keeps the record from being edited."
     evidence:
       - {label: "Trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 55}
       - {label: "Bucket policy for the trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 28}
@@ -190,7 +190,7 @@ nodes:
     zone: security
     what: "A deny policy on every principal the plane creates: nothing works outside the one region, so a stolen key cannot quietly build somewhere else."
     controls: [AC-3, CM-7, SC-7]
-    status_note: "It binds the three principals the plane creates, root and a console-made principal sit outside it, and the nightly drift check covers that edge; the plane sits behind a deliberate apply gate."
+    status_note: "It binds the three principals the plane creates, root and a console-made principal sit outside it, and the nightly drift check covers that edge."
     evidence:
       - {label: "Deny policy", path: terraform/cd-aws-security-plane/region_guard.tf, line: 34}
       - {label: "Attached to every principal", path: terraform/cd-aws-security-plane/region_guard.tf, line: 40-50}

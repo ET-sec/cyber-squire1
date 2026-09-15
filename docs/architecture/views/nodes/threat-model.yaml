@@ -157,7 +157,7 @@ nodes:
       - {label: "Last and next review dates", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 5}
       - {label: "Review cadence", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 7}
       - {label: "Register E-03", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 672}
-    solidify: "none (E-03 says quarterly since 2026-09-06)"
+    solidify: "SOL-threat-model-08"
   - {id: recorded-mtls, label: "recorded, shipped mTLS", zone: identity, from: control-layers/session-recording}
   # COLUMN 6: poisoned image
   - {id: digest-pinned, label: "digest pinned, Tier 1", zone: delivery, from: control-layers/digest-pinning}
@@ -167,10 +167,10 @@ nodes:
     zone: delivery
     what: "Every change is scanned for secrets, CVEs, and misconfigurations, a software bill of materials is generated on merge, and upstream image signatures are checked."
     controls: [RA-5, SI-7, SA-11]
-    status_note: "The scanners are a required check and block, and since 2026-09-06 the signature check blocks too: pinned identities for the repositories that sign, a pinned key for the access proxy, and an unsigned publisher is recorded rather than passed."
+    status_note: "The scanners are a required check and block, and since 2026-09-06 the signature check runs beside them: pinned identities for the repositories that sign, a pinned key for the access proxy, and an unsigned publisher is recorded rather than passed. A bad signature fails the verification job."
     evidence:
       - {label: "CVE and misconfiguration scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Bill of materials", path: .github/workflows/security.yml, line: 189}
-      - {label: "Signature check, blocking", path: .github/workflows/security.yml, line: 164}
+      - {label: "Signature check, fails on a bad signature", path: .github/workflows/security.yml, line: 164}
     solidify: "SOL-threat-model-07"
   - {id: sealed-no-route, label: "sealed: no route home", zone: runtime, from: control-layers/sealed-net-ai}

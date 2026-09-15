@@ -317,7 +317,7 @@ ssh alpha-node 'docker exec svc-gateway tctl request rm <request-id>'
 
 ## 7. Enterprise Upgrade Path
 
-The current access gateway Community Edition provides solid JIT access controls. The following features require an enterprise license and are documented as future enhancements:
+This build runs the access gateway Community Edition: local authentication with a second factor, and a requestable role for elevation. The features below need an enterprise license, which this build does not carry:
 
 | Feature | Edition Required | Benefit |
 |---------|-----------------|---------|

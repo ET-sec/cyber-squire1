@@ -267,7 +267,7 @@ This is a known gap. The current compensating controls are:
 - Runtime detection via Falco watching for process injection and unexpected memory reads
 - Minimal data residency in memory; records are decrypted at the moment of use and dereferenced immediately
 
-Future enhancement: evaluate hardware enclave deployment (Intel TDX, AMD SEV-SNP) on a successor host class. This is tracked in the platform roadmap as a Phase 20+ item, not immediate.
+Hardware enclave deployment (Intel TDX, AMD SEV-SNP) needs a successor host class, so the control is held and no part of the ingest path depends on it.
 
 ---
 
@@ -277,7 +277,7 @@ Future enhancement: evaluate hardware enclave deployment (Intel TDX, AMD SEV-SNP
 
 ePHI access is gated by a single role: ephi-operator. This role is distinct from the existing admin, operator, and auditor roles. The separation is deliberate: an admin can change platform configuration but cannot read ePHI without explicitly assuming the ephi-operator role through a JIT request. An auditor can review audit records about ePHI access but cannot read ePHI itself.
 
-**Provisioning status:** Role design is defined. The role is not yet provisioned in the Keycloak realm import file. Provisioning is gated by the BAA signing event per Section 4.1 item 7.
+**Provisioning status:** The role design is held and the Keycloak realm import file carries no row for it. Provisioning is gated by the BAA signing event per Section 4.1 item 7.
 
 ### 8.2 Just-In-Time Access
 
@@ -535,8 +535,8 @@ Each BAA includes a clause requiring the subprocessor to notify the Organization
 | Encryption at rest (application field) | Not implemented | Vault Transit with per-tenant key | Requires schema change; tracked in gap section |
 | Encryption in transit (TLS 1.3 external) | Implemented (Cloudflare edge enforces) | No change | Verified via SSL Labs scan |
 | Encryption in transit (mTLS internal) | Partial (some hops mTLS, some plaintext on bridge network) | Full mTLS on all ePHI-carrying hops | Service-mesh proposal under review |
-| Confidential computing (in use) | Not implemented | Not required for initial ingest; future enhancement | Hardware enclave evaluation deferred to Phase 20+ |
-| RBAC (admin/operator/auditor) | Implemented | ephi-operator role added | Role design defined; not yet provisioned in Keycloak realm import |
+| Confidential computing (in use) | Not implemented | Not required for initial ingest | Hardware enclave evaluation needs a successor host class |
+| RBAC (admin/operator/auditor) | Implemented | ephi-operator role added | Role design held; the Keycloak realm import carries no row for it |
 | JIT access via Teleport | Implemented | ephi-operator integrated | JIT template needs the minimum-necessary justification field |
 | Session recording | Implemented | No change | Already mandatory for elevated sessions |
 | Audit logging (Squire AI events) | Implemented per AI_AUDIT_TRAIL_SPEC.md | Extended to ephi_audit table | Requires schema migration and ingest hook |

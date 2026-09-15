@@ -25,16 +25,16 @@
   .c-edge  { border-color:#F6821F; } .c-edge .ctitle { color:#FF9C42; }
   .c-comp  { border-color:#00FF41; } .c-comp .ctitle { color:#00FF41; }
   .c-data  { border-color:#a8b3aa; } .c-data .ctitle { color:#f2efe4; }
-  .c-ci    { border-color:#B48CFF; } .c-ci .ctitle { color:#C9ABFF; }
+  .c-ci    { border-color:#c4a6ff; } .c-ci .ctitle { color:#c4a6ff; }
 
   .item { font-size:36px; color:#f2efe4; line-height:1.4; padding:12px 0 12px 40px; position:relative; }
   .item::before { content:""; position:absolute; left:0; top:30px; width:16px; height:16px; border-radius:4px; background:#00FF41; }
   .c-edge .item::before { background:#F6821F; }
   .c-data .item::before { background:#a8b3aa; }
-  .c-ci   .item::before { background:#B48CFF; }
+  .c-ci   .item::before { background:#c4a6ff; }
   .item b { color:#f2efe4; font-weight:600; }
 
-  .tierbox { margin-top:40px; border:3px dashed #FFB020; border-radius:26px; padding:38px 42px; background:rgba(255,176,32,.04); }
+  .tierbox { margin-top:40px; border:3px solid #FFB020; border-radius:26px; padding:38px 42px; background:rgba(255,176,32,.04); }
   .ptitle { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:56px; color:#FFB020; }
   .psub { font-size:36px; color:#c9a45c; margin-top:12px; line-height:1.4; }
   .ptags { display:flex; flex-wrap:wrap; gap:16px; margin-top:26px; }
@@ -73,7 +73,7 @@
   <div class="card c-comp">
     <div class="chead"><div class="ctitle">COMPUTE</div></div>
     <div class="item"><b>Ampere A1 ARM instance</b> in a deny-by-default VCN, fully Terraform-managed</div>
-    <div class="item"><b>Live containers:</b> PostgreSQL 16 + pgvector, n8n, tunnel client, Falco, Falcosidekick, Datadog agent, Ollama, Whisper</div>
+    <div class="item"><b>Live, the eight running containers:</b> PostgreSQL 16 + pgvector, n8n, tunnel client, Falco, Falcosidekick, Datadog agent, Ollama, Whisper</div>
     <div class="item"><b>SSH:</b> break-glass only, from allow-listed operator CIDRs</div>
   </div>
 

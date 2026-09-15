@@ -82,7 +82,7 @@ nodes:
     controls: [SC-6, SC-5]
     status_note: "Set on every service in the full design and on all eight live containers: the database, n8n, and the tunnel since 2026-09-06, the sensor, its router, the agent, the local model, and the transcriber since 2026-09-08, all confirmed by inspecting each container on the host."
     evidence:
-      - {label: "Limits on the live database, n8n, and tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 57}
+      - {label: "Limits on the live database", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 57}
       - {label: "Limits on the database, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 111-112}
       - {label: "PID limits and the restart policy tradeoff", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 616}
     solidify: "SOL-control-layers-05"
@@ -254,7 +254,7 @@ nodes:
       - {label: "Backup writer identity", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
       - {label: "Write-only grant", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 102-109}
       - {label: "Recovery plan", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 17}
-    solidify: "none (CP-9 re-baselined 2026-09-06)"
+    solidify: "SOL-control-layers-15"
   - id: timed-restore
     label: "timed restore"
     zone: data
@@ -264,7 +264,7 @@ nodes:
     evidence:
       - {label: "Monthly restore test", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 224}
       - {label: "Backup bucket and retention", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
-    solidify: "none (CP-4, CP-10 re-baselined 2026-09-06)"
+    solidify: "SOL-control-layers-16"
   # DELIVERY
   - {id: pull-request, label: "pull request", zone: delivery, from: topology/pull-request}
   - {id: oidc-exchange, label: "OIDC exchange", zone: delivery, from: topology/oidc-exchange}
@@ -286,9 +286,9 @@ nodes:
     zone: delivery
     what: "Upstream image signatures are checked with Cosign on every merge and the tally is reported."
     controls: [SI-7, CM-5]
-    status_note: "Blocks since 2026-09-06 on pull requests and on main: every pinned image is checked against a per-publisher policy, keyless with a pinned identity for the two sensors and a public key kept in the repo for the access proxy; a signed image that fails, or an image with no policy, fails the job. Four of the sixteen image repositories carry a signature; the rest are recorded as unsigned rather than passed."
+    status_note: "Runs since 2026-09-06 on pull requests and on main: every pinned image is checked against a per-publisher policy, keyless with a pinned identity for the two sensors and a public key kept in the repo for the access proxy; a signed image that fails, or an image with no policy, fails the job. Four of the sixteen image repositories carry a signature; the rest are recorded as unsigned rather than passed."
     evidence:
-      - {label: "Verification job, blocking", path: .github/workflows/security.yml, line: 164}
+      - {label: "Verification job, fails on a bad signature", path: .github/workflows/security.yml, line: 164}
       - {label: "Signer policy", path: .github/image-signers.json, line: 1}
       - {label: "Verifier", path: scripts/verify_image_signatures.py, line: 1}
     solidify: "SOL-control-layers-14"

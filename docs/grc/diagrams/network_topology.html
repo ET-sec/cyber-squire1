@@ -65,13 +65,13 @@
 
   .livebox { border:3px solid #00FF41; background:rgba(0,255,65,.06); border-radius:16px; padding:24px 28px; margin-top:24px; }
   .liveh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#00FF41; margin-bottom:16px; }
-  .pendbox { border:3px dashed #FFB020; background:rgba(255,176,32,.05); border-radius:16px; padding:24px 28px; margin-top:24px; }
+  .tierbox { border:3px solid #FFB020; background:rgba(255,176,32,.05); border-radius:16px; padding:24px 28px; margin-top:24px; }
   .pendh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#FFB020; margin-bottom:16px; }
   .ctrs { display:flex; flex-wrap:wrap; gap:14px; }
   .ctr { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; background:#0d1310;
          border:2px solid #33413a; border-radius:12px; padding:12px 20px; color:#f2efe4; }
-  .pendbox .ctr { border-color:#5a4b26; color:#e8cf9a; }
-  .pendnote { font-size:30px; color:#c9a45c; margin-top:18px; line-height:1.4; }
+  .tierbox .ctr { border-color:#5a4b26; color:#e8cf9a; }
+  .tiernote { font-size:30px; color:#c9a45c; margin-top:18px; line-height:1.4; }
 
   .footer { margin-top:54px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#8f9a91; line-height:1.5; }
 </style>
@@ -191,14 +191,14 @@
           </div>
         </div>
 
-        <div class="pendbox">
+        <div class="tierbox">
           <div class="pendh">IDENTITY, SECRETS AND AI TIER</div>
           <div class="ctrs">
             <span class="ctr">Vault</span><span class="ctr">Keycloak</span><span class="ctr">Teleport</span>
             <span class="ctr">Audit log router</span><span class="ctr">Langfuse</span>
             <span class="ctr">NeMo Guardrails</span><span class="ctr">Squire agent</span>
           </div>
-          <div class="pendnote">Defined in Docker Compose. Registry images pinned to their arm64 index digests; three are built from this repository.</div>
+          <div class="tiernote">Defined in Docker Compose. Registry images pinned to their arm64 index digests; three are built from this repository.</div>
         </div>
       </div>
     </div>
@@ -229,4 +229,4 @@
   </div>
 </div>
 
-<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript in the private repo.</div>
+<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript for that control.</div>

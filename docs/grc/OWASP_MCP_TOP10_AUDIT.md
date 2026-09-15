@@ -155,9 +155,9 @@ The 5 FastMCP tools in scope are `list_docs`, `read_doc`, `search_corpus`, `get_
 
 **Evidence**: `scripts/grc/grc_mcp_server.py:151` defines `MAX_RESPONSE_BYTES = 100 * 1024` (100KB hard cap). The cap is enforced on every tool return: `list_docs` truncates the payload (lines 233 to 238), `read_doc` truncates via `_truncate_bytes()` (line 274), `search_corpus` accounts snippet bytes against `snippet_budget = MAX_RESPONSE_BYTES // 2` (line 292), `get_poam` truncates the raw row (line 359), `get_threat_model_entry` truncates the extracted section (line 402). Input arguments are validated by FastMCP type-hint enforcement plus the explicit regex guards `_POAM_ID_RE` and `_THREAT_ID_RE`. Every return goes through `sanitize()` to strip cross-context secret leaks.
 
-**Residual Risk**: Low. A single response under the byte cap could still over-share adjacent rows from the same markdown file (asking for one POAM ID returns the surrounding rows). Phase 21 will add query-intent scoping; until then, the 100KB cap plus per-field sanitize limits over-share blast radius.
+**Residual Risk**: Low. A single response under the byte cap could still over-share adjacent rows from the same markdown file (asking for one POAM ID returns the surrounding rows). The server applies no query-intent scoping, so the 100KB cap plus per-field sanitize is what limits the over-share blast radius.
 
-**Compensating Controls**: Not required (status is Mitigated). Phase 21 backlog item for query-intent scoping.
+**Compensating Controls**: Not required (status is Mitigated). Query-intent scoping sits on this audit's own backlog.
 
 ---
 

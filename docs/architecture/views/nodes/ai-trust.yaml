@@ -35,7 +35,7 @@ nodes:
     zone: vendor
     what: "The search vendor the enrich node queries with indicators and the rule name, under terms of service rather than a data processing agreement."
     controls: [SA-9, SC-8]
-    status_note: "The search query is built from indicator fields, with a whole-alert digest as the fallback that the field allowlist narrows."
+    status_note: "The search query is built from indicator fields, with the classifier rationale or a whole-alert digest as the fallback."
     evidence:
       - {label: "Query built from indicators", path: builds/squire/src/squire/nodes/enrich.py, line: 20}
       - {label: "Search call", path: builds/squire/src/squire/nodes/enrich.py, line: 61}
@@ -110,7 +110,7 @@ nodes:
     zone: net-core
     what: "The enrich node: builds a short query from the alert's indicators and rule name and asks the search vendor for recent context."
     controls: [SI-10, SA-9]
-    status_note: "The enrich query is built from the alert's indicator fields and the rule name, and the data flow document lists the fields that may cross to the search vendor."
+    status_note: "The enrich query carries the alert's indicator fields, the rule name and the classifier's incident type, and falls back to a whole-alert digest when the alert holds none of them."
     evidence:
       - {label: "Query builder", path: builds/squire/src/squire/nodes/enrich.py, line: 20}
       - {label: "Enrich node", path: builds/squire/src/squire/nodes/enrich.py, line: 77}
@@ -167,7 +167,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Sensitive Information Disclosure: prompts to the vendor may carry operational context, rated High in the catalog; the PII scrub is the first screen against it."
     controls: []
-    status_note: "A regex pass blocks the request when it finds an identifier, a card number or a secret, before any prompt is built. Each chip's catalog rows, cited below, hold the rating and the treatment."
+    status_note: "A regex pass blocks the request when it finds an identifier, a card number or a secret, before any prompt is built."
     evidence:
       - {label: "Catalog row LLM02", path: docs/grc/AI_THREAT_CATALOG.md, line: 171}
     solidify: none
@@ -206,7 +206,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Excessive Agency and Tool Misuse: the agent could trigger broad actions, rated High and Medium; the allowlist that rewrites any action to a recommendation is the treatment."
     controls: []
-    status_note: "Any action outside the allowlist is rewritten to a recommendation before the response leaves, so the agent advises and never executes."
+    status_note: "Any action outside the allowlist is rewritten to a recommendation before the response leaves."
     evidence:
       - {label: "Catalog row LLM03", path: docs/grc/AI_THREAT_CATALOG.md, line: 172}
       - {label: "Catalog row ASI02", path: docs/grc/AI_THREAT_CATALOG.md, line: 191}

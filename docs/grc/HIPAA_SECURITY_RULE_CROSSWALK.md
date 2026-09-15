@@ -455,7 +455,7 @@ The following table scores each safeguard category against the four maturity lev
 
 ### 11.3 Overall Readiness
 
-OSOP can support a healthcare customer BAA signing once the six gaps in Section 14 are closed. Estimated effort: approximately 80 hours of dedicated work across documentation, configuration, and process formalization. Five of the six gaps are documentation-only. One gap (audit log retention extension) requires storage configuration and budget review.
+Section 14 carries six open gaps between OSOP and a healthcare customer BAA signing. Estimated effort to close them: approximately 80 hours of dedicated work across documentation, configuration, and process formalization. Five of the six gaps are documentation-only. One gap (audit log retention extension) requires storage configuration and budget review.
 
 ---
 

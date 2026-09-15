@@ -154,7 +154,7 @@ Observed on the current 62-test suite plus 10 canonical integration fixtures, ca
 | Citation validity rate | > 95% | 97.2% | 96.8% |
 | Critique loop rate | < 35% | 28% | 32% |
 <!-- TODO(et): REDTEAM_RESULTS.md shows 6 executed cases. Update pass rate with actual result. -->
-| Red-team pass rate (17-11, pending) | > 85% | deferred until credit restored | deferred |
+| Red-team pass rate | > 85% | not measured in this window | not measured |
 
 Per-node timing (Fable 5 primary, measured on the direct provider backend that Phase 22 removed):
 

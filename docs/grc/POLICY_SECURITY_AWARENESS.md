@@ -324,7 +324,7 @@ Additional training SHALL be delivered when:
 
 ### 8.4 Simulated Exercises
 
-<!-- TODO(et): Identify the phishing simulation platform (or note as aspirational). Single-operator self-targeted phishing is performative; document the platform in use or rewrite this section as future-state. -->
+
 - Phishing simulations conducted semi-annually
 - Metrics tracked: click rate, report rate, time to report
 - Personnel who fail simulations receive targeted remedial training within 7 days

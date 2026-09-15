@@ -27,8 +27,8 @@
   .b-blue  .blabel { color:#f2efe4; }
   .b-green { border:3px solid #00FF41; background:rgba(0,255,65,.04); }
   .b-green .blabel { color:#00FF41; }
-  .b-purple{ border:3px solid #B48CFF; background:rgba(180,140,255,.05); }
-  .b-purple .blabel { color:#C9ABFF; }
+  .b-purple{ border:3px solid #c4a6ff; background:rgba(196,166,255,.05); }
+  .b-purple .blabel { color:#c4a6ff; }
 
   .cross { margin:0 60px; border-left:6px dashed #00FF41; padding:26px 0 26px 44px; position:relative; }
   .cross::after { content:""; position:absolute; left:-19px; bottom:-4px;
@@ -129,7 +129,7 @@
   <div class="bsub">Ampere A1 Flex ARM instance, 4 OCPU and 24 GB. Security list is deny-by-default: SSH only from operator allow-listed CIDRs as break-glass, nothing else inbound.</div>
   <div class="inner">
     <div class="icard">
-      <div class="ilabel">Core workload</div>
+      <div class="ilabel">Live workload: the eight running containers</div>
       <div class="isub">PostgreSQL 16 with pgvector, n8n, the Cloudflare tunnel client, Falco, Falcosidekick, the Datadog agent, Ollama and Whisper.</div>
     </div>
     <div class="icard">
@@ -198,4 +198,4 @@
   </div>
 </div>
 
-<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript in the private repo.</div>
+<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript for that control.</div>

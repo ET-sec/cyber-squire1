@@ -201,7 +201,7 @@ Identity Provider      Access Gateway (Authorization)
      (separate credentials)
 ```
 
-### Future State (Access Gateway Enterprise + OIDC)
+### Federation decision (Access Gateway Enterprise + OIDC)
 
 ```mermaid
 sequenceDiagram
@@ -272,7 +272,7 @@ spec:
 
 ### What Changes with Enterprise
 
-| Feature | Community (Current) | Enterprise (Future) |
+| Feature | Community (this build) | Enterprise (licensed) |
 |---------|:------------------:|:-------------------:|
 | Single Sign-On | No (separate logins) | Yes (identity provider OIDC) |
 | Role mapping | Manual | Automatic (claims_to_roles) |

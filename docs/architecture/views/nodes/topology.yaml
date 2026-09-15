@@ -41,7 +41,7 @@ nodes:
     evidence:
       - {label: "SSH ingress rule from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
       - {label: "The range as a variable", path: terraform/cd-oci-infrastructure/variables.tf, line: 166}
-    solidify: "none (POAM-021 closed 2026-09-06)"
+    solidify: "SOL-topology-19"
 
   - id: access
     label: "Access"
@@ -212,7 +212,7 @@ nodes:
       - {label: "Backup bucket, encrypted, retention rule", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 59}
       - {label: "Backup writer identity, no long-lived key", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 94}
       - {label: "Recovery plan", path: docs/grc/POLICY_DISASTER_RECOVERY.md, line: 17}
-    solidify: "none (CP-4, CP-9, CP-10 re-baselined 2026-09-06)"
+    solidify: "SOL-topology-20"
 
   - id: teleport
     label: "Teleport"
@@ -342,7 +342,7 @@ nodes:
       - {label: "Exchange for a cloud session", path: .github/actions/oci-session/action.yml, line: 53}
       - {label: "Session minted on every merge", path: .github/workflows/terraform-main.yml, line: 54}
       - {label: "PR path, no credentials", path: .github/workflows/terraform-pr.yml, line: 56}
-    solidify: "none (exchange on main for the merge-time plan since 2026-09-06; the PR path has no identity by design; client secret stays stored, harmless alone)"
+    solidify: "SOL-topology-21"
 
   - id: plan-scan-lint
     label: "plan, scan, lint"
@@ -359,7 +359,7 @@ nodes:
       - {label: "Secret scan", path: .github/workflows/security.yml, line: 25}
       - {label: "CVE and misconfig scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Static analysis", path: .github/workflows/security.yml, line: 51}
-    solidify: "none (Tier 1 item 4 closed 2026-09-06)"
+    solidify: "SOL-topology-22"
 
   - id: opa-gates
     label: "OPA gates, 4 deny"
@@ -375,7 +375,7 @@ nodes:
       - {label: "Self-test on fixtures", path: .github/workflows/terraform-pr.yml, line: 80}
       - {label: "Policies on the real plan, main", path: .github/workflows/terraform-main.yml, line: 116}
       - {label: "Violating fixture plan", path: terraform/cd-oci-infrastructure/policy/testdata/plan_violations.json, line: 1}
-    solidify: "none (Tier 1 item 5 closed 2026-09-06)"
+    solidify: "SOL-topology-23"
 
   - id: human-review
     label: "human review"
