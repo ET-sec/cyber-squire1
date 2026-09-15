@@ -11,7 +11,6 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 |---|---|---|
 | `COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/**` | active | The monitoring agent's check configurations, mounted over the image's drop-in path: today the host authentication log tail. |
 | `COREDIRECTIVE_ENGINE/CD_VOL_FALCO/**` | active | The kernel sensor's configuration overlay and the platform's own detection rules. |
-| `COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/Dockerfile` | active | The build context for the Fluentd log shipper, one of the three Tier 0 images the stack builds locally rather than pulling. |
 | `COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/coredirective-realm.json` | active | The realm template the identity provider imports on its first start: realm settings, the human and agent roles, and the service account clients. |
 | `COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/roles.yaml` | active | The two gateway roles: the requestable administrative role and the operator role that may request it. |
 | `COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/teleport.yaml` | active | The access gateway's configuration: auth, proxy and node in one process, local authentication with a second factor, session recording at the node. |

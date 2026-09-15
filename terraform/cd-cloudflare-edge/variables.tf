@@ -44,10 +44,45 @@ variable "home_country" {
 }
 
 locals {
-  admin_hosts = [for s in var.admin_subdomains : "${s}.${var.domain}"]
-  n8n_host    = "n8n.${var.domain}"
+  admin_hosts   = [for s in var.admin_subdomains : "${s}.${var.domain}"]
+  n8n_host      = "n8n.${var.domain}"
+  keycloak_host = "${var.keycloak_subdomain}.${var.domain}"
 
   # Cloudflare rules-language set literals: {"a" "b"} and {1.2.3.0/24 5.6.7.0/22}
   admin_host_set  = join(" ", [for h in local.admin_hosts : "\"${h}\""])
   telegram_ip_set = join(" ", var.telegram_ip_ranges)
+}
+
+variable "cf_tunnel_id" {
+  description = "Id of the tunnel that carries every route to the origin. Real value in the gitignored terraform.tfvars; an identifier, not a credential, and not marked sensitive so the imported resource plans clean."
+  type        = string
+}
+
+variable "keycloak_subdomain" {
+  description = "Subdomain of the identity provider's public hostname (derived from the zone, so no real hostname sits in this code)."
+  type        = string
+  default     = "auth"
+}
+
+variable "keycloak_realm" {
+  description = "Realm whose discovery document and protocol endpoints are the only two path families routed to the identity provider. Real value in the gitignored terraform.tfvars."
+  type        = string
+  sensitive   = true
+}
+
+variable "otp_identity_provider_id" {
+  description = "Id of the account's one-time PIN identity provider, the login path that stays beside the identity provider so a fault there cannot lock the operator out. Real value in the gitignored terraform.tfvars."
+  type        = string
+}
+
+variable "keycloak_client_id" {
+  description = "Client id registered in the identity provider for the edge login."
+  type        = string
+  default     = "cloudflare-access"
+}
+
+variable "keycloak_client_secret" {
+  description = "That client's secret. Never in a file: passed as TF_VAR_keycloak_client_secret from the secrets manager at run time."
+  type        = string
+  sensitive   = true
 }

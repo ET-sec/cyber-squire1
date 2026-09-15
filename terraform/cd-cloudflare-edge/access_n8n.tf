@@ -19,6 +19,9 @@ resource "cloudflare_access_application" "n8n" {
   session_duration          = "24h"
   auto_redirect_to_identity = false
   app_launcher_visible      = true
+  # Both providers, listed explicitly: the one-time PIN path stays beside the
+  # identity provider, and the flag above keeps the chooser on the login page.
+  allowed_idps = [var.otp_identity_provider_id, cloudflare_access_identity_provider.keycloak.id]
 
   cors_headers {
     allowed_methods   = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]

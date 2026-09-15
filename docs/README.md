@@ -86,7 +86,7 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 | `docs/REPO_MANIFEST.yaml` | active | This file: one row for every tracked path, with what it is, why it stays, when it was last checked, and what would make somebody look again. |
 | `docs/WORKFLOW_GUIDE.md` | active | What each workflow does, when it runs, and what it needs to pass. |
 | `docs/architecture/**` | active | The architecture record: information flows, stack overview, the OWASP LLM mapping, and the mermaid sources behind them. |
-| `docs/architecture/decisions/**` | active | Six decision records, each naming the control it satisfies and the artifact that proves it. |
+| `docs/architecture/decisions/**` | active | Seven decision records, each naming the control it satisfies and the artifact that proves it. |
 | `docs/architecture/views/**` | active | The seven published architecture views: the drawings, the generators that emit them, and the view index. |
 | `docs/architecture/views/nodes/**` | active | One node table per view: every box on the drawing with its zone, its controls, its honest status, and the file and line that proves it. |
 | `docs/context/**` | reference | Dated probe evidence: what was measured, on what version, and which path was chosen as a result. |
