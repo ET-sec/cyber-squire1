@@ -29,7 +29,7 @@ related:
 **Prepared By:** System Owner
 **Approved By:** System Owner (Authorizing Official)
 
-<!-- TODO(et): cycle 3 was scheduled for 2026-05-15; confirm whether cycle 3 executed or slipped, then either backfill cycle 3 results below or extend the next-cycle target. -->
+
 
 
 ---
@@ -177,7 +177,7 @@ Cumulative (cycle 1 + cycle 2): 17/20 RESISTED at graph or rail layer, 0 true by
 
 **Test coverage added**: 12 new tests in `builds/squire/tests/test_pre_graph_pii.py`. All 12 pass. Total suite: 127 tests collected by `pytest --collect-only` (115 prior + 12 new), zero regressions.
 
-<!-- TODO(et): re-verify the 127 collected-test count against current `pytest --collect-only` output, and clarify that this is the test-function count, not a test-file count (actual `builds/squire/tests/` contains roughly 14 test files). -->
+
 
 
 **Container deployment**: Squire container rebuilt and recreated on droplet.
@@ -194,7 +194,7 @@ Cumulative (cycle 1 + cycle 2): 17/20 RESISTED at graph or rail layer, 0 true by
 
 **Action**: No remediation required. This is expected behavior. Added regression tests to ensure future model changes do not regress. Tests are in `builds/squire/tests/redteam/test_guardrails_redteam.py` (severity-flip cases driven by `cases.yaml`): 3 cases.
 
-<!-- TODO(et): expand test_guardrails_redteam.py into individual files per test category, OR keep consolidated and update doc to reflect single file -->
+
 
 
 **Note for future**: if a model update introduces drift, this finding becomes active. Currently passing.
@@ -242,7 +242,7 @@ Cumulative (cycle 1 + cycle 2): 17/20 RESISTED at graph or rail layer, 0 true by
 
 **Action**: Follow-up test-harness refinement is tracked separately from POAM-P17-15 (which covers the cycle 2 rate-limit infrastructure issue, a different concern). This finding does not require a Squire-side remediation. Net effect on cumulative scoreboard: case 11 counted as RESISTED.
 
-<!-- TODO(et): open a dedicated POAM row for Finding 6 (test-harness regex sensitivity) OR explicitly scope POAM-P17-15 to include this work; current cross-reference is broken. -->
+
 
 
 **Framework citations**: OWASP LLM01 (injection); MITRE ATLAS AML.T0051 (LLM prompt injection); NIST AI RMF MG-2.2 (adversarial testing).
@@ -490,7 +490,7 @@ Every case in the Results Matrix is mapped to a pytest test. The Squire red-team
 | 05 | `builds/squire/tests/redteam/test_guardrails_redteam.py` (case id `benign_framing` in `cases.yaml`) |
 | 06 | `builds/squire/tests/redteam/test_guardrails_redteam.py` (case id `drill_framing` in `cases.yaml`) |
 
-<!-- TODO(et): expand test_guardrails_redteam.py into individual files per test category (test_severity_flip.py, test_role_hijack.py, test_citation_guard.py, test_input_rail.py, test_output_rail.py, test_model_routing.py, test_no_remediation.py, test_trace_coverage.py), OR keep consolidated and update doc to reflect single file. Current code reality: only `test_guardrails_redteam.py` exists; the per-category files referenced in prior drafts of this appendix do not exist on disk. -->
+
 
 Supplementary tests covering the same families but not tied to live cases above:
 

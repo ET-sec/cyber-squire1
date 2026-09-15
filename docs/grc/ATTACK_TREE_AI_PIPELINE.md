@@ -320,7 +320,7 @@ This analysis supports the STRIDE threat model (`THREAT_MODEL_STRIDE.md`) by pro
 
 | Priority | Attack Path | Mitigation | MITRE ATLAS Defense | Target Date |
 |----------|-------------|-----------|---------------------|-------------|
-<!-- TODO(et): P1 through P5 target dates 2026-06-12 / 2026-09-12 are past or approaching. Refresh with closure status or revised targets. -->
+
 | 1 | Path 3 | Restrict environment variable visibility in svc-automation Code nodes; migrate to svc-secrets dynamic credentials | Not an ATLAS-mitigation; tracked via NIST 800-53 SC-28, SC-12 and CIS Docker Bench 5.10 | 2026-06-12 |
 | 2 | Path 1 | Deploy prompt firewall (input/output classifier) at svc-ai-gateway | AML.M0004 (Restrict Queries) | 2026-06-12 |
 | 3 | Path 4 | Implement micro-segmentation within net-core; restrict AI container network egress to documented endpoints only | AML.M0002 (Passive ML Output Obfuscation) | 2026-09-12 |

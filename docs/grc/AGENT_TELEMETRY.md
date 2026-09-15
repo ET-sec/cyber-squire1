@@ -132,4 +132,4 @@ behind these telemetry tags), `AI_AUDIT_TRAIL_SPEC.md` (per-investigation
 audit rows now carry `agent_id` to keep the per-agent attribution story
 consistent across metrics, logs, traces, and audit records).*
 
-<!-- TODO(et): confirm the current `.agents/registry.yaml` row count matches the "13 LLM-callers" figure in the Cardinality Budget; the registry currently includes the four Squire agents and additional rows for gateway, bot-a, bot-b, fastmcp_grc_corpus, master_orchestrator, n8n_content_research, n8n_gmail_readers, n8n_telegram_supervisor, grc_librarian. -->
+

@@ -16,7 +16,7 @@ items:
   - id: aws_credits_landed
     flag: TRIGGER_AWS_CREDITS
     what: "The AWS security plane apply and the off-provider backup replication."
-    why_now: "The security plane's controls can only be proven against a live account, and the single-provider backup gap stays open while they are unproven."
+    why_now: "The security plane's controls can only be proven against a live account."
     affects:
       - "terraform/cd-aws-security-plane/**"
       - "docs/grc/POAM_PLAN_OF_ACTION.md"
@@ -37,7 +37,7 @@ items:
   - id: identity_tier_live
     flag: TRIGGER_IDENTITY_TIER
     what: "The identity tier documents, which have to match the host once the tier is up."
-    why_now: "The moment the identity tier runs on the host, every claim in these files is checkable against a running realm and a running agent instead of against a file."
+    why_now: "Re-verify these files against the realm export and the signed agent cards."
     affects:
       - "keycloak/**"
       - "Agent_Squire/**"

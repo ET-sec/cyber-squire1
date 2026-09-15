@@ -143,7 +143,7 @@ All AI systems within the authorization boundary are registered in the following
 | ID | System | Service | Model/Engine | Deployment | Data Flow | Risk Tier |
 |----|--------|---------|-------------|------------|-----------|-----------|
 | AI-001 | AI Agent Gateway | `svc-ai-gateway` (OpenClaw) | Claude Fable 5 (Anthropic API) | External API | Prompts sent to Anthropic; responses returned to messaging integration and `svc-automation` workflows | **High** |
-<!-- TODO(et): Verify Qwen 3 4B is the actually loaded Ollama model via `docker exec svc-ollama ollama list`. Model is pulled at runtime and not pinned in docker-compose.yaml. -->
+
 | AI-002 | Local LLM Inference | `svc-llm` (Ollama) | Qwen 3 4B | Local (on `alpha-node`) | All processing on-premises; no data leaves the node | **Medium** |
 | AI-003 | Voice Transcription | `svc-transcription` (Whisper) | Whisper base (open-weight) | Local (on `alpha-node`) | Audio processed locally; transcripts stored in workflow state | **Low** |
 | AI-004 | Squire Autonomous SOC Analyst | `svc-squire` | Claude Fable 5 (primary) and Opus 5 (secondary) via Anthropic API; voyage-3-large embeddings (1024-dim) via Voyage AI for pgvector RAG | External API (model and embeddings) | Sanitized alerts ingressed at `/alert`; prompts and retrieval embeddings sent to Anthropic and Voyage AI; responses persisted in `ir_investigations` table; advisory output only per `HITL_POLICY.md` | **High** |
@@ -210,7 +210,7 @@ All AI systems within the authorization boundary are registered in the following
 In the current single-operator environment, the System Owner, Information Security Officer, and System Administrator roles are performed by the same individual. The following compensating controls maintain accountability:
 
 1. All AI system configuration changes are tracked through version-controlled infrastructure-as-code, providing an immutable change history.
-<!-- TODO(et): `svc-log-router` is not in SANITIZATION_KEY.md. Confirm whether this is intended as the sanitized alias for Fluentd or rename to `Fluentd` to match the access of other policies. -->
+
 2. AI interaction logs (prompts, responses, actions taken) are shipped to the monitoring platform via `svc-log-router`, creating an independent audit trail.
 3. Session recordings via `svc-gateway` capture all administrative actions on AI system containers.
 4. The Auditor role is performed through structured self-audit using the documented checklists in Section 15.2 or by an independent external party.

@@ -186,7 +186,7 @@ doppler secrets set SQUIRE_WEBHOOK_TOKEN="$(openssl rand -hex 48)" \
 
 - Token rotation stops new alerts at the /alert endpoint (next POST with old token returns 401).
 - In-flight invocations continue to completion; they do not terminate mid-graph.
-- n8n credential `SQUIRE_WEBHOOK_TOKEN` must be updated in the n8n credentials store before the next alert dispatch; otherwise n8n will 401. Update must be done *after* triage confirms scope so upstream re-enables cleanly. <!-- TODO(et): record the n8n credential ID for SQUIRE_WEBHOOK_TOKEN so the responder can update it directly via the REST API rather than the UI. -->
+- n8n credential `SQUIRE_WEBHOOK_TOKEN` must be updated in the n8n credentials store before the next alert dispatch; otherwise n8n will 401. Update must be done *after* triage confirms scope so upstream re-enables cleanly.
 
 
 **Scoring:**
@@ -277,9 +277,9 @@ ssh host-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "sv
 # to the golden baseline
 ssh host-alpha 'docker exec svc-db psql -U "$CD_DB_USER" -d "$CD_DB_NAME" \
   -c "SELECT count(*), md5(string_agg(content, '"'"','"'"' ORDER BY id)) FROM ir_chunks"'
-# <!-- TODO(et): verify the ir_chunks schema actually exposes `content` and `id`
-# columns. If the live schema differs (e.g., chunk_text, chunk_id), update
-# both the recovery procedure and Phase 5 inject. -->
+#
+
+
 
 
 # Compare output to:
@@ -334,8 +334,8 @@ curl -X POST https://squire.example-ops.com/alert \
 
 **Expected artifacts:**
 
-1. POA&M entry filed (example: POAM-P17-11 "expand NeMo rail for YAML-structured role-hijack", Owner: Security Eng, Target: next release). <!-- TODO(et): confirm POAM-P17-11 is the live entry number in POAM_PLAN_OF_ACTION.md; if not, replace with the actual ID at exercise time. -->
-2. Regression test added to `builds/squire/tests/test_redteam.py` with this exact payload; must return a blocked or INCONSISTENT-rejected state. <!-- TODO(et): confirm builds/squire/tests/test_redteam.py exists and that the payload is in it; otherwise this is roadmap, not done. -->
+1. POA&M entry filed (example: POAM-P17-11 "expand NeMo rail for YAML-structured role-hijack", Owner: Security Eng, Target: next release).
+2. Regression test added to `builds/squire/tests/test_redteam.py` with this exact payload; must return a blocked or INCONSISTENT-rejected state.
 
 3. NeMo rail config updated: add a behavioral pre-check for YAML-framed directive patterns before presidio pass.
 4. Update to [REDTEAM_RESULTS.md](REDTEAM_RESULTS.md) with a new case entry documenting the bypass, fix, and verification.
@@ -386,9 +386,9 @@ ssh host-alpha 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "sv
 # 4. Corpus integrity check
 ssh host-alpha 'docker exec svc-db psql -U "$CD_DB_USER" -d "$CD_DB_NAME" \
   -c "SELECT count(*), md5(string_agg(content, '"'"','"'"' ORDER BY id)) FROM ir_chunks"'
-# <!-- TODO(et): verify the ir_chunks schema actually exposes `content` and `id`
-# columns. If the live schema differs (e.g., chunk_text, chunk_id), update
-# both the recovery procedure and Phase 5 inject. -->
+#
+
+
 
 
 # 5. Compare to baseline

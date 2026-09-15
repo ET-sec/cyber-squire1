@@ -83,6 +83,8 @@ nodes:
     status_note: "Set on every service in the full design and on all eight live containers: the database, n8n, and the tunnel since 2026-09-06, the sensor, its router, the agent, the local model, and the transcriber since 2026-09-08, all confirmed by inspecting each container on the host."
     evidence:
       - {label: "Limits on the live database", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 57}
+      - {label: "Limits on the live n8n container", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 86}
+      - {label: "Limits on the live tunnel container", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 106}
       - {label: "Limits on the database, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 111-112}
       - {label: "PID limits and the restart policy tradeoff", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 616}
     solidify: "SOL-control-layers-05"
@@ -288,7 +290,7 @@ nodes:
     controls: [SI-7, CM-5]
     status_note: "Runs since 2026-09-06 on pull requests and on main: every pinned image is checked against a per-publisher policy, keyless with a pinned identity for the two sensors and a public key kept in the repo for the access proxy; a signed image that fails, or an image with no policy, fails the job. Four of the sixteen image repositories carry a signature; the rest are recorded as unsigned rather than passed."
     evidence:
-      - {label: "Verification job, fails on a bad signature", path: .github/workflows/security.yml, line: 164}
+      - {label: "Cosign signature check", path: .github/workflows/security.yml, line: 164}
       - {label: "Signer policy", path: .github/image-signers.json, line: 1}
       - {label: "Verifier", path: scripts/verify_image_signatures.py, line: 1}
     solidify: "SOL-control-layers-14"

@@ -291,7 +291,7 @@ entries:
     reason: "The most referenced file in the repository, with fifty three evidence anchors on the published views plus the renovate matcher, the image smoke test, and the image signature check. It is the definition of record for every service on the host."
     last_verified: 2026-09-09
     review: {every: 90d}
-    rewrite_later: "One finding from phase 22. The api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent, which the private record carries with its plan number."
+    rewrite_later: "The api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent."
 
   - path: "COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml"
     purpose: "The definition of what runs on the instance: the database, the orchestration engine, the tunnel, the model and speech servers, the kernel sensor and its router, and the monitoring agent."

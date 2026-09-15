@@ -241,7 +241,7 @@ Administrative access is never permanently assigned. The operator role includes 
 
 ### 7.2 Standing Privileges
 
-<!-- TODO(et): In a single-operator environment, document how JIT approval works when the requestor IS the only approver. Either describe the self-approval workflow with the audit trail as compensating control, or mark dual control as aspirational until a second operator is added. -->
+
 
 No standing administrative privileges are permitted. The following restrictions apply:
 

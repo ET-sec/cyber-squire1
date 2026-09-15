@@ -16,7 +16,6 @@
   .lg { display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#b9c2ba; }
   .sw { width:34px; height:34px; border-radius:8px; }
   .sw.live { background:rgba(0,255,65,.18); border:3px solid #00FF41; }
-  .sw.pend { background:rgba(255,176,32,.10); border:3px dashed #FFB020; }
   .sw.ver  { background:transparent; border:3px solid #00FF41; border-radius:50%; }
   .sw.def  { background:transparent; border:3px solid #FF5C5C; border-radius:50%; }
 
@@ -66,7 +65,7 @@
   .livebox { border:3px solid #00FF41; background:rgba(0,255,65,.06); border-radius:16px; padding:24px 28px; margin-top:24px; }
   .liveh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#00FF41; margin-bottom:16px; }
   .tierbox { border:3px solid #FFB020; background:rgba(255,176,32,.05); border-radius:16px; padding:24px 28px; margin-top:24px; }
-  .pendh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#FFB020; margin-bottom:16px; }
+  .tierh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#FFB020; margin-bottom:16px; }
   .ctrs { display:flex; flex-wrap:wrap; gap:14px; }
   .ctr { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; background:#0d1310;
          border:2px solid #33413a; border-radius:12px; padding:12px 20px; color:#f2efe4; }
@@ -192,13 +191,13 @@
         </div>
 
         <div class="tierbox">
-          <div class="pendh">IDENTITY, SECRETS AND AI TIER</div>
+          <div class="tierh">IDENTITY, SECRETS AND AI TIER</div>
           <div class="ctrs">
             <span class="ctr">Vault</span><span class="ctr">Keycloak</span><span class="ctr">Teleport</span>
             <span class="ctr">Audit log router</span><span class="ctr">Langfuse</span>
             <span class="ctr">NeMo Guardrails</span><span class="ctr">Squire agent</span>
           </div>
-          <div class="tiernote">Defined in Docker Compose. Registry images pinned to their arm64 index digests; three are built from this repository.</div>
+          <div class="tiernote">Eleven services in seven groups, defined in Docker Compose; registry images pinned to their arm64 index digests and three built from this repository.</div>
         </div>
       </div>
     </div>

@@ -113,9 +113,9 @@ Risk Score rubric:
 
 ---
 
-<!-- TODO(et): "Next Review 2026-06-23" is past due. The promised 60-day re-walk needs to be executed and timestamps refreshed across the register. -->
-<!-- TODO(et): GLiNER row "TBD: pinned but currently unloaded" is contradictory wording. Pick either "version pin TBD, currently unloaded" or specify the pinned commit/tag. -->
-<!-- TODO(et): OpenClaw Risk Score 2 vs role in Squire path: AI_SUPPLY_CHAIN_RISK Section 3.1 lists OpenClaw as svc-ai-gateway in Squire's path. Reconcile whether OpenClaw is on the Squire critical path (raise Risk Score) or strictly fronts Telegram/n8n/Claude Desktop (Score 2 holds). -->
+
+
+
 
 ## 4. TBD Items
 

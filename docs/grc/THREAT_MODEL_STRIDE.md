@@ -808,7 +808,7 @@ Recounted from the register on 2026-09-06. I-02 is rated Moderate in its entry, 
 
 > **Key Point:** The Squire autonomous SOC analyst subsystem introduces 6 new components. STRIDE rows below map each Squire component to each STRIDE category with the Phase 17 control that resists the threat. `SQUIRE_THREAT_MODEL.md` is the integrated authoritative Squire-scope threat view.
 
-<!-- TODO(et): "patched Langfuse v3" in svc-langfuse-web row is vague. Cite the specific Langfuse v3 minor and the CVE-XXXX-NNNN that motivated the patch. -->
+
 
 
 ### 12.5.1 Squire components x STRIDE

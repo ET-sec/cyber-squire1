@@ -24,7 +24,7 @@ This plan is a companion to GRC-BCP-001 (Business Continuity Plan) and focuses s
 
 This plan covers the recovery of:
 
-- The production VPS (`alpha-node`), all 19 Compose-managed service containers, and the standalone service beside them
+- The production VPS (`alpha-node`) and all 19 Compose-managed service containers
 - PostgreSQL databases and persistent data volumes
 - Infrastructure-as-code state and definitions
 - CI/CD pipeline configurations
@@ -76,7 +76,7 @@ This plan covers the recovery of:
 
 ### 4.1 Scenario A - DigitalOcean Outage (Region Unavailable)
 
-**Description:** DigitalOcean's hosting region becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
+**Description:** The Oracle Cloud region hosting the VPS becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
 
 **Impact:** All 19 Compose-managed services offline. No remote access via tunnel or direct SSH. Datadog may still have historical data.
 
@@ -104,7 +104,7 @@ This plan covers the recovery of:
 
 **Impact:** All 19 Compose-managed services offline. Data on local volumes may be lost or inaccessible.
 
-**Detection:** SSH connection refused or timeout; Datadog reports host down; DigitalOcean console shows instance in error state.
+**Detection:** SSH connection refused or timeout; Datadog reports host down; the Oracle Cloud console shows the instance in an error state.
 
 **Recovery Procedure:**
 
@@ -316,7 +316,7 @@ Step 13: Validate (see Section 8)
 
 ### 6.2 Playbook: PostgreSQL Backup Restore
 
-<!-- TODO(et): If WAL archiving is configured for true point-in-time recovery, rename this section back to "Point-in-Time Recovery" and replace the procedure with the WAL replay flow. Current procedure is a full restore from the most recent `pg_dump`, not PITR. -->
+
 
 **Trigger:** Database corruption detected; services reporting data errors.
 

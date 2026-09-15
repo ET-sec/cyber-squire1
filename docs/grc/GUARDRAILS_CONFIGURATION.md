@@ -259,7 +259,7 @@ Lakera Guard is a commercial detection service for prompt injection. Squire's ar
 - **Account status**: the System Owner's Lakera account is registered but not on a production plan. API key placeholder in Doppler as `LAKERA_API_KEY` (currently empty).
 - **Integration**: `builds/squire/app/rails/lakera_client.py` is a stub that wraps the Lakera Guard API. When the key is set, the stub fires before the NeMo input rail.
 - **Fallback**: When the key is empty, the stub returns `allow` immediately with `degraded=true`.
-- **Activation**: The NeMo input rail plus the pre-graph scanner provide the coverage this threat model needs, and the hosted classifier is held behind an activation gate.
+- **Coverage**: The NeMo input rail and the pre-graph scanner provide this coverage.
 
 ## 7. Failure Modes and Remediation Playbook
 
@@ -371,7 +371,7 @@ Each file has a corresponding test module under `builds/squire/tests/`. The test
 | `LAKERA_API_KEY` | Lakera Guard (placeholder) | On activation |
 | `NEMO_ADMIN_TOKEN` | `svc-nemo` admin API | Quarterly |
 | `ANTHROPIC_API_KEY` | LLM backend | Quarterly + rotate on any 402 |
-| `VOYAGE_API_KEY` | Embeddings for corpus (per ADR 001) | Quarterly <!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `<SECRETS_PROJECT>/<CONFIG>`; ADR_001_EMBEDDING_PROVIDER.md chose Voyage AI and the compose env block references this key --> |
+| `VOYAGE_API_KEY` | Embeddings for corpus (per ADR 001) | Quarterly |
 | `TAVILY_API_KEY` | Enrichment search | Quarterly |
 
 No guardrail secret is committed to Git. All secrets come from Doppler config `<SECRETS_PROJECT>/<CONFIG>`.

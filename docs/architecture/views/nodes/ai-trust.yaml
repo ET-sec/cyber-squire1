@@ -110,7 +110,7 @@ nodes:
     zone: net-core
     what: "The enrich node: builds a short query from the alert's indicators and rule name and asks the search vendor for recent context."
     controls: [SI-10, SA-9]
-    status_note: "The enrich query carries the alert's indicator fields, the rule name and the classifier's incident type, and falls back to a whole-alert digest when the alert holds none of them."
+    status_note: "The enrich query carries the alert's indicator fields, the rule name and the classifier's incident type, and falls back to the classifier rationale, then to a whole-alert digest when that rationale is empty."
     evidence:
       - {label: "Query builder", path: builds/squire/src/squire/nodes/enrich.py, line: 20}
       - {label: "Enrich node", path: builds/squire/src/squire/nodes/enrich.py, line: 77}

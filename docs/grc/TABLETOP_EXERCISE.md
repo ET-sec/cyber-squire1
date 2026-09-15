@@ -97,7 +97,7 @@ Output: Shell spawned in svc-automation (user=node, parent=node,
     cmdline=sh -c /bin/sh, container_id=a1b2c3d4e5f6)
 ```
 
-<!-- TODO(et): the current Sigma rule detections/sigma/infra/container-shell-spawn-restricted.yml allowlists shell-spawn alerts for PostgreSQL, Vault, Tunnel, Keycloak, Falco, and OpenClaw. svc-automation (n8n) is NOT in that list, so this inject would not trigger the rule as configured. Either add n8n to the rule's container allowlist OR change the inject service to one that is already covered. -->
+
 
 
 Simultaneously, Datadog flags an anomalous DNS query originating from svc-automation:
@@ -372,7 +372,7 @@ The Phase 5 discussion enumerates detection gaps and architectural changes. Stat
 | Secrets injection via mounted files (deprecate env vars) | Architecture | **OPEN** |
 | Dependency scanning SLA (critical patches within 24h) | Policy | **IN-PROGRESS**: Trivy + Renovate are wired in CI; SLA not yet codified |
 
-> The next TTX run should use "detection rules added since last exercise" as an evaluation criterion. As of this status snapshot, 0 of the 4 detection gaps identified at the original exercise have been closed in 3+ months. <!-- TODO(et): file POAM entries for each OPEN item above so the gaps are tracked in POAM_PLAN_OF_ACTION.md rather than only here. -->
+> The next TTX run should use "detection rules added since last exercise" as an evaluation criterion. As of this status snapshot, 0 of the 4 detection gaps identified at the original exercise have been closed in 3+ months.
 
 ---
 
@@ -417,7 +417,7 @@ This section documents the expected correct actions for each phase, referencing 
 
 | Action | Expected Behavior | Reference |
 |--------|------------------|-----------|
-| **Rebuild approach** | **Clean image deployment**: never restore a compromised container from backup. Pull the known-good image from the trusted registry. Verify image digest against the value pinned in `docker-compose.yaml`. If Cosign signing is in place for the image, also run `cosign verify`; otherwise rely on digest pinning. <!-- TODO(et): align with PLAYBOOK_COMPROMISED_CONTAINER.md which currently lists Trivy but not Cosign. Either add Cosign to the parent playbook or remove the Cosign expectation here. --> Rebuild workflow configurations from version-controlled source. | CP-10, SI-7 |
+| **Rebuild approach** | **Clean image deployment**: never restore a compromised container from backup. Pull the known-good image from the trusted registry. Verify image digest against the value pinned in `docker-compose.yaml`. If Cosign signing is in place for the image, also run `cosign verify`; otherwise rely on digest pinning. Rebuild workflow configurations from version-controlled source. | CP-10, SI-7 |
 | **Recovery order** | 1. svc-db (verify data integrity, no unauthorized modifications). 2. svc-secrets (confirm sealed, no unauthorized access). 3. svc-tunnel (verify ingress path integrity). 4. svc-detection (update rules). 5. svc-automation (clean image, new credentials, hardened config). | CP-10 |
 | **Persistence check** | 1. Diff the preserved container filesystem against the base image. 2. Inspect for added cron entries, modified /etc files, planted binaries. 3. Verify no new Docker volumes, networks, or images were created on the host. 4. Check host `/var/lib/docker` for escape artifacts. 5. Verify host SSH authorized_keys file is unchanged. | SI-7 |
 | **Secret rotation scope** | All secrets accessible to svc-automation: database credentials, encryption key, JWT secret, all stored workflow API keys, webhook tokens. Generate new values via secrets manager. Update all dependent configurations. | IA-5 |

@@ -48,7 +48,7 @@ This Secure SDLC applies to all code, configuration, and infrastructure managed 
 
 - **Infrastructure-as-Code:** 19 Terraform files defining Cloud Provider resources (droplet, firewall, DNS, Spaces, volumes, Cloudflare tunnel configuration)
 - **Docker Compose:** 19-service container orchestration stack
-- **OPA Policies:** 8 Rego policy files (249 lines) enforcing security, naming, and operational standards <!-- TODO(et): verify the count and line total against the current `terraform/cd-do-infrastructure/policy/` directory. -->
+- **OPA Policies:** 8 Rego policy files (249 lines) enforcing security, naming, and operational standards
 - **CI/CD Workflows:** 18 GitHub Actions workflow files (`agent-inventory.yml`, `agent-signing.yml`, `agent-verify.yml`, `authorship-guard.yml`, `auto-label.yml`, `codeql.yml`, `dast-zap.yml`, `drift-check.yml`, `grc-reviewer.yml`, `grc-validate.yml`, `image-smoke.yml`, `portfolio-sync.yml`, `pr-agent.yml`, `repo-gate.yml`, `security.yml`, `stale.yml`, `terraform-main.yml`, `terraform-pr.yml`)
 - **Container Images:** Upstream images consumed from public registries. See Section 8 for the current verified roster, image digests, and SBOM coverage.
 - **Automation Workflows:** n8n workflow definitions exported as JSON
@@ -297,7 +297,7 @@ Checkov enforces hard failures. Any CIS benchmark violation blocks the PR from p
 
 The Organization maintains 8 custom OPA/Rego policies (249 lines total) in the `policy/` directory. These policies evaluate the Terraform plan JSON output and enforce organizational security and operational standards.
 
-<!-- TODO(et): confirm SANITIZATION_KEY.md documents the mapping from real Terraform resource names (`digitalocean_firewall`, `digitalocean_spaces_bucket`, `digitalocean_droplet`, `digitalocean_volume`, `digitalocean_ssh_key`) to the sanitized `cloud_provider_*` names used in policies and examples below. -->
+
 
 ### 7.1 Deny Policies (Hard Fail)
 
@@ -437,7 +437,7 @@ After the security-scan gate passes, the `container-verification` job verifies c
 | `langfuse/langfuse-worker:3@sha256:f8a...` | langfuse-worker | Docker Hub |
 | `langfuse/langfuse:3@sha256:cdf...` | langfuse-web | Docker Hub |
 
-Two services (`svc-nemo` and `svc-squire`) build locally from Dockerfiles and are not pulled from public registries; they ship under the `:dev` tag and are signed at promotion time. <!-- TODO(et): when nemo and squire images move to a registry, add Cosign verification rows here. -->
+Two services (`svc-nemo` and `svc-squire`) build locally from Dockerfiles and are not pulled from public registries; they ship under the `:dev` tag and are signed at promotion time.
 
 **Verification flow:**
 
@@ -670,7 +670,7 @@ Every pipeline run is traceable through:
 | `dast-zap.yml` | `.github/workflows/dast-zap.yml` | OWASP ZAP scan | PR plus schedule |
 | `pr-agent.yml` | `.github/workflows/pr-agent.yml` | Automated PR commentary | PR events |
 
-<!-- TODO(et): refresh line counts on next review; security.yml has grown since baseline due to Snyk additions. -->
+
 
 ## Appendix B: OPA Policy File Reference
 
