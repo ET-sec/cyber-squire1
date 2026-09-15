@@ -100,7 +100,7 @@ This plan covers the recovery of:
 
 ### 4.2 Scenario B - VPS Corruption (OS or Disk Failure)
 
-**Description:** The VPS operating system becomes unbootable, the disk is corrupted, or a kernel panic renders the host non-functional. DigitalOcean infrastructure is operational but the specific instance is damaged.
+**Description:** The VPS operating system becomes unbootable, the disk is corrupted, or a kernel panic renders the host non-functional. Oracle Cloud infrastructure is operational but the specific instance is damaged.
 
 **Impact:** All 19 Compose-managed services offline. Data on local volumes may be lost or inaccessible.
 

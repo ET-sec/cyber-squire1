@@ -312,7 +312,7 @@ Applies to all services hosted on `alpha-node` (4vCPU/8GB VPS), the `svc-tunnel`
  EOF
  ```
 
-- [ ] **Step 2.6**: If the VPS itself is being directly targeted (bypassing edge security). Note: the DigitalOcean droplet has a public IP (`10.100.1.10` sanitized), so direct origin reach is technically possible.
+- [ ] **Step 2.6**: If the VPS itself is being directly targeted (bypassing edge security). Note: the instance has a public IP (`10.100.1.10` sanitized), so direct origin reach is technically possible.
  ```bash
  # Verify only the tunnel and SSH are listening on public interfaces.
  # All services should bind to 127.0.0.1 only (confirmed via docker-compose.yaml).
