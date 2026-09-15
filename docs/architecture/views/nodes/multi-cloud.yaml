@@ -63,8 +63,8 @@ nodes:
     controls: [AC-3, SC-7, IA-8]
     status_note: "Applied as Terraform and receipted in the design record; the edge scopes the path and the chat-ID check on the trigger node holds the second gate."
     evidence:
-      - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66}
-      - {label: "Bypass policy limited to published ranges", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 76-84}
+      - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 69}
+      - {label: "Bypass policy limited to published ranges", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 79-87}
       - {label: "Design record: one carve-out, scoped twice", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 32}
     solidify: "SOL-multi-cloud-03"
   - id: state-bucket

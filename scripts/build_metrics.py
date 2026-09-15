@@ -33,7 +33,7 @@ OWNER_APPROVED = {
     # Container counts: both numbers are owner-approved. The live count is
     # re-verified from docker ps on the host, 2026-09-15; the design count is
     # the service list in the master compose file.
-    "containers_live": 8,
+    "containers_live": 13,
     "containers_designed": 19,
     # AI engine identifiers come from host config files, not always synced locally.
     "openclaw_model": "Claude Fable 5",

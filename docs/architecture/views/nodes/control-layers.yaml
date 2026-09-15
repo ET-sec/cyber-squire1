@@ -73,7 +73,7 @@ nodes:
     evidence:
       - {label: "No-new-privileges on the live tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 103}
       - {label: "Database in the full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 107}
-      - {label: "The one exception and why", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 474-476}
+      - {label: "The one exception and why", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 487-489}
     solidify: "SOL-control-layers-04"
   - id: resource-limits
     label: "resource limits"
@@ -97,8 +97,8 @@ nodes:
     controls: [AC-4, SC-7]
     status_note: "All three networks exist on the live host since 2026-09-08: the core network for state and orchestration, the sealed one carrying the local model and the transcriber with no route in or out (the model weights had to be pulled through a throwaway container for that reason), and the monitoring one for the sensor, its router, and the agent."
     evidence:
-      - {label: "Three networks on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: "284-290"}
-      - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1034-1041}
+      - {label: "Three networks on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: "445-451"}
+      - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1058-1065}
       - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 61}
       - {label: "Segmentation in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 199}
     solidify: none
@@ -109,7 +109,7 @@ nodes:
     controls: [AC-4, SC-7]
     status_note: "The sealed segment carries no route in or out, and the SSP information-flow row describes the core network's egress beside it."
     evidence:
-      - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
+      - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1060-1062}
       - {label: "Whisper on it", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 247-248}
     solidify: "SOL-control-layers-06"
   - id: read-only-root
@@ -120,8 +120,8 @@ nodes:
     status_note: "The tunnel runs on a read-only root with scratch space on tmpfs since 2026-09-06, confirmed on the host, and the alert router has the same setting in its definition."
     evidence:
       - {label: "Read-only root on the live tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 99}
-      - {label: "Tunnel, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 671}
-      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 552}
+      - {label: "Tunnel, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 695}
+      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 565}
     solidify: "SOL-control-layers-07"
   - id: digest-pinning
     label: "digest pinning"
@@ -144,8 +144,8 @@ nodes:
     evidence:
       - {label: "Live router on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 176}
       - {label: "Live agent on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 241}
-      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
-      - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 582}
+      - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 547}
+      - {label: "Audit log shipper", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 596}
       - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 89}
     solidify: "SOL-control-layers-09"
   # APPLICATION
@@ -158,7 +158,7 @@ nodes:
     evidence:
       - {label: "Output rail", path: builds/squire/docker/nemo_config/rails/output.co, line: 1}
       - {label: "Citation guard and verb rewrite at the API boundary", path: builds/squire/src/squire/app.py, line: 138}
-      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 898}
+      - {label: "Rails service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 922}
   - id: actions-allowlist
     label: "actions allowlist"
     zone: application
