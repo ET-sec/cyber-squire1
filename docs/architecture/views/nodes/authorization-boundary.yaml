@@ -55,7 +55,7 @@ nodes:
     from: topology/langfuse
     what: "The analytics store behind the traces; holds the spans the worker writes."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 697}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 721}
       - {label: "Audit trail field spec", path: docs/grc/AI_AUDIT_TRAIL_SPEC.md, line: 54}
   - id: redis
     label: Redis
@@ -63,14 +63,14 @@ nodes:
     from: topology/langfuse
     what: "The queue and cache the trace store uses between its web and worker processes."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 737}
+      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 761}
   # NET-AI
   - {id: whisper, label: Whisper, zone: net-ai, from: topology/whisper}
   - {id: ollama, label: Ollama, zone: net-ai, from: topology/ollama}
   # NET-MONITORING
   - {id: falco, label: "Falco, eBPF", zone: net-monitoring, from: topology/falco}
   - {id: falcosidekick, label: Falcosidekick, zone: net-monitoring, from: topology/falcosidekick}
-  - {id: fluentd, label: Fluentd, zone: net-monitoring, from: topology/fluentd}
+  - {id: vector, label: Vector, zone: net-monitoring, from: topology/vector}
   - {id: datadog-agent, label: "Datadog agent", zone: net-monitoring, from: topology/datadog-agent}
   # RUNTIME CLOUD
   - id: compute
@@ -226,7 +226,7 @@ nodes:
     status_note: "Drift alerts reach it and the edge carve-out for its source ranges is live, with the bot workflow on the orchestration engine behind the same path."
     evidence:
       - {label: "Drift alert", path: .github/workflows/drift-check.yml, line: 89}
-      - {label: "Webhook carve-out", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66}
+      - {label: "Webhook carve-out", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 69}
       - {label: "Notification tool in the agent", path: builds/squire/src/squire/tools/telegram.py, line: 1}
     solidify: "SOL-authorization-boundary-08"
   # OUTSIDE, RIGHT

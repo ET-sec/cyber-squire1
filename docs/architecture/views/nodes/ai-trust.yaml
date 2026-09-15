@@ -155,7 +155,7 @@ nodes:
     controls: [AC-4, SC-7]
     status_note: "Text comes back up from the sealed segment while the audio stays behind it."
     evidence:
-      - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
+      - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1060-1062}
       - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
     solidify: "SOL-ai-trust-07"
   # NET-AI, SEALED SEGMENT

@@ -350,8 +350,8 @@ services:
     depends_on:
       cd-service-db:
         condition: service_healthy
-    # `--import-realm` is carried on the first boot only; once the realm exists
-    # the flag is dropped and the service recreated with a bare `start`.
+    # `--import-realm` rides on the first boot only, which imports the tracked
+    # realm template; the service then runs a bare `start`, recreated without it.
     command: start
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"UP\"' || exit 1"]

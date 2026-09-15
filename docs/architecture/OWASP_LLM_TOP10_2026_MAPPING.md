@@ -15,7 +15,7 @@ Each risk below maps to the real components in `docs/architecture/STACK_OVERVIEW
 Squire FastAPI (LangGraph, recommend-only), NeMo Guardrails 0.21 (Presidio PII rails, Colang
 `BLOCKED_BY_RAIL`), Langfuse v3 tracing, PostgreSQL 16 + pgvector (1,564 ir_chunks), Anthropic API,
 Voyage embeddings, n8n SOAR (16 actions), OpenClaw gateway, Vault / Keycloak / Teleport, Falco /
-Datadog / Fluentd.
+Datadog / Vector.
 
 Columns: **Covered** is a control already in the stack. **Gap** is what an interviewer would poke at.
 

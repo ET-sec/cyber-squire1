@@ -47,7 +47,7 @@ nodes:
     evidence:
       - {label: "Elevation workflow", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 63}
       - {label: "Escalation path and safeguards", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
-      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 375}
+      - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 389}
     solidify: "SOL-identity-access-03"
   # TIER 2 SERVICE
   - id: n8n-and-services
@@ -58,7 +58,7 @@ nodes:
     status_note: "The orchestration engine is live and reads its credential from the deploy-time environment file; the short-lived lease from the secrets manager is the design."
     evidence:
       - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 63}
-      - {label: "AppRole still a comment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 261-262}
+      - {label: "Two engines and nothing else, the decision record", path: docs/architecture/decisions/DR-07-vault-licence-and-seal.md, line: 31}
     solidify: "SOL-identity-access-04"
   - {id: vault-approle, label: "Vault AppRole", zone: "tier 2, service", from: topology/vault}
   - {id: postgres, label: Postgres, zone: "tier 2, service", from: topology/postgres}
@@ -82,7 +82,7 @@ nodes:
     controls: [SC-7, IA-8]
     status_note: "The edge carve-out is live and receipted; the vendor is a trusted caller only for that one path."
     evidence:
-      - {label: "Bypass policy limited to published ranges", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 76-84}
+      - {label: "Bypass policy limited to published ranges", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 79-87}
       - {label: "Design record", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 31-32}
     solidify: none
   - {id: access-bypass, label: "Access bypass", zone: "tier 2, service", from: multi-cloud/webhook-carve-out}
@@ -93,7 +93,7 @@ nodes:
     controls: [AC-3, SI-10]
     status_note: "The edge scopes the carve-out to the bot's trigger prefix, and the chat-ID check on the trigger node stands as the second gate behind it."
     evidence:
-      - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66-69}
+      - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 69-72}
       - {label: "Design record: scoped twice", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 32}
     solidify: "SOL-identity-access-06"
   # TIER 3 AGENT
@@ -104,8 +104,8 @@ nodes:
     controls: [IA-3, IA-5]
     status_note: "The orchestration engine posts alerts to the agent over the core network behind a shared-secret header."
     evidence:
-      - {label: "Sensor alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
-      - {label: "Agent service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 954}
+      - {label: "Sensor alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 547}
+      - {label: "Agent service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 978}
     solidify: none
   - {id: webhook-token, label: "webhook token", zone: "tier 3, agent", from: control-layers/webhook-token}
   - {id: squire, label: Squire, zone: "tier 3, agent", from: topology/squire, repeat: true}
