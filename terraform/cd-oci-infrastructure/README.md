@@ -26,10 +26,10 @@ The DigitalOcean config is frozen at `../cd-do-infrastructure/` (see its
 ## What is live (verified 2026-08-31)
 
 - OCI Ampere A1 Flex instance (aarch64, 4 OCPU / 24GB memory / 150GB boot).
-- Core stack: PostgreSQL + n8n + Cloudflare tunnel (`COREDIRECTIVE_ENGINE/
-  docker-compose.oci-core.yaml`), fronted by a Cloudflare Access gate in
-  front of a live origin. The remaining services of the full stack are pending
-  the ARM rebuild (see `COREDIRECTIVE_ENGINE/docker-compose.yaml` header).
+- Core stack: the live definition is `COREDIRECTIVE_ENGINE/
+  docker-compose.oci-core.yaml`, fronted by a Cloudflare Access gate in
+  front of a live origin. The full service list is the master file
+  (see `COREDIRECTIVE_ENGINE/docker-compose.yaml` header).
 - Cloudflare edge (Access/ZTNA, WAF, DNS, tunnel) carried over unchanged and is
   serving traffic.
 - Data protection layer (`data_protection.tf`): customer-managed encryption

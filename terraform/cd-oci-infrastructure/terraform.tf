@@ -8,10 +8,10 @@
 # stays out of the public repo:
 #   terraform init -backend-config=backend.hcl
 #
-# PENDING: migrate to Cloudflare R2 for compute-vendor decoupling (the lesson
-# from losing the DO Spaces state bucket along with the droplet). Blocked on
-# an operator action: R2 must be enabled in the Cloudflare dashboard (API
-# returns code 10042). Until then, bucket versioning is the recovery layer.
+# State and compute share a vendor here, which is the lesson from losing the
+# DO Spaces state bucket along with the droplet. Moving state to Cloudflare R2
+# needs an operator action first: R2 must be enabled in the dashboard (the API
+# returns code 10042). Bucket versioning is the recovery layer either way.
 
 terraform {
   required_version = ">= 1.12.0"
