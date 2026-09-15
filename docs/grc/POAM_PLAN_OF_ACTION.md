@@ -17,7 +17,7 @@ related:
   - AITC-OPS-001
 ---
 
-> **Environment (2026-09-12):** this plan of action and milestones tracks the open items on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this plan of action and milestones tracks the open items on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # Plan of Action and Milestones (POA&M)
 

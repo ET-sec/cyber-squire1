@@ -31,8 +31,8 @@ WORKLOAD_LANES = ("coredirective", "empire", "filler")
 # Owner-approved public values not derivable from disk (or where disk would mislead).
 OWNER_APPROVED = {
     # Container counts: both numbers are owner-approved. The live count is
-    # re-verified from docker ps on the host on the date beside it (2026-09-12);
-    # the design count is the service list in the master compose file.
+    # re-verified from docker ps on the host, 2026-09-15; the design count is
+    # the service list in the master compose file.
     "containers_live": 8,
     "containers_designed": 19,
     # AI engine identifiers come from host config files, not always synced locally.

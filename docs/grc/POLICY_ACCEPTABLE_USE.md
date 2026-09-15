@@ -8,7 +8,7 @@
 **Owner:** Information Security Officer
 **Approved By:** System Owner
 
-> **Environment (2026-09-12):** this acceptable use policy governs the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this acceptable use policy governs the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

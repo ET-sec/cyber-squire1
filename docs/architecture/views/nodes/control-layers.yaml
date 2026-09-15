@@ -29,7 +29,7 @@ nodes:
       - {label: "Rate limit ruleset", path: terraform/cd-cloudflare-edge/waf.tf, line: 57}
       - {label: "Characteristics it keys on", path: terraform/cd-cloudflare-edge/waf.tf, line: 71}
       - {label: "Burst detection rule", path: detections/sigma/cloudflare/waf-block-burst.yml, line: 1}
-    solidify: "Control layers: rate limit per IP; SSP 7.5.3 says per-IP and per-token"
+    solidify: "SOL-control-layers-01"
   - id: dns-proxy
     label: "DNS proxy"
     zone: edge
@@ -39,7 +39,7 @@ nodes:
     evidence:
       - {label: "Module scope", path: terraform/cd-cloudflare-edge/README.md, line: 20}
       - {label: "Access application on the proxied name", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
-    solidify: "Control layers: DNS records pending import"
+    solidify: "SOL-control-layers-02"
   # HOST
   - {id: outbound-tunnel, label: "outbound tunnel", zone: host, from: topology/cloudflared}
   - id: loopback-binds
@@ -49,7 +49,7 @@ nodes:
     controls: [SC-7, CM-7]
     status_note: "The live compose publishes the orchestration engine to loopback only; the full design does the same for every service that publishes at all."
     evidence:
-      - {label: "Loopback publish on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 52}
+      - {label: "Loopback publish on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 68}
       - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 122}
     solidify: none
   - {id: break-glass-ssh, label: "break-glass SSH", zone: host, from: topology/host-sshd}
@@ -63,7 +63,7 @@ nodes:
       - {label: "CIS risk register, host section", path: docs/grc/CIS_RISK_REGISTER.md, line: 24}
       - {label: "Scan sources and counts", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 65}
       - {label: "First accepted exception", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 605}
-    solidify: "CIS Docker Bench dated 2026-03-11 (previous host); re-run on the current host owed"
+    solidify: "SOL-control-layers-03"
   - id: no-new-privileges
     label: "no-new-privileges"
     zone: host
@@ -71,10 +71,10 @@ nodes:
     controls: [AC-6, CM-7]
     status_note: "Set on seven of the eight live containers and on 18 of 19 in the full design; the kernel sensor is the documented exception because it needs the capabilities it watches."
     evidence:
-      - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 77}
+      - {label: "No-new-privileges on the live tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 103}
       - {label: "Database in the full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 107}
       - {label: "The one exception and why", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 474-476}
-    solidify: "Tier 2: Falco without NNP, accepted (CIS 5.25)"
+    solidify: "SOL-control-layers-04"
   - id: resource-limits
     label: "resource limits"
     zone: host
@@ -82,10 +82,10 @@ nodes:
     controls: [SC-6, SC-5]
     status_note: "Set on every service in the full design and on all eight live containers: the database, n8n, and the tunnel since 2026-09-06, the sensor, its router, the agent, the local model, and the transcriber since 2026-09-08, all confirmed by inspecting each container on the host."
     evidence:
-      - {label: "Limits on the live database, n8n, and tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 52}
+      - {label: "Limits on the live database, n8n, and tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 57}
       - {label: "Limits on the database, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 111-112}
       - {label: "PID limits and the restart policy tradeoff", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 616}
-    solidify: "closed 2026-09-06: PR #43 plus host deploy, inspect-verified on all three"
+    solidify: "SOL-control-layers-05"
   # RUNTIME
   - {id: falco, label: "Falco eBPF", zone: runtime, from: topology/falco}
   - id: three-networks
@@ -97,7 +97,7 @@ nodes:
     evidence:
       - {label: "Three networks on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: "284-290"}
       - {label: "Network definitions", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1034-1041}
-      - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 80}
+      - {label: "Live host, core network only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 61}
       - {label: "Segmentation in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 199}
     solidify: none
   - id: sealed-net-ai
@@ -109,18 +109,18 @@ nodes:
     evidence:
       - {label: "Internal network flag", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
       - {label: "Whisper on it", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 247-248}
-    solidify: "Threat model: SSP AC-4 row wording (net-core unrestricted, net-ai none)"
+    solidify: "SOL-control-layers-06"
   - id: read-only-root
     label: "read-only root"
     zone: runtime
     what: "The tunnel and the alert router run on a read-only root filesystem, so a compromise cannot drop a binary or edit a config in place."
     controls: [CM-7, SI-7]
-    status_note: "The tunnel runs on a read-only root with scratch space on tmpfs since 2026-09-06, confirmed on the host, and the alert router carries the same setting in its definition."
+    status_note: "The tunnel runs on a read-only root with scratch space on tmpfs since 2026-09-06, confirmed on the host, and the alert router has the same setting in its definition."
     evidence:
-      - {label: "Live tunnel definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 96}
+      - {label: "Read-only root on the live tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 99}
       - {label: "Tunnel, full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 671}
       - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 552}
-    solidify: "closed for the tunnel 2026-09-06 (PR #43 plus deploy); the alert router follows the rebuild"
+    solidify: "SOL-control-layers-07"
   - id: digest-pinning
     label: "digest pinning"
     zone: runtime
@@ -128,24 +128,24 @@ nodes:
     controls: [SI-7, CM-8]
     status_note: "Every image in the full design and all eight on the live host are pinned by content digest against a multi-architecture index since 2026-09-06; Renovate tracks every tier and proposes bumps as pull requests for review."
     evidence:
-      - {label: "Live images, digest-pinned", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 38}
+      - {label: "Live images, digest-pinned", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 41}
       - {label: "Pinning rule for the compose", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
       - {label: "Renovate configuration", path: renovate.json, line: 1}
       - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
-    solidify: "closed 2026-09-06: live three pinned to index digests (PR #43); transcriber pinned the same day"
+    solidify: "SOL-control-layers-08"
   - id: alerts-off-host
     label: "alerts off-host"
     zone: runtime
     what: "Sensor alerts and audit logs leave the host as they happen, so a compromise cannot erase the record of itself."
     controls: [AU-9, SI-4, IR-5]
-    status_note: "Falco events and host logs leave to the SIEM through Falcosidekick and the agent since 2026-09-08; the Teleport audit pipeline (event handler, Fluentd) returns with the identity session, and drift alerts reach the operator from CI."
+    status_note: "Falco events and host logs leave to the SIEM through Falcosidekick and the agent since 2026-09-08; the gateway's audit pipeline streams session events to the log router over mutual TLS and the router forwards them to the SIEM, and drift alerts reach the operator from CI."
     evidence:
       - {label: "Live router on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 176}
       - {label: "Live agent on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 241}
       - {label: "Alert router", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 534}
       - {label: "Log pipeline", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 582}
       - {label: "Drift alert path today", path: .github/workflows/drift-check.yml, line: 89}
-    solidify: "Multi-cloud: Datadog agent and Falco pending"
+    solidify: "SOL-control-layers-09"
   # APPLICATION
   - {id: input-rails, label: "input rails", zone: application, from: topology/guardrails}
   - id: output-rails
@@ -162,12 +162,12 @@ nodes:
     zone: application
     what: "The agent recommends and never executes; any action outside the allowlist is rewritten to a recommendation before the response leaves."
     controls: [AC-6, SI-10]
-    status_note: "The shipped check is a forbidden-verb filter. Making the allowlist the gate, so an action is refused unless it is listed, is a change the private record carries."
+    status_note: "The shipped check is a forbidden-verb filter: a response naming an action outside the list is rewritten to a recommendation before it leaves."
     evidence:
       - {label: "Action check", path: builds/squire/src/squire/actions_allowlist.py, line: 57}
       - {label: "Recommendation enforcement", path: builds/squire/src/squire/actions_allowlist.py, line: 72}
       - {label: "Layer 5 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 696}
-    solidify: "Threat model: forbidden-verb filter, allowed_verbs never read"
+    solidify: "SOL-control-layers-10"
   - id: spend-ceiling
     label: "spend ceiling"
     zone: application
@@ -178,18 +178,18 @@ nodes:
       - {label: "Daily spend query", path: builds/squire/src/squire/cost_ceiling.py, line: 35}
       - {label: "Breach decision", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
       - {label: "Layer 4 in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 696}
-    solidify: "AI trust: cost ceiling fails open on DB error"
+    solidify: "SOL-control-layers-11"
   - {id: langfuse-trace, label: "Langfuse trace", zone: application, from: topology/langfuse}
   - id: webhook-token
     label: "webhook token"
     zone: application
     what: "The alert endpoint accepts a request only with a shared-secret header that the orchestration engine holds; rotation is on a stated cadence."
     controls: [IA-5, SC-23]
-    status_note: "The shipped compare is a plain inequality. A constant-time compare with a signed payload is a change the private record carries."
+    status_note: "The endpoint compares the header against the value the orchestration engine holds and refuses the request when the two differ."
     evidence:
       - {label: "Auth dependency", path: builds/squire/src/squire/app.py, line: 65}
       - {label: "The compare", path: builds/squire/src/squire/app.py, line: 77-79}
-    solidify: "Identity view: shared-secret header, plain != compare"
+    solidify: "SOL-control-layers-12"
   - id: hitl-review
     label: "HITL review"
     zone: application
@@ -212,7 +212,7 @@ nodes:
     evidence:
       - {label: "Privilege escalation path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
       - {label: "Upgrade path with the request role", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 190}
-    solidify: "Identity view: JIT 4h, no access-request role"
+    solidify: "SOL-control-layers-13"
   - id: session-recording
     label: "session recording"
     zone: identity
@@ -291,7 +291,7 @@ nodes:
       - {label: "Verification job, blocking", path: .github/workflows/security.yml, line: 164}
       - {label: "Signer policy", path: .github/image-signers.json, line: 1}
       - {label: "Verifier", path: scripts/verify_image_signatures.py, line: 1}
-    solidify: "closed 2026-09-06: fail-closed, pinned identities, pinned Teleport key; 12 of 16 repositories publish no signature (supplier gap recorded in the policy)"
+    solidify: "SOL-control-layers-14"
   - {id: human-review, label: "human review", zone: delivery, from: topology/human-review}
   - {id: nightly-drift, label: "nightly drift", zone: delivery, from: topology/drift-check}
 chips:

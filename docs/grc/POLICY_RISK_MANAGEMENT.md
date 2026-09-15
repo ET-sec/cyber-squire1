@@ -9,7 +9,7 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** RA-1, RA-2, RA-3, PM-9
 
-> **Environment (2026-09-12):** this risk management policy governs the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this risk management policy governs the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

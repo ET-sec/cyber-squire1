@@ -7,7 +7,7 @@
 **Classification:** Internal Use Only
 **NIST 800-53 Controls:** IR-4 (Incident Handling), IR-5 (Incident Monitoring), IR-6 (Incident Reporting), SI-4 (Information System Monitoring), SI-7 (Software, Firmware, and Information Integrity)
 
-> **Environment (2026-09-12):** this container compromise playbook is written against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this container compromise playbook is written against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

@@ -8,7 +8,7 @@
 **Prepared By:** System Owner
 **Approved By:** System Owner (Authorizing Official)
 
-> **Environment (2026-09-12):** this configuration record documents the rails on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this configuration record documents the rails on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

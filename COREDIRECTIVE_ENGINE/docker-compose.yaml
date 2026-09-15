@@ -57,10 +57,10 @@
 #    values pass through literally. See docker-compose.oci-core.yaml for the
 #    working pattern and stack.env.template for the variable names.
 #
-# 3. STACK CHANGES on the Arm host:
+# 3. STACK NOTES for the Arm host:
 #      - cd-service-whisper stays in scope and runs on the sealed network.
-#      - Keep cd-service-falco as the sensor, but reroute cd-service-
-#        falcosidekick output from Datadog to Splunk HEC (Splunk = SIEM).
+#      - cd-service-falco is the sensor and cd-service-falcosidekick routes
+#        its events to Datadog, the SIEM every diagram on the site names.
 #      - cd-service-nemo -> a smaller model to fit the 24GB ARM budget.
 #
 # 4. HOST PERMISSIONS: n8n runs as uid 1000; its bind-mounted data dir must be
@@ -214,7 +214,7 @@ services:
     # Tier 3: stateless inference. Pinned 2026-09-06 to the image :latest-cpu
     # resolved to (0.5.0-cpu, multi-arch index, arm64 present); a floating tag
     # changes under the Trivy scan and leaves nothing to roll back to. Upstream
-    # is archived (renamed speaches); the move to it is on the private record.
+    # is archived (renamed speaches); this digest stays the reviewed pin.
     image: fedirz/faster-whisper-server:0.5.0-cpu@sha256:760e5e43d427dc6cfbbc4731934b908b7de9c7e6d5309c6a1f0c8c923a5b6030
     container_name: cd-service-whisper
     restart: unless-stopped
@@ -307,13 +307,13 @@ services:
   # ==========================================
   # Keycloak v26 (Identity & SSO)
   # ==========================================
-  # Purpose: Centralized identity: SSO for n8n, Vault UI, and future services
+  # Purpose: Centralized identity: SSO for n8n, the Vault UI, and the consoles
   # - Realm: coredirective (imported from CD_VOL_KEYCLOAK_IMPORT)
   # - Roles: cd-admin, cd-operator, cd-auditor
   # - The client is the Cloudflare Access edge; Teleport federation is Enterprise
   # - Admin password stored in 1Password → Core Infra → "Keycloak Admin"
   # - Upgraded v23 → v26.5.2 (2026-03-11, Phase 08-04)
-  # - Runs in production mode: the command is `start`, never `start-dev`
+  # - `command:` sets the start mode and realm import; hostname from env; loopback port
   #
   cd-service-keycloak:
     # Tier 1: identity provider. Digest pinned.
@@ -689,9 +689,9 @@ services:
   # ============================================================================
   # LANGFUSE v3 (Phase 17-04): LLM tracing + observability for Squire agent
   # 4 containers (~2.75 GiB cap). Shares cd-service-db (new `langfuse` database).
-  # Blob store: S3-compatible bucket via LANGFUSE_S3_* env vars. The original
-  # DO Spaces bucket died with that account (2026-08); these point at OCI
-  # Object Storage's S3 compatible layer on this host.
+  # Blob store: S3-compatible object storage credentials, read from the
+  # environment through the LANGFUSE_S3_* variables; endpoint, bucket, and
+  # keys all arrive in the deploy-time environment file.
   # ============================================================================
 
   cd-service-langfuse-clickhouse:

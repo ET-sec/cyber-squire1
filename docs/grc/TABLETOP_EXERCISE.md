@@ -7,7 +7,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.0
 
-> **Environment (2026-09-12):** this tabletop exercise was run against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this tabletop exercise was run against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

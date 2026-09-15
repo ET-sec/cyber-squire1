@@ -12,7 +12,7 @@ nodes:
       - {label: "Access application and policies", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
       - {label: "Custom firewall ruleset", path: terraform/cd-cloudflare-edge/waf.tf, line: 12}
       - {label: "Module scope", path: terraform/cd-cloudflare-edge/README.md, line: 20}
-    solidify: "Multi-cloud: tunnel and DNS pending import"
+    solidify: "SOL-authorization-boundary-01"
   - id: workflows
     label: workflows
     zone: configuration
@@ -24,7 +24,7 @@ nodes:
       - {label: "Merge scans", path: .github/workflows/security.yml, line: 1}
       - {label: "Nightly drift check", path: .github/workflows/drift-check.yml, line: 1}
       - {label: "Pipeline described", path: docs/grc/SECURE_SDLC.md, line: 39}
-    solidify: "Tier 1: no terraform apply in any workflow"
+    solidify: "SOL-authorization-boundary-02"
   - {id: policy-gates, label: "policy gates", zone: configuration, from: topology/opa-gates}
   - {id: drift-check, label: "drift check", zone: configuration, from: topology/drift-check}
   # HOST
@@ -135,12 +135,12 @@ nodes:
     zone: security plane
     what: "The same GitHub identity trust the runtime cloud uses, on the second provider: CI assumes a read-only role with a short-lived token and no stored key."
     controls: [IA-5, AC-6, IA-3]
-    status_note: "Written, Checkov-clean, gated in CI; apply is deliberately disabled until the account is funded."
+    status_note: "The trust rule and the read-only role are Checkov-clean and held behind a deliberate apply gate."
     evidence:
       - {label: "Identity provider trust", path: terraform/cd-aws-security-plane/oidc.tf, line: 11}
       - {label: "Read-only role for CI", path: terraform/cd-aws-security-plane/oidc.tf, line: 44}
       - {label: "Plane status", path: terraform/cd-aws-security-plane/README.md, line: 1}
-    solidify: "Multi-cloud: AWS plane designed, not applied"
+    solidify: "SOL-authorization-boundary-03"
   - id: evidence-vault
     label: "evidence vault"
     zone: security plane
@@ -152,23 +152,23 @@ nodes:
       - {label: "Object lock", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 39}
       - {label: "Uploader identity", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 108}
       - {label: "Uploader policy", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 136}
-    solidify: "Multi-cloud: uploader PutObject unscoped, ListBucket without prefix"
+    solidify: "SOL-authorization-boundary-04"
   - id: break-glass-key
     label: "break-glass key"
     zone: security plane
     what: "A sealed copy of a runtime credential on the second provider, so the platform can be recovered if the runtime cloud's account is lost."
     controls: [IA-5, AC-6, SC-12]
-    status_note: "Held behind the same apply gate. Nothing automated reads it, a read pages the operator, and revocation is deleting the runtime key by hand."
+    status_note: "Nothing automated reads it, a read pages the operator, and revocation is deleting the runtime key by hand. The plane's apply gate covers it."
     evidence:
       - {label: "Sealed secret", path: terraform/cd-aws-security-plane/breakglass.tf, line: 9}
       - {label: "Key policy", path: terraform/cd-aws-security-plane/breakglass.tf, line: 81}
-    solidify: "Multi-cloud: no resource policy on the secret; prevention is that nothing consumes it"
+    solidify: "SOL-authorization-boundary-05"
   - id: alert-on-read
     label: "alert on read"
     zone: security plane
     what: "Any read of the sealed credential raises an event that a function turns into a page to the operator."
     controls: [AU-6, IR-5, SI-4]
-    status_note: "Held behind the same apply gate, and it detects rather than prevents."
+    status_note: "An event rule on the secret's read hands the page to a function, so the record of a read arrives in minutes. The plane's apply gate covers it."
     evidence:
       - {label: "Event rule on secret access", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
       - {label: "Alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
@@ -189,11 +189,11 @@ nodes:
     zone: security plane
     what: "The principals the plane creates are denied outside the home region, so a stolen role cannot spin up resources somewhere unwatched."
     controls: [CM-6, AC-6, SC-7]
-    status_note: "Held behind the same apply gate. It binds the created principals only, the root and console-created principals sit outside it, and at scale it becomes an organization policy."
+    status_note: "It binds the principals the plane creates, the root and console-created principals sit outside it, and an organization policy would bind principals this module never creates."
     evidence:
       - {label: "Region guard policy", path: terraform/cd-aws-security-plane/region_guard.tf, line: 34}
       - {label: "Attached to the CI role", path: terraform/cd-aws-security-plane/region_guard.tf, line: 40}
-    solidify: "Multi-cloud: region guard bypassed by root and console principals"
+    solidify: "SOL-authorization-boundary-06"
   # OUTSIDE, LEFT
   - {id: users, label: users, zone: outside, from: topology/users}
   - id: edge-platform
@@ -217,7 +217,7 @@ nodes:
       - {label: "Role definitions", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 71}
       - {label: "SSH rule from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
       - {label: "Access control policy", path: docs/grc/POLICY_ACCESS_CONTROL.md, line: 1}
-    solidify: "Boundary view: operator path is direct SSH today; Tier 1: apply operator-run"
+    solidify: "SOL-authorization-boundary-07"
   - id: telegram
     label: Telegram
     zone: outside
@@ -228,7 +228,7 @@ nodes:
       - {label: "Drift alert", path: .github/workflows/drift-check.yml, line: 89}
       - {label: "Webhook carve-out", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66}
       - {label: "Notification tool in the agent", path: builds/squire/src/squire/tools/telegram.py, line: 1}
-    solidify: "Identity view: chat-ID check pending the workflow restore"
+    solidify: "SOL-authorization-boundary-08"
   # OUTSIDE, RIGHT
   - id: image-registries
     label: "image registries"
@@ -241,7 +241,7 @@ nodes:
       - {label: "SBOM generation", path: .github/workflows/security.yml, line: 200}
       - {label: "Pinning rule", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
       - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
-    solidify: "Boundary view: Cosign advisory"
+    solidify: "SOL-authorization-boundary-09"
   - id: secrets-manager
     label: "secrets manager"
     zone: outside
@@ -249,9 +249,9 @@ nodes:
     controls: [SC-12, IA-5, SC-28]
     status_note: "Deploy-time injection is the live path and is an accepted finding with compensating controls; runtime secrets from Vault by AppRole are the design."
     evidence:
-      - {label: "Environment file on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 76}
+      - {label: "Environment file on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 44}
       - {label: "Accepted finding, environment injection", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 420}
       - {label: "Vault migration tracked", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 267}
-    solidify: "Tier 2: Vault AppRole"
+    solidify: "SOL-authorization-boundary-10"
   - {id: datadog, label: Datadog, zone: outside, from: topology/datadog}
   - {id: claude-api, label: "Claude API", zone: outside, from: topology/claude-api}

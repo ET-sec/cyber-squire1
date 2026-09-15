@@ -1,6 +1,6 @@
 # ADR 001: Embedding Provider Selection for Squire RAG
 
-> **Environment (2026-09-12):** this architecture decision record was written against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this architecture decision record was written against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 **Status:** Accepted
 **Date:** 2026-04-23

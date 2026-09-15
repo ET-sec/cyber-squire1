@@ -1,7 +1,7 @@
 # DR-05: The AWS Security Plane (multi-cloud by blast radius)
 
 **Date:** 2026-09-01
-**Status:** A second-cloud custody split held behind a deliberate apply gate. The Terraform is public in `terraform/cd-aws-security-plane/` and passes the full PR gate (fmt, validate, Checkov 135/0 with 11 reasoned skips). This record reads "Implemented and verified" once the five receipts in the module README exist.
+**Status:** A second-cloud custody split held behind a deliberate apply gate. The Terraform is public in `terraform/cd-aws-security-plane/` and passes the full PR gate (fmt, validate, Checkov 135/0 with 11 reasoned skips). The five receipts the module README names are the evidence bar this record holds itself to.
 
 ## Problem
 In August 2026 one cloud provider failure took the production host AND the

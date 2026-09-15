@@ -8,7 +8,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.0
 
-> **Environment (2026-09-12):** this lifecycle description covers the pipeline that builds the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this lifecycle description covers the pipeline that builds the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
