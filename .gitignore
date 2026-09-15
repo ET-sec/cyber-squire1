@@ -51,6 +51,9 @@ docs/PRIVATE_OPERATIONS_MANUAL.md
 # but ignore data volumes, secrets, and files with personal info or infra IDs.
 COREDIRECTIVE_ENGINE/.env
 COREDIRECTIVE_ENGINE/.env.*
+# host environment files (values) and their local name-only placeholders (2026-09-15, plan 24-02)
+COREDIRECTIVE_ENGINE/monitoring.env
+COREDIRECTIVE_ENGINE/identity.env
 COREDIRECTIVE_ENGINE/CD_VOL_*/
 # 2026-09-09 (plan 22-03): the rule above is for volume DATA, but it also
 # swallowed the Fluentd build context, so the Dockerfile that compose builds

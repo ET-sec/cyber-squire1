@@ -110,6 +110,34 @@ resource "oci_identity_policy" "backup_agents" {
   ]
 }
 
+# --- Vault seal key (plan 24-02) ---
+# A second AES key in the same vault, for the secrets manager's auto-unseal and
+# nothing else. The storage key is never reused for a second purpose, and the
+# dynamic group's use of this key is scoped to its id: the instance principal
+# can wrap and unwrap the seal, and cannot touch the storage key or any other.
+resource "oci_kms_key" "vault_seal" {
+  compartment_id      = local.compartment
+  display_name        = "cd-vault-seal"
+  management_endpoint = oci_kms_vault.cd.management_endpoint
+  protection_mode     = "SOFTWARE"
+  freeform_tags       = var.tags
+
+  key_shape {
+    algorithm = "AES"
+    length    = 32
+  }
+}
+
+resource "oci_identity_policy" "vault_seal_agents" {
+  compartment_id = local.compartment
+  name           = "cd-vault-seal-use-key"
+  description    = "The instance principal may use the seal key (scoped to the key id); no key management, no other key"
+  freeform_tags  = var.tags
+  statements = [
+    "Allow dynamic-group ${oci_identity_dynamic_group.backup_agents.name} to use keys in compartment id ${local.compartment} where target.key.id = '${oci_kms_key.vault_seal.id}'",
+  ]
+}
+
 output "backup_bucket" {
   description = "Retention-locked backup bucket"
   value       = oci_objectstorage_bucket.backups.name
@@ -118,4 +146,19 @@ output "backup_bucket" {
 output "storage_cmk_id" {
   description = "Customer-managed key OCID (rotation target)"
   value       = oci_kms_key.storage.id
+}
+
+output "vault_seal_key_id" {
+  description = "Seal key OCID for the secrets manager (read into the host environment file, never tracked)"
+  value       = oci_kms_key.vault_seal.id
+}
+
+output "kms_crypto_endpoint" {
+  description = "Crypto endpoint of the vault that holds the seal key"
+  value       = oci_kms_vault.cd.crypto_endpoint
+}
+
+output "kms_management_endpoint" {
+  description = "Management endpoint of the vault that holds the seal key"
+  value       = oci_kms_vault.cd.management_endpoint
 }
