@@ -74,7 +74,7 @@ This plan covers the recovery of:
 
 ## 4. Disaster Scenarios
 
-### 4.1 Scenario A - DigitalOcean Outage (Region Unavailable)
+### 4.1 Scenario A - Oracle Cloud Outage (Region Unavailable)
 
 **Description:** The Oracle Cloud region hosting the VPS becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
 
@@ -84,7 +84,7 @@ This plan covers the recovery of:
 
 **Recovery Procedure:**
 
-1. Confirm outage via DigitalOcean status page and support channels
+1. Confirm outage via the Oracle Cloud status page and support channels
 2. Assess estimated recovery time from provider
 3. **If provider ETA > 1 hour:** Initiate alternate-region deployment
   - a. Update infrastructure-as-code provider configuration for alternate region
@@ -108,7 +108,7 @@ This plan covers the recovery of:
 
 **Recovery Procedure:**
 
-1. Attempt VPS recovery via DigitalOcean console (reboot, recovery mode)
+1. Attempt instance recovery via the Oracle Cloud console (reboot, serial console)
 2. **If recovery fails:**
   - a. Destroy the corrupted VPS instance via infrastructure-as-code: `iac destroy -target=<vps_resource>`
   - b. Re-provision: `iac apply` (same region, fresh instance)
@@ -175,13 +175,13 @@ This plan covers the recovery of:
 **Recovery Procedure:**
 
 1. **ISOLATE IMMEDIATELY:**
-  - a. Revoke all DigitalOcean API tokens via secrets manager
+  - a. Revoke all Oracle Cloud API keys via the secrets manager
   - b. Disable the zero-trust tunnel via Cloudflare dashboard
-  - c. If accessible, power off the VPS via DigitalOcean console (do NOT attempt SSH login to compromised host)
+  - c. If accessible, power off the instance via the Oracle Cloud console (do NOT attempt SSH login to compromised host)
   - d. Rotate ALL secrets in the secrets manager (assume complete credential compromise)
 
 2. **PRESERVE EVIDENCE:**
-  - a. Create a snapshot of the compromised VPS disk via DigitalOcean console (do not boot it)
+  - a. Create a snapshot of the compromised instance boot volume via the Oracle Cloud console (do not boot it)
   - b. Export Datadog logs, detection engine alerts, and audit events from external stores
   - c. Document timeline of detection and response actions
 
@@ -373,7 +373,7 @@ Step 2: Rotate secrets in secrets manager
 $ # Generate new values for all potentially compromised secrets
 $ # Update secrets manager entries
 
-Step 3: Rotate DigitalOcean API tokens
+Step 3: Rotate Oracle Cloud API keys
 $ # Revoke old tokens via provider console
 $ # Generate new tokens
 $ # Update secrets manager
