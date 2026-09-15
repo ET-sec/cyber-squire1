@@ -1,0 +1,35 @@
+# Teleport roles, the tracked pair (plan 24-02). Loaded with
+#   tctl create -f /etc/teleport/roles.yaml
+# operator may request admin; admin is the requestable role. A request is
+# approved on the Auth Service with `tctl request approve`, because configured
+# approvers and reviewer roles are Enterprise features this build does not carry.
+kind: role
+version: v5
+metadata:
+  name: admin
+spec:
+  allow:
+    logins: ['root']
+    node_labels:
+      '*': '*'
+    rules:
+      - resources: ['*']
+        verbs: ['*']
+  options:
+    max_session_ttl: 4h
+    forward_agent: false
+---
+kind: role
+version: v5
+metadata:
+  name: operator
+spec:
+  allow:
+    logins: ['root']
+    node_labels:
+      env: production
+    request:
+      roles: ['admin']
+  options:
+    max_session_ttl: 8h
+    forward_agent: false

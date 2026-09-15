@@ -9,6 +9,7 @@
   "pgvector/pgvector": {"type": "unsigned", "note": "no cosign signature published"},
   "hashicorp/vault": {"type": "unsigned", "note": "no cosign signature published"},
   "quay.io/keycloak/keycloak": {"type": "unsigned", "note": "no cosign signature published"},
+  "timberio/vector": {"type": "unsigned", "note": "no cosign signature published; checked 2026-09-15 with cosign v3.1.2 against the pinned 0.58.0 index digest"},
   "datadog/agent": {"type": "unsigned", "note": "no cosign signature published"},
   "ollama/ollama": {"type": "unsigned", "note": "no cosign signature published"},
   "fedirz/faster-whisper-server": {"type": "unsigned", "note": "no cosign signature published; upstream archived"},

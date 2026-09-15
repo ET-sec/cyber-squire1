@@ -1,0 +1,16 @@
+storage = "/var/lib/teleport-event-handler/storage"
+timeout = "10s"
+batch = 20
+concurrency = 5
+window-size = "24h"
+
+[forward.fluentd]
+ca = "/etc/teleport-event-handler/certs/ca.crt"
+cert = "/etc/teleport-event-handler/certs/client.crt"
+key = "/etc/teleport-event-handler/certs/client.key"
+url = "https://cd-service-fluentd:8888/test.log"
+session-url = "https://cd-service-fluentd:8888/session"
+
+[teleport]
+addr = "cd-service-teleport:3025"
+identity = "/etc/teleport-event-handler/identity"

@@ -308,6 +308,64 @@ entries:
     review: {every: 90d}
     rewrite_later: "fluent.conf sits in the same directory, is still untracked, and is bind mounted at compose line 592, so the runtime configuration of a Tier 0 service has no source in the repository while its build context does. certs/ stays out on purpose. Recorded by plan 22-03."
 
+  # Every configuration a service reads is tracked (plan 24-02). Each path sits
+  # under the CD_VOL_ data rule and comes in through a per-level re-include.
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/vector.yaml"
+    purpose: "The audit log shipper's pipeline: a mutual TLS listener for the access gateway's event handler, a path route for audit and session streams, the SIEM sink with a bounded memory buffer, and the metrics exporter the health scrape reads."
+    status: active
+    reason: "Bind mounted read only by the shipper's compose block. The stop conditions for the audit path (a discard or a restart) are read from the exporter this file declares, so the file is the source of both the pipeline and its own health signal."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_VAULT/config/vault.hcl"
+    purpose: "The secrets manager's single server configuration: file storage, the plain listener with its written TLS decision, the cloud KMS seal through the instance principal, and the lease bounds."
+    status: active
+    reason: "Bind mounted read only by the secrets manager's compose block, which no longer carries a second configuration in an environment variable. The seal key id and endpoints are read from the host environment file, so the file carries no identifier."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/teleport.yaml"
+    purpose: "The access gateway's configuration: auth, proxy and node in one process, local authentication with a second factor, session recording at the node."
+    status: active
+    reason: "Bind mounted read only by the gateway's compose block. Carries no public address because the proxy is not routed through the edge in this build; the decision record for the identity tier says why federation is a recorded upgrade."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/roles.yaml"
+    purpose: "The two gateway roles: the requestable administrative role and the operator role that may request it."
+    status: active
+    reason: "Loaded into the gateway with tctl after the first start. The request and approval loop the identity tier proves runs on exactly this pair."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT_EVENTS/teleport-event-handler.toml"
+    purpose: "The event handler's forwarder table: where the audit stream goes, over which certificates, and which gateway it reads from."
+    status: active
+    reason: "Bind mounted read only by the handler's compose block. Only the table is tracked; the certificates, the client key and the identity file beside it are generated on the host and stay ignored."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/coredirective-realm.json"
+    purpose: "The realm template the identity provider imports on its first start: realm settings, the human and agent roles, and the service account clients."
+    status: active
+    reason: "Tracked as a redacted template, never as a live export: it carries no user record and no client secret. A client that needs a known secret is created through the admin interface after the import and its value goes to the secrets manager of record, so the file never holds a placeholder that could be imported literally."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/**"
+    purpose: "The monitoring agent's check configurations, mounted over the image's drop-in path: today the host authentication log tail."
+    status: active
+    reason: "Bind mounted read only by the agent's compose block since the stateless set came up. Tracked by plan 24-02 because the untracked configuration defect was the same one the identity tier had, not because that plan promotes the agent."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_FALCO/**"
+    purpose: "The kernel sensor's configuration overlay and the platform's own detection rules."
+    status: active
+    reason: "Bind mounted read only by the sensor's compose block since the stateless set came up. The rules file is the detection content the threat model cites, and it had no source in any clone until plan 24-02 tracked it; the runtime log directory beside it stays ignored."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
   # ----------------------------------------------------------------------
   # builds: the Squire agent, and nothing else
   # ----------------------------------------------------------------------
