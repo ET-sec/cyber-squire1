@@ -1,6 +1,6 @@
 # CoreDirective Stack Overview
 
-Current as of 2026-09-08, after the Phase 20.1 cloud hardening pass and the move onto the Arm host. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 instance (ARM, aarch64, 4 OCPU / 24 GB), and that 24 GB is the ceiling on how many of the design's services run at once. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
+Current as of 2026-09-15, after the Phase 20.1 cloud hardening pass, the move onto the Arm host, and the identity tier coming up. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 instance (ARM, aarch64, 4 OCPU / 24 GB), and that 24 GB is the ceiling on how many of the design's services run at once. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
 
 Acronyms, once: OIDC (OpenID Connect), JWT (JSON Web Token), UPST (user principal session token), KMS (key management service), CMK (customer-managed key), ZTNA (zero trust network access), WAF (web application firewall), SSO (single sign-on), POA&M (Plan of Action and Milestones), IaC (infrastructure as code), CI (continuous integration), PII (personally identifiable information), RAG (retrieval augmented generation), SOC (security operations center), RTO (recovery time objective).
 
@@ -59,7 +59,7 @@ flowchart TB
 
   subgraph OCIBOX["COMPUTE · OCI Ampere A1 (ARM · aarch64 · 4 OCPU / 24 GB)"]
     direction TB
-    subgraph LIVEBOX["LIVE (8 containers)"]
+    subgraph LIVEBOX["LIVE (13 containers)"]
       direction LR
       PG[("PostgreSQL 16<br/>+ pgvector")]:::live
       N8N["n8n<br/>workflow engine"]:::live
@@ -67,13 +67,13 @@ flowchart TB
       FALCO["Falco + Falcosidekick<br/>eBPF sensor, events to the SIEM"]:::live
       DDP["Datadog agent<br/>logs + metrics to the SIEM"]:::live
       OLL["Ollama + Whisper<br/>sealed network, no route out"]:::live
+      VAULT2["HashiCorp Vault<br/>cloud KMS seal, two engines"]:::live
+      KC["Keycloak<br/>production mode, edge login provider"]:::live
+      TP["Teleport<br/>+ event handler"]:::live
+      FLU["Vector<br/>audit log shipper"]:::live
     end
-    subgraph TIERBOX["IDENTITY, SECRETS AND AI TIER (11 of 19 compose services)"]
+    subgraph TIERBOX["AI TIER (6 of 19 compose services)"]
       direction LR
-      VAULT2["HashiCorp Vault"]:::tier
-      KC["Keycloak"]:::tier
-      TP["Teleport<br/>+ event handler"]:::tier
-      FLU["Vector<br/>audit log shipper"]:::tier
       LFP["Langfuse<br/>web, worker, ClickHouse, Redis"]:::tier
       NEMO["NeMo Guardrails"]:::tier
       SQ["Squire<br/>LangGraph SOC agent"]:::tier
@@ -114,7 +114,7 @@ flowchart TB
 
 ## Runtime: what runs on the host
 
-**LIVE (verified against `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` and `docker ps` on 2026-09-08):** 8 containers run on the OCI instance.
+**LIVE (verified against `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` and `docker ps` on 2026-09-15):** 13 containers run on the OCI instance.
 
 | Container | Role |
 |-----------|------|
@@ -126,10 +126,15 @@ flowchart TB
 | Datadog agent | Host metrics, container logs, and the SSH auth log to the SIEM |
 | Ollama | Local model server on the sealed network (qwen3.5:9b pulled 2026-09-10 after a seven-model benchmark on the host, inference verified on ARM; qwen3:8b and llama3.1:8b remain on the volume) |
 | Whisper (faster-whisper-server) | Speech to text on the sealed network, small model, transcription verified |
+| HashiCorp Vault 2.1 | Secrets manager, unsealed by the cloud KMS through the instance identity; dynamic database credentials and transit of the workflow engine's key |
+| Keycloak 26.7 | Identity provider in production mode; the edge login's second provider beside the email code |
+| Teleport 18.11 | Access gateway, local auth with a second factor, one requestable role, sessions recorded |
+| Teleport event handler | Streams the gateway's audit events over mutual TLS to the shipper |
+| Vector 0.58 | Audit log shipper to the SIEM from a bounded memory buffer; its exporter is scraped for discards and restarts |
 
 Also live outside the instance: the Cloudflare edge (Access ZTNA, WAF, DNS, tunnel), the Terraform remote state bucket, the KMS key, the backup bucket, the nightly drift check, the scanner-to-POA&M pipeline, and both local git hooks.
 
-**THE REST OF THE PLATFORM:** the identity, secrets and AI tier of the 19-service master compose file (`COREDIRECTIVE_ENGINE/docker-compose.yaml`). That list: HashiCorp Vault, Keycloak, Teleport plus its event handler, Fluentd, Langfuse (web, worker, ClickHouse, Redis), NeMo Guardrails, and Squire. Every registry image publishes an arm64 manifest at its pinned index digest (checked 2026-09-08); three images are built locally (Fluentd, NeMo, Squire) and the identity material (Teleport certificates, Keycloak realm, Vault data) is machine-specific and is issued on the host it runs on. The compose file is the definition of record.
+**THE REST OF THE PLATFORM:** the AI tier of the 19-service master compose file (`COREDIRECTIVE_ENGINE/docker-compose.yaml`). That list: Langfuse (web, worker, ClickHouse, Redis), NeMo Guardrails, and Squire. Every registry image publishes an arm64 manifest at its pinned index digest (the five identity-tier images re-resolved on the host 2026-09-15, the rest checked 2026-09-08); two images are built locally (NeMo, Squire) and the identity material (Teleport certificates and identities, the Keycloak realm, Vault data) is machine-specific and is issued on the host it runs on. The compose file is the definition of record.
 
 ## Identity plane: two trust boundaries
 
@@ -205,11 +210,11 @@ exists. The receipt checklist ships in the module README.
 5. **Repo to public**: the layered pipeline above, plus sanitization convention (illustrative addresses like 10.100.1.10 only, no real hostnames, buckets, or identifiers in public docs).
 6. **Workload cloud to security plane** (held behind the apply gate): evidence flows one way into the AWS vault through a write-only identity; nothing in AWS can reach back into OCI, and the only OCI material there is the sealed break-glass secret whose access alerts.
 
-## Counts, with the source checked (2026-09-08)
+## Counts, with the source checked (2026-09-15)
 
 | What | Count | Source checked |
 |------|-------|----------------|
-| Containers live on OCI | 8 | `docker-compose.oci-core.yaml`, `docker ps` |
+| Containers live on OCI | 13 | `docker-compose.oci-core.yaml`, `docker ps` |
 | Services in the master compose | 19 | `docker-compose.yaml` service list |
 | GitHub Actions workflows (SHA-pinned, permissions blocks) | 16 | `.github/workflows/` |
 | OPA Rego policies on the IaC | 8 | `terraform/cd-oci-infrastructure/policy/` |

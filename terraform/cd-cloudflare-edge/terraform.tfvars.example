@@ -13,7 +13,7 @@ telegram_webhook_prefix = "/webhook/replace-me"
 # The tunnel that carries every route to the origin (dashboard: Zero Trust, Networks, Tunnels)
 cf_tunnel_id            = "your-tunnel-id"
 
-# The identity provider realm whose two path families are routed through the tunnel
+# The identity provider realm whose login-flow path families are routed through the tunnel
 keycloak_realm          = "your-realm"
 
 # Defaults are fine for a fresh replication:

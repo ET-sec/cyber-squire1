@@ -116,7 +116,7 @@
 # ---------------------------------------------------------------------------
 
 - rule: CD n8n Shell Spawn
-  desc: Detect shell spawning in n8n container (n8n has executeCommand -- monitor but allow)
+  desc: Detect shell spawning in n8n container (n8n has executeCommand, so monitor but allow)
   condition: >
     spawned_process and is_n8n
     and proc.name in (bash, sh, dash, csh, zsh, ash)

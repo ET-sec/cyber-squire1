@@ -289,15 +289,15 @@ entries:
     purpose: "The full nineteen service stack definition: databases, orchestration, identity, secrets, inference, observability, and the runtime detection agents."
     status: active
     reason: "The most referenced file in the repository, with fifty three evidence anchors on the published views plus the renovate matcher, the image smoke test, and the image signature check. It is the definition of record for every service on the host."
-    last_verified: 2026-09-09
+    last_verified: 2026-09-15
     review: {every: 90d}
     rewrite_later: "The api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent."
 
   - path: "COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml"
-    purpose: "The definition of what runs on the instance: the database, the orchestration engine, the tunnel, the model and speech servers, the kernel sensor and its router, and the monitoring agent."
+    purpose: "The definition of what runs on the instance: the database, the orchestration engine, the tunnel, the model and speech servers, the kernel sensor and its router, the monitoring agent, the secrets manager, the identity provider, the access gateway, its event handler, and the audit log shipper."
     status: active
     reason: "The live host file is a copy of this one, so this is the only honest answer to what is running. Kept separate from the full design so neither file has to lie."
-    last_verified: 2026-09-09
+    last_verified: 2026-09-15
     review: {event: provider_terms_change, flag: TRIGGER_PROVIDER_TERMS}
 
   # Every configuration a service reads is tracked (plan 24-02). Each path sits
@@ -326,7 +326,7 @@ entries:
   - path: "COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/roles.yaml"
     purpose: "The two gateway roles: the requestable administrative role and the operator role that may request it."
     status: active
-    reason: "Loaded into the gateway with tctl after the first start. The request and approval loop the identity tier proves runs on exactly this pair."
+    reason: "Loaded into the gateway with tctl after the first start. The identity tier proves the request and approval loop on exactly this pair."
     last_verified: 2026-09-15
     review: {every: 90d}
 
@@ -490,7 +490,7 @@ entries:
     reason: "The fallback row for the architecture tree, which explains the platform to a reader who is not going to read the compose file."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "Three findings from plan 21-06. INFORMATION_FLOWS.md is headed 2026-08-31 and says 3 live containers while STACK_OVERVIEW.md, headed 2026-09-08, says 8, so the two architecture documents disagree about the live count. INFORMATION_FLOWS.md line 45 and INFORMATION_FLOWS_1.mmd line 30 both leave a bare dollar zero in a diagram label; it is a real measured result for the Redis dedup rail rather than a price claim, and Phase 28 owns whether a measured zero belongs in a label at all. The rendered docs/architecture/STACK_OVERVIEW.png on disk is stale after the mermaid edit; it is untracked, so no gate sees it, and the render command is in INFORMATION_FLOWS.md lines 331 to 338."
+    rewrite_later: "Three findings from plan 21-06. INFORMATION_FLOWS.md is headed 2026-08-31 and describes the host before the stateless set and the identity tier came up, while STACK_OVERVIEW.md was re-read on 2026-09-15 and says 13, so the two architecture documents disagree about the live count; the flows document is the one to refresh. INFORMATION_FLOWS.md line 45 and INFORMATION_FLOWS_1.mmd line 30 both leave a bare dollar zero in a diagram label; it is a real measured result for the Redis dedup rail rather than a price claim, and Phase 28 owns whether a measured zero belongs in a label at all. The rendered docs/architecture/STACK_OVERVIEW.png on disk is stale after the mermaid edit; it is untracked, so no gate sees it, and the render command is in INFORMATION_FLOWS.md lines 331 to 338."
 
   - path: "docs/architecture/decisions/**"
     purpose: "Seven decision records, each naming the control it satisfies and the artifact that proves it."
@@ -598,10 +598,10 @@ entries:
   # keycloak: the identity tier
   # ----------------------------------------------------------------------
   - path: "keycloak/**"
-    purpose: "The realm export: clients, roles, and scopes for the identity tier."
+    purpose: "Notes for the identity provider's realm: where the imported template lives and how the agent clients are applied."
     status: active
-    reason: "Three evidence anchors on the published views cite it, so removing it breaks the publish. What is inside it depends on the Phase 24 identity tier coming up."
-    last_verified: 2026-09-09
+    reason: "The realm template the provider imports is tracked beside the compose file; the copy that used to sit here carried a user record and an Enterprise-only client and was retired on 2026-09-15 with the provider running from the tracked template."
+    last_verified: 2026-09-15
     review: {event: identity_tier_live, flag: TRIGGER_IDENTITY_TIER}
 
   # ----------------------------------------------------------------------

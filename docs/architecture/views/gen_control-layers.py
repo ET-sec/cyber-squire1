@@ -33,7 +33,7 @@ BANDS = [
       hero="4h", desc="JIT elevation, then expiry",
       nodes=[("Keycloak OIDC","realm roles, RBAC",False),("Teleport MFA","TOTP, every session",True),
              ("JIT elevation","approved, expires",False),("session recording","to SIEM over mTLS",False),
-             ("Vault AppRole","short-TTL creds",False),("lockout policy","failed logins alert",False)],
+             ("Vault DB engine","1h lease creds",False),("lockout policy","failed logins alert",False)],
       ctl=["IA-2","IA-2(1)","AC-2","AC-12","IA-5","SC-12","AC-7"]),
  dict(name="DATA", color=TEXT, tint="rgba(255,255,255,0.018)", q="where state lives",
       hero="30d", desc="retention rule on backups",

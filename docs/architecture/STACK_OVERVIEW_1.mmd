@@ -48,7 +48,7 @@ flowchart TB
 
   subgraph OCIBOX["COMPUTE · OCI Ampere A1 (ARM · aarch64 · 4 OCPU / 24 GB)"]
     direction TB
-    subgraph LIVEBOX["LIVE (8 containers)"]
+    subgraph LIVEBOX["LIVE (13 containers)"]
       direction LR
       PG[("PostgreSQL 16<br/>+ pgvector")]:::live
       N8N["n8n<br/>workflow engine"]:::live
@@ -56,13 +56,13 @@ flowchart TB
       FALCO["Falco + Falcosidekick<br/>eBPF sensor, events to the SIEM"]:::live
       DDP["Datadog agent<br/>logs + metrics to the SIEM"]:::live
       OLL["Ollama + Whisper<br/>sealed network, no route out"]:::live
+      VAULT2["HashiCorp Vault<br/>cloud KMS seal, two engines"]:::live
+      KC["Keycloak<br/>production mode, edge login provider"]:::live
+      TP["Teleport<br/>+ event handler"]:::live
+      FLU["Vector<br/>audit log shipper"]:::live
     end
-    subgraph TIERBOX["IDENTITY, SECRETS AND AI TIER (11 of 19 compose services)"]
+    subgraph TIERBOX["AI TIER (6 of 19 compose services)"]
       direction LR
-      VAULT2["HashiCorp Vault"]:::tier
-      KC["Keycloak"]:::tier
-      TP["Teleport<br/>+ event handler"]:::tier
-      FLU["Vector<br/>audit log shipper"]:::tier
       LFP["Langfuse<br/>web, worker, ClickHouse, Redis"]:::tier
       NEMO["NeMo Guardrails"]:::tier
       SQ["Squire<br/>LangGraph SOC agent"]:::tier

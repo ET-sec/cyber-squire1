@@ -4,7 +4,7 @@
 # Four tiers by criticality and update behavior.
 #
 # Tier 1: security boundary and identity (digest pinned)
-#   Vault, Keycloak, Teleport, Teleport event handler, cloudflared.
+#   Vault, Keycloak, Teleport, Teleport event handler, Vector, cloudflared.
 #   Format: image: name:semver@sha256:digest
 #   Update path: Renovate PR. Review every bump. No automerge.
 #
@@ -258,10 +258,10 @@ services:
   # HashiCorp Vault (Secrets Management)
   # ==========================================
   # Purpose: Centralized secrets management: eliminates hardcoded .env values
-  # - AppRole auth for n8n, Keycloak, and services to fetch creds at runtime
-  # - Short-lived leases (1hr TTL) for Postgres dynamic credentials
+  # - Database engine: dynamic Postgres credentials on a one hour lease (role cd-app-readwrite)
+  # - Transit engine: wraps the orchestration engine's encryption key; the token backend is the only auth method
   # - Full audit log of every secret access
-  # - Init/unseal MUST be done OFF-STREAM (root token exposed)
+  # - Initialized once off-stream; the root token and the recovery shares went to Doppler, not to a file
   #
   cd-service-vault:
     # Tier 1: secrets boundary. Digest pinned (multi-arch index, re-resolved on the
@@ -324,7 +324,7 @@ services:
     # the Arm host 2026-09-15). Production mode with a strict hostname behind a
     # terminating tunnel: KC_PROXY_HEADERS and KC_HTTP_ENABLED are what let the
     # plain listener serve the right scheme. Its tables sit in their own schema
-    # of the shared database. The heap rides JAVA_OPTS_APPEND, never JAVA_OPTS,
+    # of the shared database, under a database role scoped to that schema. The heap rides JAVA_OPTS_APPEND, never JAVA_OPTS,
     # which would replace the image's whole default option set.
     image: quay.io/keycloak/keycloak:26.7.3@sha256:29be7252db0a106f1cd2ac17b9a56ff2668073da645638a38b9fc67deeb2d6c4
     container_name: cd-service-keycloak
@@ -336,8 +336,8 @@ services:
       - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_ADMIN_PASS}
       - KC_DB=postgres
       - KC_DB_URL=jdbc:postgresql://cd-service-db:5432/${CD_DB_NAME}
-      - KC_DB_USERNAME=${CD_DB_USER}
-      - KC_DB_PASSWORD=${CD_DB_PASS}
+      - KC_DB_USERNAME=${KC_DB_USER}
+      - KC_DB_PASSWORD=${KC_DB_PASS}
       - KC_DB_SCHEMA=keycloak
       - KC_HOSTNAME=${KC_HOSTNAME}
       - KC_HOSTNAME_STRICT=true
@@ -350,7 +350,7 @@ services:
     depends_on:
       cd-service-db:
         condition: service_healthy
-    # `--import-realm` rides on the first boot only, which imports the tracked
+    # `--import-realm` runs on the first boot only, which imports the tracked
     # realm template; the service then runs a bare `start`, recreated without it.
     command: start
     healthcheck:

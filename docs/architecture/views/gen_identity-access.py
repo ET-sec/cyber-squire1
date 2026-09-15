@@ -10,11 +10,11 @@ TIERS=[
   rows=[dict(p="allowlisted source", d=[("host sshd",False)], r="host shell", rext=False, pext=False, l=["Ed25519 key, static","root path, no broker"])],
   blast=["whole host, from one source range","Falco sees the session after the fact"]),
  dict(t="TIER 1  OPERATOR", sub="humans, three realm roles: admin, operator, auditor", c=GREEN, tint="rgba(61,255,139,0.03)", y=142, dash=False,
-  rows=[dict(p="operator", d=[("Access",False)], r="admin consoles", rext=False, pext=False, l=["email one-time PIN, 24h session","identity checked before origin"]),
-        dict(p="operator", d=[("Keycloak",False),("Teleport",False)], r="host SSH, database", rext=False, pext=False, l=["password, lockout on failures","OIDC, 5-min token","TOTP, recorded, JIT 4h"])],
+  rows=[dict(p="operator", d=[("Access",False),("Keycloak",False)], r="admin consoles", rext=False, pext=False, l=["email one-time PIN or the identity provider, 24h session","OIDC code with PKCE, lockout on failed logins","identity checked before origin"]),
+        dict(p="operator", d=[("Teleport",False)], r="host SSH", rext=False, pext=False, l=["local user, TOTP, sessions recorded","elevation by request, ends at 4h"])],
   blast=["consoles until the 24h session ends","SSH recorded, elevation ends at 4h"]),
  dict(t="TIER 2  SERVICE", sub="machines trade one bootstrap secret for a short-lived credential", c=BONE, tint="rgba(232,220,192,0.03)", y=300, dash=False,
-  rows=[dict(p="n8n and services", d=[("Vault AppRole",False)], r="Postgres", rext=False, pext=False, l=["role ID and secret ID","dynamic creds, 1h lease"]),
+  rows=[dict(p="n8n and services", d=[("Vault DB engine",False)], r="Postgres", rext=False, pext=False, l=["service token to the engine","dynamic creds, 1h lease"]),
         dict(p="CI runner", d=[("OIDC exchange",False)], r="cloud API", rext=True, pext=False, l=["signed JWT, main branch only","minutes-lived token, read-only"]),
         dict(p="Telegram", d=[("Access bypass",False)], r="one webhook path", rext=False, pext=True, l=["published egress ranges only","chat ID checked, rate limited"])],
   blast=["one database, for one hour","no stored cloud key exists to leak"]),
@@ -105,13 +105,13 @@ html=f'''<title>CoreDirective Identity and Access</title>
   </div>
 
   <figure>
-  <svg viewBox="0 0 1700 {H}" role="img" aria-label="Identity and access view of the CoreDirective platform. Four privilege tiers drawn as horizontal bands, each with principals on the left, decision points in the middle, resources on the right, and a note on what a stolen credential reaches. Tier 0, break-glass: an allowlisted source range reaches the host SSH daemon with a static key and lands on the host shell with no broker in the path. Tier 1, operator: humans reach admin consoles through an email one-time PIN with a 24 hour session, and reach host SSH and the database through Keycloak single sign-on into Teleport with TOTP, recorded sessions, and just-in-time elevation that expires after four hours. Tier 2, service: n8n and services fetch dynamic database credentials from Vault by AppRole on a one hour lease; the CI runner trades a signed JWT from the main branch for a cloud token that lives minutes and is read-only; Telegram reaches one webhook path through an Access bypass limited to its published ranges with a chat ID check. Tier 3, agent: alert sources reach Squire with a rotated shared-secret webhook header and a schema-checked payload; Squire reaches the Claude API only through Guardrails, which holds the API key and the spend cap; Squire notifies Telegram through a typed actions allowlist. A perfect prompt injection reaches the allowlist, never the operator or cloud planes.">
+  <svg viewBox="0 0 1700 {H}" role="img" aria-label="Identity and access view of the CoreDirective platform. Four privilege tiers drawn as horizontal bands, each with principals on the left, decision points in the middle, resources on the right, and a note on what a stolen credential reaches. Tier 0, break-glass: an allowlisted source range reaches the host SSH daemon with a static key and lands on the host shell with no broker in the path. Tier 1, operator: humans reach admin consoles through an email one-time PIN with a 24 hour session, and reach host SSH and the database through Keycloak single sign-on into Teleport with TOTP, recorded sessions, and just-in-time elevation that expires after four hours. Tier 2, service: n8n and services fetch dynamic database credentials from Vault by the database engine on a one hour lease; the CI runner trades a signed JWT from the main branch for a cloud token that lives minutes and is read-only; Telegram reaches one webhook path through an Access bypass limited to its published ranges with a chat ID check. Tier 3, agent: alert sources reach Squire with a rotated shared-secret webhook header and a schema-checked payload; Squire reaches the Claude API only through Guardrails, which holds the API key and the spend cap; Squire notifies Telegram through a typed actions allowlist. A perfect prompt injection reaches the allowlist, never the operator or cloud planes.">
 {chr(10).join("    "+s for s in svg)}
   </svg>
 
   <figcaption>
-    <div class="g"><b>Human</b>one-time PIN → consoles, 24h. MFA → recorded SSH, elevation ends at 4h</div>
-    <div class="c"><b>Machine</b>AppRole → 1h lease. signed JWT from main → minutes, read-only. no stored cloud key</div>
+    <div class="g"><b>Human</b>one-time PIN or OIDC → consoles, 24h. TOTP → recorded SSH, elevation by request ends at 4h</div>
+    <div class="c"><b>Machine</b>database engine → 1h lease. signed JWT from main → minutes, read-only. no stored cloud key</div>
     <div class="o"><b>Agent</b>secret header in → rails → key held by guardrails → allowlist out, one chat ID</div>
     <div class="r"><b>Break-glass</b>one source range, one key, whole host, watched after the fact</div>
   </figcaption>

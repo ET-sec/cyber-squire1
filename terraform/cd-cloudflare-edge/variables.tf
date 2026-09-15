@@ -14,7 +14,7 @@ variable "domain" {
 }
 
 variable "admin_subdomains" {
-  description = "Subdomains that carry admin UIs behind Access and the WAF geo-fence."
+  description = "Subdomains behind the WAF geo-fence and header rule: the admin UIs behind Access. The identity provider's hostname stays out, because the edge exchanges the login code with it from its own network."
   type        = list(string)
   default     = ["n8n", "langfuse", "squire"]
 }
@@ -59,13 +59,13 @@ variable "cf_tunnel_id" {
 }
 
 variable "keycloak_subdomain" {
-  description = "Subdomain of the identity provider's public hostname (derived from the zone, so no real hostname sits in this code)."
+  description = "Subdomain label of the identity provider's public hostname; the zone comes from the domain variable, the same way the admin hostnames are built."
   type        = string
   default     = "auth"
 }
 
 variable "keycloak_realm" {
-  description = "Realm whose discovery document and protocol endpoints are the only two path families routed to the identity provider. Real value in the gitignored terraform.tfvars."
+  description = "Realm whose login flow (the discovery document, the protocol endpoints, the form actions) is routed to the identity provider beside its static assets, and nothing else. Real value in the gitignored terraform.tfvars."
   type        = string
   sensitive   = true
 }

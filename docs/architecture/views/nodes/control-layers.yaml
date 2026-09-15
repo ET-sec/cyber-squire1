@@ -69,7 +69,7 @@ nodes:
     zone: host
     what: "A process inside a container cannot gain more privilege than it started with, so a setuid binary or a capability trick inside a compromised service goes nowhere."
     controls: [AC-6, CM-7]
-    status_note: "Set on seven of the eight live containers and on 18 of 19 in the full design; the kernel sensor is the documented exception because it needs the capabilities it watches."
+    status_note: "Set on twelve of the thirteen live containers and on 18 of 19 in the full design; the kernel sensor is the documented exception because it needs the capabilities it watches."
     evidence:
       - {label: "No-new-privileges on the live tunnel", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 103}
       - {label: "Database in the full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 107}
@@ -80,7 +80,7 @@ nodes:
     zone: host
     what: "CPU, memory, and process-count limits on every service, so a runaway or a fork bomb in one container cannot starve the host."
     controls: [SC-6, SC-5]
-    status_note: "Set on every service in the full design and on all eight live containers: the database, n8n, and the tunnel since 2026-09-06, the sensor, its router, the agent, the local model, and the transcriber since 2026-09-08, all confirmed by inspecting each container on the host."
+    status_note: "Set on every service in the full design and on all thirteen live containers: the database, n8n, and the tunnel since 2026-09-06, the sensor, its router, the agent, the local model, and the transcriber since 2026-09-08, and the secrets manager, the identity provider, the access gateway, its event handler, and the audit log shipper since 2026-09-15, all confirmed by inspecting each container on the host."
     evidence:
       - {label: "Limits on the live database", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 57}
       - {label: "Limits on the live n8n container", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 86}
@@ -220,7 +220,7 @@ nodes:
     zone: identity
     from: topology/event-handler
     what: "Every gateway session is recorded and its audit events leave the host over mutual TLS, so a session record exists that the operator cannot edit."
-  - {id: vault-approle, label: "Vault AppRole", zone: identity, from: topology/vault}
+  - {id: vault-approle, label: "Vault DB engine", zone: identity, from: topology/vault}
   - id: lockout-policy
     label: "lockout policy"
     zone: identity
@@ -228,7 +228,7 @@ nodes:
     controls: [AC-7]
     status_note: "The edge brute-force detection rule fires on repeated failures, and the identity provider's own lockout sits behind it."
     evidence:
-      - {label: "Brute force protection in the realm", path: keycloak/coredirective-realm.json, line: 12}
+      - {label: "Brute force protection in the realm template", path: COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/coredirective-realm.json, line: 12-18}
       - {label: "Edge brute-force detection", path: detections/sigma/cloudflare/access-brute-force.yml, line: 1}
     solidify: none
   # DATA

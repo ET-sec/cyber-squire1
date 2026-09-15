@@ -1,5 +1,5 @@
 # =============================================================================
-# Falco Configuration Overlay — CoreDirective Engine
+# Falco configuration overlay, CoreDirective Engine
 # =============================================================================
 # Mounted into /etc/falco/config.d/ to override specific default settings
 # Default falco.yaml remains intact (preserves plugin definitions)
@@ -28,7 +28,7 @@ stdout_output:
 syslog_output:
   enabled: false
 
-# Engine configuration — modern eBPF (no kernel module needed)
+# Engine configuration: modern eBPF, no kernel module needed
 engine:
   kind: modern_ebpf
   modern_ebpf:

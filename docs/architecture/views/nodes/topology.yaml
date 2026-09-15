@@ -51,7 +51,7 @@ nodes:
     status_note: "The allow policy includes an email list and the application sets a 24 hour session, so a console login is an email one-time code good for a day."
     evidence:
       - {label: "Access application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
-      - {label: "Allow policy, email PIN", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 34}
+      - {label: "Allow policy, admin emails", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 34-43}
       - {label: "Service token policy", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 53}
       - {label: "Webhook carve-out, source-scoped", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 69}
     solidify: "SOL-topology-03"
@@ -101,7 +101,7 @@ nodes:
     status_note: "Live on the current host since 2026-09-08 on the sealed network, which has no route in or out; the small model is served from a cache warmed once, and a transcription round trip was verified from a client on that network."
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 145}
-      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 447}
+      - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 447-449}
       - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
       - {label: "Sealed network, internal only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1060-1062}
     solidify: none
@@ -115,7 +115,7 @@ nodes:
     evidence:
       - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 122}
       - {label: "Service definition, sealed network", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 177}
-      - {label: "Squire networks, core and sealed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1053}
+      - {label: "Squire networks, core and sealed", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1053-1055}
       - {label: "Local backend in the agent", path: builds/squire/src/squire/llm_backend.py, line: 168}
       - {label: "Ceiling breach flips the backend", path: builds/squire/src/squire/cost_ceiling.py, line: 68}
     solidify: "SOL-topology-07"
@@ -140,7 +140,7 @@ nodes:
     status_note: "The agent sets the trace id in its telemetry module, and the audit trail specification defines what each span carries."
     evidence:
       - {label: "Web service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 848}
-      - {label: "Worker, ClickHouse, Redis", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 721}
+      - {label: "Worker, ClickHouse, Redis", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 721-812}
       - {label: "Trace id set by the agent", path: builds/squire/src/squire/telemetry.py, line: 17}
       - {label: "Audit trail field spec", path: docs/grc/AI_AUDIT_TRAIL_SPEC.md, line: 54}
     solidify: none
@@ -182,7 +182,8 @@ nodes:
     controls: [SC-12, SC-28, IA-5, AC-6]
     status_note: "Two roles only: the database engine issues short-lived credentials, and the transit engine wraps the orchestration engine's encryption key."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 266}
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 292}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 266}
       - {label: "The seal stanza: unsealed by the cloud key through the instance identity", path: COREDIRECTIVE_ENGINE/CD_VOL_VAULT/config/vault.hcl, line: 30-32}
       - {label: "Migration tracked as open", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 267}
     solidify: "SOL-topology-09"
@@ -194,8 +195,9 @@ nodes:
     controls: [IA-2, IA-4, IA-5, AC-2, AC-3]
     status_note: "The identity provider for the management plane: the realm is imported from the template tracked in this repository, its start command and hostname are set in its compose block, and its port is published on loopback."
     evidence:
-      - {label: "Realm export, roles and clients", path: keycloak/coredirective-realm.json, line: 1}
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 322}
+      - {label: "Realm template the identity provider imports: roles and clients", path: COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/coredirective-realm.json, line: 1}
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 326}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 322}
       - {label: "Start command, production mode", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 355}
       - {label: "Role map", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 71}
     solidify: "SOL-topology-10"
@@ -221,7 +223,8 @@ nodes:
     controls: [IA-2(1), AU-2, AU-12, AC-12, AC-6]
     status_note: "Local authentication with a second factor and one requestable role, approved on the auth service. External identity connectors are an Enterprise feature this build does not carry, and the edge holds the federation instead."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 389}
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 364}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 389}
       - {label: "Audit event shipper", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 649}
       - {label: "Connector and request roles, the upgrade path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 190}
     solidify: "SOL-topology-11"
@@ -261,7 +264,8 @@ nodes:
     controls: [AU-2, AU-9, AU-12, SC-8]
     status_note: "It authenticates with a one year identity file, one of the machine identities the SSP lists."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 649}
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 422}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 649}
       - {label: "Identity file lifetime", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 646}
       - {label: "Audit flow in the SSP", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 185}
     solidify: none
@@ -269,12 +273,13 @@ nodes:
   - id: vector
     label: "Vector"
     zone: net-monitoring
-    what: "The audit log shipper: receives the gateway's audit stream over mutual TLS and delivers it to the SIEM from a bounded memory buffer, so audit records leave the host and survive it."
+    what: "The audit log shipper: receives the gateway's audit stream over mutual TLS and delivers it to the SIEM from a bounded memory buffer, so audit records leave the host before anything on it is lost."
     controls: [AU-9, AU-4, SC-8]
     status_note: "One inbound listener with mutual TLS on it, a route that tags audit and session events apart, a memory buffer that blocks rather than drops, and an exporter a neighbour scrapes for the health of the path."
     evidence:
-      - {label: "Service definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 596}
-      - {label: "Pipeline: the listener, the route, the sink and the exporter", path: COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/vector.yaml, line: 22}
+      - {label: "Live definition on the current host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 390}
+      - {label: "Full design", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 596}
+      - {label: "Pipeline: the listener, the route, the sink and the exporter", path: COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/vector.yaml, line: 21-94}
       - {label: "Role in the SSP service table", path: docs/grc/SSP_SYSTEM_SECURITY_PLAN.md, line: 168}
     solidify: none
 
