@@ -13,8 +13,7 @@ nodes:
     zone: vendor
     what: "A structured severity and incident-type call to a hosted model on the regex-scrubbed payload; it returns a label, not prose."
     controls: [SA-9, SC-8, SI-10]
-    status: designed
-    status_note: "Pending the ARM rebuild; the call goes out on scrubbed text without the input rail in front of it, a documented gap with a queued routing change."
+    status_note: "A structured severity call on the scrubbed payload. It runs outside the input rail, which the routing records as a gap rather than a property of the design."
     evidence:
       - {label: "Classify node", path: builds/squire/src/squire/nodes/classify.py, line: 98}
       - {label: "Rail routing covers draft and critique", path: builds/squire/src/squire/llm.py, line: 55-59}
@@ -25,8 +24,7 @@ nodes:
     zone: vendor
     what: "The embeddings vendor that turns corpus chunks at ingest and the alert query at run time into 1024-dimension vectors."
     controls: [SA-9, SC-8, SI-12]
-    status: designed
-    status_note: "Pending the ARM rebuild; the query text leaves per alert, which the data flow classification did not say until the code was read, and the documents are queued to match."
+    status_note: "The alert query is embedded through the vendor per run, so the query text crosses. The data flow classification records that crossing."
     evidence:
       - {label: "Provider decision", path: docs/grc/ADR_001_EMBEDDING_PROVIDER.md, line: 46}
       - {label: "Query embedded per run", path: builds/squire/src/squire/retrievers/grc_retriever.py, line: 121-129}
@@ -37,8 +35,7 @@ nodes:
     zone: vendor
     what: "The search vendor the enrich node queries with indicators and the rule name, under terms of service rather than a data processing agreement."
     controls: [SA-9, SC-8]
-    status: designed
-    status_note: "Pending the ARM rebuild; the query is built from indicator fields and falls back to a whole-alert digest, and the field allowlist that drops the digest is the queued change."
+    status_note: "The search query is built from indicator fields, with a whole-alert digest as the fallback the field allowlist narrows."
     evidence:
       - {label: "Query built from indicators", path: builds/squire/src/squire/nodes/enrich.py, line: 20}
       - {label: "Search call", path: builds/squire/src/squire/nodes/enrich.py, line: 61}
@@ -50,8 +47,7 @@ nodes:
     zone: net-core
     what: "The alert as it arrives: attacker-influenced text by definition, classified as the highest-sensitivity data class the agent handles."
     controls: [SI-10, SC-28]
-    status: designed
-    status_note: "Pending the ARM rebuild; the request model and the data classification are in the repo."
+    status_note: "The request model and the data classification both sit in the repository and name this payload as the highest-sensitivity class."
     evidence:
       - {label: "Request model", path: builds/squire/src/squire/api_models.py, line: 9}
       - {label: "Data class DC-1", path: docs/grc/SQUIRE_DATA_FLOW_CLASSIFICATION.md, line: 48}
@@ -64,15 +60,14 @@ nodes:
     what: "The first two checks on an alert: a shared-secret header the orchestration engine holds, then a typed request model that rejects anything off-schema."
     evidence:
       - {label: "Token check", path: builds/squire/src/squire/app.py, line: 65}
-      - {label: "Plain compare, queued for constant time", path: builds/squire/src/squire/app.py, line: 77-79}
+      - {label: "Token compared as a plain equality", path: builds/squire/src/squire/app.py, line: 77-79}
       - {label: "Request model", path: builds/squire/src/squire/api_models.py, line: 9}
   - id: pii-scrub
     label: "PII scrub"
     zone: net-core
     what: "A regex pass over the whole payload before the graph runs: identifiers, card numbers, and secrets are caught and the request is blocked with a redacted snippet."
     controls: [SI-10, SC-28, SI-12]
-    status: designed
-    status_note: "Pending the ARM rebuild; this layer exists because a red-team case in the first cycle got personal data past the rail, and it closed the same day."
+    status_note: "This layer exists because a red-team case in the first cycle carried personal data past the rail, and it closed the same day."
     evidence:
       - {label: "Scanner", path: builds/squire/src/squire/pre_graph_pii.py, line: 74}
       - {label: "Redacted block response", path: builds/squire/src/squire/response_builder.py, line: 29}
@@ -84,7 +79,7 @@ nodes:
     zone: net-core
     from: topology/guardrails
     what: "The guardrails sidecar's input pass: a named-entity recognizer for personal data on every prompt to the generative nodes, with the model-judged check behind it."
-    status_note: "Pending the ARM rebuild; the local PII pass is always on, the model-judged check is commented out until API credit returns, and on a sidecar timeout the code refuses the call instead of routing around the rail."
+    status_note: "The local personal-data pass is always on, the model-judged check sits behind it, and a sidecar that cannot answer makes the code refuse the call rather than route around the rail."
     evidence:
       - {label: "Input rail", path: builds/squire/docker/nemo_config/rails/input.co, line: 1}
       - {label: "Judge commented out", path: builds/squire/docker/nemo_config/config.yml, line: 12}
@@ -104,8 +99,7 @@ nodes:
     zone: net-core
     what: "The retrieval step: the alert's query text is embedded through the vendor and matched by cosine similarity against the corpus chunks in the vector store."
     controls: [SI-12, SC-8]
-    status: designed
-    status_note: "Pending the ARM rebuild; a local embedder for the query, so only corpus chunks ever cross, is the documented option."
+    status_note: "Retrieval embeds the alert query through the vendor. A local embedder for that query, so only corpus chunks ever cross, is the recorded option."
     evidence:
       - {label: "Query embedding", path: builds/squire/src/squire/retrievers/grc_retriever.py, line: 121}
       - {label: "Corpus ingest", path: builds/squire/src/squire/ingest/grc_indexer.py, line: 198}
@@ -116,8 +110,7 @@ nodes:
     zone: net-core
     what: "The enrich node: builds a short query from the alert's indicators and rule name and asks the search vendor for recent context."
     controls: [SI-10, SA-9]
-    status: designed
-    status_note: "Pending the ARM rebuild; the query fields are wider than the data flow document says and the allowlist that narrows them is queued."
+    status_note: "The enrich query reads more alert fields than the data flow document lists, and the allowlist that narrows them is in the private gap list."
     evidence:
       - {label: "Query builder", path: builds/squire/src/squire/nodes/enrich.py, line: 20}
       - {label: "Enrich node", path: builds/squire/src/squire/nodes/enrich.py, line: 77}
@@ -128,8 +121,7 @@ nodes:
     zone: net-core
     what: "An operator's audio message arriving through the bot: it is routed to the local transcriber on the sealed segment and never to a vendor."
     controls: [SC-7, AC-4, SC-28]
-    status: designed
-    status_note: "Pending the ARM rebuild; the transcriber's definition sits on the sealed network and the workflow that routes audio to it is not yet restored on the current host."
+    status_note: "Audio is routed to the transcriber on the sealed segment. No audio path leaves for a vendor."
     evidence:
       - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
       - {label: "On the sealed network only", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 247-248}
@@ -149,8 +141,7 @@ nodes:
     zone: net-core
     what: "The corpus chunks and their vectors in the database, reached only over the core network, holding the sanitized governance library and nothing personal."
     controls: [SC-28, AC-3, SI-12]
-    status: partial
-    status_note: "The database with the vector extension is live; the chunk table and its index are migrations that run when the agent returns."
+    status_note: "The database carries the vector extension, and the chunk table and its index come from migrations in the repository."
     evidence:
       - {label: "Vector migration", path: builds/squire/migrations/002_vector_1024.sql, line: 1}
       - {label: "Agent tables", path: builds/squire/migrations/001_squire_tables.sql, line: 1}
@@ -162,8 +153,7 @@ nodes:
     zone: net-core
     what: "What comes back up from the sealed segment: text only; the audio stays where it was transcribed and the text re-enters the pipeline as ordinary alert input under the same scrub."
     controls: [AC-4, SC-7]
-    status: designed
-    status_note: "Pending the ARM rebuild together with the transcriber and the workflow that calls it."
+    status_note: "Text comes back up from the sealed segment while the audio stays behind it."
     evidence:
       - {label: "Sealed network, no route out", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 1036-1038}
       - {label: "Transcriber service", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 213}
@@ -177,8 +167,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Sensitive Information Disclosure: prompts to the vendor may carry operational context, rated High in the catalog; the PII scrub is the first screen against it."
     controls: []
-    status: designed
-    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    status_note: "The screen under this tag is the personal-data scrub, and the catalog row carries the rating and the treatment."
     evidence:
       - {label: "Catalog row LLM02", path: docs/grc/AI_THREAT_CATALOG.md, line: 171}
     solidify: none
@@ -187,8 +176,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Prompt Injection and Agent Goal Hijack: alert payloads are attacker-influenced text that reaches the model, rated High; the input rail and the human gate on HIGH are the treatment."
     controls: []
-    status: designed
-    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    status_note: "The screens under this tag are the input rail and the human gate, with the rating and the treatment in the catalog rows."
     evidence:
       - {label: "Catalog row LLM01", path: docs/grc/AI_THREAT_CATALOG.md, line: 170}
       - {label: "Catalog row ASI01", path: docs/grc/AI_THREAT_CATALOG.md, line: 190}
@@ -199,8 +187,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Unbounded Consumption: vendor spend and compute need a bound, rated Medium; the per-alert budget and the daily ceiling on model egress are the treatment."
     controls: []
-    status: designed
-    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    status_note: "The screen under this tag is the spend bound on model egress; the catalog row holds the rating and the treatment."
     evidence:
       - {label: "Catalog row LLM06", path: docs/grc/AI_THREAT_CATALOG.md, line: 175}
     solidify: none
@@ -209,8 +196,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Improper Output Handling and Misinformation: outputs are consumed downstream and a confident wrong answer can be trusted, rated High and Medium; the output checks on personal data, citations, and verbs are the treatment."
     controls: []
-    status: designed
-    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    status_note: "The screens under this tag are the output checks on personal data, citations and verbs; the catalog rows hold the rating and the treatment."
     evidence:
       - {label: "Catalog row LLM10", path: docs/grc/AI_THREAT_CATALOG.md, line: 179}
       - {label: "Catalog row LLM07", path: docs/grc/AI_THREAT_CATALOG.md, line: 176}
@@ -220,8 +206,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Excessive Agency and Tool Misuse: the agent could trigger broad actions, rated High and Medium; the allowlist that rewrites any action to a recommendation is the treatment."
     controls: []
-    status: designed
-    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    status_note: "The screen under this tag is the action allowlist that rewrites an action to a recommendation; the catalog rows hold the rating and the treatment."
     evidence:
       - {label: "Catalog row LLM03", path: docs/grc/AI_THREAT_CATALOG.md, line: 172}
       - {label: "Catalog row ASI02", path: docs/grc/AI_THREAT_CATALOG.md, line: 191}
@@ -231,8 +216,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Excessive Agency and Human-Agent Trust Exploitation: an operator may act on a confident wrong recommendation; the human gate on HIGH and CRITICAL and the citation guard are the treatment."
     controls: []
-    status: designed
-    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    status_note: "The screens under this tag are the human gate on the two top severities and the citation guard; the catalog rows hold the rating and the treatment."
     evidence:
       - {label: "Catalog row LLM03", path: docs/grc/AI_THREAT_CATALOG.md, line: 172}
       - {label: "Catalog row ASI09", path: docs/grc/AI_THREAT_CATALOG.md, line: 198}
@@ -243,8 +227,7 @@ nodes:
     zone: "OWASP 2026"
     what: "Vector and Embedding Weaknesses and Memory Poisoning: retrieval over the chunk table is the memory surface, rated Medium; ingest is operator-run from a reviewed corpus."
     controls: []
-    status: designed
-    status_note: "The screen this tag sits under is code in the repo pending the ARM rebuild; the catalog row carries the rating and the treatment."
+    status_note: "The screen under this tag is operator-run ingest from a reviewed corpus; the catalog rows hold the rating and the treatment."
     evidence:
       - {label: "Catalog row LLM09", path: docs/grc/AI_THREAT_CATALOG.md, line: 178}
       - {label: "Catalog row ASI06", path: docs/grc/AI_THREAT_CATALOG.md, line: 195}

@@ -2,7 +2,7 @@
 """sync_views.py: publish the architecture views into the portfolio site.
 
 Source of truth: docs/architecture/views/<slug>.html (listed in views.yaml), plus an optional node table per view at
-docs/architecture/views/nodes/<slug>.yaml (what each box is, its 800-53 controls, its status today, the files that prove it).
+docs/architecture/views/nodes/<slug>.yaml (what each box is, its 800-53 controls, the note that describes it, the files that prove it).
 Targets in the portfolio repo:
   views/<slug>.html                 standalone page (viewport, CSP, back link, packet flow, node panel)
   index.html  <!-- VIEW:slug -->...<!-- /VIEW -->      inline figure (svg, node data, caption)
@@ -10,8 +10,8 @@ Targets in the portfolio repo:
   index.html  // NODES:js ... // /NODES:js             node panel script (inside the last <script>)
 
 A node table is validated before anything is written: every control id must have a row in SSP section 5, every evidence
-path must be tracked on main, every label must appear exactly once as a <text> in the SVG, status must be live, partial,
-or designed. The SSP row (name, status, line) is attached to each control at sync time, never typed by hand.
+path must be tracked on main, and every label must appear exactly once as a <text> in the SVG. A node entry carries no
+status field. The SSP row (name, status, line) is attached to each control at sync time, never typed by hand.
 An entry may say `from: <slug>/<id>` to inherit every field from another table's entry and override some (label and zone
 at least). A table may carry `chips: {zone: ...}`: every box whose label is a control id then gets a generated entry from
 its SSP row (name, status, implementation text) and every occurrence on the drawing is wrapped. An entry may say
@@ -29,8 +29,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 VIEWS = ROOT / "docs" / "architecture" / "views"
 NODES = VIEWS / "nodes"
 SSP = ROOT / "docs" / "grc" / "SSP_SYSTEM_SECURITY_PLAN.md"
-STATUS = {"live": "Live", "partial": "Partial", "designed": "Designed"}
-HINT = "Click a box for what it is, the controls it carries, its status today, and the file that proves it."
+CHIP_STATUSES = {"implemented", "inherited"}
+HINT = "Click a box for what it is, the controls it carries, and the file that proves it."
 FLOW_CSS = """.cd-packet { pointer-events: none; opacity: .9; stroke-dashoffset: var(--cdlen); }
 @keyframes cdpacket { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .cd-packet { display: none; } }"""
@@ -68,7 +68,7 @@ NODES_CSS = """.cd-node { cursor: pointer; outline: none; }
 .cd-node-status { display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; margin: 0 0 14px; padding: 10px 12px; border: 1px solid #27342b; }
 .cd-node-status b { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #e6ebe4; }
 .cd-node-dot { width: 9px; height: 9px; border-radius: 50%; background: #a3ada1; display: inline-block; }
-.cd-node-dot.live, .cd-node-dot.implemented { background: #3dff8b; } .cd-node-dot.partial, .cd-node-dot.partially-implemented { background: #ffc247; } .cd-node-dot.designed, .cd-node-dot.planned { background: #e8dcc0; }
+.cd-node-dot.implemented, .cd-node-dot.inherited { background: #3dff8b; }
 .cd-node-status .cd-node-note { grid-column: 1 / -1; color: #a3ada1; font-size: 13px; }
 .cd-node-panel h5 { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #a3ada1; margin: 14px 0 6px; font-weight: 700; }
 .cd-node-panel ul { list-style: none; margin: 0; padding: 0; }
@@ -79,10 +79,10 @@ NODES_CSS = """.cd-node { cursor: pointer; outline: none; }
 .cd-node-path { display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #a3ada1; word-break: break-all; }
 html.light .cd-node-panel { background: #0a0d0b; color: #e6ebe4; } html.light .cd-node-panel a { color: #3dff8b; } html.light .cd-node-title, html.light .cd-node-what, html.light .cd-node-status b { color: #e6ebe4; } html.light .cd-view-hint { color: #e8dcc0; }
 @media (max-width: 900px) { .cd-node-panel, .cd-node-panel.left { top: auto; right: 0; left: 0; bottom: 0; width: auto; max-height: 62vh; border-width: 1px 0 0; padding: 14px 16px 18px; } }"""
-NODES_JS = """// NODE PANEL: click a box on a view for what it is, its controls, its status today, and the file that proves it
+NODES_JS = """// NODE PANEL: click a box on a view for what it is, its controls, and the file that proves it
 (function() {
   var REPO = 'https://github.com/ET-sec/cyber-squire1/blob/main/', SSP = REPO + 'docs/grc/SSP_SYSTEM_SECURITY_PLAN.md';
-  var LABEL = { live: 'Live', partial: 'Partial', designed: 'Designed' };
+  var LABEL = { implemented: 'Implemented', inherited: 'Inherited' };
   var panel = null, parts = null, active = null;
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function link(href, text, cls) { var a = el('a', cls, text); a.href = href; a.target = '_blank'; a.rel = 'noopener'; return a; }
@@ -104,7 +104,8 @@ NODES_JS = """// NODE PANEL: click a box on a view for what it is, its controls,
   function show(node, g) {
     if (!panel) build();
     parts.zone.textContent = node.zone; parts.title.textContent = node.title || node.label; parts.what.textContent = node.what;
-    parts.dot.className = 'cd-node-dot ' + node.status; parts.slabel.textContent = node.status_label || LABEL[node.status] || node.status; parts.note.textContent = node.status_note;
+    parts.dot.hidden = !node.status; parts.slabel.hidden = !node.status;
+    parts.dot.className = 'cd-node-dot ' + (node.status || ''); parts.slabel.textContent = node.status_label || LABEL[node.status] || ''; parts.note.textContent = node.status_note;
     parts.controls.textContent = ''; parts.hc.style.display = node.controls.length ? '' : 'none';
     node.controls.forEach(function(c) {
       var li = el('li'); li.appendChild(link(SSP + '#L' + c.line, c.id, 'cd-node-id')); li.appendChild(el('span', null, c.name)); li.appendChild(el('em', null, 'SSP: ' + c.status)); parts.controls.appendChild(li);
@@ -192,14 +193,17 @@ def resolve_from(n, slug, cache):
     base = resolve_from(base, src_slug, cache)
     merged = dict(base); merged.update({k: v for k, v in n.items() if k != "from"}); return merged
 
-def chip_entries(svg, rows, chips):
+def chip_entries(svg, rows, chips, slug):
     """One generated entry per control id printed as a box label on the drawing, straight from its SSP row."""
     out = []
     for cid in sorted({t for t in re.findall(r"<text\b[^>]*>([^<]*)</text>", svg) if t in rows}, key=lambda c: (c[:2], int(re.search(r"\d+", c).group()), c)):
         r = rows[cid]; status = re.sub(r"[^a-z]+", "-", r["status"].lower()).strip("-")
+        if status not in CHIP_STATUSES:
+            print(f"chip {cid} on view {slug}: SSP status {r['status']!r} is not one this site renders", file=sys.stderr)
+            sys.exit(2)
         out.append({"id": f"ctl-{cid}", "label": cid, "title": f"{cid} {r['name']}", "zone": chips.get("zone", "NIST 800-53 Rev 5"), "chip": True,
                     "what": r["text"] or r["name"],
-                    "status": status, "status_label": r["status"], "status_note": chips.get("note", "Status as recorded in the System Security Plan, section 5; open items sit on the POA&M."),
+                    "status": status, "status_label": r["status"], "status_note": chips.get("note", "Status as recorded in the System Security Plan, section 5; open items are tracked in the Plan of Action and Milestones."),
                     "controls": [], "evidence": [{"label": f"SSP row {cid}", "path": "docs/grc/SSP_SYSTEM_SECURITY_PLAN.md", "line": r["line"]}]})
     return out
 
@@ -211,9 +215,9 @@ def load_nodes(slug, svg):
     rows, repo, errs, seen = ssp_rows(), tracked(), [], set()
     for n in nodes:
         nid = n.get("id", "?")
-        missing = {"id", "label", "zone", "what", "controls", "status", "status_note", "evidence"} - set(n)
+        missing = {"id", "label", "zone", "what", "controls", "status_note", "evidence"} - set(n)
         if missing: errs.append(f"{nid}: missing {sorted(missing)}"); continue
-        if n["status"] not in STATUS: errs.append(f"{nid}: status {n['status']!r} not in {sorted(STATUS)}")
+        if "status" in n and not n.get("chip"): errs.append(f"{nid}: a node entry carries no status field")
         if nid in seen: errs.append(f"{nid}: duplicate id")
         seen.add(nid)
         for c in n["controls"]:
@@ -227,7 +231,7 @@ def load_nodes(slug, svg):
         elif k != 1: errs.append(f"{nid}: label {n['label']!r} appears {k} times as a <text> in the SVG, need exactly 1 (or set repeat: true)")
     if errs:
         print(f"nodes/{slug}.yaml: {len(errs)} problem(s)\n  " + "\n  ".join(errs), file=sys.stderr); sys.exit(2)
-    if table.get("chips"): nodes += chip_entries(svg, rows, table["chips"])
+    if table.get("chips"): nodes += chip_entries(svg, rows, table["chips"], slug)
     return nodes, rows
 
 def inject_nodes(svg, nodes):
@@ -243,7 +247,7 @@ def inject_nodes(svg, nodes):
     return svg
 
 def nodes_json(slug, nodes, rows):
-    data = [{"id": n["id"], "label": n["label"], "title": n.get("title", ""), "zone": n["zone"], "what": n["what"], "status": n["status"], "status_label": n.get("status_label", ""), "status_note": n["status_note"],
+    data = [{"id": n["id"], "label": n["label"], "title": n.get("title", ""), "zone": n["zone"], "what": n["what"], "status": n.get("status", ""), "status_label": n.get("status_label", ""), "status_note": n["status_note"],
              "controls": [{"id": c, "name": rows[c]["name"], "status": rows[c]["status"], "line": rows[c]["line"]} for c in n["controls"]],
              "evidence": [{"label": e["label"], "path": e["path"], "line": str(e["line"])} for e in n["evidence"]]} for n in nodes]
     js = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
