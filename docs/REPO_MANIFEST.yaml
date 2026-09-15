@@ -300,14 +300,6 @@ entries:
     last_verified: 2026-09-09
     review: {event: provider_terms_change, flag: TRIGGER_PROVIDER_TERMS}
 
-  - path: "COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/Dockerfile"
-    purpose: "The build context for the Fluentd log shipper, one of the three Tier 0 images the stack builds locally rather than pulling."
-    status: active
-    reason: "Tracked by plan 22-03 through a narrow gitignore re-include. The CD_VOL_ rule that keeps volume data out had also been keeping this build source out, so a Tier 0 image compose builds had no source in any clone. Reviewed on the compose cycle because it carries a base image pin, and that pin is what has to move when upstream drops or adds an architecture."
-    last_verified: 2026-09-09
-    review: {every: 90d}
-    rewrite_later: "fluent.conf sits in the same directory, is still untracked, and is bind mounted at compose line 592, so the runtime configuration of a Tier 0 service has no source in the repository while its build context does. certs/ stays out on purpose. Recorded by plan 22-03."
-
   # Every configuration a service reads is tracked (plan 24-02). Each path sits
   # under the CD_VOL_ data rule and comes in through a per-level re-include.
   - path: "COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/vector.yaml"

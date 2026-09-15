@@ -323,6 +323,124 @@ services:
           pids: 128
     networks: [ net-core ]
 
+  cd-service-keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3@sha256:29be7252db0a106f1cd2ac17b9a56ff2668073da645638a38b9fc67deeb2d6c4
+    container_name: cd-service-keycloak
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    # KC_BOOTSTRAP_ADMIN_USERNAME, KC_BOOTSTRAP_ADMIN_PASSWORD, KC_DB_URL,
+    # KC_DB_USERNAME, KC_DB_PASSWORD and KC_HOSTNAME come from identity.env.
+    env_file: [ identity.env ]
+    environment:
+      - KC_DB=postgres
+      - KC_DB_SCHEMA=keycloak   # its own schema in the shared database
+      - KC_HOSTNAME_STRICT=true
+      - KC_PROXY_HEADERS=xforwarded   # scheme and host from the terminating tunnel
+      - KC_HTTP_ENABLED=true          # production mode disables the plain listener otherwise
+      - KC_HEALTH_ENABLED=true
+      - JAVA_OPTS_APPEND=-Xms256m -Xmx640m   # appends; JAVA_OPTS would replace the image's option set
+    volumes:
+      - ./CD_VOL_KEYCLOAK_IMPORT:/opt/keycloak/data/import:ro
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    command: start
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"UP\"' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    networks: [ net-core ]
+
+  cd-service-teleport:
+    image: public.ecr.aws/gravitational/teleport-distroless:18.11.0@sha256:66a368cd1c480a9261c5271a410bd9a3ea159401f8633c2942523284a80c32c4
+    container_name: cd-service-teleport
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3080:3080"
+      - "127.0.0.1:3023:3023"
+      - "127.0.0.1:3025:3025"
+    volumes:
+      - ./CD_VOL_TELEPORT/config:/etc/teleport:ro
+      - ./CD_VOL_TELEPORT/data:/var/lib/teleport
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/tctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 512M
+          pids: 256
+    networks: [ net-core ]
+
+  cd-service-vector:
+    image: timberio/vector:0.58.0-distroless-static@sha256:f41132f3675185e4b63ef608ba3d6b6406727d8fe57169c495696ac610a7d1dc
+    container_name: cd-service-vector
+    restart: unless-stopped
+    env_file: [ monitoring.env ]   # DD_API_KEY and DD_SITE, the same file the monitoring agent reads
+    environment:
+      # 0.58 refuses to expand ${VAR} in its configuration unless told to; the
+      # API key and the site are the only values vector.yaml reads that way
+      - VECTOR_DANGEROUSLY_ALLOW_ENV_VAR_INTERPOLATION=true
+    volumes:
+      - ./CD_VOL_VECTOR/vector.yaml:/etc/vector/vector.yaml:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/ca.crt:/etc/vector/certs/ca.crt:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/server.crt:/etc/vector/certs/server.crt:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/server.key:/etc/vector/certs/server.key:ro
+    healthcheck:
+      # the only binary in the image; validates the configuration it runs
+      test: ["CMD", "vector", "validate", "--skip-healthchecks", "/etc/vector/vector.yaml"]
+      interval: 60s
+      timeout: 20s
+      retries: 3
+      start_period: 20s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    # net-core as well as net-monitoring: the health scrape of the exporter on
+    # 9598 runs from the orchestration engine's container, which lives on net-core
+    networks: [ net-core, net-monitoring ]
+
+  cd-service-teleport-event-handler:
+    image: public.ecr.aws/gravitational/teleport-plugin-event-handler:18.11.0@sha256:68dec7230299b106b45ab897d85ad843bb4df8c863c3ba63ef2debbf51e3ae64
+    container_name: cd-service-teleport-event-handler
+    restart: unless-stopped
+    volumes:
+      - ./CD_VOL_TELEPORT_EVENTS/teleport-event-handler.toml:/etc/teleport-event-handler/teleport-event-handler.toml:ro
+      - ./CD_VOL_TELEPORT_EVENTS/identity:/etc/teleport-event-handler/identity:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs:/etc/teleport-event-handler/certs:ro
+      - ./CD_VOL_TELEPORT_EVENTS/storage:/var/lib/teleport-event-handler/storage
+    command: start --config /etc/teleport-event-handler/teleport-event-handler.toml
+    depends_on:
+      - cd-service-teleport
+      - cd-service-vector
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    networks: [ net-core, net-monitoring ]
+
 networks:
   net-core:
     name: net-core

@@ -64,10 +64,20 @@ transforms:
       .ddtags = "stack:coredirective,stream:teleport-session"
       del(.path)
 
+  # a POST on any other path is a misconfiguration somewhere upstream: it is
+  # tagged and shipped rather than dropped silently
+  tag_unmatched:
+    type: remap
+    inputs: [by_path._unmatched]
+    source: |
+      .ddsource = "teleport"
+      .service = "teleport"
+      .ddtags = "stack:coredirective,stream:teleport-unmatched-path"
+
 sinks:
   datadog:
     type: datadog_logs
-    inputs: [tag_audit, tag_session]
+    inputs: [tag_audit, tag_session, tag_unmatched]
     default_api_key: "${DD_API_KEY}"
     site: "${DD_SITE}"
     compression: gzip

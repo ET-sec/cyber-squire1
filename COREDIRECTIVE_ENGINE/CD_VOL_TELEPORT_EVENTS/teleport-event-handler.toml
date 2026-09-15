@@ -8,8 +8,8 @@ window-size = "24h"
 ca = "/etc/teleport-event-handler/certs/ca.crt"
 cert = "/etc/teleport-event-handler/certs/client.crt"
 key = "/etc/teleport-event-handler/certs/client.key"
-url = "https://cd-service-fluentd:8888/test.log"
-session-url = "https://cd-service-fluentd:8888/session"
+url = "https://cd-service-vector:8888/test.log"
+session-url = "https://cd-service-vector:8888/session"
 
 [teleport]
 addr = "cd-service-teleport:3025"
