@@ -18,7 +18,7 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 | `COREDIRECTIVE_ENGINE/CD_VOL_VAULT/config/vault.hcl` | active | The secrets manager's single server configuration: file storage, the plain listener with its written TLS decision, the cloud KMS seal through the instance principal, and the lease bounds. |
 | `COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/vector.yaml` | active | The audit log shipper's pipeline: a mutual TLS listener for the access gateway's event handler, a path route for audit and session streams, the SIEM sink with a bounded memory buffer, and the metrics exporter the health scrape reads. |
 | `COREDIRECTIVE_ENGINE/README.md` | active | The directory README for COREDIRECTIVE_ENGINE/, whose contents block is generated from this manifest. |
-| `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` | active | The definition of what runs on the instance: the database, the orchestration engine, the tunnel, the model and speech servers, the kernel sensor and its router, and the monitoring agent. |
+| `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` | active | The definition of what runs on the instance: the database, the orchestration engine, the tunnel, the model and speech servers, the kernel sensor and its router, the monitoring agent, the secrets manager, the identity provider, the access gateway, its event handler, and the audit log shipper. |
 | `COREDIRECTIVE_ENGINE/docker-compose.yaml` | active | The full nineteen service stack definition: databases, orchestration, identity, secrets, inference, observability, and the runtime detection agents. |
 <!-- /MANIFEST -->
 

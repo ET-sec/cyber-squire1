@@ -1,7 +1,7 @@
 # Teleport, all in one: auth, proxy and the SSH node (plan 24-02).
 # Local auth with a second factor. The OIDC and SAML connectors are Enterprise
 # features, and the community GitHub connector maps organization teams, so
-# federation is a recorded upgrade, not a configuration here.
+# federation is a recorded upgrade rather than a configuration here.
 # The proxy is not routed through the edge in this build, so it carries no
 # public address; it answers on its listeners inside the host.
 version: v3

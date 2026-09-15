@@ -5,7 +5,7 @@
 # keeps auto_redirect_to_identity off, so the login page offers a chooser and
 # the email code path survives a fault in the identity provider. The provider's
 # endpoints are derived from the realm's discovery document, which is one of
-# the two path families the tunnel routes to it.
+# the path families the tunnel routes to it.
 
 resource "cloudflare_access_identity_provider" "keycloak" {
   account_id = var.cf_account_id

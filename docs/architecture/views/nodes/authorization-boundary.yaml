@@ -247,7 +247,7 @@ nodes:
     zone: outside
     what: "Where secrets live between deploys; they arrive on the host once, at deploy time, as environment variables in a root-only file."
     controls: [SC-12, IA-5, SC-28]
-    status_note: "Deploy-time injection is the live path and is an accepted finding with compensating controls; runtime secrets from Vault by AppRole are the design."
+    status_note: "Deploy-time injection is the live path and is an accepted finding with compensating controls; runtime secrets from the secrets manager's database engine on a one hour lease are the design, and that engine is up."
     evidence:
       - {label: "Environment file on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 44}
       - {label: "Accepted finding, environment injection", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 420}

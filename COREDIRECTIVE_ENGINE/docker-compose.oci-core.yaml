@@ -1,10 +1,10 @@
 # ============================================================================
 # OCI CORE STACK: the minimal live environment on Oracle Ampere A1 (ARM)
 # ============================================================================
-# This is the ARM-clean subset the OCI host carries as of 2026-09-08: the
-# database, n8n, the tunnel, and the stateless set (Falco, Falcosidekick, the
-# Datadog agent, Whisper, Ollama). The master docker-compose.yaml holds the
-# full service list and is the definition of record for every one of them.
+# This is the subset the OCI host carries as of 2026-09-15: the database, n8n,
+# the tunnel, the stateless set (Falco, Falcosidekick, the Datadog agent,
+# Whisper, Ollama) and the identity tier (Vault, Keycloak, Teleport, its event
+# handler, Vector). The master docker-compose.yaml is the definition of record.
 #
 # DESIGN NOTES (differences from the master docker-compose.yaml, on purpose):
 #   - Images are pinned tag@digest (re-pinned 2026-09-06). The digest is the
@@ -20,8 +20,8 @@
 #     env_file passes values literally. Generate stack.env from Doppler; it is
 #     chmod 600 on the host and never committed. See stack.env.template.
 #   - n8n data dir must be chown 1000:1000 on the host (n8n runs as uid 1000).
-#   - Tunnel is token-based; its ingress routing lives in the Cloudflare
-#     dashboard and reconnects automatically wherever cloudflared runs.
+#   - Tunnel is token-based; its ingress routing is Terraform (tunnel_ingress.tf
+#     in the edge root) and it reconnects automatically wherever cloudflared runs.
 #
 # DEPLOY:
 #   The host runs this file as /opt/coredirective/docker-compose.yaml (the
