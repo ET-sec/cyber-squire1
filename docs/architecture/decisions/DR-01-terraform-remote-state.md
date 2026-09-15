@@ -1,7 +1,7 @@
 # DR-01: Terraform Remote State Backend (Phase 20.1-01)
 
 **Date:** 2026-08-31
-**Status:** Implemented (OCI Object Storage), R2 migration pending operator action
+**Status:** Implemented on OCI Object Storage, versioned and locked, under a customer-managed key.
 
 ## Problem
 Terraform state for `cd-oci-infrastructure` lived as a local file next to the code, inside a directory that only luck and a global gitignore pattern kept out of a public repo. State contains resource OCIDs (Oracle Cloud Identifiers), IPs, and any secret a provider ever writes to an attribute. It is a credentials file wearing a JSON costume. Also: the previous state backend (DigitalOcean Spaces) was lost together with the droplet when the DO account died, which proved that state and compute sharing a vendor is a single point of failure.
@@ -12,7 +12,7 @@ Terraform state for `cd-oci-infrastructure` lived as a local file next to the co
 3. **HCP Terraform (Terraform Cloud).** Fully decoupled, managed locking and encryption. Rejected for now: introduces a third-party SaaS dependency and an account signup for a problem two clouds already solve.
 
 ## Decision
-Option 2 now, option 1 as a queued migration once R2 is enabled by the operator. Backend migration is a two-command operation (`terraform init -migrate-state`), so sequencing convenience first and decoupling second costs almost nothing, and performing the migration twice is itself demonstrable operational skill. Mitigation for the vendor-coupling weakness in the interim: bucket versioning is enabled, so state history survives an accidental overwrite or delete of the current object.
+Option 2. Backend migration is a two-command operation (`terraform init -migrate-state`), so taking the convenient sequencing first and the vendor split second costs almost nothing, and the second move is recorded privately with its trigger. Mitigation for the vendor-coupling weakness: bucket versioning is enabled, so state history survives an accidental overwrite or delete of the current object.
 
 ## Implementation notes
 - `backend "oci" {}` skeleton committed; bucket, namespace, region, and key live in `backend.hcl`, which is gitignored. Backend blocks cannot interpolate variables, so partial configuration is the only way to keep account topology out of a public repo.
@@ -22,7 +22,7 @@ Option 2 now, option 1 as a queued migration once R2 is enabled by the operator.
 
 ## Blast radius if this fails
 - Lock mechanism fails open -> two concurrent applies corrupt state -> recovery from bucket version history.
-- Bucket deleted or OCI account lost -> state gone with the infra it describes (the DO scenario again) -> this is exactly why the R2 migration stays queued rather than cancelled.
+- Bucket deleted or OCI account lost -> state gone with the infra it describes (the DO scenario again) -> this is exactly why the vendor split stays on the record rather than being written off.
 - backend.hcl leaks -> exposes bucket name and namespace only; auth still requires the API key. Low severity, still gitignored.
 
 ## Verification (all performed 2026-08-31; verification transcript in the private evidence store)
@@ -35,5 +35,5 @@ Option 2 now, option 1 as a queued migration once R2 is enabled by the operator.
 "Terraform state is a secrets store, so I moved it off the laptop into versioned object storage with native locking, kept the bucket topology out of the public repo with partial backend config, and proved the lock works by making two runs fight over it: the loser fails with a 412 because the lock is just an atomic create-if-absent, a PutObject with If-None-Match star. First plan off the remote backend immediately caught real drift, a firewall rule someone added by hand in the console. I codified it as a variable instead of letting Terraform rip out my own SSH access. At enterprise scale the same design is S3 plus native locking or Terraform Cloud, with the state bucket in a separate account from the workloads so losing one blast radius doesn't take both."
 
 ## Re-evaluation triggers
-- Operator enables R2 -> execute the queued migration (bucket + scoped token + `init -migrate-state`).
+- Operator enables R2 -> run the migration (bucket, scoped token, `init -migrate-state`).
 - OCI ships GitHub OIDC (OpenID Connect) federation improvements relevant to 20.1-02 -> revisit CI auth for state access.

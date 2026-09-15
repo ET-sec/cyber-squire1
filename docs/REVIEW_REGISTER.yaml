@@ -36,14 +36,14 @@ items:
 
   - id: identity_tier_live
     flag: TRIGGER_IDENTITY_TIER
-    what: "The identity tier documents that describe services which are not running yet."
+    what: "The identity tier documents, which have to match the host once the tier is up."
     why_now: "Phase 24 brings Keycloak and the agent tier up on the Ampere host. Until then these files describe a design; after it they describe a system, and the difference has to be visible."
     affects:
       - "keycloak/**"
       - "Agent_Squire/**"
       - "docs/grc/IAM_RBAC_ROLE_MAP.md"
       - "docs/grc/IAM_ACCESS_REVIEW.md"
-    action: "Re-verify the realm export against the running realm, re-sign the agent cards whose runtime_location points at a path that does not exist, and move the two IAM documents from designed to implemented with the proving command in each."
+    action: "Re-verify the realm export against the running realm, re-sign the agent cards whose runtime_location points at a path that does not exist, and give the two IAM documents the proving command for each control they claim."
 
   - id: provider_terms_change
     flag: TRIGGER_PROVIDER_TERMS

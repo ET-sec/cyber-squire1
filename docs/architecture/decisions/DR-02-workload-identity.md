@@ -1,7 +1,7 @@
 # DR-02: Workload Identity for CI (Phase 20.1-02)
 
 **Date:** 2026-08-31
-**Status:** Spike proven end to end; promotion to production auth pending
+**Status:** Proven end to end and in use as the pipeline's cloud authentication.
 
 ## Problem
 The deployment pipeline needs to talk to OCI. The default pattern, long-lived cloud keys in GitHub repo secrets, means anyone who can read repo secrets (compromised action, leaked runner, over-scoped collaborator) holds standing production credentials. User-facing federation already exists (Cloudflare Access at the edge), but the pipeline's trust boundary had nothing.
