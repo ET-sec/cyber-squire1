@@ -59,7 +59,7 @@ resource "oci_core_instance" "cd_alpha" {
   # checkov:skip=CKV_OCI_4: setting is_pv_encryption_in_transit_enabled on an
   # existing instance forces full replacement (verified by plan 2026-08-31),
   # which destroys the production host. In-scope traffic is instance-to-boot-
-  # volume inside OCI's fabric. Enable at the next planned instance rebuild.
+  # volume inside OCI's fabric. It is set when this instance is next replaced.
   freeform_tags = var.tags
 
   lifecycle {

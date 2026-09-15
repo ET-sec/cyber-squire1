@@ -10,7 +10,7 @@ non-event.
 
 ## Status
 
-DESIGNED, apply pending account activation. This module follows the same
+Written and held behind a deliberate apply gate. This module follows the same
 discipline as `../cd-oci-infrastructure/`: no control is claimed as running
 until its forced-failure receipt exists. The verification plan below is the
 checklist for that apply.
