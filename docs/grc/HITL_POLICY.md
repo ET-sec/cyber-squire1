@@ -8,7 +8,7 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** AC-3 (Access Enforcement), AC-6 (Least Privilege), CA-7 (Continuous Monitoring), IR-4 (Incident Handling), SI-4 (System Monitoring)
 
-> **Status note (2026-09-01):** this policy describes the DO-era baseline; that environment was retired in 2026-08. A re-baseline against the current OCI stack is queued.
+> **Environment (2026-09-12):** this human-in-the-loop policy applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

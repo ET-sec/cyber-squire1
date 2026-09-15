@@ -8,7 +8,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.1
 
-> **Status note (2026-08-31):** infrastructure has since migrated to Oracle Cloud (OCI); see docs/architecture/ for the current stack. Findings below describe the environment as assessed on the assessment date, including the object storage state backend then in use. The 19-service compose environment reviewed here was retired with the DigitalOcean host in 2026-08; open items roll into the OCI re-baseline.
+> **Status note (2026-08-31):** infrastructure has since migrated to Oracle Cloud (OCI); see docs/architecture/ for the current stack. Findings below describe the environment as assessed on the assessment date, including the object storage state backend then in use. The 19-service compose environment reviewed here was retired with the DigitalOcean host in 2026-08.
 
 ---
 
@@ -550,7 +550,7 @@ The following table maps each finding to the NIST 800-53 Rev. 5 controls that ar
 
 ## 6. Remediation Tracking
 
-> Status as of 2026-06-24 audit refresh: all OPEN items below have crossed their original target date and carry a Past Due flag. With the reviewed environment retired in 2026-08, remaining open items roll into the OCI re-baseline rather than being closed against the old host.
+> Status as of 2026-06-24 audit refresh: all OPEN items below have crossed their original target date and carry a Past Due flag. The reviewed environment was retired in 2026-08, so the open items below are read against the current stack rather than closed against the old host.
 
 | Finding | Action Item | Owner | Target Date | Status |
 |---------|------------|-------|-------------|--------|

@@ -8,7 +8,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.1
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-12):** this data flow diagram maps the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -567,8 +567,8 @@ Phase 17 added no boundary of its own. Its flows cross boundaries the model alre
 |----|--------|---------|------|
 | E-12 | Anthropic API | Primary Fable 5 and Opus 5 inference | API key, 60-day rotation |
 | E-13 | Tavily API | Enrichment search | API key |
-<!-- TODO(et): Clarify production state of OpenClaw OAuth bearer. "pending" status needs an explicit owner and ETA. -->
-| E-14 | OpenClaw gateway | Agent dispatch path | OAuth bearer, pending |
+<!-- TODO(et): name the owner and the rotation cadence for the gateway OAuth bearer. -->
+| E-14 | OpenClaw gateway | Agent dispatch path | OAuth bearer |
 
 ### 11.6 Reconciled counts
 

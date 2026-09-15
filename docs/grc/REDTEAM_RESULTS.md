@@ -86,7 +86,7 @@ Test cases are drawn from:
 - **OWASP LLM Top 10 2025**: taxonomy and example strings.
 - **Internal POA&M history**: findings from prior phases that inform attacker behavior.
 
-Cases not yet covered but queued for future runs:
+Cases outside the current suite:
 
 - **Garak**: automated probes for output format manipulation.
 - **PyRIT**: Microsoft's AI red-team toolkit, useful for multi-turn conversations. Squire is single-turn today; multi-turn becomes relevant when a session-state API is added.
