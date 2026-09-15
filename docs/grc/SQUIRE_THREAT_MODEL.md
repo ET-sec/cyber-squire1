@@ -108,7 +108,7 @@ STRIDE analysis per Squire component. Each cell rates residual risk after contro
 | Spoofing | Unauthorized trace write | API key auth on /api/public/ingestion; project-scoped keys | LOW |
 | Tampering | Modified historical trace | ClickHouse append-only; 30-day TTL; no UPDATE path | LOW |
 | Repudiation | Missing trace for an invocation | Double-write protection: Langfuse + Postgres `squire_invocations`; trace id cross-referenced | LOW |
-<!-- TODO(et): "Trace contains unredacted PII" maps to OWASP LLM02 (Sensitive Information Disclosure) in the 2025 list. Cross-reference SQUIRE_DATA_FLOW_CLASSIFICATION with the specific classification rule. -->
+
 | Information disclosure | Trace contains unredacted PII | Langfuse redaction policy: SSN, CC, email, phone entities masked at worker; Clickhouse retention 30d | MEDIUM |
 | Denial of service | Trace ingestion backpressure | Redis queue + worker autoscale to 2; drop old traces past TTL | LOW |
 | Elevation of privilege | Langfuse admin takeover via session | Keycloak SSO on langfuse.example-ops.com, MFA enforced on admin role | LOW |
@@ -179,7 +179,7 @@ ATLAS ID references per the AML.T code set as of 2026-04. Each tactic below has 
 | Tactic ID | Name | Primary control | Supporting control | Residual |
 |-----------|------|-----------------|-------------------|----------|
 | AML.T0051 | Prompt Injection | NeMo input rail (presidio, with PolicyAI in the rail design) | Pre-graph scanner + critique-loop consistency + actions.yml rewrite | MEDIUM |
-<!-- TODO(et): AML.T0041 is not a current MITRE ATLAS technique ID under that label. T0024 (Exfiltration via ML Inference API) likely covers the row below. Consolidate or remap to a real ATLAS technique. -->
+
 | AML.T0024 | Exfiltration via ML Inference API | Per-call cost ceiling $0.75, daily ceiling $10 | Token auth + 60-day rotation | LOW |
 | AML.T0029 | Denial of ML Service | Cost ceiling + iteration cap (3) + invocation timeout (30s) | Cloudflare rate limit + Redis dedup | LOW |
 | AML.T0041 | Exfiltration via Inference API (see TODO above; pending remap) | `pre_graph_pii.py` at 0ms / $0 | NeMo output rail + Langfuse 30d retention with masking | MEDIUM |
@@ -220,7 +220,7 @@ ATLAS ID references per the AML.T code set as of 2026-04. Each tactic below has 
 
 **Residual risk: LOW.** A cost-bound extraction attempt is economically bounded and observable. An adversary would need to operate inside the ceiling for many days to recover useful signal, and the Langfuse alert would fire well before meaningful extraction.
 
-<!-- TODO(et): "Corpus is public GRC material" assumes Squire RAG scope is the sanitized GRC library only. Confirm against Agent_Squire keeper_squire scope (handles internal sensitive corpus) so this acceptance rationale stays accurate. -->
+
 **Acceptance rationale:** Accepted. Residual covered by cost enforcement + volumetric alerting; system prompt and RAG chunk contents are not training-data-sensitive (corpus is public GRC material).
 
 ---

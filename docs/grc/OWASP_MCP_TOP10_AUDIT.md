@@ -184,7 +184,7 @@ The 5 FastMCP tools in scope are `list_docs`, `read_doc`, `search_corpus`, `get_
 - **2 remaining** open items are tracked as POAM rows in `docs/grc/POAM_MCP_2025.md`: MCP06-001 (instruction-injection patterns, Phase 21) and MCP07-001 (stdio no-auth, accepted with explicit re-evaluation triggers).
 - The MCP-specific POAM is cross-linked from the unified `docs/grc/POAM_PLAN_OF_ACTION.md` so the record stays discoverable from a single entry point.
 
-<!-- TODO(et): add an authoritative URL for "OWASP MCP Top 10 2025 beta v0.1" (e.g., the genai.owasp.org landscape page or commit hash of the v0.1 beta document) so the framework reference is independently verifiable. -->
 
-<!-- TODO(et): once OWASP MCP Top 10 GAs (post-beta), re-run this audit against the GA control text and update statuses, especially MCP07. -->
+
+
 

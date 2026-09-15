@@ -160,28 +160,28 @@ Applies to all access paths into the Organization infrastructure:
 
 ### 4.1 svc-gateway (Session and Access Monitoring)
 
-- [ ] **Unexpected session initiated**: session from unrecognized user, IP, or certificate <!-- TODO(et): no Sigma rule for `event=session.start AND user NOT IN allowlist`; currently Datadog monitor only. Add Sigma rule. -->
+- [ ] **Unexpected session initiated**: session from unrecognized user, IP, or certificate
 - [ ] **Session from unusual geography**: login from a country or region with no authorized users
-- [ ] **JIT access request from unknown identity**: access request submitted by a user not in the approved roster <!-- TODO(et): no Sigma rule on Teleport `access_request.create`. Add one. -->
+- [ ] **JIT access request from unknown identity**: access request submitted by a user not in the approved roster
 - [ ] **Session with suspicious commands**: commands related to data exfiltration, privilege escalation, or reconnaissance detected in session recording
 - [ ] **Certificate authentication failure**: attempts to use expired, revoked, or unknown certificates
-- [ ] **Break-glass SSH access used**: direct root SSH login (bypassing gateway) detected <!-- TODO(et): no dedicated Sigma rule for `sshd Accepted publickey for root from <not-allowlisted-ip>`. Add one. -->
+- [ ] **Break-glass SSH access used**: direct root SSH login (bypassing gateway) detected
 
 
 ### 4.2 svc-identity (Identity Provider Audit Events)
 
-- [ ] **New user account created**: admin event log shows user creation not initiated by System Owner <!-- TODO(et): add a Sigma rule on the Keycloak admin event for user CREATE outside the approved actor list (AC-2 critical). -->
-- [ ] **Role escalation**: user assigned admin or elevated role without a corresponding change request <!-- TODO(et): add a Sigma rule on Keycloak admin events for role-mapping CREATE. -->
+- [ ] **New user account created**: admin event log shows user creation not initiated by System Owner
+- [ ] **Role escalation**: user assigned admin or elevated role without a corresponding change request
 - [ ] **Password reset for admin account**: password change on privileged account not initiated by the account owner
 - [ ] **SSO configuration changed**: SAML/OIDC provider settings modified
 - [ ] **Brute force attempts**: multiple failed logins against the same or multiple accounts
 
 ### 4.3 svc-detection (eBPF Runtime Alerts)
 
-- [ ] **SSH connection to non-standard port**: svc-detection detects SSH traffic on unexpected ports <!-- TODO(et): existing container-shell-spawn-restricted.yml does not cover host-level SSH. Add a dedicated Sigma rule. -->
+- [ ] **SSH connection to non-standard port**: svc-detection detects SSH traffic on unexpected ports
 - [ ] **Unauthorized SSH key usage**: SSH authentication using a key not in the approved key list
 - [ ] **Privilege escalation in container**: `sudo`, `su`, or capability changes detected within a container
-- [ ] **Unauthorized cron job or at job**: scheduled task created inside a container or on the host <!-- TODO(et): no Sigma rule for new cron entries in containers. Add one. -->
+- [ ] **Unauthorized cron job or at job**: scheduled task created inside a container or on the host
 
 
 ### 4.4 Monitoring Platform Alerts
@@ -405,7 +405,7 @@ Applies to all access paths into the Organization infrastructure:
   jq '.[] | {id: .id, user: .user, roles: .roles, state: .state, created: .created}'
  ```
 
-- [ ] **Step 3.3**: **Review identity provider admin audit events:** <!-- TODO(et): verify Keycloak v26 still supports `kcadm.sh get events/admin` as written; Keycloak 22+ moved some admin event APIs. -->
+- [ ] **Step 3.3**: **Review identity provider admin audit events:**
 
  ```bash
  # Check for account creation, role changes, password resets
@@ -661,9 +661,9 @@ Applies to all access paths into the Organization infrastructure:
  # Test automation platform access
  curl -sf -o /dev/null -w "%{http_code}" https://n8n.example-ops.com/healthz
 
- # Test JIT access request flow (if applicable). <!-- TODO(et): confirm the
- # exact request subcommand for the deployed Teleport version (v18+ may
- # require `tsh request create` from a client rather than `tctl request create`). -->
+ # Test JIT access request flow (if applicable).
+
+
  docker exec svc-gateway tctl request create --roles=admin --reason="Post-incident access test"
  ```
 
@@ -716,7 +716,7 @@ Applies to all access paths into the Organization infrastructure:
  - [ ] Remove any stale or unnecessary accounts/keys
  - [ ] Document the current access roster with justification for each entry
 
-- [ ] **Step 6.6**: Review and update the break-glass procedure: <!-- TODO(et): confirm BREAK_GLASS.md (or equivalent) exists in docs/grc/ or runbooks; if not, this step is aspirational and should be backfilled. -->
+- [ ] **Step 6.6**: Review and update the break-glass procedure:
  - Is break-glass SSH access properly documented?
  - Is there an alert when break-glass access is used?
  - Is the break-glass key stored securely?

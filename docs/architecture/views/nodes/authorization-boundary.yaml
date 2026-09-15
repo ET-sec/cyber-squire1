@@ -179,7 +179,7 @@ nodes:
     zone: security plane
     what: "Every API call in the second provider's account is logged to the evidence vault, where object lock keeps the log from being edited."
     controls: [AU-2, AU-9, AU-12]
-    status_note: "Every API call in the account lands in the object-locked vault, where nothing can edit the record after the fact."
+    status_note: "Every API call in the account lands in the object-locked vault."
     evidence:
       - {label: "Account trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 55}
       - {label: "Bucket policy for the trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 28}
@@ -237,7 +237,7 @@ nodes:
     controls: [SI-7, CM-8, SA-9]
     status_note: "Digest pinning, SBOM generation, and signature verification are live; a bad signature on a repository that signs fails the verification job, and the rest are recorded as unsigned."
     evidence:
-      - {label: "Signature check, fails on a bad signature", path: .github/workflows/security.yml, line: 164}
+      - {label: "Cosign signature check", path: .github/workflows/security.yml, line: 164}
       - {label: "SBOM generation", path: .github/workflows/security.yml, line: 200}
       - {label: "Pinning rule", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 45}
       - {label: "Supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}

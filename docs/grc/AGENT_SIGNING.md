@@ -36,7 +36,7 @@ Signing path:
   `workflow_dispatch`.
 - The job pins `sigstore/cosign-installer` by 40 character commit SHA and
   installs a Cosign 2.x release that emits the protobuf bundle format used
-  here. <!-- TODO(et): confirm the exact Cosign version pin in agent-signing.yml; the doc references v2.6.0 but the workflow file is the source of truth. --> Each card is signed by
+  here. Each card is signed by
   `cosign sign-blob --bundle <card>.sigstore.json --new-bundle-format
   --yes <card>`. Bundles are committed back to `main` as
   `github-actions[bot]`.

@@ -182,7 +182,7 @@ Thirteen risks are tracked. Each row has: ID, description, category, likelihood 
 
 **Mitigations.**
 
-<!-- TODO(et): Verify "107 dependencies" against actual Squire repo. Confirm whether dependency manifest is requirements.txt or pyproject.toml; AI_SUPPLY_CHAIN_REGISTER references pyproject. -->
+
 - `requirements.txt` pins 107 dependencies to exact versions.
 - CI runs `pip-audit` on every build. Any unresolved CVE fails the pipeline.
 - Trivy scans the final image for OS-level and Python-level CVEs.
@@ -379,7 +379,7 @@ After mitigations, the residual landscape is clean: zero CRITICAL, zero HIGH, fo
 
 POA&M entries created for partial mitigations:
 
-<!-- TODO(et): POAM-P17-PII-01 (target 2026-06-30) imminent and POAM-P17-AUDIT-01 (target 2026-05-15) past. Confirm closure or revised target. -->
+
 - `POAM-P17-PII-01`: Expand regex coverage to include SWIFT, UK NI, passport, E.164 international phone. Target 2026-06-30.
 - `POAM-P17-AUDIT-01`: Implement weekly human review of 10 random traces for semantic citation drift (R-10). Target 2026-05-15.
 

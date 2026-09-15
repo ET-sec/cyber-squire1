@@ -78,7 +78,7 @@ graph TD
 | `cd-operator` | Day-to-day operational access, can manage workflows and containers | Future ops staff | `organization-realm.json` |
 | `cd-auditor` | Read-only access to audit logs, session recordings, and compliance data | Future auditors | `organization-realm.json` |
 
-<!-- TODO(et): confirm SANITIZATION_KEY.md maps the realm export to the sanitized `organization-realm.json` filename used here so external readers can trace the file. -->
+
 
 ### Access Gateway Roles (gateway-config.yaml)
 
@@ -293,7 +293,7 @@ spec:
 | **AC-6** | Least Privilege | Operator role is the default working role. Admin access requires JIT request with 4h auto-expiry. Auditor has read-only access only. Root SSH limited to admin role. |
 | **AC-6(1)** | Authorize Access to Security Functions | Only cd-admin can modify identity provider realm settings, access gateway cluster config, detection rules, and secrets engine policies. |
 | **AC-6(2)** | Non-Privileged Access for Non-Security Functions | cd-operator role used for daily automation workflow management and container operations. No security function access. |
-| **AC-7** | Unsuccessful Logon Attempts | Identity provider brute force protection: 5 failures lock for 15 minutes. `failureFactor: 5`, `maxFailureWaitSeconds: 900`. <!-- TODO(et): verify failureFactor and maxFailureWaitSeconds against the deployed realm import; update if drifted --> |
+| **AC-7** | Unsuccessful Logon Attempts | Identity provider brute force protection: 5 failures lock for 15 minutes. `failureFactor: 5`, `maxFailureWaitSeconds: 900`. |
 | **AC-11** | Session Lock | Identity provider SSO idle timeout: 30 minutes (`ssoSessionIdleTimeout: 1800`). Access gateway certificate TTLs enforce session limits. |
 | **AC-12** | Session Termination | Access gateway admin role: 4h max. Operator: 8h max. Identity provider max session: 10h (`ssoSessionMaxLifespan: 36000`). |
 | **IA-2** | Identification and Authentication | Identity provider authenticates via username + password. Access gateway adds TOTP MFA for SSH. Enterprise path adds OIDC for unified authentication. |

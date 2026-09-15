@@ -66,7 +66,7 @@ nodes:
     zone: "attacker position"
     what: "A container tag nobody here built: it needs a reviewed pull request to enter the compose file and, once running, has no route home from the sealed segment."
     controls: [CM-5, CM-3, RA-5]
-    status_note: "The pull request gate and the scanners are live, every container pins by digest, the signature check blocks on the repositories that sign, and the sealed segment carries no route out."
+    status_note: "The pull request gate and the scanners are live, every container pins by digest, a Cosign signature check covers the repositories that sign, and the sealed segment carries no route out."
     evidence:
       - {label: "Register T-05, image tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 423}
       - {label: "Register T-03, state tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 397}
@@ -167,10 +167,10 @@ nodes:
     zone: delivery
     what: "Every change is scanned for secrets, CVEs, and misconfigurations, a software bill of materials is generated on merge, and upstream image signatures are checked."
     controls: [RA-5, SI-7, SA-11]
-    status_note: "The scanners are a required check and block, and since 2026-09-06 the signature check runs beside them: pinned identities for the repositories that sign, a pinned key for the access proxy, and an unsigned publisher is recorded rather than passed. A bad signature fails the verification job."
+    status_note: "The scanners are a required check and block, and since 2026-09-06 a Cosign signature check runs beside them: pinned identities for the repositories that sign, a pinned key for the access proxy, and an unsigned publisher recorded as unsigned."
     evidence:
       - {label: "CVE and misconfiguration scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Bill of materials", path: .github/workflows/security.yml, line: 189}
-      - {label: "Signature check, fails on a bad signature", path: .github/workflows/security.yml, line: 164}
+      - {label: "Cosign signature check", path: .github/workflows/security.yml, line: 164}
     solidify: "SOL-threat-model-07"
   - {id: sealed-no-route, label: "sealed: no route home", zone: runtime, from: control-layers/sealed-net-ai}

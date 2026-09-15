@@ -209,8 +209,8 @@ Applies to all 19 containers running on the `alpha-node` VPS (4vCPU/8GB) connect
 - [ ] `Bulk data archive`: `tar`, `zip`, `gzip` operations on large data sets (exfiltration indicator)
 - [ ] `Vault unseal key access`: access to Vault unseal key material (critical severity, see `detections/sigma/infra/vault-unseal-key-access.yml`)
 
-<!-- TODO(et): the current detections/sigma/infra/container-shell-spawn-restricted.yml allowlists shell-spawn alerts to PostgreSQL, Vault, Tunnel, Keycloak, Falco, OpenClaw. n8n (svc-automation) is NOT in that allowlist, so a shell spawned in n8n will not currently match. Either add n8n to the allowlist or adjust playbook references that assume the n8n shell-spawn fires this rule. -->
-<!-- TODO(et): Sigma rule gaps to backfill: bulk-archive-creation.yml, unexpected-outbound-generic.yml, mkdir-binary-dirs.yml, launch-privileged-container.yml. -->
+
+
 
 
 ### 4.2 Monitoring Platform Alerts

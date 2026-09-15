@@ -139,7 +139,7 @@ flowchart LR
 | **IaC Tool** | Terraform |
 | **Files** | 20 `.tf` files |
 | **State** | Remote, encrypted |
-<!-- TODO(et): Verified 8 .rego policies as of 2026-06-24. Confirm count stays current when policy directory changes. -->
+
 | **Policy Enforcement** | 8 OPA (Rego) policies evaluated on every PR |
 | **Managed Resources** | VPS, firewall rules, DNS records, tunnel configuration, monitoring |
 

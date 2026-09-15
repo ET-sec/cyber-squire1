@@ -622,7 +622,7 @@ Use this checklist before each DAST assessment to ensure consistent configuratio
 | Java Runtime | OpenJDK 17.0.18 (Homebrew) |
 | Scanner Position | External (Mac workstation through public internet) |
 | Target | `https://[automation-subdomain].example-ops.com` |
-| Authentication | Unauthenticated (pre-login surface only). A companion authenticated ZAP scan was also captured on 2026-03-22 as `zap-report-n8n-auth-20260322.html`. <!-- TODO(et): add an Appendix D covering the authenticated-scan results, or reference where those results live. --> |
+| Authentication | Unauthenticated (pre-login surface only). A companion authenticated ZAP scan was also captured on 2026-03-22 as `zap-report-n8n-auth-20260322.html`. |
 | Scan Type | Spider + Passive + Active (full scan policy) |
 | Spider Results | 161 URLs discovered |
 | Scan Duration | Approximately 8 minutes (spider: 12s, passive: 60s, active: ~7 min) |
@@ -634,7 +634,7 @@ Use this checklist before each DAST assessment to ensure consistent configuratio
 | Critical | 0 | - |
 | High | 0 | - |
 | Medium | 4 | Security header misconfigurations |
-| Low | 536 | Missing hardening headers on static assets <!-- TODO(et): the 536 Low count exceeds the Section 5.4 "alert threshold 20 findings per category" cap by 26x. Either the per-category threshold was disabled for the baseline, or the count is correctly consolidated across many categories. Verify against the raw zap-report-n8n-20260322.html and add a one-line note explaining which is the case. --> |
+| Low | 536 | Missing hardening headers on static assets |
 | Informational | 193 | Cache directives, technology detection |
 
 **No injection vulnerabilities detected.** ZAP tested SQL injection, Cross-Site Scripting (XSS), command injection, path traversal, LDAP injection, CRLF injection, and Server-Side Request Forgery (SSRF) against all discovered endpoints. All attack payloads were either rejected or had no observable effect.

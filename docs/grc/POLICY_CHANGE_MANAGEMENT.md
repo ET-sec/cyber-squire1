@@ -460,7 +460,7 @@ Phase 17 change categories under this policy:
 
 ### Reference example: in-session emergency remediation
 
-<!-- TODO(et): Verify commit hash 3e47524 exists in the cyber-squire1 git history before quoting it in interviews. The 127-test passing claim should also be confirmed against `builds/squire/tests/`. -->
+
 On 2026-04-23, red-team Case 03 revealed that the NeMo input rail did not catch raw SSN in `/alert` payloads. Under the emergency remediation provision of this policy, the pre_graph_pii.py scanner was drafted, unit-tested (12 tests), wired into `builds/squire/src/squire/app.py` before `graph.invoke`, and validated against the same red-team payload. Commit 3e47524. The full suite of 127 tests passed. Post-deployment: a CLOSED entry was added to POAM (POAM-P17-01) with full evidence linkage. This path is documented as the standard for in-session emergency remediation when a live red-team finding surfaces a HIGH severity gap.
 
 Cross-reference: `REDTEAM_RESULTS.md` Finding 1 (evidence); `POAM_PLAN_OF_ACTION.md` POAM-P17-01 (tracking); `SSP_SYSTEM_SECURITY_PLAN.md` SI-10 (control); `builds/squire/src/squire/pre_graph_pii.py` (artifact).

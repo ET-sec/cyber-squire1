@@ -169,7 +169,7 @@ nodes:
     zone: security
     what: "Any read of the sealed credential lands on the trail, matches an event rule, and a function pages the operator's chat with the caller named."
     controls: [AU-6, SI-4, IR-6]
-    status_note: "The event rule hands any read to a function that pages the operator's chat with the caller named."
+    status_note: "The event rule hands any read to the alert function."
     evidence:
       - {label: "Event rule", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
       - {label: "Alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
@@ -180,7 +180,7 @@ nodes:
     zone: security
     what: "A multi-region trail with log file validation, written into the locked bucket, so every API call in the plane has a record nobody can edit."
     controls: [AU-2, AU-9, AU-10]
-    status_note: "Every call in the plane lands in the locked bucket, where the object lock keeps the record from being edited."
+    status_note: "Every call in the plane lands in the locked bucket."
     evidence:
       - {label: "Trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 55}
       - {label: "Bucket policy for the trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 28}

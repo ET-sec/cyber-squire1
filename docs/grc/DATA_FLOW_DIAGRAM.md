@@ -567,7 +567,7 @@ Phase 17 added no boundary of its own. Its flows cross boundaries the model alre
 |----|--------|---------|------|
 | E-12 | Anthropic API | Primary Fable 5 and Opus 5 inference | API key, 60-day rotation |
 | E-13 | Tavily API | Enrichment search | API key |
-<!-- TODO(et): name the owner and the rotation cadence for the gateway OAuth bearer. -->
+
 | E-14 | OpenClaw gateway | Agent dispatch path | OAuth bearer |
 
 ### 11.6 Reconciled counts

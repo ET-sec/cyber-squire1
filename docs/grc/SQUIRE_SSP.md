@@ -370,7 +370,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | SQ-COST-1 | Planned | Per-call cost ceiling: not implemented. The guard in `cost_ceiling.py` is the daily ceiling below; a per-call budget that aborts the graph mid-run is an open item. | `builds/squire/src/squire/cost_ceiling.py` (daily only) |
-<!-- TODO(et): Compose env shows ANTHROPIC_DAILY_CEILING_USD default $5.00. SSP says $10. Confirm production override via Doppler. -->
+
 | SQ-COST-2 | Implemented | Daily cost ceiling (`ANTHROPIC_DAILY_CEILING_USD`, default $5) computed as the UTC-day sum of `cost_usd` over `ir_investigations`; there is no Redis counter. On breach the configured mode (`SQUIRE_COST_BREACH_MODE`, default `ollama`) applies: force the local `ollama` backend, refuse with 503 and `daily_cost_ceiling_reached`, or warn only. A database error fails open by design and is logged. | `builds/squire/src/squire/cost_ceiling.py`; `settings.py` |
 | SQ-ITER-1 | Implemented | The investigate node has a hard loop cap of 3 iterations. The critique node has a hard loop cap of 2. Exceeding either returns the best response so far with a `degraded=true` flag. | `builds/squire/src/squire/graph.py` (critique iteration cap); `builds/squire/src/squire/nodes/investigate.py` |
 | SQ-LAT-1 | Implemented | Per-call latency budget of 45 seconds (P95). Exceeded calls fire a Datadog monitor tagged `service:squire severity:warn` and log a span with `latency_budget_exceeded=true`. | Datadog monitor ID `squire_latency_p95` |
@@ -423,7 +423,7 @@ The three Docker networks are isolated at the Docker bridge layer, and the AI se
 4. `svc-squire` cannot reach `svc-datadog:8125` directly; Datadog emission goes through the host agent on 127.0.0.1 (expected fail).
 5. `svc-squire` cannot reach the model API host, while `svc-nemo` can (expected fail, then pass).
 
-Check 5 was measured on 2026-09-09 with a throwaway container carrying the same hosts entry the compose file gives `svc-squire`, not with the real services: the model API host refused the connection while three other vendor hosts resolved and completed a TLS handshake in the same run, and a control run without the entry reached all four. Checks 1 to 4 state the design's intent and have no automated implementation in the tracked tree today. Neither `svc-squire` nor `svc-nemo` has an image on the current host until the rebuild phase, so there is no running container to assert against. Automating all five against the real services, with an alert on drift, is rebuild-phase work. It has no POA&M item yet, which is itself recorded rather than left unsaid.
+Check 5 was measured on 2026-09-09 with a throwaway container carrying the same hosts entry the compose file gives `svc-squire`, not with the real services: the model API host refused the connection while three other vendor hosts resolved and completed a TLS handshake in the same run, and a control run without the entry reached all four. Checks 1 to 4 state the design's intent and have no automated implementation in the tracked tree. Neither `svc-squire` nor `svc-nemo` has an image on the current host, so there is no running container to assert against. Automating all five against the real services, with an alert on drift, is the evidence this row does not carry.
 
 ### 9.2 Ingress Path Verification
 
@@ -504,7 +504,7 @@ The full Squire operational runbook lives in `docs/context/rules-of-engagement.m
 
 1. Author change in `builds/squire/` branch off `main`.
 2. Open PR; CI runs pytest (127 tests), Trivy, ruff, mypy, SBOM, and container signature verification.
-<!-- TODO(et): Verify the GHCR push pipeline is wired. CLAUDE.md does not list this in CI/CD scope. -->
+
 3. On merge, GitHub Actions builds and pushes `ghcr.io/et-sec/squire:<sha>` and `:latest`.
 4. Operator SSH to `alpha-node` and runs `docker compose pull svc-squire && docker compose up -d svc-squire`.
 5. Healthcheck polls `https://squire.example-ops.com/health` until 200 or 60 seconds elapsed.
