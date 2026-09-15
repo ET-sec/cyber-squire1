@@ -1,0 +1,36 @@
+# Teleport, all in one: auth, proxy and the SSH node (plan 24-02).
+# Local auth with a second factor. The OIDC and SAML connectors are Enterprise
+# features, and the community GitHub connector maps organization teams, so
+# federation is a recorded upgrade, not a configuration here.
+# The proxy is not routed through the edge in this build, so it carries no
+# public address; it answers on its listeners inside the host.
+version: v3
+teleport:
+  nodename: cd-alpha-engine
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+
+auth_service:
+  enabled: true
+  listen_addr: 0.0.0.0:3025
+  cluster_name: coredirective
+  session_recording: node-sync
+  authentication:
+    type: local
+    second_factors: ["otp"]
+
+proxy_service:
+  enabled: true
+  listen_addr: 0.0.0.0:3023
+  web_listen_addr: 0.0.0.0:3080
+  https_keypairs: []
+  acme:
+    enabled: false
+
+ssh_service:
+  enabled: true
+  labels:
+    env: production
+    role: primary

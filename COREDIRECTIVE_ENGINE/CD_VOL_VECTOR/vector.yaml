@@ -1,0 +1,85 @@
+# Vector: the Teleport audit path (plan 24-02, replaces the Fluentd build).
+#
+# One job: receive the Teleport event handler's HTTPS stream over mutual TLS and
+# deliver it to the SIEM. No container log source, because the monitoring agent
+# already collects container logs from the host and a second collector would
+# compete with this pipeline for the same 256M cap.
+#
+# Health of the path is read over the network: internal_metrics feeds a
+# prometheus_exporter sink on 9598, scraped from a neighbour on net-core. The
+# api component has no /metrics route, so it stays off. The two stop conditions
+# the plan defines are read from those counters: a buffer discard above zero,
+# or a restart of this container.
+#
+# The API key and the SIEM site are read from the environment the compose block
+# loads (the same file the monitoring agent reads). Nothing in this file is a
+# value that identifies the deployment.
+
+api:
+  enabled: false
+
+sources:
+  teleport_events:
+    type: http_server
+    address: 0.0.0.0:8888
+    # the handler posts to /test.log (audit events) and /session (session events)
+    strict_path: false
+    path_key: path
+    decoding:
+      codec: json
+    tls:
+      enabled: true
+      crt_file: /etc/vector/certs/server.crt
+      key_file: /etc/vector/certs/server.key
+      ca_file: /etc/vector/certs/ca.crt
+      # a server with verify_certificate on requires a valid client certificate
+      verify_certificate: true
+
+  internal:
+    type: internal_metrics
+
+transforms:
+  by_path:
+    type: route
+    inputs: [teleport_events]
+    route:
+      audit: '.path == "/test.log"'
+      session: '.path == "/session"'
+
+  tag_audit:
+    type: remap
+    inputs: [by_path.audit]
+    source: |
+      .ddsource = "teleport"
+      .service = "teleport"
+      .ddtags = "stack:coredirective,stream:teleport-audit"
+      del(.path)
+
+  tag_session:
+    type: remap
+    inputs: [by_path.session]
+    source: |
+      .ddsource = "teleport"
+      .service = "teleport"
+      .ddtags = "stack:coredirective,stream:teleport-session"
+      del(.path)
+
+sinks:
+  datadog:
+    type: datadog_logs
+    inputs: [tag_audit, tag_session]
+    default_api_key: "${DD_API_KEY}"
+    site: "${DD_SITE}"
+    compression: gzip
+    buffer:
+      # memory only: the disk buffer minimum is about the size of the whole cap.
+      # when_full: block applies back-pressure up the chain rather than dropping
+      # an audit event, which is why the discard counters are the reading.
+      type: memory
+      max_events: 200
+      when_full: block
+
+  metrics:
+    type: prometheus_exporter
+    inputs: [internal]
+    address: 0.0.0.0:9598
