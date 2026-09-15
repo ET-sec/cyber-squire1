@@ -259,7 +259,7 @@ Lakera Guard is a commercial detection service for prompt injection. Squire's ar
 - **Account status**: the System Owner's Lakera account is registered but not on a production plan. API key placeholder in Doppler as `LAKERA_API_KEY` (currently empty).
 - **Integration**: `builds/squire/app/rails/lakera_client.py` is a stub that wraps the Lakera Guard API. When the key is set, the stub fires before the NeMo input rail.
 - **Fallback**: When the key is empty, the stub returns `allow` immediately with `degraded=true`.
-- **Planned activation**: Once a production Lakera plan is funded, activate. Current coverage from NeMo input rail plus pre-graph scanner is sufficient for the demo threat model.
+- **Activation**: The NeMo input rail plus the pre-graph scanner provide the coverage this threat model needs, and the hosted classifier is held behind a deliberate activation gate.
 
 ## 7. Failure Modes and Remediation Playbook
 
