@@ -9,7 +9,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.2 (trust boundary numbering reconciled, register recount 2026-09-06)
 
-> **Environment (2026-09-12):** this threat model is drawn against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this threat model is drawn against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

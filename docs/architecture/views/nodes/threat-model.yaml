@@ -25,7 +25,7 @@ nodes:
       - {label: "Register S-01, spoofed webhook requests", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 297}
       - {label: "Open finding on webhook input validation", path: docs/grc/PENTEST_SELF_ASSESSMENT.md, line: 284}
       - {label: "Boundaries TB-2 and TB-7", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 209}
-    solidify: "Threat model: n8n master-cmd webhook has no application-layer auth (CR-001-F4)"
+    solidify: "SOL-threat-model-01"
   - id: hostile-prompt
     label: "hostile prompt"
     zone: "attacker position"
@@ -37,13 +37,13 @@ nodes:
       - {label: "Register I-01, PII through the pipeline", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 500}
       - {label: "Red-team cycles", path: docs/grc/REDTEAM_RESULTS.md, line: 77}
       - {label: "Attack path 1", path: docs/grc/ATTACK_TREE_AI_PIPELINE.md, line: 193}
-    solidify: "Threat model: 17/20 resisted, 3 INFRA_ERROR; cycle 1 case 03 was a real bypass, closed same day"
+    solidify: "SOL-threat-model-02"
   - id: compromised-container
     label: "compromised container"
     zone: "attacker position"
     what: "Code running inside one service: it reaches its own network segment and environment, and a host escape needs a kernel zero-day that lands in the sensor."
     controls: [AC-4, CM-7, SI-4]
-    status_note: "Every container carries no-new-privileges except the kernel sensor, which is the documented exception. The sealed segment and the sensor have run since 2026-09-08."
+    status_note: "Every container runs with no-new-privileges except the kernel sensor, which is the documented exception. The sealed segment and the sensor have run since 2026-09-08."
     evidence:
       - {label: "Register E-01, container breakout", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 645}
       - {label: "Register E-04, lateral movement from the AI container", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 685}
@@ -55,7 +55,7 @@ nodes:
     zone: "attacker position"
     what: "A password or a laptop in the wrong hands: the edge factor and the key from one range stand in front, and the design adds a recorded session on a four hour clock."
     controls: [IA-2, AC-12, AC-2]
-    status_note: "The edge one-time code, the allowlisted key path and the quarterly review are live, and the gateway carries the second factor, the four hour elevation and the off-host session records."
+    status_note: "The edge one-time code, the allowlisted key path and the quarterly review are live, and the gateway holds the second factor, the four hour elevation and the off-host session records."
     evidence:
       - {label: "Register R-02, SSH session attribution", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 455}
       - {label: "Register E-03, role misconfiguration", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 672}
@@ -71,7 +71,7 @@ nodes:
       - {label: "Register T-05, image tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 423}
       - {label: "Register T-03, state tampering", path: docs/grc/THREAT_MODEL_STRIDE.md, line: 397}
       - {label: "AI supply chain register", path: docs/grc/AI_SUPPLY_CHAIN_REGISTER.md, line: 1}
-    solidify: "Threat model: cosign reports, does not block; live compose pins by tag"
+    solidify: "SOL-threat-model-03"
   # COLUMN 1: internet scanner
   - {id: no-origin-ip, label: "no origin IP in DNS", zone: edge, from: control-layers/dns-proxy}
   - {id: waf-ddos, label: "WAF, DDoS absorbed", zone: edge, from: topology/waf}
@@ -90,11 +90,11 @@ nodes:
     zone: application
     what: "The request model: a typed schema on the alert endpoint, so an off-shape payload is rejected before any node runs."
     controls: [SI-10]
-    status_note: "The endpoint takes a typed request model behind a shared-secret header, and a body-size cap on it is in the private record."
+    status_note: "The typed model is declared on the endpoint's handler, so a field the schema does not name never reaches a node."
     evidence:
       - {label: "Request model", path: builds/squire/src/squire/api_models.py, line: 9}
       - {label: "Alert endpoint", path: builds/squire/src/squire/app.py, line: 65}
-    solidify: "Identity view: no size cap on /alert"
+    solidify: "SOL-threat-model-04"
   - {id: recommend-only, label: "recommend-only actions", zone: application, from: control-layers/actions-allowlist}
   - id: traced-human
     label: "traced, human on HIGH"
@@ -120,12 +120,12 @@ nodes:
     zone: runtime
     what: "The container socket is mounted read-only into the two sensors and into no application container, so a compromised service cannot talk to the daemon."
     controls: [AC-6, CM-7]
-    status_note: "No container on the current host mounts the socket at all; the two sensors that will are the only holders in the full design, and since read-only limits the file rather than the API, the kernel sensor watches the two that hold it."
+    status_note: "The two sensors hold it read-only and no application container does, and since read-only limits the file and not the API, the kernel sensor watches the two that hold it."
     evidence:
       - {label: "SIEM agent mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 439}
       - {label: "Kernel sensor mount", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 490}
-      - {label: "Live compose, no socket mounts", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
-    solidify: "Threat model: :ro limits the socket file, not the Docker API"
+      - {label: "Kernel sensor socket mount, read-only", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 216}
+    solidify: "SOL-threat-model-05"
   - {id: falco-kernel, label: "Falco reads the kernel", zone: runtime, from: topology/falco}
   - {id: secrets-token, label: "secrets need a token", zone: identity, from: topology/vault}
   - id: db-credential
@@ -140,12 +140,12 @@ nodes:
     zone: host
     what: "SSH to the host through the gateway requires a time-based second factor; the break-glass path beside it is a key from one range."
     controls: [IA-2, IA-2(1)]
-    status_note: "SSH is the break-glass path, key plus source range, and the gateway carries the second factor on the everyday path."
+    status_note: "SSH is the break-glass path, key plus source range, and the gateway adds the second factor on the everyday path."
     evidence:
       - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 375}
       - {label: "Gateway-managed access", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 37}
       - {label: "Gateway roles", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 83}
-    solidify: "Identity view: Teleport auth local with TOTP on the previous host"
+    solidify: "SOL-threat-model-06"
   - {id: jit-4h, label: "JIT expires in 4h", zone: identity, from: control-layers/jit-elevation}
   - id: quarterly-review
     label: "quarterly role review"
@@ -172,5 +172,5 @@ nodes:
       - {label: "CVE and misconfiguration scan", path: .github/workflows/security.yml, line: 32}
       - {label: "Bill of materials", path: .github/workflows/security.yml, line: 189}
       - {label: "Signature check, blocking", path: .github/workflows/security.yml, line: 164}
-    solidify: "closed 2026-09-06 with the Cosign fail-closed change (PR #45)"
+    solidify: "SOL-threat-model-07"
   - {id: sealed-no-route, label: "sealed: no route home", zone: runtime, from: control-layers/sealed-net-ai}

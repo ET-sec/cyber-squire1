@@ -18,7 +18,7 @@ related:
   - SSP-SQUIRE-001
 ---
 
-> **Environment (2026-09-12):** this system security plan describes the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this system security plan describes the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # System Security Plan (SSP)
 

@@ -9,7 +9,7 @@
 **Distinct From:** AI_SUPPLY_CHAIN_RISK.md (the policy). This document is the living asset register that the policy references.
 **NIST 800-53 Controls:** CM-8 (System Component Inventory), SR-4 (Provenance), SR-11 (Component Authenticity)
 
-> **Environment (2026-09-12):** this supply chain register is kept against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this supply chain register is kept against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

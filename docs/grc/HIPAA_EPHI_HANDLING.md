@@ -9,7 +9,7 @@
 **Pairs With:** HIPAA-001 (HIPAA Security Rule Crosswalk)
 **NIST 800-53 Controls:** SC-8 (Transmission Confidentiality), SC-13 (Cryptographic Protection), SC-28 (Protection of Information at Rest), SC-28(1) (Cryptographic Protection), MP-6 (Media Sanitization), MP-7 (Media Use), AU-2 (Event Logging), AU-3 (Content of Audit Records), AU-9 (Protection of Audit Information), AU-11 (Audit Record Retention), AC-2 (Account Management), AC-3 (Access Enforcement), AC-6 (Least Privilege), IA-2 (Identification and Authentication)
 
-> **Environment (2026-09-12):** this handling procedure applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this handling procedure applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

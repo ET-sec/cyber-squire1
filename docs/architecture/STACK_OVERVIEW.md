@@ -6,7 +6,7 @@ Acronyms, once: OIDC (OpenID Connect), JWT (JSON Web Token), UPST (user principa
 
 The reasoning behind each control (options weighed, blast radius, verification method) lives in the [decision records](decisions/README.md).
 
-**Multi-cloud posture.** The running platform deliberately splits trust across vendors: OCI holds compute, storage, and keys; Cloudflare holds the edge (Access, WAF, DNS, tunnel); GitHub issues the pipeline's identity. This is the third cloud generation of the same design: generation one ran on AWS (its IaC is archived in `terraform/cd-aws-automation/` and `terraform/simple-ec2/`), generation two on DigitalOcean (`terraform/cd-do-infrastructure/`, archived), and each migration was survivable because the entire system is code. Terraform state sits in versioned, locked object storage under a customer-managed key, and the private record carries the move that would put state and compute on different vendors.
+**Multi-cloud posture.** The running platform deliberately splits trust across vendors: OCI holds compute, storage, and keys; Cloudflare holds the edge (Access, WAF, DNS, tunnel); GitHub issues the pipeline's identity. This is the third cloud generation of the same design: generation one ran on AWS (its IaC is archived in `terraform/cd-aws-automation/` and `terraform/simple-ec2/`), generation two on DigitalOcean (`terraform/cd-do-infrastructure/`, archived), and each migration was survivable because the entire system is code. Terraform state sits in versioned, locked object storage under a customer-managed key, so the record of the infrastructure outlives the host it describes.
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {
@@ -118,7 +118,7 @@ flowchart TB
 
 | Container | Role |
 |-----------|------|
-| PostgreSQL 16 + pgvector | Workflow state and the future RAG store |
+| PostgreSQL 16 + pgvector | Workflow state and the retrieval store for the governance corpus |
 | n8n | Workflow engine, reachable only through the Cloudflare Access gate |
 | cloudflared | Tunnel sidecar, outbound-only connection to the edge |
 | Falco 0.43, modern eBPF | Kernel-level runtime detection; custom rules and the public showcase rule loaded from the host |

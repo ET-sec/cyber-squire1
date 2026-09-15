@@ -9,7 +9,7 @@
 **Approved By:** System Owner (Authorizing Official)
 **Parent RA:** RISK_ASSESSMENT.md (Organization platform-level assessment)
 
-> **Environment (2026-09-12):** this AI risk assessment was made against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this AI risk assessment was made against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

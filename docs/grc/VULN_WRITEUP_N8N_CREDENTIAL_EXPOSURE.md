@@ -8,7 +8,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.0
 
-> **Environment (2026-09-12):** this writeup reports a finding on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this writeup reports a finding on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

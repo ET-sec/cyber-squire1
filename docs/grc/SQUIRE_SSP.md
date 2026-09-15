@@ -22,7 +22,7 @@ related:
   - POAM-OPS-001
 ---
 
-> **Environment (2026-09-12):** this agent system security plan describes the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this agent system security plan describes the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # System Security Plan: Squire Autonomous SOC Analyst
 
@@ -290,7 +290,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` (`svc-squire` environment block) |
 | AC-3 | Implemented | `POST /alert` requires header `x-squire-token` validated against Doppler secret `SQUIRE_INGEST_TOKEN`. Missing or mismatched token returns 401. | `builds/squire/src/squire/app.py` (token check with `hmac.compare_digest`) |
-| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` carries both `net-core` and `net-ai`, which is what gives the local-model fallback a route while leaving the sealed segment without a route out. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block and the `svc-squire` service |
+| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins both `net-core` and `net-ai`, which is what gives the local-model fallback a route while leaving the sealed segment without a route out. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block and the `svc-squire` service |
 | AC-6 | Implemented | Least privilege on container filesystem: `USER 10001:10001`, `read_only: true`, `tmpfs` for `/tmp`. No `CAP_*` added; `no-new-privileges` set. | `builds/squire/Dockerfile` + compose security_opt |
 | AC-17 | Implemented | All remote administration goes through the Cloudflare zero-trust tunnel or SSH on `alpha-node`. Neither the application nor Langfuse listen on the public internet. | Parent SSP inheritance plus tunnel config |
 

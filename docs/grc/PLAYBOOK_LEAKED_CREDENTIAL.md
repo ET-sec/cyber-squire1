@@ -7,7 +7,7 @@
 **Classification:** Internal Use Only
 **NIST 800-53 Controls:** IR-4 (Incident Handling), IR-5 (Incident Monitoring), IR-6 (Incident Reporting), IA-5 (Authenticator Management), SC-28 (Protection of Information at Rest)
 
-> **Environment (2026-09-12):** this leaked credential playbook is run against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this leaked credential playbook is run against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

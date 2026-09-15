@@ -8,7 +8,7 @@
 **Owner:** Information Security Officer
 **NIST 800-53 Controls:** AT-1, AT-2, AT-3, AT-4, PM-13
 
-> **Environment (2026-09-12):** this training policy applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this training policy applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

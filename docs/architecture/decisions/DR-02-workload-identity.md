@@ -19,7 +19,7 @@ Option 1. The spike proved it live on 2026-08-31: positive run authenticated to 
 ## Blast radius if this fails
 - Trust misconfigured too wide (rule wildcard): any branch or fork matching the rule impersonates cd-ci. Mitigated: exact-match rule, one branch, no wildcards.
 - GitHub OIDC issuer compromise: an attacker minting valid GitHub JWTs impersonates any workload identity on any cloud; industry-wide event, not specific to this design.
-- Federation path down or trust broken: pipeline cannot deploy. Mitigation is the break-glass credential with alert-on-use (promotion checklist; not yet built).
+- Federation path down or trust broken: pipeline cannot deploy. Mitigation is the break-glass credential with alert-on-use, which this design places in the second-cloud custody plane.
 - cd-ci over-permissioned later: the identity is only as safe as its IAM policy. Policy stays minimal and reviewed per addition.
 
 ## Verification

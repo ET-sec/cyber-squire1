@@ -11,12 +11,12 @@ nodes:
     zone: "tier 0, break-glass"
     what: "A root-capable shell on the host over the break-glass path: no broker, no recording, the whole host in reach, which is why the door is one static key from one range."
     controls: [AC-6, AC-3, AU-2]
-    status_note: "The path is the tunnel's fallback. The kernel sensor watches the session, and the alert on a successful break-glass login is in the private gap list."
+    status_note: "The path is the tunnel's fallback, open to one source range with one key, and the kernel sensor watches what the session does on the host."
     evidence:
       - {label: "Key set at first boot", path: terraform/cd-oci-infrastructure/compute.tf, line: 49}
       - {label: "SSH ingress from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
       - {label: "Unauthorized access playbook", path: docs/grc/PLAYBOOK_UNAUTHORIZED_ACCESS.md, line: 1}
-    solidify: "Identity view: no alert on a successful break-glass login; key rotation has no schedule"
+    solidify: "SOL-identity-access-01"
   # TIER 1 OPERATOR
   - id: operator
     label: operator
@@ -35,7 +35,7 @@ nodes:
       - {label: "Edge application in front of the console", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 14}
       - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
       - {label: "Identity provider lockout settings", path: keycloak/coredirective-realm.json, line: 12}
-    solidify: "Identity view: 24h Access session, email PIN; hardware key on Access is the real close"
+    solidify: "SOL-identity-access-02"
   - {id: keycloak, label: Keycloak, zone: "tier 1, operator", from: topology/keycloak}
   - {id: teleport, label: Teleport, zone: "tier 1, operator", from: topology/teleport}
   - id: host-ssh-database
@@ -43,12 +43,12 @@ nodes:
     zone: "tier 1, operator"
     what: "What an elevated operator session reaches: a recorded shell on the host and the database, through the gateway rather than the break-glass path."
     controls: [AC-3, AU-12, AC-12]
-    status_note: "The gateway carries the recorded session to the host and the database, with the break-glass path beside it."
+    status_note: "The gateway runs the recorded session to the host and the database, with the break-glass path beside it."
     evidence:
       - {label: "Elevation workflow", path: docs/grc/IAM_ACCESS_REVIEW.md, line: 63}
       - {label: "Escalation path and safeguards", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
       - {label: "Gateway definition", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 375}
-    solidify: "Identity view: Teleport auth is local, no access-request role"
+    solidify: "SOL-identity-access-03"
   # TIER 2 SERVICE
   - id: n8n-and-services
     label: "n8n and services"
@@ -59,7 +59,7 @@ nodes:
     evidence:
       - {label: "Orchestration engine on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 47}
       - {label: "AppRole still a comment", path: COREDIRECTIVE_ENGINE/docker-compose.yaml, line: 261-262}
-    solidify: "Tier 2: n8n reads stack.env; first AppRole consumer makes the diagram literal"
+    solidify: "SOL-identity-access-04"
   - {id: vault-approle, label: "Vault AppRole", zone: "tier 2, service", from: topology/vault}
   - {id: postgres, label: Postgres, zone: "tier 2, service", from: topology/postgres}
   - {id: ci-runner, label: "CI runner", zone: "tier 2, service", from: multi-cloud/github-actions}
@@ -69,12 +69,12 @@ nodes:
     zone: "tier 2, service"
     what: "The runtime cloud's control plane as the CI session sees it: a plan can read every resource and change none."
     controls: [AC-6, AC-3, CM-5]
-    status_note: "The nightly drift check reads with this session today; the apply job that would write on main does not exist yet, and apply runs from the operator's workstation with short-lived credentials."
+    status_note: "The nightly drift check reads with this session; the apply job on main sits behind the production environment with a repository variable as its switch, and while that switch is off apply runs from the operator's workstation with short-lived credentials."
     evidence:
       - {label: "Drift check plans against the live account", path: .github/workflows/drift-check.yml, line: 7}
       - {label: "Token exchange, no stored cloud key", path: .github/actions/oci-session/action.yml, line: 53}
       - {label: "Escalation path", path: docs/grc/IAM_RBAC_ROLE_MAP.md, line: 115}
-    solidify: "Tier 1: no apply job"
+    solidify: "SOL-identity-access-05"
   - id: telegram
     label: Telegram
     zone: "tier 2, service"
@@ -91,11 +91,11 @@ nodes:
     zone: "tier 2, service"
     what: "The single path the carve-out opens: the bot's trigger prefix on the orchestration host, with the chat-ID check on the trigger node as the second gate."
     controls: [AC-3, SI-10]
-    status_note: "The path scoping at the edge is live; the trigger workflow with the chat-ID check is not yet restored on the current host."
+    status_note: "The edge scopes the carve-out to the bot's trigger prefix, and the chat-ID check on the trigger node stands as the second gate behind it."
     evidence:
       - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66-69}
       - {label: "Design record: scoped twice", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 32}
-    solidify: "Identity view: chat-ID check pending the workflow restore"
+    solidify: "SOL-identity-access-06"
   # TIER 3 AGENT
   - id: alert-source
     label: "alert source"

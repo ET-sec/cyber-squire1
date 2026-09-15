@@ -26,7 +26,7 @@ related:
   - POAM-OPS-001
 ---
 
-> **Environment (2026-09-12):** this threat catalog is drawn against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this threat catalog is drawn against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # AI Threat Catalog
 

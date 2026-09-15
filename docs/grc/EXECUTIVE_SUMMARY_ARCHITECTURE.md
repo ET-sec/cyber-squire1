@@ -7,7 +7,7 @@
 **Date:** 2026-05-25
 **Prepared By:** System Owner
 
-> **Environment (2026-09-12):** this architecture summary reports on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this architecture summary reports on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

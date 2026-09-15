@@ -8,7 +8,7 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** AC-3 (Access Enforcement), AC-6 (Least Privilege), CA-7 (Continuous Monitoring), IR-4 (Incident Handling), SI-4 (System Monitoring)
 
-> **Environment (2026-09-12):** this human-in-the-loop policy applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this human-in-the-loop policy applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

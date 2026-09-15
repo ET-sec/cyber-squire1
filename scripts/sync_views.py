@@ -10,8 +10,8 @@ Targets in the portfolio repo:
   index.html  // NODES:js ... // /NODES:js             node panel script (inside the last <script>)
 
 A node table is validated before anything is written: every control id must have a row in SSP section 5, every evidence
-path must be tracked on main, and every label must appear exactly once as a <text> in the SVG. A node entry carries no
-status field. The SSP row (name, status, line) is attached to each control at sync time, never typed by hand.
+path must be tracked on main, and every label must appear exactly once as a <text> in the SVG. A node entry that sets
+a status field is refused. The SSP row (name, status, line) is attached to each control at sync time, never typed by hand.
 An entry may say `from: <slug>/<id>` to inherit every field from another table's entry and override some (label and zone
 at least). A table may carry `chips: {zone: ...}`: every box whose label is a control id then gets a generated entry from
 its SSP row (name, status, implementation text) and every occurrence on the drawing is wrapped. An entry may say
@@ -30,7 +30,7 @@ VIEWS = ROOT / "docs" / "architecture" / "views"
 NODES = VIEWS / "nodes"
 SSP = ROOT / "docs" / "grc" / "SSP_SYSTEM_SECURITY_PLAN.md"
 CHIP_STATUSES = {"implemented", "inherited"}
-HINT = "Click a box for what it is, the controls it carries, and the file that proves it."
+HINT = "Click a box for what it is, the controls it holds, and the file that proves it."
 FLOW_CSS = """.cd-packet { pointer-events: none; opacity: .9; stroke-dashoffset: var(--cdlen); }
 @keyframes cdpacket { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .cd-packet { display: none; } }"""
@@ -217,7 +217,7 @@ def load_nodes(slug, svg):
         nid = n.get("id", "?")
         missing = {"id", "label", "zone", "what", "controls", "status_note", "evidence"} - set(n)
         if missing: errs.append(f"{nid}: missing {sorted(missing)}"); continue
-        if "status" in n and not n.get("chip"): errs.append(f"{nid}: a node entry carries no status field")
+        if "status" in n and not n.get("chip"): errs.append(f"{nid}: a node entry carries a status field, which this renderer does not accept")
         if nid in seen: errs.append(f"{nid}: duplicate id")
         seen.add(nid)
         for c in n["controls"]:

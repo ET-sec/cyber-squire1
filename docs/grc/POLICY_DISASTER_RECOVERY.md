@@ -8,7 +8,7 @@
 **Owner:** Information Security Officer
 **NIST 800-53 Controls:** CP-2, CP-4, CP-6, CP-7, CP-9, CP-10
 
-> **Environment (2026-09-12):** this recovery plan is exercised against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this recovery plan is exercised against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

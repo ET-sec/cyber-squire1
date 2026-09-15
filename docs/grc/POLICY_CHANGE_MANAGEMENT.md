@@ -8,7 +8,7 @@
 **Owner:** Information Security Officer
 **NIST 800-53 Controls:** CM-1, CM-2, CM-3, CM-4, CM-5, CM-6, CM-7, CM-8
 
-> **Environment (2026-09-12):** this change management policy binds every change to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
+> **Environment (2026-09-15):** this change management policy binds every change to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

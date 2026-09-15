@@ -98,19 +98,19 @@ the state, identity, data protection, and drift controls.
 ## What runs where
 
 **Live on Oracle Cloud (Ampere A1, aarch64, 4 OCPU and 24 GB):** PostgreSQL 16
-with pgvector, n8n orchestration, Cloudflare Tunnel. Fronted by Cloudflare
-Access (zero-trust identity checks at the edge; the origin is never exposed).
+with pgvector, n8n orchestration, Cloudflare Tunnel, Falco, Falcosidekick, the
+Datadog agent, Whisper, and Ollama, behind Cloudflare Access; no exposed origin.
 
 **Live in the pipeline (no server needed):** nightly infrastructure drift
 detection, secret scanning at four layers, scanner findings flowing into a
 self-updating POA&M ledger, SBOM generation, container signature
 verification, CodeQL, OWASP ZAP DAST.
 
-**The rest of the platform:** HashiCorp Vault, Keycloak, Teleport, Falco
-runtime detection, Datadog, Ollama, NeMo Guardrails, and Squire, the custom
-AI security agent. Their configuration, monitors, and policies all live in
-this repository, and the compose header is the operator's entry point to
-each one. Nothing here is claimed as running unless it is.
+**The rest of the platform:** HashiCorp Vault, Keycloak, Teleport, Langfuse
+tracing, the log router, NeMo Guardrails, and Squire, the custom AI security
+agent. Their configuration, monitors, and policies all live in this
+repository, and the compose header is the operator's entry point to each
+one. The service counts on this page come from `metrics.yaml`.
 
 ## The pipeline is the perimeter
 
