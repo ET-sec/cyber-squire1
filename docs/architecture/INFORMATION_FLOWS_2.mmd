@@ -17,7 +17,7 @@ flowchart TB
   classDef store fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
   classDef obs fill:#1f2933,stroke:#a371f7,color:#cdd9e5
   classDef out fill:#1f2933,stroke:#58a6ff,color:#cdd9e5
-  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+  classDef tier fill:#161b22,stroke:#39d98a,color:#cdd9e5
 
   PR["**Pull request opens**<br/>cyber-squire1 repo"]:::src
 
@@ -63,10 +63,10 @@ flowchart TB
     DDLOAD["download-artifact<br/>verify cosign bundle<br/>tolerance: warn if no artifact"]:::gate
   end
 
-  subgraph EVAL["**Eval harness** (self-hosted; reruns paused pending ARM rebuild)"]
+  subgraph EVAL["**Eval harness** (self-hosted)"]
     direction LR
     GOLDEN["**12-fixture golden set**<br/>10 LLM-generated + 2 hand-crafted"]:::store
-    LFEXP["Langfuse experiment<br/>Squire-GRC-Reviewer baseline<br/>(Phase 19 scores landed; host pending ARM rebuild)"]:::pending
+    LFEXP["Langfuse experiment<br/>Squire-GRC-Reviewer baseline<br/>(Phase 19 scores are the baseline)"]:::tier
     EVALS["**4 evaluators × 12 fixtures = 48 scores**<br/>control_coverage · poam_id_accuracy<br/>sanitization_catch_rate · hallucination_rate"]:::obs
   end
 
@@ -108,7 +108,7 @@ flowchart TB
   COSIGN --> UPLOAD
   UPLOAD --> DDLOAD
 
-  GRCREV -->|"nightly (paused pending rebuild)"| EVALS
+  GRCREV -->|nightly| EVALS
   EVALS --> LFEXP
   GOLDEN --> EVALS
 

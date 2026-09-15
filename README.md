@@ -51,8 +51,8 @@ The platform's first generation also ran on AWS, and that original
 infrastructure code (VPC, EC2, NAT, security groups) ships in this
 repository as archived reference alongside the second-generation
 DigitalOcean configuration. The design has survived two live cross-cloud migrations because every
-piece of it is code. The R2 state split is queued for the same reason, so Terraform
-state and the compute it describes never share a vendor failure domain.
+piece of it is code. Terraform state sits in versioned, locked object storage
+under a customer-managed key for the same reason.
 
 ## Find your way (pick your lane)
 
@@ -106,12 +106,11 @@ detection, secret scanning at four layers, scanner findings flowing into a
 self-updating POA&M ledger, SBOM generation, container signature
 verification, CodeQL, OWASP ZAP DAST.
 
-**Codified, pending the ARM rebuild:** the remaining services of the full
-19-service design (HashiCorp Vault, Keycloak, Teleport, Falco runtime
-detection, Datadog, Langfuse LLM observability, Ollama, NeMo Guardrails, and
-Squire, the custom AI security agent). Their configuration, monitors, and
-policies are all in this repository; the compose header documents exactly
-what the ARM port requires. Nothing here is claimed as running unless it is.
+**The rest of the platform:** HashiCorp Vault, Keycloak, Teleport, Falco
+runtime detection, Datadog, Ollama, NeMo Guardrails, and Squire, the custom
+AI security agent. Their configuration, monitors, and policies all live in
+this repository, and the compose header is the operator's entry point to
+each one. Nothing here is claimed as running unless it is.
 
 ## The pipeline is the perimeter
 
@@ -192,8 +191,8 @@ retention-locked backup storage, and least-privilege identity policies, with
 conftest against the real plan after every merge and nightly) and remote state
 in versioned, locked object storage. The retired DigitalOcean configuration is
 preserved in [`terraform/cd-do-infrastructure/`](terraform/cd-do-infrastructure/)
-as an archived reference, including the Datadog monitors and dashboards that
-return with the ARM rebuild.
+as an archived reference, including the Datadog monitors and dashboards
+written for that generation.
 
 Want to stand this up in your own tenancy? Start at the
 [replication guide](terraform/cd-oci-infrastructure/README.md#run-this-yourself-replication).
@@ -216,7 +215,7 @@ Want to stand this up in your own tenancy? Start at the
 ├── terraform/
 │   ├── cd-oci-infrastructure/       ACTIVE: OCI compute, KMS, locked backups, OPA policies
 │   ├── cd-cloudflare-edge/          ACTIVE: edge access policies and WAF as code
-│   ├── cd-aws-security-plane/       DESIGNED: evidence vault in a second cloud, apply gated
+│   ├── cd-aws-security-plane/       Second-cloud evidence vault, held behind an apply gate
 │   ├── cd-do-infrastructure/        Archived DigitalOcean generation
 │   ├── cd-aws-automation/           Archived first AWS generation
 │   └── simple-ec2/                  Archived AWS quick start

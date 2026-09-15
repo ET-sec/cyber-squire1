@@ -57,8 +57,8 @@
 #    values pass through literally. See docker-compose.oci-core.yaml for the
 #    working pattern and stack.env.template for the variable names.
 #
-# 3. STACK CHANGES decided for the OCI rebuild:
-#      - DROP cd-service-whisper (removed from scope).
+# 3. STACK CHANGES on the Arm host:
+#      - cd-service-whisper stays in scope and runs on the sealed network.
 #      - Keep cd-service-falco as the sensor, but reroute cd-service-
 #        falcosidekick output from Datadog to Splunk HEC (Splunk = SIEM).
 #      - cd-service-nemo -> a smaller model to fit the 24GB ARM budget.
@@ -67,15 +67,15 @@
 #    `chown -R 1000:1000 CD_VOL_N8N` or it crashes with EACCES on
 #    /home/node/.n8n/config. Postgres (uid 999) self-initializes fine.
 #
-# CURRENTLY LIVE ON OCI (via docker-compose.oci-core.yaml, NOT this file yet):
-#   cd-service-db + cd-service-n8n + tunnel-cyber-squire, ARM-clean, fronted
-#   by the Cloudflare Access gate through the tunnel.
-# The remaining 15 services in THIS file are pending the four fixes above.
+# THE LIVE DEFINITION IS docker-compose.oci-core.yaml, which the host copy
+#   mirrors; this file is the full service list the platform is built from,
+#   fronted by the Cloudflare Access gate through the tunnel. Read the two
+#   together: this one for the design, that one for what the host carries.
 #
 # STATE + BACKUPS (updated 2026-08-31, Phase 20.1): Terraform state lives in
-# versioned OCI Object Storage with native locking (Cloudflare R2 remains the
-# eventual home for vendor decoupling, pending a one-time R2 enable in the CF
-# dashboard). Nightly backups of PostgreSQL + the n8n volume upload to a
+# versioned OCI Object Storage with native locking, under the customer-managed
+# key, and the backend address sits in a gitignored file rather than in this
+# repository. Nightly backups of PostgreSQL + the n8n volume upload to a
 # retention-locked bucket via instance principal, with a monthly timed restore
 # test. See terraform/cd-oci-infrastructure/README.md for the full state.
 # ============================================================================
@@ -214,7 +214,7 @@ services:
     # Tier 3: stateless inference. Pinned 2026-09-06 to the image :latest-cpu
     # resolved to (0.5.0-cpu, multi-arch index, arm64 present); a floating tag
     # changes under the Trivy scan and leaves nothing to roll back to. Upstream
-    # is archived (renamed speaches); ARM rebuild session A decides the move.
+    # is archived (renamed speaches); the move to it is on the private record.
     image: fedirz/faster-whisper-server:0.5.0-cpu@sha256:760e5e43d427dc6cfbbc4731934b908b7de9c7e6d5309c6a1f0c8c923a5b6030
     container_name: cd-service-whisper
     restart: unless-stopped
@@ -310,10 +310,10 @@ services:
   # Purpose: Centralized identity: SSO for n8n, Vault UI, and future services
   # - Realm: coredirective (imported from CD_VOL_KEYCLOAK_IMPORT)
   # - Roles: cd-admin, cd-operator, cd-auditor
-  # - OIDC client for Teleport (Enterprise upgrade path)
+  # - The client is the Cloudflare Access edge; Teleport federation is Enterprise
   # - Admin password stored in 1Password → Core Infra → "Keycloak Admin"
   # - Upgraded v23 → v26.5.2 (2026-03-11, Phase 08-04)
-  # - In production: switch command to `start` (remove start-dev)
+  # - Runs in production mode: the command is `start`, never `start-dev`
   #
   cd-service-keycloak:
     # Tier 1: identity provider. Digest pinned.
@@ -690,8 +690,8 @@ services:
   # LANGFUSE v3 (Phase 17-04): LLM tracing + observability for Squire agent
   # 4 containers (~2.75 GiB cap). Shares cd-service-db (new `langfuse` database).
   # Blob store: S3-compatible bucket via LANGFUSE_S3_* env vars. The original
-  # DO Spaces bucket died with that account (2026-08); point these at OCI
-  # Object Storage's S3 compat layer or Cloudflare R2 during the ARM rebuild.
+  # DO Spaces bucket died with that account (2026-08); these point at OCI
+  # Object Storage's S3 compatible layer on this host.
   # ============================================================================
 
   cd-service-langfuse-clickhouse:

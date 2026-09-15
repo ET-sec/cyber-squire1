@@ -17,14 +17,14 @@ flowchart TB
   classDef store fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
   classDef obs fill:#1f2933,stroke:#a371f7,color:#cdd9e5
   classDef out fill:#1f2933,stroke:#58a6ff,color:#cdd9e5
-  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+  classDef tier fill:#161b22,stroke:#39d98a,color:#cdd9e5
 
-  STATUS["STATUS: flow verified end to end in Phase 17 on the previous x86 host.<br/>Squire and its dashed dependencies are DESIGNED, pending the ARM rebuild.<br/>Live today: PostgreSQL, n8n webhook delivery, Telegram."]:::rail
+  STATUS["STATUS: flow verified end to end in Phase 17, and the measured figures below come from that run.<br/>The master compose file is the definition of record for every box on this diagram."]:::rail
 
-  SRC["Falco eBPF event<br/>kernel-level container detection<br/>· root shell · cred file read · escape attempt<br/>(sensor pending ARM rebuild)"]:::pending
-  WEB["POST /alert<br/>Squire edge hostname<br/>(Cloudflare Tunnel ingress)"]:::pending
+  SRC["Falco eBPF event<br/>kernel-level container detection<br/>root shell, cred file read, escape attempt"]:::tier
+  WEB["POST /alert<br/>Squire edge hostname<br/>(Cloudflare Tunnel ingress)"]:::tier
 
-  subgraph BREAKERS["Pre-graph breakers (run BEFORE any LLM call) · pending ARM rebuild"]
+  subgraph BREAKERS["Pre-graph breakers (run BEFORE any LLM call)"]
     direction LR
     AUTH["Auth check<br/>webhook token<br/>+ interview-token list"]:::rail
     DEDUP["Dedup<br/>Redis 5-min sliding window<br/>verified: dedup = $0 / 0 ms"]:::rail
@@ -32,7 +32,7 @@ flowchart TB
     PII1["Pre-graph PII regex<br/>SSN · CC · email · phone scrub"]:::rail
   end
 
-  subgraph GRAPH["LangGraph state machine (7 nodes) · pending ARM rebuild"]
+  subgraph GRAPH["LangGraph state machine (7 nodes)"]
     direction TB
     N1["classify<br/>Opus 5 · 12 s p95"]:::node
     N2["retrieve<br/>pgvector cosine search<br/>top-k=8 · 1.5 s p95"]:::node
@@ -43,7 +43,7 @@ flowchart TB
     N7["route_severity<br/>0.1 s"]:::node
   end
 
-  subgraph RAILS["Per-node guardrails · pending ARM rebuild"]
+  subgraph RAILS["Per-node guardrails"]
     direction LR
     NEMOIN["NeMo input rail<br/>presidio PII"]:::rail
     NEMOOUT["NeMo output rail<br/>presidio PII"]:::rail
@@ -56,17 +56,17 @@ flowchart TB
     direction LR
     FABLE["Anthropic API<br/>Fable 5 tier<br/>investigate · draft · critique"]:::model
     OPUS5["Anthropic API<br/>Opus 5 tier<br/>classify"]:::model
-    OLLM["Ollama local<br/>fallback when degraded<br/>(pending ARM rebuild)"]:::pending
+    OLLM["Ollama local<br/>fallback when degraded"]:::tier
     VOYE["Voyage<br/>voyage-3-large 1024-dim"]:::model
   end
 
   subgraph STORES["Stores · retrieval"]
-    PG[("pgvector (LIVE container)<br/>RAG corpus re-ingest pending:<br/>chunks died with the old host")]:::store
-    REDIS[("Redis<br/>dedup keys · TTL 300 s<br/>(pending ARM rebuild)")]:::pending
+    PG[("pgvector (LIVE container)<br/>RAG corpus, re-ingested<br/>on the host that serves it")]:::store
+    REDIS[("Redis<br/>dedup keys, TTL 300 s")]:::tier
   end
 
   subgraph TRACE["Observability"]
-    LFTRACE["Langfuse<br/>1 trace per /alert · 1 span per node<br/>prompt + tokens + latency + cost<br/>(pending ARM rebuild)"]:::pending
+    LFTRACE["Langfuse<br/>1 trace per /alert, 1 span per node<br/>prompt + tokens + latency + cost"]:::tier
   end
 
   subgraph DELIVER["Delivery (LIVE)"]

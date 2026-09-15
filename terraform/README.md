@@ -11,7 +11,7 @@ Generated from docs/REPO_MANIFEST.yaml. Do not hand edit inside the markers.
 |---|---|---|
 | `terraform/README.md` | active | The directory README for terraform/, whose contents block is generated from this manifest. |
 | `terraform/cd-aws-automation/**` | archived | The production automation network that was built on the first cloud: VPC, subnets, NAT, security groups, and the instance. |
-| `terraform/cd-aws-security-plane/**` | active | The designed second cloud plane: OIDC federation, an immutable evidence vault, region guard, and a break glass path. |
+| `terraform/cd-aws-security-plane/**` | active | The second cloud plane: OIDC federation, an immutable evidence vault, region guard, and a break glass path, held behind an apply gate. |
 | `terraform/cd-cloudflare-edge/**` | active | The edge plane: zero trust access on the automation hostname, the firewall rules, and the carve out that lets the bot webhook through. |
 | `terraform/cd-do-infrastructure/**` | archived | The previous provider's full stack: droplet, network, firewall, tunnel routes, monitoring, dashboards, and the templates it rendered. |
 | `terraform/cd-do-infrastructure/policy/**` | archived | Ten OPA policies written against the previous provider's plan, with their fixtures. |

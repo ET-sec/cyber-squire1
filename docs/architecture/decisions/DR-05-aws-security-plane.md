@@ -1,7 +1,7 @@
 # DR-05: The AWS Security Plane (multi-cloud by blast radius)
 
 **Date:** 2026-09-01
-**Status:** Designed and gated; apply scheduled, receipts pending. Terraform is public in `terraform/cd-aws-security-plane/` and passes the full PR gate (fmt, validate, Checkov 135/0 with 11 reasoned skips). This record flips to "Implemented and verified" when the five receipts in the module README exist.
+**Status:** A second-cloud custody split held behind a deliberate apply gate. The Terraform is public in `terraform/cd-aws-security-plane/` and passes the full PR gate (fmt, validate, Checkov 135/0 with 11 reasoned skips). This record reads "Implemented and verified" once the five receipts in the module README exist.
 
 ## Problem
 In August 2026 one cloud provider failure took the production host AND the
@@ -34,8 +34,8 @@ can only write).
    workload: one Lambda, no VPC, no standing compute.
 2. **Second OCI tenancy or region.** Rejected: same vendor, same billing
    relationship, same failure domain as the event that motivated this.
-3. **Cloudflare R2 for everything.** Partial: R2 takes the state-file split
-   (queued), but R2 has no Object Lock equivalent with compliance-mode
+3. **Cloudflare R2 for everything.** Partial: R2 is the candidate for the
+   state-file split, but it has no Object Lock equivalent with compliance-mode
    semantics and no CloudTrail-grade data events, so it cannot carry the
    evidence custody role.
 4. **A managed SIEM (Datadog or Splunk) as the watcher.** Deferred and

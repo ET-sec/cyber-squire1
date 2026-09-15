@@ -1,10 +1,10 @@
 # ============================================================================
 # OCI CORE STACK: the minimal live environment on Oracle Ampere A1 (ARM)
 # ============================================================================
-# This is the ARM-clean subset that is actually running on the OCI host as of
-# 2026-09-08: database, n8n, tunnel, plus rebuild session A's stateless set
-# (Falco, Falcosidekick, Datadog agent, Whisper, Ollama). The rest of the full
-# docker-compose.yaml (19 services) returns in sessions B and C.
+# This is the ARM-clean subset the OCI host carries as of 2026-09-08: the
+# database, n8n, the tunnel, and the stateless set (Falco, Falcosidekick, the
+# Datadog agent, Whisper, Ollama). The master docker-compose.yaml holds the
+# full service list and is the definition of record for every one of them.
 #
 # DESIGN NOTES (differences from the master docker-compose.yaml, on purpose):
 #   - Images are pinned tag@digest (re-pinned 2026-09-06). The digest is the
@@ -109,7 +109,7 @@ services:
           pids: 64
 
   # --------------------------------------------------------------------------
-  # ARM rebuild session A (2026-09-08): the stateless set. Same images, index
+  # The stateless set (added 2026-09-08). Same images, index
   # digests, and limits as the master file (Ollama memory raised, see below).
   # Falco and the Datadog agent carry the documented accepted risks (CIS 5.25
   # and 5.15: SYS_ADMIN, host pid, read-only container socket). Off-host
@@ -155,7 +155,7 @@ services:
     volumes:
       - ./CD_VOL_WHISPER:/root/.cache/huggingface
     environment:
-      # Setting names the 0.5.0 image reads; the master file's WHISPER_MODEL is ignored (fix at rebuild).
+      # Setting names the 0.5.0 image reads; the master file's WHISPER_MODEL has no effect here.
       - WHISPER__MODEL=Systran/faster-whisper-small
       - WHISPER__INFERENCE_DEVICE=cpu
     healthcheck:
@@ -263,7 +263,7 @@ services:
       - /var/log:/host/var/log:ro
       # /conf.d is the image's drop-in path: the entrypoint copies it over the
       # defaults. Mounting /etc/datadog-agent/conf.d directly (the master file)
-      # would replace the built-in check configs; fix the master at rebuild.
+      # would replace the built-in check configs, so this file mounts /conf.d.
       - ./CD_VOL_DATADOG/conf.d:/conf.d:ro
     healthcheck:
       test: ["CMD-SHELL", "agent health"]

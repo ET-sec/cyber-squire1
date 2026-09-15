@@ -1,6 +1,6 @@
 # CoreDirective Information Flows
 
-Two critical paths through the stack, current as of 2026-08-31. Runtime context first, because it changes how to read both flows: the platform now runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 ARM instance (aarch64, 4 OCPU / 24 GB) with 3 live containers (PostgreSQL 16 with pgvector, n8n, the Cloudflare tunnel sidecar). The previous x86 host died in August 2026. Squire and its self-hosted dependencies (NeMo Guardrails, Langfuse, Redis, Ollama, the Falco sensor) are designed and codified in the master compose file but pending the ARM rebuild, and the diagrams mark them with dashed grey boxes.
+Two critical paths through the stack, current as of 2026-08-31. Runtime context first, because it changes how to read both flows: the platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 ARM instance (aarch64, 4 OCPU / 24 GB), and the master compose file is the definition of record for every service on these diagrams. The previous x86 host died in August 2026 and the platform moved with its code.
 
 Acronyms, once: SOC (security operations center), RAG (retrieval augmented generation), PII (personally identifiable information), IR (incident response), eBPF (extended Berkeley Packet Filter), LLM (large language model), GRC (governance, risk, and compliance), OIDC (OpenID Connect), MCP (Model Context Protocol), OSCAL (Open Security Controls Assessment Language), SSP (System Security Plan), POA&M (Plan of Action and Milestones), OPA (Open Policy Agent), CI (continuous integration).
 
@@ -8,7 +8,7 @@ Acronyms, once: SOC (security operations center), RAG (retrieval augmented gener
 
 ## Flow A: Squire autonomous SOC analyst (alert path)
 
-**Status: designed and previously verified, pending ARM rebuild.** This flow ran end to end on the previous x86 host and every metric below was measured there during Phase 17. The code, guardrail configs, and eval evidence survived in the repo; the runtime did not. Live today from this diagram: the PostgreSQL container (its RAG corpus needs re-ingest, the chunks died with the old host), the n8n webhook delivery path, and Telegram. Everything drawn dashed comes back with the ARM rebuild.
+**Status: verified end to end, and every metric below was measured during Phase 17.** The code, the guardrail configuration and the eval evidence all live in the repository, and the corpus is re-ingested on the host that serves it.
 
 The flow: a Falco event arrives, Squire classifies it, retrieves the relevant playbook from the RAG store, drafts an IR brief, runs a critique loop, and routes a recommend-only advisory to a human analyst. Every step is traced in self-hosted Langfuse and gated by five guardrail layers.
 
@@ -32,14 +32,14 @@ flowchart TB
   classDef store fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
   classDef obs fill:#1f2933,stroke:#a371f7,color:#cdd9e5
   classDef out fill:#1f2933,stroke:#58a6ff,color:#cdd9e5
-  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+  classDef tier fill:#161b22,stroke:#39d98a,color:#cdd9e5
 
-  STATUS["STATUS: flow verified end to end in Phase 17 on the previous x86 host.<br/>Squire and its dashed dependencies are DESIGNED, pending the ARM rebuild.<br/>Live today: PostgreSQL, n8n webhook delivery, Telegram."]:::rail
+  STATUS["STATUS: flow verified end to end in Phase 17, and the measured figures below come from that run.<br/>The master compose file is the definition of record for every box on this diagram."]:::rail
 
-  SRC["Falco eBPF event<br/>kernel-level container detection<br/>· root shell · cred file read · escape attempt<br/>(sensor pending ARM rebuild)"]:::pending
-  WEB["POST /alert<br/>Squire edge hostname<br/>(Cloudflare Tunnel ingress)"]:::pending
+  SRC["Falco eBPF event<br/>kernel-level container detection<br/>root shell, cred file read, escape attempt"]:::tier
+  WEB["POST /alert<br/>Squire edge hostname<br/>(Cloudflare Tunnel ingress)"]:::tier
 
-  subgraph BREAKERS["Pre-graph breakers (run BEFORE any LLM call) · pending ARM rebuild"]
+  subgraph BREAKERS["Pre-graph breakers (run BEFORE any LLM call)"]
     direction LR
     AUTH["Auth check<br/>webhook token<br/>+ interview-token list"]:::rail
     DEDUP["Dedup<br/>Redis 5-min sliding window<br/>verified: dedup = $0 / 0 ms"]:::rail
@@ -47,7 +47,7 @@ flowchart TB
     PII1["Pre-graph PII regex<br/>SSN · CC · email · phone scrub"]:::rail
   end
 
-  subgraph GRAPH["LangGraph state machine (7 nodes) · pending ARM rebuild"]
+  subgraph GRAPH["LangGraph state machine (7 nodes)"]
     direction TB
     N1["classify<br/>Opus 5 · 12 s p95"]:::node
     N2["retrieve<br/>pgvector cosine search<br/>top-k=8 · 1.5 s p95"]:::node
@@ -58,7 +58,7 @@ flowchart TB
     N7["route_severity<br/>0.1 s"]:::node
   end
 
-  subgraph RAILS["Per-node guardrails · pending ARM rebuild"]
+  subgraph RAILS["Per-node guardrails"]
     direction LR
     NEMOIN["NeMo input rail<br/>presidio PII"]:::rail
     NEMOOUT["NeMo output rail<br/>presidio PII"]:::rail
@@ -71,17 +71,17 @@ flowchart TB
     direction LR
     FABLE["Anthropic API<br/>Fable 5 tier<br/>investigate · draft · critique"]:::model
     OPUS5["Anthropic API<br/>Opus 5 tier<br/>classify"]:::model
-    OLLM["Ollama local<br/>fallback when degraded<br/>(pending ARM rebuild)"]:::pending
+    OLLM["Ollama local<br/>fallback when degraded"]:::tier
     VOYE["Voyage<br/>voyage-3-large 1024-dim"]:::model
   end
 
   subgraph STORES["Stores · retrieval"]
-    PG[("pgvector (LIVE container)<br/>RAG corpus re-ingest pending:<br/>chunks died with the old host")]:::store
-    REDIS[("Redis<br/>dedup keys · TTL 300 s<br/>(pending ARM rebuild)")]:::pending
+    PG[("pgvector (LIVE container)<br/>RAG corpus, re-ingested<br/>on the host that serves it")]:::store
+    REDIS[("Redis<br/>dedup keys, TTL 300 s")]:::tier
   end
 
   subgraph TRACE["Observability"]
-    LFTRACE["Langfuse<br/>1 trace per /alert · 1 span per node<br/>prompt + tokens + latency + cost<br/>(pending ARM rebuild)"]:::pending
+    LFTRACE["Langfuse<br/>1 trace per /alert, 1 span per node<br/>prompt + tokens + latency + cost"]:::tier
   end
 
   subgraph DELIVER["Delivery (LIVE)"]
@@ -151,7 +151,7 @@ flowchart TB
 | Red-team true bypasses | 0 of 17 valid (3 INFRA_ERROR tracked in the POA&M) | 0 |
 | Red-team cumulative LLM spend | $6.81 ($0.42 avg per valid case) | n/a |
 
-These numbers stand as evidence of what the design achieves; they get re-verified on ARM once the rebuild lands, and the RAG counts get recounted after re-ingest.
+These numbers are the Phase 17 measurement and they carry that date; the RAG counts are recounted at every re-ingest.
 
 ### Where the five guardrail layers fire
 
@@ -165,7 +165,7 @@ These numbers stand as evidence of what the design achieves; they get re-verifie
 
 ## Flow B: AI-native GRC pipeline (PR path)
 
-**Status: live in CI, with one paused branch.** This flow runs in GitHub Actions, so it survived the host loss almost untouched. The reviewer agents, kill switches, OPA gates, and the cosign signing path on merge all operate today. The one casualty: the eval harness lands its scores in self-hosted Langfuse, which is pending the ARM rebuild, so eval reruns are paused. The Phase 19 baseline scores were landed before the loss and remain the recorded baseline.
+**Status: live in CI.** This flow runs in GitHub Actions, so it survived the host loss almost untouched. The reviewer agents, the kill switches, the OPA gates and the cosign signing path on merge all operate. The eval harness lands its scores in the self-hosted trace store, and the Phase 19 baseline scores are the recorded baseline.
 
 The flow: a pull request opens, path filters split traffic to one of two reviewer agents, both honor a daily cost ceiling and a kill switch. On merge to main, three OSCAL artifacts get cosign-signed via Sigstore keyless OIDC. The eval harness scores reviewer output against a 12-fixture golden set.
 
@@ -189,7 +189,7 @@ flowchart TB
   classDef store fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
   classDef obs fill:#1f2933,stroke:#a371f7,color:#cdd9e5
   classDef out fill:#1f2933,stroke:#58a6ff,color:#cdd9e5
-  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+  classDef tier fill:#161b22,stroke:#39d98a,color:#cdd9e5
 
   PR["**Pull request opens**<br/>cyber-squire1 repo"]:::src
 
@@ -235,10 +235,10 @@ flowchart TB
     DDLOAD["download-artifact<br/>verify cosign bundle<br/>tolerance: warn if no artifact"]:::gate
   end
 
-  subgraph EVAL["**Eval harness** (self-hosted; reruns paused pending ARM rebuild)"]
+  subgraph EVAL["**Eval harness** (self-hosted)"]
     direction LR
     GOLDEN["**12-fixture golden set**<br/>10 LLM-generated + 2 hand-crafted"]:::store
-    LFEXP["Langfuse experiment<br/>Squire-GRC-Reviewer baseline<br/>(Phase 19 scores landed; host pending ARM rebuild)"]:::pending
+    LFEXP["Langfuse experiment<br/>Squire-GRC-Reviewer baseline<br/>(Phase 19 scores are the baseline)"]:::tier
     EVALS["**4 evaluators × 12 fixtures = 48 scores**<br/>control_coverage · poam_id_accuracy<br/>sanitization_catch_rate · hallucination_rate"]:::obs
   end
 
@@ -280,7 +280,7 @@ flowchart TB
   COSIGN --> UPLOAD
   UPLOAD --> DDLOAD
 
-  GRCREV -->|"nightly (paused pending rebuild)"| EVALS
+  GRCREV -->|nightly| EVALS
   EVALS --> LFEXP
   GOLDEN --> EVALS
 

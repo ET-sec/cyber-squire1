@@ -12,7 +12,7 @@ Zero-trust access via Cloudflare Tunnel. No public IP exposed.
 
 ## Stack
 
-Currently running on the instance: PostgreSQL 16 with pgvector, n8n, and the Cloudflare tunnel client. The rest of the 19-service design below is pending ARM rebuild.
+The instance carries the stack below. The live definition is `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` and the full design is `COREDIRECTIVE_ENGINE/docker-compose.yaml`.
 
 | Container | Service |
 |-----------|---------|

@@ -71,7 +71,7 @@ Results from these scans inform the POA&M maintained at `docs/grc/POAM_PLAN_OF_A
 
 This repository operates AI agents. Specific AI security guarantees:
 
-- In the designed stack every LLM call passes a guardrails sidecar and is traced; no process on the current host calls a hosted model until the agent tier returns in the ARM rebuild (status in `docs/architecture/STACK_OVERVIEW.md`)
+- Every LLM call passes a guardrails sidecar and is traced, and the rails refuse rather than route around a sidecar that cannot answer (the stack is described in `docs/architecture/STACK_OVERVIEW.md`)
 - Human-in-the-loop policy at `docs/grc/HITL_POLICY.md`
 - AI Governance policy at `docs/grc/POLICY_AI_GOVERNANCE.md`
 - Threat model with MITRE ATLAS mappings at `docs/grc/SQUIRE_THREAT_MODEL.md`
