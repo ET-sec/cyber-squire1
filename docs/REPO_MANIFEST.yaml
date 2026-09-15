@@ -501,7 +501,7 @@ entries:
     rewrite_later: "Three findings from plan 21-06. INFORMATION_FLOWS.md is headed 2026-08-31 and says 3 live containers while STACK_OVERVIEW.md, headed 2026-09-08, says 8, so the two architecture documents disagree about the live count. INFORMATION_FLOWS.md line 45 and INFORMATION_FLOWS_1.mmd line 30 both leave a bare dollar zero in a diagram label; it is a real measured result for the Redis dedup rail rather than a price claim, and Phase 28 owns whether a measured zero belongs in a label at all. The rendered docs/architecture/STACK_OVERVIEW.png on disk is stale after the mermaid edit; it is untracked, so no gate sees it, and the render command is in INFORMATION_FLOWS.md lines 331 to 338."
 
   - path: "docs/architecture/decisions/**"
-    purpose: "Six decision records, each naming the control it satisfies and the artifact that proves it."
+    purpose: "Seven decision records, each naming the control it satisfies and the artifact that proves it."
     status: active
     reason: "The record of why the platform is shaped this way. Each row states what proves the decision, so a reviewer can check rather than take it on trust."
     last_verified: 2026-09-09

@@ -280,6 +280,49 @@ services:
           pids: 256
     networks: [ net-monitoring ]
 
+  # --------------------------------------------------------------------------
+  # The identity tier (added 2026-09-15): the secrets manager, the identity
+  # provider, the access gateway, its event handler, and the audit log shipper.
+  # Same images and limits as the master file, index digests re-resolved on this
+  # host. Deployment identifiers and secrets come from identity.env (the seal key
+  # id and the KMS endpoints, the identity provider's bootstrap admin and database
+  # values, its public hostname, the gateway's address), chmod 600, read only by
+  # these blocks; the shipper reads its SIEM key from monitoring.env.
+  # --------------------------------------------------------------------------
+  cd-service-vault:
+    image: hashicorp/vault:2.1.0@sha256:5520cc26271c024e6ffa45cdf95255bd26b70d71ba4b7e0bc18925bef4128adb
+    container_name: cd-service-vault
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8200:8200"
+    # VAULT_OCIKMS_SEAL_KEY_ID, VAULT_OCIKMS_CRYPTO_ENDPOINT and
+    # VAULT_OCIKMS_MANAGEMENT_ENDPOINT come from identity.env: the seal reads
+    # them, and vault.hcl is the single configuration source.
+    env_file: [ identity.env ]
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - SKIP_SETCAP=true   # mlock is disabled in vault.hcl, so no IPC_LOCK is granted
+    volumes:
+      - ./CD_VOL_VAULT/config/vault.hcl:/vault/config/vault.hcl:ro
+      - ./CD_VOL_VAULT/data:/vault/data
+      - ./CD_VOL_VAULT/logs:/vault/logs
+    command: server
+    healthcheck:
+      # 200 only when initialized, unsealed and active: a sealed server reads unhealthy
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8200/v1/sys/health?standbyok=true"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 128
+    networks: [ net-core ]
+
 networks:
   net-core:
     name: net-core

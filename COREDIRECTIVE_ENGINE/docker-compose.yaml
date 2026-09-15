@@ -264,30 +264,34 @@ services:
   # - Init/unseal MUST be done OFF-STREAM (root token exposed)
   #
   cd-service-vault:
-    # Tier 1: secrets boundary. Digest pinned. NOTE: v1.15 reached EOL.
-    # Renovate will surface 1.18+ LTS upgrade as a major bump PR.
-    image: hashicorp/vault:1.15@sha256:0450896c43b13879b19442b204ce29dd19b5a10fce43d5cf38af17da20f56f4d
+    # Tier 1: secrets boundary. Digest pinned (multi-arch index, re-resolved on the
+    # Arm host 2026-09-15). One configuration source: CD_VOL_VAULT/config/vault.hcl.
+    # The seal is OCI KMS through the instance principal; the seal key id and the
+    # two KMS endpoints are read from the environment (identity.env on the host).
+    image: hashicorp/vault:2.1.0@sha256:5520cc26271c024e6ffa45cdf95255bd26b70d71ba4b7e0bc18925bef4128adb
     container_name: cd-service-vault
     restart: unless-stopped
     ports:
       - "127.0.0.1:8200:8200"
-    cap_add:
-      - IPC_LOCK
     environment:
       - VAULT_ADDR=http://127.0.0.1:8200
-      - VAULT_API_ADDR=http://127.0.0.1:8200
-      - VAULT_LOCAL_CONFIG={"storage":{"file":{"path":"/vault/data"}},"listener":[{"tcp":{"address":"0.0.0.0:8200","tls_disable":true}}],"disable_mlock":true,"ui":true}
+      - SKIP_SETCAP=true   # mlock is disabled in vault.hcl, so no IPC_LOCK is granted
+      - VAULT_OCIKMS_SEAL_KEY_ID=${VAULT_OCIKMS_SEAL_KEY_ID}
+      - VAULT_OCIKMS_CRYPTO_ENDPOINT=${VAULT_OCIKMS_CRYPTO_ENDPOINT}
+      - VAULT_OCIKMS_MANAGEMENT_ENDPOINT=${VAULT_OCIKMS_MANAGEMENT_ENDPOINT}
     volumes:
-      - ./CD_VOL_VAULT/config:/vault/config:z
-      - ./CD_VOL_VAULT/data:/vault/data:z
-      - ./CD_VOL_VAULT/logs:/vault/logs:z
+      - ./CD_VOL_VAULT/config/vault.hcl:/vault/config/vault.hcl:ro
+      - ./CD_VOL_VAULT/data:/vault/data
+      - ./CD_VOL_VAULT/logs:/vault/logs
     command: server
     healthcheck:
-      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      # An HTTP read of the health endpoint: 200 only when initialized, unsealed
+      # and active, so a sealed server reads unhealthy and says so.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8200/v1/sys/health?standbyok=true"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     security_opt:
       - no-new-privileges:true
     deploy:
