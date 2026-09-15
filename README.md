@@ -230,7 +230,7 @@ Want to stand this up in your own tenancy? Start at the
 ├── tests/                           Tests for the GRC tooling under scripts/grc
 ├── templates/                       Jinja template for the generated LinkedIn summary
 ├── scripts/                         build_metrics, poam_sync, sync_views, image and fact verifiers
-├── .github/workflows/               16 pipelines, every third-party action SHA-pinned
+├── .github/workflows/               18 pipelines, every third-party action SHA-pinned
 ├── .githooks/                       Commit + push gates (secrets, style, metrics)
 ├── renovate.json                    Dependency and image update policy by tier
 └── .env.example                     Variable names the master compose expects (values come from a secrets manager)

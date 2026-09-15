@@ -102,7 +102,7 @@ entries:
     reason: "It is the first thing a reviewer or a hiring manager reads, and it links every directory a reader needs."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "Two stale counts, both from plan 21-06. Lines 127 and 234 say 16 workflows while metrics.yaml says 17 and .github/workflows/ holds 17 files (measured 2026-09-09); this is the document that names metrics.yaml as the single source of numeric truth. Line 100 lists three live services while docs/architecture/STACK_OVERVIEW.md records 8 live containers verified on 2026-09-08, so the front door understates what is running."
+    rewrite_later: "Re-read 2026-09-15: line 233 names 18 pipelines, matching the 18 files in .github/workflows/ and the count metrics.yaml carries"
 
   - path: "SECURITY.md"
     purpose: "The vulnerability disclosure contact and the response expectation."

@@ -54,7 +54,7 @@ items:
       - "docs/REPO_MANIFEST.yaml"
       - "docs/architecture/views/nodes/multi-cloud.yaml"
       - "docs/architecture/views/nodes/authorization-boundary.yaml"
-    action: "Re-read every manifest row whose reason names a provider. Re-run scripts/site/check_public.py on both repositories before publishing anything about the move, and keep tier and cost language in the private tree."
+    action: "Re-read every manifest row whose reason names a provider. Re-run scripts/site/check_public.py on both repositories before publishing anything about the move, and hold tier and cost language off every public surface."
 
   - id: grc_librarian_tracking_decided
     flag: TRIGGER_GRC_LIBRARIAN
@@ -76,4 +76,4 @@ items:
       - "terraform/cd-aws-automation/**"
       - "terraform/simple-ec2/**"
       - "docs/REPO_MANIFEST.yaml"
-    action: "Decide for each archived directory whether it stays tracked or moves to the private tree with its ARCHIVED.md. Re-read the four manifest rows that defer to this event, then re-run gitleaks over the rewritten history before any push, because a rewrite replays every commit through the pre-push net."
+    action: "Decide for each archived directory whether it stays tracked or is retired with its ARCHIVED.md. Re-read the four manifest rows that defer to this event, then re-run gitleaks over the rewritten history before any push, because a rewrite replays every commit through the pre-push net."
