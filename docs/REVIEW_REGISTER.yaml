@@ -21,7 +21,7 @@ items:
       - "terraform/cd-aws-security-plane/**"
       - "docs/grc/POAM_PLAN_OF_ACTION.md"
       - ".github/workflows/drift-check.yml"
-    action: "Run /gsd:plan-phase 29. Close the single-provider backup gap tracked as POAM-025 in docs/grc/POAM_PLAN_OF_ACTION.md, attaching the both-sides object listing as evidence, and add the AWS directory to the nightly drift check."
+    action: "Plan the second-cloud security plane against the live account. Close the single-provider backup gap tracked as POAM-025 in docs/grc/POAM_PLAN_OF_ACTION.md, attaching the both-sides object listing as evidence, and add the AWS directory to the nightly drift check."
 
   - id: second_tenant_exists
     flag: TRIGGER_SECOND_TENANT
@@ -36,7 +36,7 @@ items:
 
   - id: identity_tier_live
     flag: TRIGGER_IDENTITY_TIER
-    what: "The identity tier documents, which have to match the host once the tier is up."
+    what: "The identity tier documents, which have to match the host when the tier is up."
     why_now: "Re-verify these files against the realm export and the signed agent cards."
     affects:
       - "keycloak/**"
