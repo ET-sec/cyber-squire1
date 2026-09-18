@@ -26,10 +26,10 @@ The DigitalOcean config is frozen at `../cd-do-infrastructure/` (see its
 ## What is live (verified 2026-08-31)
 
 - OCI Ampere A1 Flex instance (aarch64, 4 OCPU / 24GB memory / 150GB boot).
-- Core stack: PostgreSQL + n8n + Cloudflare tunnel (`COREDIRECTIVE_ENGINE/
-  docker-compose.oci-core.yaml`), fronted by a Cloudflare Access gate in
-  front of a live origin. The remaining services of the full stack are pending
-  the ARM rebuild (see `COREDIRECTIVE_ENGINE/docker-compose.yaml` header).
+- Core stack: the live definition is `COREDIRECTIVE_ENGINE/
+  docker-compose.oci-core.yaml`, fronted by a Cloudflare Access gate in
+  front of a live origin. The full service list is the master file
+  (see `COREDIRECTIVE_ENGINE/docker-compose.yaml` header).
 - Cloudflare edge (Access/ZTNA, WAF, DNS, tunnel) carried over unchanged and is
   serving traffic.
 - Data protection layer (`data_protection.tf`): customer-managed encryption
@@ -94,19 +94,19 @@ user in a read-only group. The workflow file documents the two non-obvious
 parts (Oracle's `urn:oci:token-type:oci-upst` token type and the SDK's
 fingerprint requirement for session auth).
 
-## Remaining work (post-migration, in priority order)
+## What sits outside this module
 
-1. **Terraform state -> Cloudflare R2**: state is already remote (versioned OCI
-   bucket with locking); moving it off the compute vendor waits on a one-time
-   R2 enable in the CF dashboard, then `terraform init -migrate-state`.
-2. **Re-import n8n workflows**: 14 JSON files in `COREDIRECTIVE_ENGINE/`; the
-   DB is fresh (old data died with the droplet). Credentials need reconnecting.
-3. **Full stack parity**: bring up the remaining services on ARM: strip/re-pin
-   digests for arm64, rebuild local images (nemo/squire/fluentd), regenerate
-   Teleport certs + Keycloak realm + Vault data (lost with the droplet), wire
-   falcosidekick -> Splunk.
-4. **Adopt the Cloudflare layer into Terraform**: `import`, not apply, then
-   parameterize and publish the module.
+1. **Terraform state**: state is already remote, in a versioned OCI bucket with
+   native locking. Moving it to Cloudflare R2 is a bucket create plus
+   `terraform init -migrate-state`; the reasoning sits in `terraform.tf`.
+2. **n8n workflows**: the 14 JSON exports in `COREDIRECTIVE_ENGINE/` are the
+   source of truth, and the instance carries all 14 with credentials bound by name.
+3. **Stack parity on Arm**: the compose design carries 19 services and the host
+   runs 8 of them on arm64 digests. The rest carry amd64 digests or local
+   images, so each one is built and re-pinned for aarch64, with Teleport certs,
+   the Keycloak realm and Vault data generated on first bring-up.
+4. **The Cloudflare layer in Terraform**: the edge is adopted with `import`, so
+   no apply creates it; it is then parameterized and published as a module.
 
-Full point-in-time record: `.private/INFRA_SNAPSHOT_2026-08-19.md` (gitignored)
-and the mirrored Google Drive doc.
+Account-specific values this module reads (bucket name, namespace, region) live
+in `backend.hcl`, which git never tracks.

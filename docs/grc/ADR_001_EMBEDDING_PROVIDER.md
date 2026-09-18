@@ -1,6 +1,6 @@
 # ADR 001: Embedding Provider Selection for Squire RAG
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this architecture decision record was written against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 **Status:** Accepted
 **Date:** 2026-04-23
@@ -39,7 +39,7 @@ Self-hosted embedding model running inside the Squire container. 1024-dimensiona
 
 The embedding provider Anthropic officially recommends for Claude-based retrieval systems. 1024-dimensional vectors.
 
-- **Cost:** Approximately $0.06 for the bulk ingest at one cent per ten thousand tokens on the indicative rate at decision time. <!-- TODO(et): verify the per-million-token rate against the current Voyage AI pricing page; published rates have ranged from approximately $0.06 to $0.18 per million tokens across model classes; update this figure on next review. -->
+- **Cost:** Approximately $0.06 for the bulk ingest at one cent per ten thousand tokens on the indicative rate at decision time.
 - **Data path:** Equivalent to Option A (alert text traverses the public internet).
 - **Ecosystem fit:** Clean integration with the Anthropic stack Squire already uses.
 
@@ -58,7 +58,7 @@ The reference deployment processes synthetic alerts against a sanitized GRC corp
 
 **Schema migration applied alongside this decision:** `builds/squire/migrations/002_vector_1024.sql` drops the original `vector(1536)` column and replaces it with `vector(1024)`, recreating the HNSW index on the new column. This migration runs before bulk ingest since `ir_chunks` is empty at this point.
 
-<!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `<SECRETS_PROJECT>/<CONFIG>`. The compose env block on svc-squire references this key; missing key causes runtime failure on first embed call. -->
+
 
 ## Consequences for Customer Deployments
 

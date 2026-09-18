@@ -52,7 +52,7 @@ a(node(850,300,130,"Whisper",h=30)); a(node(850,338,130,"Ollama",h=30))
 a(t(915,394,"no route out",11.5,DIM,None,"middle")); a(t(915,410,"bridged by n8n",11.5,DIM,None,"middle")); a(t(915,426,"audio never leaves",11.5,DIM,None,"middle"))
 a(f'<rect x="1004" y="270" width="226" height="198" rx="6" fill="rgba(255,255,255,0.015)" stroke="{LINE}" stroke-width="1.5"/>')
 a(t(1014,288,"NET-MONITORING",11.5,TEXT,700,"start",2))
-for i,l in enumerate(["Falco, eBPF","Falcosidekick","Fluentd","Datadog agent"]):
+for i,l in enumerate(["Falco, eBPF","Falcosidekick","Vector","Datadog agent"]):
     a(node(1014,300+i*38,206,l,h=30,stroke=AMBER if i==0 else NSTROKE))
 a(t(1117,458,"reads the kernel below every container",11,DIM,None,"middle"))
 # ===== cloud resources =====

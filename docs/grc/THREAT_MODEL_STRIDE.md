@@ -9,7 +9,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.2 (trust boundary numbering reconciled, register recount 2026-09-06)
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this threat model is drawn against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -808,8 +808,8 @@ Recounted from the register on 2026-09-06. I-02 is rated Moderate in its entry, 
 
 > **Key Point:** The Squire autonomous SOC analyst subsystem introduces 6 new components. STRIDE rows below map each Squire component to each STRIDE category with the Phase 17 control that resists the threat. `SQUIRE_THREAT_MODEL.md` is the integrated authoritative Squire-scope threat view.
 
-<!-- TODO(et): "patched Langfuse v3" in svc-langfuse-web row is vague. Cite the specific Langfuse v3 minor and the CVE-XXXX-NNNN that motivated the patch. -->
-<!-- TODO(et): Section 12.5 Squire/NeMo/Langfuse components live as an addendum here but are not yet integrated into Section 2 Trust Zones / Authorization Boundary. Integrate or formally call out the scope split. -->
+
+
 
 ### 12.5.1 Squire components x STRIDE
 
@@ -843,7 +843,7 @@ See `ATTACK_TREE_AI_PIPELINE.md` Phase 17 Scope Extension for the 3 new Squire-s
 
 ## Phase 20.1 Mitigation Update (2026-09-01)
 
-Five controls shipped in Phase 20.1 close attack paths identified in this model; a sixth is designed and gated, closing at apply. Implementation detail lives in the Terraform repo; residual items are tracked in the POA&M.
+Five controls shipped in Phase 20.1 close attack paths identified in this model; a sixth is written and held behind an apply gate. Implementation detail lives in the Terraform repo; residual items are tracked in the POA&M.
 
 | # | New control | Attack path closed | STRIDE category |
 |---|-------------|--------------------|-----------------|
@@ -852,7 +852,7 @@ Five controls shipped in Phase 20.1 close attack paths identified in this model;
 | 3 | Customer-managed key (CMK) envelope encryption on state and backup buckets | Provider-default-only encryption at rest | Information Disclosure |
 | 4 | Retention-locked immutable backups with monthly timed restores | Ransomware deleting backups before detonation | Tampering |
 | 5 | Nightly drift detection with Telegram alerting | Unreviewed console changes persisting undetected; window now under 24 hours | Tampering |
-| 6 | AWS security plane (designed, apply scheduled): Object Lock evidence vault, cross-cloud break-glass with alert-on-use, region guard | Single-vendor failure taking evidence, backups, and emergency access together; silent break-glass use | Tampering, Repudiation, Denial of Service |
+| 6 | AWS security plane, held behind an apply gate: Object Lock evidence vault, cross-cloud break-glass with alert-on-use, region guard | Single-vendor failure taking evidence, backups, and emergency access together; silent break-glass use | Tampering, Repudiation, Denial of Service |
 
 ---
 

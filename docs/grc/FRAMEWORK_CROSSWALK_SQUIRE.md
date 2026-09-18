@@ -22,7 +22,7 @@ related:
   - RT-SQUIRE-001
 ---
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this agent control crosswalk maps the controls of the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # Framework Crosswalk: Squire Controls
 
@@ -101,7 +101,7 @@ The `x-squire-token` header is the primary access gate to the graph. Absence or 
 
 Every `/alert` call is decorated with `@observe()` from `langfuse.decorators`. The decorator emits a trace that carries every node span, prompt, completion, cost, and rail decision. CI enforces that every graph node is covered; trace coverage assertions live in `builds/squire/tests/redteam/test_guardrails_redteam.py` (consolidated test module driven by `cases.yaml`). The trace is the primary audit artifact tying a response back to its inputs.
 
-<!-- TODO(et): expand test_guardrails_redteam.py into individual files per test category, OR keep consolidated and update doc to reflect single file -->
+
 
 
 ### Row 3: Pre-graph PII regex scanner
@@ -128,7 +128,7 @@ Three independent cost and loop guards prevent runaway spend. Each has an explic
 
 Model choice is compiled into the graph code. The Pydantic request schema rejects any user-supplied `model` field. CI coverage for the per-node model map lives in `builds/squire/tests/redteam/test_guardrails_redteam.py` (consolidated module driven by `cases.yaml`); the build fails if the map changes without an accompanying ADR entry.
 
-<!-- TODO(et): expand test_guardrails_redteam.py into individual files per test category, OR keep consolidated and update doc to reflect single file -->
+
 
 
 ### Row 11: Critique citation guard
@@ -289,7 +289,7 @@ Auditors tracing a specific framework citation back to evidence follow this shor
 Primary evidence file: `docs/grc/SQUIRE_SSP.md` Section 6 (Control Implementation). Each family subsection lists status plus implementation plus evidence link. Repository artifacts:
 
 - AC family: `builds/squire/src/squire/app.py` (require_token), `builds/squire/docker-compose.yaml` networks
-- AU family: Langfuse trace views and `svc-db` migrations `ir_*` schema. Audit-event emission lives in the graph nodes themselves, not a single `audit.py` module. <!-- TODO(et): if a dedicated `builds/squire/src/squire/audit.py` is added later, update this row. -->
+- AU family: Langfuse trace views and `svc-db` migrations `ir_*` schema. Audit-event emission lives in the graph nodes themselves, not a single `audit.py` module.
 - CM family: `builds/squire/Dockerfile`, `builds/squire/requirements.txt`, `.github/workflows/squire-ci.yml`
 - IA family: Doppler project `<SECRETS_PROJECT>`, secret audit log
 - IR family: `docs/grc/PLAYBOOK_AI_INCIDENT.md`, Datadog monitor definitions

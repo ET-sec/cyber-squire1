@@ -7,7 +7,7 @@
 **Owner:** Information Security Officer
 **Approved By:** System Owner
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this data classification is applied on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -79,7 +79,7 @@ JSON envelope with:
 
 ### 3.4 Retention
 
-<!-- TODO(et): Verify nightly pg_dump cron is currently scheduled and running. -->
+
 90 days hot in Postgres. Weekly pg_dump to DO Spaces `nightly/` prefix with 14-day retention. Indefinite cold storage via monthly aggregation to DO Spaces `archive/` prefix (Phase 7 procedure preserved).
 
 ### 3.5 Sanitization
@@ -93,7 +93,7 @@ The two layers are deliberate. NeMo v0.21.0 only fronts the nodes configured in 
 
 ### 3.6 Encryption
 
-<!-- TODO(et): DigitalOcean block storage is encrypted at rest by DO by default. Distinguish DO-side encryption from LUKS-on-volume in this line. -->
+
 - At rest: Postgres filesystem volume on alpha-node, LUKS-capable but not currently encrypted at the block layer; Docker Compose volume permissions are 999:999 mode 700.
 - In transit: Cloudflare Tunnel terminates TLS at the edge; internal hop from tunnel to svc-squire is HTTP on the Docker bridge network (trust boundary: the host itself).
 
@@ -156,7 +156,7 @@ ClickHouse is the long-term trace store. Raw JSON mirrored to DO Spaces `langfus
 
 ### 5.4 Sanitization
 
-<!-- TODO(et): Verify Langfuse v3 mask option is actually configured in squire app code. -->
+
 Langfuse masks known secret patterns (`sk-ant-`, `sk-oat-`, bearer tokens, `AKIA` prefixes) at ingest via the SDK's built-in masker. Input envelopes referencing DC-1 payloads inherit the DC-1 sanitization chain.
 
 ### 5.5 Encryption

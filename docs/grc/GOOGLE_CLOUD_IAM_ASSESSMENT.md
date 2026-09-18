@@ -191,7 +191,7 @@ The OAuth 2.0 client requests 12 scopes. Each scope maps to a specific Workspace
 
 Each authenticated account stores credentials in a separate configuration directory to prevent cross-contamination and enable per-account revocation.
 
-<!-- TODO(et): verify the layout below against the actual gws CLI install. The real gws CLI uses per-account token files; confirm directory structure matches the install at ~/.config/gws/ before sharing with an external reviewer. -->
+
 
 ```
 ~/.config/gws/
@@ -317,7 +317,7 @@ The policy modification introduces a theoretical risk: any Google identity could
 
 Re-restrict the `iam.allowedPolicyMemberDomains` policy after confirming 90 days of stable operation with the current configuration. If consumer account access remains a permanent requirement, document this as a permanent risk acceptance with annual re-evaluation. Monitor Google Cloud IAM for the introduction of per-email domain allowlisting, which would allow a more granular alternative.
 
-<!-- TODO(et): the original 90-day re-evaluation window closed 2026-06-22. Record the re-evaluation outcome (re-restricted, permanent acceptance, or extended target) with a dated note. -->
+
 
 ---
 
@@ -493,10 +493,10 @@ These alerts are not yet implemented. They are tracked as recommendations in Sec
 
 | Priority | Recommendation | NIST Control | Status | Target Date |
 |----------|---------------|-------------|--------|-------------|
-| HIGH | Enable Data Access audit logs for Gmail API and Google Drive API | AU-2, AU-3 | Open; target extended | 2026-09-15 <!-- TODO(et): verify Data Access audit log status and either record COMPLETE with evidence link or keep target on the extended date --> |
-| HIGH | Create Cloud Monitoring alert policies for IAM and org policy changes | AU-6, SI-4 | Open; target extended | 2026-09-15 <!-- TODO(et): verify alert policy creation status; mark COMPLETE with policy IDs or keep extended target --> |
-| MEDIUM | Re-evaluate `iam.allowedPolicyMemberDomains` policy after 90 days of stable operation | AC-3, CA-7 | Open; re-evaluation due | 2026-07-15 <!-- TODO(et): record the re-evaluation outcome with date and rationale; restore domain restriction or document permanent risk acceptance --> |
-| MEDIUM | Implement OAuth token rotation schedule (revoke and re-authenticate quarterly) | IA-5(1) | Open; target extended | 2026-09-15 <!-- TODO(et): confirm OAuth rotation cadence is operational; if not, surface as POA&M --> |
+| HIGH | Enable Data Access audit logs for Gmail API and Google Drive API | AU-2, AU-3 | Open; target extended | 2026-09-15 |
+| HIGH | Create Cloud Monitoring alert policies for IAM and org policy changes | AU-6, SI-4 | Open; target extended | 2026-09-15 |
+| MEDIUM | Re-evaluate `iam.allowedPolicyMemberDomains` policy after 90 days of stable operation | AC-3, CA-7 | Open; re-evaluation due | 2026-07-15 |
+| MEDIUM | Implement OAuth token rotation schedule (revoke and re-authenticate quarterly) | IA-5(1) | Open; target extended | 2026-09-15 |
 | MEDIUM | Monitor API usage for anomalous volume or unusual access patterns | SI-4, AU-6 | Ongoing | Ongoing |
 | LOW | Evaluate service account migration for svc-automation workflows (eliminates consumer account dependency for automated operations) | AC-2, IA-4 | Open | 2026-09-22 |
 | LOW | Investigate per-account OAuth scope restriction if multi-user onboarding occurs | AC-6, AC-3 | Open | As needed |

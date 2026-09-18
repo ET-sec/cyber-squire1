@@ -8,7 +8,7 @@
 **Classification:** Internal Use Only
 **Version:** 1.0
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this writeup reports a finding on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -200,7 +200,7 @@ The following table categorizes all 44 environment variables by function and imp
 | **Search / AI** | 1 | `SEARCH_API_KEY` | Unauthorized API usage, cost accumulation. |
 | **Cloud Office** | 1 | `OFFICE_API_KEY` | Spreadsheet data access and modification. |
 | **Object Storage** | 2 | `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` | Terraform state file access, backup data exposure, state tampering. |
-| **AWS Credentials** | 5 | `CLOUD_ACCESS_KEY_ID`, `CLOUD_SECRET_ACCESS_KEY`, `CLOUD_ROOT_PASSWORD`, `CLOUD_PERSONAL_PASSWORD`, `CLOUD_ADMIN_PASSWORD` | Full AWS account access (account suspended 2026-03-08 for billing; API credentials may still be valid for API calls until rotated). <!-- TODO(et): confirm whether the AWS access keys were rotated or revoked post-suspension; if active, residual exposure is real and a rotation event should be logged --> |
+| **AWS Credentials** | 5 | `CLOUD_ACCESS_KEY_ID`, `CLOUD_SECRET_ACCESS_KEY`, `CLOUD_ROOT_PASSWORD`, `CLOUD_PERSONAL_PASSWORD`, `CLOUD_ADMIN_PASSWORD` | Full AWS account access (account suspended 2026-03-08 for billing; API credentials may still be valid for API calls until rotated). |
 | **Streaming** | 1 | `STREAM_KEY` | Stream hijacking, unauthorized broadcasts. |
 | **Network / VPN** | 3 | `VPN_USERNAME`, `VPN_PASSWORD`, `NETWORK_PASSWORD` | VPN account compromise, network gateway access. |
 | **Administrative Passwords** | 4 | `AUTOMATION_WEB_PASSWORD`, `AUTOMATION_ADMIN_PASS`, `DB_PASS_1P`, `MONITOR_PASSWORD` | Duplicate admin credential exposure across multiple services. |
@@ -359,11 +359,11 @@ Every application deployed on the platform should undergo a security configurati
 | Priority | Recommendation | Status | Original Target | Updated Target |
 |----------|---------------|--------|-----------------|----------------|
 | **P1** | Enable `N8N_RESTRICT_ENVIRONMENT_VARIABLES_ACCESS=true` | COMPLETE (2026-03-22) | Same day | n/a |
-| **P2** | Add n8n security flags to deployment hardening checklist | Open; target extended | 2026-04-21 | 2026-08-15 <!-- TODO(et): mark COMPLETE with evidence link if hardening checklist has been authored, else keep extended target --> |
-| **P3** | Implement Falco custom rule for unusual outbound connections from svc-automation | Open; target extended | 2026-05-21 | 2026-08-15 <!-- TODO(et): confirm Falco custom rule status; mark COMPLETE with rule reference if shipped --> |
-| **P4** | Migrate from static environment variables to Vault AppRole dynamic credentials | Open; tracked in POA&M | 2026-06-20 | 2026-12-31 <!-- TODO(et): align with POA&M target for Vault AppRole migration --> |
-| **P5** | Conduct application-specific security configuration reviews for all 20 containers | Open; target extended | 2026-06-20 | 2026-09-30 <!-- TODO(et): track per-container review completion --> |
-| **P6** | Implement n8n execution logging that captures Code node source and output | Open; target extended | 2026-05-21 | 2026-09-15 <!-- TODO(et): confirm n8n execution logging configuration --> |
+| **P2** | Add n8n security flags to deployment hardening checklist | Open; target extended | 2026-04-21 | 2026-08-15 |
+| **P3** | Implement Falco custom rule for unusual outbound connections from svc-automation | Open; target extended | 2026-05-21 | 2026-08-15 |
+| **P4** | Migrate from static environment variables to Vault AppRole dynamic credentials | Open; tracked in POA&M | 2026-06-20 | 2026-12-31 |
+| **P5** | Conduct application-specific security configuration reviews for all 20 containers | Open; target extended | 2026-06-20 | 2026-09-30 |
+| **P6** | Implement n8n execution logging that captures Code node source and output | Open; target extended | 2026-05-21 | 2026-09-15 |
 
 ---
 

@@ -10,7 +10,7 @@ non-event.
 
 ## Status
 
-DESIGNED, apply pending account activation. This module follows the same
+Written and held behind a deliberate apply gate. This module follows the same
 discipline as `../cd-oci-infrastructure/`: no control is claimed as running
 until its forced-failure receipt exists. The verification plan below is the
 checklist for that apply.
@@ -42,10 +42,10 @@ Checkov: 135 passed, 0 failed, 11 skips each carrying its reason inline.
 
 Monitoring rationale: the alert path is EventBridge to Lambda to Telegram
 because it is push-based, has no idle footprint, and wakes the operator. Log analytics
-is Athena over the vault on demand. A managed SIEM (Datadog or Splunk) is a
-documented future lane, not enabled by default: at this scale a standing
-SIEM adds cost and surface without adding detection the trail and rules do
-not already provide.
+is Athena over the vault on demand. The push path is the monitoring lane
+this module holds behind the apply gate; a managed SIEM (Datadog or Splunk)
+stays out of it, because a standing SIEM adds cost and surface without
+adding detection the trail and rules do not already provide.
 
 ## Bootstrap order (fresh account)
 

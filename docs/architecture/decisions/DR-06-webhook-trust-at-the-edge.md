@@ -22,7 +22,7 @@ So the real finding was not "the webhook is open." It was "the edge is closed so
 | Option | Effect | Verdict |
 |---|---|---|
 | A. Disable the geo-fence and add a host-wide Access bypass for `/webhook/*` | Fixes the bot, opens every webhook to the internet | Rejected |
-| B. Move the bot to long polling from inside the host | Removes the inbound path entirely; needs a persistent poller (pending ARM rebuild) and gives up edge rate limiting and logging | Deferred, reasonable later |
+| B. Move the bot to long polling from inside the host | Removes the inbound path entirely; needs a persistent poller and gives up edge rate limiting and logging | Deferred, reasonable later |
 | C. Path-scoped Access application on the Telegram Trigger path with a bypass policy limited to Telegram's published egress ranges, matching WAF carve-outs, chat-ID restriction on the trigger node, per-IP rate limit unchanged | Opens one path to two published ranges, nothing else changes | **Chosen** |
 | D. Keep the orchestrator webhook edge-only | Status quo; a leaked service token or a compromised edge account reaches the raw-SQL action unopposed | Rejected in favour of app-layer header auth as a second layer |
 
@@ -45,9 +45,9 @@ What the code adoption risks: an incorrect import that makes Terraform want to r
 |---|---|---|---|
 | 1 | `terraform plan` after import, before any change | zero destroys, only the intended in-place updates and the new bypass app | 2 to add, 3 to change, 0 to destroy. Post-apply plan: no changes |
 | 2 | Unauthenticated POST to the orchestrator webhook path | 302 to Access login (unchanged) | 302 to Access login, after apply |
-| 3 | Telegram `getWebhookInfo` after the operator sends the bot a message | the 403 clears; the next error, if any, comes from n8n itself | pending operator action (see the workflow store finding below: expect a 404 from n8n until the workflows are restored, which still proves the edge now lets Telegram through) |
+| 3 | Telegram `getWebhookInfo` after the operator sends the bot a message | the answer names the delivery result for the configured URL | read back with the bot token redacted: the registered URL matches the carve-out path, `pending_update_count` 0, `last_error_message` none, `allowed_updates` limited to `message` and `callback_query` |
 | 4 | Read-back of the WAF geo-fence rule from the API | expression carries the `not (ip.src in {...})` carve-out | both the geo-fence and the header-anomaly rule carry it, read back after apply |
-| 5 | Unauthenticated POST to the Telegram webhook path from a non-Telegram source | 302 to Access login (bypass is IP-scoped) | **403 from Access.** The path-scoped application carries only the IP-scoped bypass policy, so a source outside Telegram's ranges is denied outright instead of being offered a login. Stricter than designed. Kept |
+| 5 | Unauthenticated POST to the Telegram webhook path from a non-Telegram source | 302 to Access login (bypass is IP-scoped) | **403 from Access.** The path-scoped application carries only the IP-scoped bypass policy, so a source outside Telegram's ranges is denied outright instead of being offered a login. Stricter than the design asked for. Kept |
 
 ## What the workflow store showed
 
@@ -74,4 +74,4 @@ The 2026-09-01 assessment stated the orchestrator endpoint had no authentication
 - Import the remaining Cloudflare resources into `cd-cloudflare-edge`.
 - Per-agent service tokens replacing the shared automation token.
 - A drift-check leg for the edge plane. Tradeoff to document when done: it needs a scoped read-only Cloudflare token stored in CI, which is the first stored cloud credential in the pipeline since the OIDC migration.
-- Option B (long polling) as the eventual replacement for the inbound carve-out once the poller has a home.
+- Option B (long polling) stays the recorded alternative to the inbound carve-out; this record chooses the carve-out because the edge enforces the source scoping on it.

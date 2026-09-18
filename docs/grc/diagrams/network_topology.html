@@ -2,88 +2,88 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    width:2160px; background:#0a0a0a; color:#e8e8e8;
-    font-family:'Inter','Helvetica Neue',Arial,sans-serif;
+    width:2160px; background:#060907; color:#f2efe4;
+    font-family:'JetBrains Mono','SF Mono',Menlo,monospace;
     padding:70px 80px 60px;
   }
   .mono { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; }
   .green { color:#00FF41; }
 
   h1 { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:92px; letter-spacing:2px; }
-  .subtitle { font-size:38px; color:#a8b0b8; margin-top:18px; max-width:1900px; line-height:1.35; }
+  .subtitle { font-size:38px; color:#b9c2ba; margin-top:18px; max-width:1900px; line-height:1.35; }
 
   .legend { display:flex; gap:28px; margin:44px 0 50px; flex-wrap:wrap; }
-  .lg { display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#c8ced4; }
+  .lg { display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#b9c2ba; }
   .sw { width:34px; height:34px; border-radius:8px; }
   .sw.live { background:rgba(0,255,65,.18); border:3px solid #00FF41; }
-  .sw.pend { background:rgba(255,176,32,.10); border:3px dashed #FFB020; }
   .sw.ver  { background:transparent; border:3px solid #00FF41; border-radius:50%; }
   .sw.def  { background:transparent; border:3px solid #FF5C5C; border-radius:50%; }
+  .sw.tier { background:rgba(255,176,32,.05); border:3px solid #FFB020; }
 
   .zone { border-radius:26px; padding:36px 40px 40px; position:relative; }
   .zlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:52px; letter-spacing:1px; margin-bottom:10px; }
-  .zsub { font-size:32px; color:#9aa2aa; margin-bottom:26px; line-height:1.35; }
+  .zsub { font-size:32px; color:#a8b3aa; margin-bottom:26px; line-height:1.35; }
 
   .z-red   { border:3px solid #FF5C5C; background:rgba(255,92,92,.05); }
   .z-red   .zlabel { color:#FF7A7A; }
-  .z-blue  { border:3px solid #4DA3FF; background:rgba(77,163,255,.05); }
-  .z-blue  .zlabel { color:#7CBAFF; }
+  .z-blue  { border:3px solid #a8b3aa; background:rgba(242,239,228,.035); }
+  .z-blue  .zlabel { color:#f2efe4; }
   .z-orange{ border:3px solid #F6821F; background:rgba(246,130,31,.05); }
   .z-orange .zlabel { color:#FF9C42; }
   .z-green { border:3px solid #00FF41; background:rgba(0,255,65,.04); }
   .z-green .zlabel { color:#00FF41; }
-  .z-grey  { border:3px solid #6a7480; background:rgba(150,160,170,.05); }
-  .z-grey  .zlabel { color:#aab6c2; }
+  .z-grey  { border:3px solid #66756c; background:rgba(185,194,186,.05); }
+  .z-grey  .zlabel { color:#b9c2ba; }
 
   .grid2 { display:grid; grid-template-columns:1.08fr .92fr; gap:44px; }
 
-  .node { background:#121417; border:2px solid #2c3138; border-radius:18px; padding:28px 30px; }
+  .node { background:#0d1310; border:2px solid #33413a; border-radius:18px; padding:28px 30px; }
   .node + .node { margin-top:24px; }
-  .nlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:44px; color:#f2f4f6; line-height:1.25; }
-  .nsub { font-size:32px; color:#a2aab2; margin-top:12px; line-height:1.4; }
+  .nlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:44px; color:#f2efe4; line-height:1.25; }
+  .nsub { font-size:32px; color:#a8b3aa; margin-top:12px; line-height:1.4; }
 
   .chip { display:inline-block; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px;
           border-radius:12px; padding:10px 18px; margin-top:16px; margin-right:14px; line-height:1.35; }
   .verified { border:2px solid #00FF41; color:#7dffA3; background:rgba(0,255,65,.07); }
   .defeats  { border:2px solid #FF5C5C; color:#FF9B9B; background:rgba(255,92,92,.06); }
-  .badge    { border:2px solid #4DA3FF; color:#9CCBFF; background:rgba(77,163,255,.08); }
+  .badge    { border:2px solid #a8b3aa; color:#f2efe4; background:rgba(242,239,228,.06); }
 
   .connrow { display:grid; grid-template-columns:1.08fr .92fr; gap:44px; }
   .conn { display:flex; flex-direction:column; align-items:center; padding:8px 0; }
   .cline { width:6px; height:56px; background:#00FF41; }
   .chead { width:0; height:0; border-left:18px solid transparent; border-right:18px solid transparent; border-top:28px solid #00FF41; }
-  .clabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; color:#cfd6dc; text-align:center;
+  .clabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; color:#b9c2ba; text-align:center;
             margin:14px 0; max-width:880px; line-height:1.4; }
   .conn .verified { margin-top:2px; margin-bottom:12px; }
 
   .oci-badge { position:absolute; top:34px; right:40px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace;
-               font-size:36px; color:#0a0a0a; background:#00FF41; border-radius:14px; padding:12px 24px; font-weight:700; }
+               font-size:36px; color:#060907; background:#00FF41; border-radius:14px; padding:12px 24px; font-weight:700; }
 
-  .subzone { border:2px solid #3a4148; border-radius:20px; padding:30px 32px; background:rgba(255,255,255,.015); }
-  .szlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:48px; color:#dfe5ea; margin-bottom:8px; }
-  .szsub { font-size:31px; color:#98a0a8; margin-bottom:24px; line-height:1.4; }
+  .subzone { border:2px solid #33413a; border-radius:20px; padding:30px 32px; background:rgba(242,239,228,.02); }
+  .szlabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:48px; color:#f2efe4; margin-bottom:8px; }
+  .szsub { font-size:31px; color:#a8b3aa; margin-bottom:24px; line-height:1.4; }
 
   .livebox { border:3px solid #00FF41; background:rgba(0,255,65,.06); border-radius:16px; padding:24px 28px; margin-top:24px; }
   .liveh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#00FF41; margin-bottom:16px; }
-  .pendbox { border:3px dashed #FFB020; background:rgba(255,176,32,.05); border-radius:16px; padding:24px 28px; margin-top:24px; }
-  .pendh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#FFB020; margin-bottom:16px; }
+  .tierbox { border:3px solid #FFB020; background:rgba(255,176,32,.05); border-radius:16px; padding:24px 28px; margin-top:24px; }
+  .tierh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:36px; color:#FFB020; margin-bottom:16px; }
   .ctrs { display:flex; flex-wrap:wrap; gap:14px; }
-  .ctr { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; background:#15181c;
-         border:2px solid #33393f; border-radius:12px; padding:12px 20px; color:#dde3e8; }
-  .pendbox .ctr { border-color:#5a4b26; color:#e8cf9a; }
-  .pendnote { font-size:30px; color:#c9a45c; margin-top:18px; line-height:1.4; }
+  .ctr { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; background:#0d1310;
+         border:2px solid #33413a; border-radius:12px; padding:12px 20px; color:#f2efe4; }
+  .tierbox .ctr { border-color:#5a4b26; color:#e8cf9a; }
+  .tiernote { font-size:30px; color:#c9a45c; margin-top:18px; line-height:1.4; }
 
-  .footer { margin-top:54px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#78828c; line-height:1.5; }
+  .footer { margin-top:54px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#8f9a91; line-height:1.5; }
 </style>
 
 <h1>NETWORK <span class="green">TOPOLOGY</span></h1>
-<div class="subtitle">The platform: one Oracle Cloud Ampere A1 ARM instance behind a Cloudflare zero trust edge. Two entry paths, two federation boundaries, no inbound service ports. Verified 2026-08-31.</div>
+<div class="subtitle">The platform: one Oracle Cloud Ampere A1 ARM instance behind a Cloudflare zero trust edge. Two entry paths, two federation boundaries, no inbound service ports. Host read 2026-09-15.</div>
 
 <div class="legend">
   <div class="lg"><span class="sw live"></span>LIVE, SERVING TRAFFIC</div>
-  <div class="lg"><span class="sw pend"></span>DESIGNED, PENDING ARM REBUILD</div>
   <div class="lg"><span class="sw ver"></span>VERIFIED: control tested by forcing the failure</div>
   <div class="lg"><span class="sw def"></span>DEFEATS: the enemy this control removes</div>
+  <div class="lg"><span class="sw tier"></span>DEFINED IN DOCKER COMPOSE: the eleven services of the identity, secrets and AI tier</div>
 </div>
 
 <!-- Row 1: the two external principals -->
@@ -182,22 +182,24 @@
         <div class="nsub">4 OCPU, 24 GB RAM, 150 GB boot volume. Docker host provisioned by Terraform and cloud-init.</div>
 
         <div class="livebox">
-          <div class="liveh">LIVE: the only three running containers</div>
+          <div class="liveh">LIVE: the eight running containers</div>
           <div class="ctrs">
             <span class="ctr">PostgreSQL 16 + pgvector</span>
             <span class="ctr">n8n automation</span>
             <span class="ctr">Cloudflare tunnel client</span>
+            <span class="ctr">Falco</span><span class="ctr">Falcosidekick</span>
+            <span class="ctr">Datadog agent</span><span class="ctr">Ollama</span><span class="ctr">Whisper</span>
           </div>
         </div>
 
-        <div class="pendbox">
-          <div class="pendh">DESIGNED, PENDING ARM REBUILD (not running)</div>
+        <div class="tierbox">
+          <div class="tierh">IDENTITY, SECRETS AND AI TIER</div>
           <div class="ctrs">
             <span class="ctr">Vault</span><span class="ctr">Keycloak</span><span class="ctr">Teleport</span>
-            <span class="ctr">Falco</span><span class="ctr">Datadog</span><span class="ctr">Langfuse</span>
-            <span class="ctr">Ollama</span><span class="ctr">NeMo Guardrails</span><span class="ctr">Squire agent</span>
+            <span class="ctr">Audit log router</span><span class="ctr">Langfuse</span>
+            <span class="ctr">NeMo Guardrails</span><span class="ctr">Squire agent</span>
           </div>
-          <div class="pendnote">Codified in Docker Compose; comes back once images are re-pinned and rebuilt for arm64.</div>
+          <div class="tiernote">Eleven services in seven groups, defined in Docker Compose; registry images pinned to their arm64 index digests and three built from this repository.</div>
         </div>
       </div>
     </div>
@@ -228,4 +230,4 @@
   </div>
 </div>
 
-<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript in the private repo.</div>
+<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript for that control.</div>

@@ -16,12 +16,12 @@ items:
   - id: aws_credits_landed
     flag: TRIGGER_AWS_CREDITS
     what: "The AWS security plane apply and the off-provider backup replication."
-    why_now: "Phase 29 is gated on credits. Nothing else in v3.0 waits on it, so it can run in any window once they land."
+    why_now: "The security plane's controls can only be proven against a live account."
     affects:
       - "terraform/cd-aws-security-plane/**"
       - "docs/grc/POAM_PLAN_OF_ACTION.md"
       - ".github/workflows/drift-check.yml"
-    action: "Run /gsd:plan-phase 29. Close the single-provider backup gap tracked as POAM-025 in docs/grc/POAM_PLAN_OF_ACTION.md, attaching the both-sides object listing as evidence, and add the AWS directory to the nightly drift check."
+    action: "Plan the second-cloud security plane against the live account. Close the single-provider backup gap tracked as POAM-025 in docs/grc/POAM_PLAN_OF_ACTION.md, attaching the both-sides object listing as evidence, and add the AWS directory to the nightly drift check."
 
   - id: second_tenant_exists
     flag: TRIGGER_SECOND_TENANT
@@ -36,14 +36,14 @@ items:
 
   - id: identity_tier_live
     flag: TRIGGER_IDENTITY_TIER
-    what: "The identity tier documents that describe services which are not running yet."
-    why_now: "Phase 24 brings Keycloak and the agent tier up on the Ampere host. Until then these files describe a design; after it they describe a system, and the difference has to be visible."
+    what: "The identity tier documents, which have to match the host when the tier is up."
+    why_now: "Re-verify these files against the realm export and the signed agent cards."
     affects:
       - "keycloak/**"
       - "Agent_Squire/**"
       - "docs/grc/IAM_RBAC_ROLE_MAP.md"
       - "docs/grc/IAM_ACCESS_REVIEW.md"
-    action: "Re-verify the realm export against the running realm, re-sign the agent cards whose runtime_location points at a path that does not exist, and move the two IAM documents from designed to implemented with the proving command in each."
+    action: "Re-verify the realm export against the running realm, re-sign the agent cards whose runtime_location points at a path that does not exist, and give the two IAM documents the proving command for each control they claim."
 
   - id: provider_terms_change
     flag: TRIGGER_PROVIDER_TERMS
@@ -54,7 +54,7 @@ items:
       - "docs/REPO_MANIFEST.yaml"
       - "docs/architecture/views/nodes/multi-cloud.yaml"
       - "docs/architecture/views/nodes/authorization-boundary.yaml"
-    action: "Re-read every manifest row whose reason names a provider. Re-run scripts/site/check_public.py on both repositories before publishing anything about the move, and keep tier and cost language in the private tree."
+    action: "Re-read every manifest row whose reason names a provider. Re-run scripts/site/check_public.py on both repositories before publishing anything about the move, and hold tier and cost language off every public surface."
 
   - id: grc_librarian_tracking_decided
     flag: TRIGGER_GRC_LIBRARIAN
@@ -76,4 +76,4 @@ items:
       - "terraform/cd-aws-automation/**"
       - "terraform/simple-ec2/**"
       - "docs/REPO_MANIFEST.yaml"
-    action: "Decide for each archived directory whether it stays tracked or moves to the private tree with its ARCHIVED.md. Re-read the four manifest rows that defer to this event, then re-run gitleaks over the rewritten history before any push, because a rewrite replays every commit through the pre-push net."
+    action: "Decide for each archived directory whether it stays tracked or is retired with its ARCHIVED.md. Re-read the four manifest rows that defer to this event, then re-run gitleaks over the rewritten history before any push, because a rewrite replays every commit through the pre-push net."

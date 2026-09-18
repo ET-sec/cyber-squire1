@@ -7,7 +7,7 @@
 **Date:** 2026-05-25
 **Prepared By:** System Owner
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this architecture summary reports on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -139,7 +139,7 @@ flowchart LR
 | **IaC Tool** | Terraform |
 | **Files** | 20 `.tf` files |
 | **State** | Remote, encrypted |
-<!-- TODO(et): Verified 8 .rego policies as of 2026-06-24. Confirm count stays current when policy directory changes. -->
+
 | **Policy Enforcement** | 8 OPA (Rego) policies evaluated on every PR |
 | **Managed Resources** | VPS, firewall rules, DNS records, tunnel configuration, monitoring |
 

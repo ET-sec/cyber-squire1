@@ -8,7 +8,7 @@
 **Owner:** Information Security Officer
 **NIST 800-53 Controls:** CP-2, CP-4, CP-6, CP-7, CP-9, CP-10
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this recovery plan is exercised against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -24,7 +24,7 @@ This plan is a companion to GRC-BCP-001 (Business Continuity Plan) and focuses s
 
 This plan covers the recovery of:
 
-- The production VPS (`alpha-node`) and all 20 services (19 Compose-managed containers plus 1 standalone service)
+- The production VPS (`alpha-node`) and all 19 Compose-managed service containers
 - PostgreSQL databases and persistent data volumes
 - Infrastructure-as-code state and definitions
 - CI/CD pipeline configurations
@@ -74,17 +74,17 @@ This plan covers the recovery of:
 
 ## 4. Disaster Scenarios
 
-### 4.1 Scenario A - DigitalOcean Outage (Region Unavailable)
+### 4.1 Scenario A - Oracle Cloud Outage (Region Unavailable)
 
-**Description:** DigitalOcean's hosting region becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
+**Description:** The Oracle Cloud region hosting the VPS becomes unavailable due to infrastructure failure, network partition, or provider-side incident.
 
-**Impact:** All 20 services offline (19 Compose-managed + 1 standalone). No remote access via tunnel or direct SSH. Datadog may still have historical data.
+**Impact:** All 19 Compose-managed services offline. No remote access via tunnel or direct SSH. Datadog may still have historical data.
 
 **Detection:** Datadog alerts on host unreachable; Cloudflare health checks fail; manual verification via provider status page.
 
 **Recovery Procedure:**
 
-1. Confirm outage via DigitalOcean status page and support channels
+1. Confirm outage via the Oracle Cloud status page and support channels
 2. Assess estimated recovery time from provider
 3. **If provider ETA > 1 hour:** Initiate alternate-region deployment
   - a. Update infrastructure-as-code provider configuration for alternate region
@@ -100,15 +100,15 @@ This plan covers the recovery of:
 
 ### 4.2 Scenario B - VPS Corruption (OS or Disk Failure)
 
-**Description:** The VPS operating system becomes unbootable, the disk is corrupted, or a kernel panic renders the host non-functional. DigitalOcean infrastructure is operational but the specific instance is damaged.
+**Description:** The VPS operating system becomes unbootable, the disk is corrupted, or a kernel panic renders the host non-functional. Oracle Cloud infrastructure is operational but the specific instance is damaged.
 
-**Impact:** All 20 services offline (19 Compose-managed + 1 standalone). Data on local volumes may be lost or inaccessible.
+**Impact:** All 19 Compose-managed services offline. Data on local volumes may be lost or inaccessible.
 
-**Detection:** SSH connection refused or timeout; Datadog reports host down; DigitalOcean console shows instance in error state.
+**Detection:** SSH connection refused or timeout; Datadog reports host down; the Oracle Cloud console shows the instance in an error state.
 
 **Recovery Procedure:**
 
-1. Attempt VPS recovery via DigitalOcean console (reboot, recovery mode)
+1. Attempt instance recovery via the Oracle Cloud console (reboot, serial console)
 2. **If recovery fails:**
   - a. Destroy the corrupted VPS instance via infrastructure-as-code: `iac destroy -target=<vps_resource>`
   - b. Re-provision: `iac apply` (same region, fresh instance)
@@ -175,13 +175,13 @@ This plan covers the recovery of:
 **Recovery Procedure:**
 
 1. **ISOLATE IMMEDIATELY:**
-  - a. Revoke all DigitalOcean API tokens via secrets manager
+  - a. Revoke all Oracle Cloud API keys via the secrets manager
   - b. Disable the zero-trust tunnel via Cloudflare dashboard
-  - c. If accessible, power off the VPS via DigitalOcean console (do NOT attempt SSH login to compromised host)
+  - c. If accessible, power off the instance via the Oracle Cloud console (do NOT attempt SSH login to compromised host)
   - d. Rotate ALL secrets in the secrets manager (assume complete credential compromise)
 
 2. **PRESERVE EVIDENCE:**
-  - a. Create a snapshot of the compromised VPS disk via DigitalOcean console (do not boot it)
+  - a. Create a snapshot of the compromised instance boot volume via the Oracle Cloud console (do not boot it)
   - b. Export Datadog logs, detection engine alerts, and audit events from external stores
   - c. Document timeline of detection and response actions
 
@@ -316,7 +316,7 @@ Step 13: Validate (see Section 8)
 
 ### 6.2 Playbook: PostgreSQL Backup Restore
 
-<!-- TODO(et): If WAL archiving is configured for true point-in-time recovery, rename this section back to "Point-in-Time Recovery" and replace the procedure with the WAL replay flow. Current procedure is a full restore from the most recent `pg_dump`, not PITR. -->
+
 
 **Trigger:** Database corruption detected; services reporting data errors.
 
@@ -373,7 +373,7 @@ Step 2: Rotate secrets in secrets manager
 $ # Generate new values for all potentially compromised secrets
 $ # Update secrets manager entries
 
-Step 3: Rotate DigitalOcean API tokens
+Step 3: Rotate Oracle Cloud API keys
 $ # Revoke old tokens via provider console
 $ # Generate new tokens
 $ # Update secrets manager
@@ -409,7 +409,7 @@ Step 10: Document rotation in change log
 | PostgreSQL backup restore | Monthly | Restore latest dump to temporary container | Data integrity verified; row counts match |
 | IaC plan validation | Monthly | IaC plan against production state | Zero unexpected changes |
 | Single container recovery | Quarterly | Destroy and recreate one Tier 2 service | Service operational within RTO |
-| Full stack rebuild (test instance) | Annually | Complete Playbook 6.1 on separate VPS | All 20 services pass validation checklist within 4 hours |
+| Full stack rebuild (test instance) | Annually | Complete Playbook 6.1 on separate VPS | All 19 services pass validation checklist within 4 hours |
 | Ransomware scenario tabletop | Annually | Walk through Scenario D with all roles | All steps executable; no missing procedures |
 | Backup integrity audit | Quarterly | Verify all backup items exist and are current | All items in Section 5.1 present and within retention window |
 

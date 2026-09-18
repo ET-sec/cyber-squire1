@@ -51,16 +51,49 @@ docs/PRIVATE_OPERATIONS_MANUAL.md
 # but ignore data volumes, secrets, and files with personal info or infra IDs.
 COREDIRECTIVE_ENGINE/.env
 COREDIRECTIVE_ENGINE/.env.*
+# host environment files (values) and their local name-only placeholders (2026-09-15, plan 24-02)
+COREDIRECTIVE_ENGINE/monitoring.env
+COREDIRECTIVE_ENGINE/identity.env
 COREDIRECTIVE_ENGINE/CD_VOL_*/
-# 2026-09-09 (plan 22-03): the rule above is for volume DATA, but it also
-# swallowed the Fluentd build context, so the Dockerfile that compose builds
-# at CD_VOL_FLUENTD existed on one laptop and in no clone. Re-included so a
-# Tier 0 image has a source in the repository, which is what the header of
-# this section already says the policy is. Narrow on purpose: fluent.conf is
-# a runtime bind mount and certs/ are key material, so both stay ignored.
-!COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/
-COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/*
-!COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/Dockerfile
+# 2026-09-15 (plan 24-02): every configuration a service reads is tracked, one
+# re-include pair per directory level, because git does not descend into an
+# excluded directory and a bare !path under an excluded parent never matches.
+# Data, certificates, keys, the identity file and runtime state stay ignored.
+!COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/
+COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/*
+!COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/vector.yaml
+!COREDIRECTIVE_ENGINE/CD_VOL_VAULT/
+COREDIRECTIVE_ENGINE/CD_VOL_VAULT/*
+!COREDIRECTIVE_ENGINE/CD_VOL_VAULT/config/
+COREDIRECTIVE_ENGINE/CD_VOL_VAULT/config/*
+!COREDIRECTIVE_ENGINE/CD_VOL_VAULT/config/vault.hcl
+!COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/
+COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/*
+!COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/
+COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/*
+!COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/teleport.yaml
+!COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/roles.yaml
+!COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT_EVENTS/
+COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT_EVENTS/*
+!COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT_EVENTS/teleport-event-handler.toml
+!COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/
+COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/*
+!COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/coredirective-realm.json
+!COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/
+COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/*
+!COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/
+COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/*
+!COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/auth_log.d/
+COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/auth_log.d/*
+!COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/auth_log.d/conf.yaml
+!COREDIRECTIVE_ENGINE/CD_VOL_FALCO/
+COREDIRECTIVE_ENGINE/CD_VOL_FALCO/*
+!COREDIRECTIVE_ENGINE/CD_VOL_FALCO/config/
+COREDIRECTIVE_ENGINE/CD_VOL_FALCO/config/*
+!COREDIRECTIVE_ENGINE/CD_VOL_FALCO/config/falco.yaml
+!COREDIRECTIVE_ENGINE/CD_VOL_FALCO/rules/
+COREDIRECTIVE_ENGINE/CD_VOL_FALCO/rules/*
+!COREDIRECTIVE_ENGINE/CD_VOL_FALCO/rules/*.yaml
 COREDIRECTIVE_ENGINE/CD_BACKUPS/
 COREDIRECTIVE_ENGINE/credentials_vault.json
 COREDIRECTIVE_ENGINE/workflow_*.json

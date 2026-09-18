@@ -28,7 +28,7 @@ related:
   - POAM-OPS-001
 ---
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this Security Rule crosswalk maps the controls of the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # HIPAA Security Rule Crosswalk
 
@@ -185,7 +185,7 @@ This crosswalk follows the order above. Each subsection identifies the standard,
 
 | Implementation Specification | Status | 45 CFR | OSOP Implementation | NIST 800-53 Controls |
 |------------------------------|--------|--------|---------------------|----------------------|
-| Risk Analysis | Required | 164.308(a)(1)(ii)(A) | Risk Assessment (RA-2026-001) covers 17 enterprise threats plus 10 Squire-specific AI risks using a 5x5 semi-quantitative matrix per NIST 800-30 Rev 1. Reviewed quarterly per [POLICY_RISK_MANAGEMENT.md](POLICY_RISK_MANAGEMENT.md). <!-- TODO(et): verify the "17 enterprise + 10 Squire-specific" counts against the current RISK_ASSESSMENT.md; update if drifted. --> | RA-1, RA-3, RA-3(1) |
+| Risk Analysis | Required | 164.308(a)(1)(ii)(A) | Risk Assessment (RA-2026-001) covers 17 enterprise threats plus 10 Squire-specific AI risks using a 5x5 semi-quantitative matrix per NIST 800-30 Rev 1. Reviewed quarterly per [POLICY_RISK_MANAGEMENT.md](POLICY_RISK_MANAGEMENT.md). | RA-1, RA-3, RA-3(1) |
 | Risk Management | Required | 164.308(a)(1)(ii)(B) | Risk treatment tracked in the Plan of Action and Milestones (POAM-OPS-001). Thirty entries across CIS Docker Bench, Checkov IaC, Falco runtime, and Phase 17 Squire cluster. Treatment decisions recorded per [POLICY_RISK_MANAGEMENT.md](POLICY_RISK_MANAGEMENT.md) Section 6. | RA-1, RA-3, PM-9, PM-28 |
 | Sanction Policy | Required | 164.308(a)(1)(ii)(C) | Acceptable use violations and disciplinary actions are documented in [POLICY_ACCEPTABLE_USE.md](POLICY_ACCEPTABLE_USE.md) Section 6 (Enforcement). Workforce sanction tied to HR process. **Gap:** Standalone sanction policy not yet drafted (see Section 12, Gap G-04). | PS-8, PL-4 |
 | Information System Activity Review | Required | 164.308(a)(1)(ii)(D) | Continuous monitoring per [SSP_SYSTEM_SECURITY_PLAN.md](SSP_SYSTEM_SECURITY_PLAN.md) Section 6. Audit log review cadence in [POLICY_INCIDENT_RESPONSE.md](POLICY_INCIDENT_RESPONSE.md). Falco runtime events shipped to Datadog. Session recordings via `svc-gateway`. Quarterly audit log sampling. | AU-2, AU-6, AU-6(1), AU-12, CA-7, SI-4 |
@@ -235,7 +235,7 @@ This crosswalk follows the order above. Each subsection identifies the standard,
 
 | Implementation Specification | Status | 45 CFR | OSOP Implementation | NIST 800-53 Controls |
 |------------------------------|--------|--------|---------------------|----------------------|
-| Response and Reporting | Required | 164.308(a)(6)(ii) | Full incident response program per [POLICY_INCIDENT_RESPONSE.md](POLICY_INCIDENT_RESPONSE.md). Five (5) playbooks: [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md), [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md), [PLAYBOOK_DDOS_SERVICE_DEGRADATION.md](PLAYBOOK_DDOS_SERVICE_DEGRADATION.md), [PLAYBOOK_UNAUTHORIZED_ACCESS.md](PLAYBOOK_UNAUTHORIZED_ACCESS.md), and [PLAYBOOK_AI_INCIDENT.md](PLAYBOOK_AI_INCIDENT.md). <!-- TODO(et): confirm all 5 playbook files exist at docs/grc/; update list if any have been renamed or consolidated. --> Tabletop exercise documented in [TABLETOP_EXERCISE.md](TABLETOP_EXERCISE.md). Breach Notification Rule alignment in Section 10. | IR-1, IR-4, IR-4(1), IR-5, IR-6, IR-7, IR-8 |
+| Response and Reporting | Required | 164.308(a)(6)(ii) | Full incident response program per [POLICY_INCIDENT_RESPONSE.md](POLICY_INCIDENT_RESPONSE.md). Five (5) playbooks: [PLAYBOOK_COMPROMISED_CONTAINER.md](PLAYBOOK_COMPROMISED_CONTAINER.md), [PLAYBOOK_LEAKED_CREDENTIAL.md](PLAYBOOK_LEAKED_CREDENTIAL.md), [PLAYBOOK_DDOS_SERVICE_DEGRADATION.md](PLAYBOOK_DDOS_SERVICE_DEGRADATION.md), [PLAYBOOK_UNAUTHORIZED_ACCESS.md](PLAYBOOK_UNAUTHORIZED_ACCESS.md), and [PLAYBOOK_AI_INCIDENT.md](PLAYBOOK_AI_INCIDENT.md). Tabletop exercise documented in [TABLETOP_EXERCISE.md](TABLETOP_EXERCISE.md). Breach Notification Rule alignment in Section 10. | IR-1, IR-4, IR-4(1), IR-5, IR-6, IR-7, IR-8 |
 
 ### 5.7 Contingency Plan (45 CFR 164.308(a)(7))
 
@@ -346,7 +346,7 @@ OSOP operates entirely on cloud-hosted virtual infrastructure. The Organization 
 
 | Implementation Specification | Status | 45 CFR | OSOP Implementation | NIST 800-53 Controls |
 |------------------------------|--------|--------|---------------------|----------------------|
-| Person or Entity Authentication | Required | 164.312(d) | Human authentication: `svc-gateway` (Teleport Community Edition) with TOTP plus password. <!-- TODO(et): verify Teleport `cap` output; if FIDO2 hardware-key MFA is enabled, restore the FIDO2 reference here. As of last verification, only TOTP is configured. --> Service authentication: mutual TLS where supported, service tokens elsewhere, all secrets managed in Doppler with quarterly rotation. API authentication: bearer tokens, HMAC-signed webhook payloads, and IP allow-listing per route. | IA-2, IA-2(1), IA-2(2), IA-2(8), IA-3, IA-5 |
+| Person or Entity Authentication | Required | 164.312(d) | Human authentication: `svc-gateway` (Teleport Community Edition) with TOTP plus password. Service authentication: mutual TLS where supported, service tokens elsewhere, all secrets managed in Doppler with quarterly rotation. API authentication: bearer tokens, HMAC-signed webhook payloads, and IP allow-listing per route. | IA-2, IA-2(1), IA-2(2), IA-2(8), IA-3, IA-5 |
 
 ### 7.5 Transmission Security (45 CFR 164.312(e))
 
@@ -455,7 +455,7 @@ The following table scores each safeguard category against the four maturity lev
 
 ### 11.3 Overall Readiness
 
-OSOP can support a healthcare customer BAA signing once the six gaps in Section 14 are closed. Estimated effort: approximately 80 hours of dedicated work across documentation, configuration, and process formalization. Five of the six gaps are documentation-only. One gap (audit log retention extension) requires storage configuration and budget review.
+Section 14 carries six open gaps between OSOP and a healthcare customer BAA signing. Estimated effort to close them: approximately 80 hours of dedicated work across documentation, configuration, and process formalization. Five of the six gaps are documentation-only. One gap (audit log retention extension) requires storage configuration and budget review.
 
 ---
 

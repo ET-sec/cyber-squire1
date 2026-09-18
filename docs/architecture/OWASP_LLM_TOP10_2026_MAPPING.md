@@ -1,6 +1,6 @@
 # OWASP GenAI Top 10 (2026) to CoreDirective Stack Mapping
 
-**Status (2026-09-01): mapped against the full 19-service design as it ran before the 2026-08 host migration.** Today 3 containers run on the OCI instance (PostgreSQL 16 with pgvector, n8n, the Cloudflare tunnel sidecar); the remaining services are design-tier until the ARM rebuild lands. "Covered" below means covered by the design baseline. Live today: the CI controls (Gitleaks, Trivy, Semgrep, SBOM, Sigstore signing), Doppler-only secrets, and the recommend-only design boundary. Design-tier until the rebuild: NeMo Guardrails, Langfuse, Vault, Keycloak, Teleport, Falco, Datadog, Ollama, and Squire itself. See `STACK_OVERVIEW.md` for the live-versus-designed breakdown.
+**Environment (2026-09-12): this mapping covers the 19-service platform as the master compose file defines it, on an Oracle Cloud (OCI) ARM instance.** "Covered" below means covered by that baseline. The CI controls (Gitleaks, Trivy, Semgrep, SBOM, Sigstore signing), Doppler-only secrets and the recommend-only boundary sit in the pipeline; NeMo Guardrails, Vault, Keycloak, Teleport, Falco, Datadog, Ollama and Squire sit on the host. See `STACK_OVERVIEW.md` for what each one does.
 
 Two lists ship under the OWASP GenAI Security Project.
 
@@ -15,7 +15,7 @@ Each risk below maps to the real components in `docs/architecture/STACK_OVERVIEW
 Squire FastAPI (LangGraph, recommend-only), NeMo Guardrails 0.21 (Presidio PII rails, Colang
 `BLOCKED_BY_RAIL`), Langfuse v3 tracing, PostgreSQL 16 + pgvector (1,564 ir_chunks), Anthropic API,
 Voyage embeddings, n8n SOAR (16 actions), OpenClaw gateway, Vault / Keycloak / Teleport, Falco /
-Datadog / Fluentd.
+Datadog / Vector.
 
 Columns: **Covered** is a control already in the stack. **Gap** is what an interviewer would poke at.
 

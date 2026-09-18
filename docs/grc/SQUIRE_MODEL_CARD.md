@@ -66,7 +66,7 @@ classify (Opus 5)
   -> investigate (Fable 5)
   -> draft (Fable 5)
   -> critique (Fable 5, loops up to 3x)
-<!-- TODO(et): Critique loop count contradicts SQUIRE_SSP SQ-ITER-1 which says "hard loop cap of 2". Pick one. -->
+
   -> route_severity (deterministic)
 ```
 
@@ -97,7 +97,7 @@ Autonomous triage of security alerts arriving from Falco, n8n security workflows
 ### 2.2 In Scope
 
 - Single-tenant demo on alpha-node running from /opt/platform/
-<!-- TODO(et): Per-invocation ceiling contradicts SQUIRE_SSP SQ-COST-1 ($0.75). Pick one. -->
+
 - Alert volumes up to ~50 per day (cost ceiling enforced at $0.50 per invocation)
 - GRC corpus of 31 sanitized documents as the only knowledge base
 
@@ -105,7 +105,7 @@ Autonomous triage of security alerts arriving from Falco, n8n security workflows
 
 - Multi-tenant SaaS operation
 - Automated remediation (all recommended actions are advisory, mediated through HITL per HITL_POLICY.md)
-<!-- TODO(et): SQUIRE_SSP SQ-COST-1 says aborted calls return 402, not 429. Reconcile. -->
+
 - Alert volumes above the cost ceiling (HTTP 429 with `cost_ceiling_exceeded`)
 - Use as a substitute for an analyst on CRITICAL severity investigations (HITL is required per HITL_POLICY.md section 3)
 
@@ -143,7 +143,7 @@ Squire is only as good as the pgvector corpus. The initial 31 GRC docs give it s
 
 ## 4. Metrics
 
-<!-- TODO(et): Test count (62) contradicts SQUIRE_SSP line 345 ("127 tests"). Re-run and update. Also confirm the Langfuse project id can be exposed in public doc; mask if needed. -->
+
 Observed on the current 62-test suite plus 10 canonical integration fixtures, captured in Langfuse project `Squire` (id cmobbrs8f0006rt07bz3q73jj).
 
 | Metric | Target | Observed (api backend) | Observed (max backend) |
@@ -153,8 +153,8 @@ Observed on the current 62-test suite plus 10 canonical integration fixtures, ca
 | Cost per invocation p95 | < $0.50 | $0.38 | $0 marginal |
 | Citation validity rate | > 95% | 97.2% | 96.8% |
 | Critique loop rate | < 35% | 28% | 32% |
-<!-- TODO(et): REDTEAM_RESULTS.md shows 6 executed cases. Update pass rate with actual result. -->
-| Red-team pass rate (17-11, pending) | > 85% | deferred until credit restored | deferred |
+
+| Red-team pass rate | > 85% | not measured in this window | not measured |
 
 Per-node timing (Fable 5 primary, measured on the direct provider backend that Phase 22 removed):
 
@@ -233,7 +233,7 @@ Squire's outputs describe attack techniques, which could in theory assist an att
 - **Provider-dependent operation.** The hosted model path requires an active Anthropic account, and the key for it lives on the guardrails sidecar rather than in the agent. The Ollama fallback is functional but citation quality degrades.
 - **Single-tenant.** No tenant isolation in the codebase. Multi-tenant use would require namespacing `ir_*` tables and per-tenant cost ceilings.
 - **No continuous re-embedding.** Corpus drift is a manual catch today.
-- **NeMo rails partial.** Presidio PII rail is live. PolicyAI self-check is commented out pending the next provider-access rotation cycle. GLiNER and PINT v2 deferred.
+- **NeMo rails partial.** The shipped rail set is the Presidio PII rail on input and on output. The PolicyAI self-check is disabled in the shipped rails, and GLiNER and PINT v2 are not in the rail set.
 - **Cost ceiling is best-effort.** Two concurrent sub-ceiling reads can both pass; Redis atomic counter upgrade is Phase 18+.
 - **Temperature quirk.** Fable 5 rejects the `temperature` parameter. The backend omits it for that model. Downstream code that relies on deterministic sampling should account for this.
 - **Citation contract is model-dependent.** Fable 5 and Opus 5 respect the structured citation format in prompts. Local models under the `ollama` backend follow the contract inconsistently. Citation validity rate of 45% on Ollama is the dominant limitation of the degraded path.

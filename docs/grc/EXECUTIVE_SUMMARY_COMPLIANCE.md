@@ -28,7 +28,7 @@ The compliance program is supported by **58 GRC documents** as of 2026-06-24. Th
 
 ### Document Inventory
 
-<!-- TODO(et): Verify "3 Squire roles" claim in IAM row by reading IAM_RBAC_ROLE_MAP.md. -->
+
 
 | Category | Count | Documents |
 |----------|-------|-----------|
@@ -137,7 +137,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 
 ## Review Schedule
 
-<!-- TODO(et): POA&M review (2026-06-09), Risk register review (2026-06-11), and CIS Docker Bench rescan (2026-04-11) are all overdue as of 2026-06-24. Refresh next-review dates. -->
+
 
 | Activity | Frequency | Next Review |
 |----------|-----------|-------------|
@@ -169,7 +169,7 @@ Architecture diagrams, risk heat maps, and SOC dashboard screenshots provide vis
 | **Automated evidence** | Strong: continuous collection from 9+ sources, Langfuse trace capture for AI invocations |
 | **Risk management** | Strong: 17 enterprise scenarios plus 10 AI-specific risks, all tracked |
 | **Finding remediation** | Adequate: 0 Critical/High legacy, 7 Medium legacy tracked, 1 HIGH Phase 17 CLOSED during the exercise |
-<!-- TODO(et): Verify SQUIRE_TABLETOP_EXERCISE.md execution status. File exists; check if it has been run since 17-14. -->
+
 | **Exercise program** | Developing: 1 legacy tabletop completed, Squire tabletop documented in `SQUIRE_TABLETOP_EXERCISE.md` |
 | **Multi-region resilience** | Gap: single-region deployment, DR plan documented but untested |
 | **AI safety program** | Strong: 6 red-team cases executed with live Langfuse traces, 9-layer defense-in-depth |

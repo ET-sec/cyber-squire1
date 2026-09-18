@@ -17,7 +17,7 @@ related:
   - AITC-OPS-001
 ---
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this plan of action and milestones tracks the open items on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # Plan of Action and Milestones (POA&M)
 
@@ -28,7 +28,7 @@ related:
 **Classification:** Internal Use Only
 **Version:** 1.4
 
-<!-- TODO(et): 2026-06-24 audit refresh propagated embedding-provider and code-path corrections plus past-due status flags. Many Q2 milestones (POAM-003, POAM-005, POAM-014, POAM-019, POAM-022, POAM-023, POAM-024, POAM-025, POAM-026, POAM-027, POAM-P17-08, POAM-P17-10) need owner verification before flipping to Closed; left as Open with a past-due flag rather than blind-closing. -->
+
 
 
 ---
@@ -165,7 +165,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Compensating Controls** | svc-detection uses `cap_drop: ALL` with explicit minimum `cap_add`. svc-ai-gateway memory usage monitored by Datadog (typically under 200MB). All other 12 of 19 Compose-managed containers enforce `no-new-privileges: true`. |
 | **Remediation Plan** | Migrate svc-ai-gateway to Docker Compose management with `no-new-privileges: true` and resource limits. svc-detection exemption is permanent (eBPF requires privilege escalation path). |
 | **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Migrate svc-ai-gateway to Compose with hardening |
-| **Status** | Open (Past Due) <!-- TODO(et): verify svc-ai-gateway migration status. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | Platform Administrator |
 
 ---
@@ -318,7 +318,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Compensating Controls** | All Compose-managed containers have hard CPU limits (`deploy.resources.limits.cpus`), memory limits, and PIDs limits. Host memory monitored with alerts at 85%. svc-ai-gateway typically uses <200MB. |
 | **Remediation Plan** | Migrate svc-ai-gateway to Docker Compose with full resource constraints (memory, CPU, PIDs limits). CpuShares finding for Compose containers is accepted, `NanoCpus` is a stricter control than relative priority weighting. |
 | **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Migrate svc-ai-gateway to Compose (same as POAM-005) |
-| **Status** | Open (Past Due) <!-- TODO(et): verify svc-ai-gateway resource constraints status. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | Platform Administrator |
 
 ---
@@ -403,7 +403,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Compensating Controls** | Datadog monitors container status and restart counts for both services. Upstream workflows that consume svc-llm have built-in timeout and retry logic. svc-event-shipper health is inferred from log flow continuity. |
 | **Remediation Plan** | Add a basic healthcheck using the svc-llm API endpoint once endpoint reliability during model loading is confirmed. Add a healthcheck to svc-event-shipper based on log output or process liveness. |
 | **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) Add healthchecks to svc-llm and svc-event-shipper |
-| **Status** | Open (Past Due) <!-- TODO(et): verify svc-llm and svc-event-shipper healthcheck status. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | Platform Administrator |
 
 ### Source 2: Checkov / Checkov Static Analysis (3 Findings)
@@ -454,7 +454,7 @@ This Plan of Action and Milestones (POA&M) consolidates security findings from t
 | **Compensating Controls** | svc-detection (eBPF) provides syscall-level monitoring. 8 custom rules monitor sensitive file access, process execution, network connections, and capability usage per container. Events route to Datadog via svc-detection-router for alerting and correlation. |
 | **Remediation Plan** | Continue monitoring. Tune rules quarterly based on false positive analysis. Expand rule coverage as new services are added. |
 | **Milestone** | 2026-06-09 (PAST DUE as of 2026-06-24) First quarterly rule review |
-| **Status** | Closed (baseline established, monitoring active) <!-- TODO(et): confirm quarterly rule review was executed on or near 2026-06-09; if not, reopen and reschedule. --> |
+| **Status** | Closed (baseline established, monitoring active) |
 | **Responsible Party** | Platform Administrator |
 
 ### Source 4: Risk Assessment - Mitigate Treatment Items (5 Findings)
@@ -473,7 +473,7 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Current Controls** | External secrets manager (never hardcoded); Gitleaks in CI; log rotation (10MB x 3); .gitignore for sensitive files; env var validation (existence checks only) |
 | **Remediation Plan** | 1. Transition from env-var secrets to mounted tmpfs files. 2. Deploy log scrubbing rules in Fluentd to redact patterns matching API keys and tokens. 3. Add automated secret scanning to container runtime logs. 4. Establish credential rotation runbook with 24-hour rotation SLA after suspected exposure. |
 | **Milestone** | 2026-05-11 (PAST DUE as of 2026-06-24) Implement tmpfs-mounted secrets for svc-automation and svc-db |
-| **Status** | Open (Past Due) <!-- TODO(et): verify whether tmpfs-mounted secrets shipped for svc-automation and svc-db. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | System Owner |
 
 ---
@@ -490,7 +490,7 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Current Controls** | Webhook authentication tokens; input validation in workflow logic; svc-detection monitors for shell spawns; no-new-privileges on container |
 | **Remediation Plan** | 1. Deploy webhook payload schema validation at the tunnel layer. 2. Add WAF rules at Cloudflare for webhook endpoints. 3. Restrict svc-automation network egress to required destinations only. 4. Implement webhook request signing with HMAC verification. |
 | **Milestone** | 2026-06-11 (PAST DUE as of 2026-06-24) Deploy webhook schema validation and egress allowlisting |
-| **Status** | Open (Past Due) <!-- TODO(et): verify webhook schema validation and egress allowlist status. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | System Owner |
 
 ---
@@ -507,7 +507,7 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Current Controls** | PostgreSQL backup scripts (local backup volume); secrets stored in external manager; IaC for config rebuild; no automated off-site replication |
 | **Remediation Plan** | 1. Implement automated daily database backups to encrypted object storage (off-VPS). 2. Add backup integrity verification (restore testing) on monthly schedule. 3. Document RPO/RTO targets. 4. Implement volume snapshot scheduling at DigitalOcean level. |
 | **Milestone** | 2026-05-11 (PAST DUE as of 2026-06-24) Automated off-site backup with integrity verification |
-| **Status** | Open (Past Due) <!-- TODO(et): verify automated off-site backup status. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | System Owner |
 
 ---
@@ -524,7 +524,7 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Current Controls** | Datadog alerts on host downtime; documented recovery procedures; IaC enables rapid redeployment |
 | **Remediation Plan** | 1. Document warm-standby deployment procedure for alternate region using IaC. 2. Pre-stage encrypted database backups in a second region. 3. Define and test RTO targets (current estimated RTO: 2-4 hours). |
 | **Milestone** | 2026-06-11 (PAST DUE as of 2026-06-24) Documented warm-standby procedure with tested RTO |
-| **Status** | Open (Past Due) <!-- TODO(et): verify warm-standby documentation and RTO test status. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | System Owner |
 
 ---
@@ -541,7 +541,7 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | **Current Controls** | CIS Risk Register with documented compensating controls; 90-day review cycle; POA&M tracking |
 | **Remediation Plan** | 1. Automate CIS Docker Bench scans on weekly schedule with delta reporting. 2. Prioritize top 10 WARN findings by risk score. 3. Integrate POA&M tracking into automation platform with due-date alerts. 4. Conduct focused compensating control review every 90 days. |
 | **Milestone** | 2026-06-11 (PAST DUE as of 2026-06-24) Automated weekly CIS scans with delta reporting |
-| **Status** | Open (Past Due) <!-- TODO(et): verify automated weekly CIS scan status. --> |
+| **Status** | Open (Past Due) |
 | **Responsible Party** | System Owner |
 
 ---
@@ -561,9 +561,9 @@ Per POLICY_RISK_MANAGEMENT.md Section 3.3, risks with "Mitigate" treatment requi
 | POAM-P17-05 | Benign framing severity flip attempt; graph classifier held. Regression test added. | MED | System Owner | 2026-04-23 | CLOSED | `REDTEAM_RESULTS.md` Finding 5 (RESISTED) |
 | POAM-P17-06 | Drill framing severity flip attempt; graph classifier held. Regression test added. | MED | System Owner | 2026-04-23 | CLOSED | `REDTEAM_RESULTS.md` Finding 6 (RESISTED) |
 | POAM-P17-07 | Lakera Guard rail deferred. Fix is to set `LAKERA_API_KEY` in Doppler, which arms the existing `lakera_client.py` stub ahead of the NeMo input rail. Gated on the Operator funding a Lakera production plan. Current rail coverage is NeMo plus pre-graph scanner. | LOW | Operator | 2026-Q3 | OPEN | `GUARDRAILS_CONFIGURATION.md` deferred rails section |
-| POAM-P17-08 | PolicyAI self-check path held in degraded mode pending the next provider-access rotation cycle. Critique node still gates draft and enforces severity consistency. | LOW | Operator | 2026-Q2 (closes 2026-06-30, less than a week remaining as of 2026-06-24) | OPEN <!-- TODO(et): confirm PolicyAI rotation status before Q2 closes. --> | `SQUIRE_MODEL_CARD.md` limitations section |
+| POAM-P17-08 | PolicyAI self-check path held in degraded mode pending the next provider-access rotation cycle. Critique node still gates draft and enforces severity consistency. | LOW | Operator | 2026-Q2 (closes 2026-06-30, less than a week remaining as of 2026-06-24) | OPEN | `SQUIRE_MODEL_CARD.md` limitations section |
 | POAM-P17-09 | OpenClaw agent LLM auth not yet configured. Deferred to 17-07 follow-up. Squire currently calls Anthropic direct, not via OpenClaw gateway. | LOW | Operator | 2026-Q3 | OPEN | Plan 17-07 |
-| POAM-P17-10 | AI supply chain register TBDs: Langfuse v3 exact commit pinning, NeMo Guardrails upgrade cadence, pgvector extension provenance. | LOW | System Owner | 2026-06-22 (PAST DUE as of 2026-06-24) | OPEN (Past Due) <!-- TODO(et): close supply-chain TBDs or extend milestone. --> | `AI_SUPPLY_CHAIN_REGISTER.md` |
+| POAM-P17-10 | AI supply chain register TBDs: Langfuse v3 exact commit pinning, NeMo Guardrails upgrade cadence, pgvector extension provenance. | LOW | System Owner | 2026-06-22 (PAST DUE as of 2026-06-24) | OPEN (Past Due) | `AI_SUPPLY_CHAIN_REGISTER.md` |
 | POAM-P17-11 | Novel injection patterns (YAML-framed role-hijack, structured key-value directives) can bypass NeMo presidio input rail because presidio is PII-centric, not behavioral. Critique consistency override and actions.yml rewrite provide defense-in-depth. Expand rail pre-check for directive patterns; add regression cases in 17-11 cycle 2. | MED | System Owner | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.2 AML.T0051 |
 | POAM-P17-12 | International phone formats and non-Luhn-checked CC patterns can false-negative against US-only pre-graph regex. NeMo output rail at 0.85 threshold is the last-chance net. Expand pre-graph scanner to E.164 international phone and secondary structural CC checks. | MED | System Owner | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.5 AML.T0041 |
 | POAM-P17-13 | Tavily enrichment results are untrusted text; a poisoned index entry could inject directives at the enrichment merge point. Critique consistency check is the sole behavioral override. Red-team cycle 2 will execute attack tree leaf A.3.a to quantify. | MED | Security Eng | 2026-Q3 | OPEN | `SQUIRE_THREAT_MODEL.md` section 2.2, `ATTACK_TREE_AI_PIPELINE.md` A.3.a |

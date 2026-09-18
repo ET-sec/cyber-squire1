@@ -105,7 +105,7 @@ Layer 9: Audit trail                 [Langfuse+pgvector]  ███████�
 
 **Key Point:** The 2026-04-23 red-team exercise validated Layers 5 through 9 against 6 attack scenarios. Layer 6 (pre-graph scanner) was added during the exercise as remediation for a BYPASSED PII case. Evidence in `REDTEAM_RESULTS.md`. Full Squire SSP in `SQUIRE_SSP.md` (36 additional controls).
 
-The platform design spans **20 containerized services**; the current OCI instance runs a 3-container core while the remainder is rebuilt for ARM. The design is protected by layered security controls:
+The platform design spans **19 containerized services**, and the current OCI instance runs eight of them. The design is protected by layered security controls:
 
 | Layer | Implementation |
 |-------|---------------|

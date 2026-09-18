@@ -2,41 +2,41 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    width:2160px; background:#0a0a0a; color:#e8e8e8;
-    font-family:'Inter','Helvetica Neue',Arial,sans-serif;
+    width:2160px; background:#060907; color:#f2efe4;
+    font-family:'JetBrains Mono','SF Mono',Menlo,monospace;
     padding:70px 80px 60px;
   }
   .mono { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; }
   .green { color:#00FF41; }
 
   h1 { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:92px; letter-spacing:2px; }
-  .subtitle { font-size:38px; color:#a8b0b8; margin-top:18px; max-width:1900px; line-height:1.35; }
+  .subtitle { font-size:38px; color:#b9c2ba; margin-top:18px; max-width:1900px; line-height:1.35; }
 
   .lanes { display:grid; grid-template-columns:1.12fr .88fr; gap:44px; margin-top:56px; }
-  .lanehead { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#8f99a3; margin-bottom:22px; letter-spacing:1px; }
+  .lanehead { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#8f9a91; margin-bottom:22px; letter-spacing:1px; }
 
   .band { border-radius:24px; padding:32px 36px; }
   .blabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:52px; margin-bottom:8px; }
-  .bsub { font-size:32px; color:#a2aab2; line-height:1.4; }
+  .bsub { font-size:32px; color:#a8b3aa; line-height:1.4; }
 
   .b-red   { border:3px solid #FF5C5C; background:rgba(255,92,92,.05); }
   .b-red   .blabel { color:#FF7A7A; }
   .b-orange{ border:3px solid #F6821F; background:rgba(246,130,31,.05); }
   .b-orange .blabel { color:#FF9C42; }
-  .b-blue  { border:3px solid #4DA3FF; background:rgba(77,163,255,.05); }
-  .b-blue  .blabel { color:#7CBAFF; }
+  .b-blue  { border:3px solid #a8b3aa; background:rgba(242,239,228,.035); }
+  .b-blue  .blabel { color:#f2efe4; }
   .b-green { border:3px solid #00FF41; background:rgba(0,255,65,.04); }
   .b-green .blabel { color:#00FF41; }
-  .b-purple{ border:3px solid #B48CFF; background:rgba(180,140,255,.05); }
-  .b-purple .blabel { color:#C9ABFF; }
+  .b-purple{ border:3px solid #c4a6ff; background:rgba(196,166,255,.05); }
+  .b-purple .blabel { color:#c4a6ff; }
 
   .cross { margin:0 60px; border-left:6px dashed #00FF41; padding:26px 0 26px 44px; position:relative; }
   .cross::after { content:""; position:absolute; left:-19px; bottom:-4px;
                   border-left:16px solid transparent; border-right:16px solid transparent; border-top:26px solid #00FF41; }
-  .xcard { background:#101216; border:2px solid #2c3138; border-radius:18px; padding:26px 30px; }
+  .xcard { background:#0d1310; border:2px solid #33413a; border-radius:18px; padding:26px 30px; }
   .xtitle { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:42px; color:#00FF41; margin-bottom:10px; }
-  .xmech { font-size:33px; color:#dde3e8; line-height:1.4; }
-  .xmech b { color:#fff; font-weight:600; }
+  .xmech { font-size:33px; color:#f2efe4; line-height:1.4; }
+  .xmech b { color:#f2efe4; font-weight:600; }
 
   .chip { display:inline-block; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px;
           border-radius:12px; padding:10px 18px; margin-top:16px; margin-right:14px; line-height:1.35; }
@@ -44,27 +44,26 @@
   .defeats  { border:2px solid #FF5C5C; color:#FF9B9B; background:rgba(255,92,92,.06); }
 
   .inner { display:flex; gap:24px; margin-top:24px; flex-wrap:wrap; }
-  .icard { flex:1; min-width:520px; background:#121417; border:2px solid #2c3138; border-radius:16px; padding:24px 26px; }
-  .ilabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#f2f4f6; line-height:1.25; }
-  .isub { font-size:31px; color:#a2aab2; margin-top:10px; line-height:1.35; }
-  .pendtag { display:inline-block; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:29px; color:#FFB020;
-             border:2px dashed #FFB020; border-radius:10px; padding:6px 14px; margin-top:14px; }
+  .icard { flex:1; min-width:520px; background:#0d1310; border:2px solid #33413a; border-radius:16px; padding:24px 26px; }
+  .ilabel { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#f2efe4; line-height:1.25; }
+  .isub { font-size:31px; color:#a8b3aa; margin-top:10px; line-height:1.35; }
+  .icard.tier { border-color:#FFB020; background:rgba(255,176,32,.05); } .icard.tier .ilabel { color:#e8cf9a; } .icard.tier .isub { color:#c9a45c; }
 
   .gov { margin-top:64px; border:3px solid #00FF41; border-radius:26px; padding:38px 44px 44px; background:rgba(0,255,65,.03); }
   .govh { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:54px; color:#00FF41; margin-bottom:10px; }
-  .govsub { font-size:33px; color:#a8b0b8; margin-bottom:32px; line-height:1.4; }
+  .govsub { font-size:33px; color:#b9c2ba; margin-bottom:32px; line-height:1.4; }
   .layers { display:flex; align-items:stretch; }
-  .layer { flex:1; background:#121417; border:2px solid #2c3138; border-radius:16px; padding:22px 22px; text-align:center; }
+  .layer { flex:1; background:#0d1310; border:2px solid #33413a; border-radius:16px; padding:22px 22px; text-align:center; }
   .lnum { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:40px; color:#00FF41; margin-bottom:10px; }
-  .lname { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; color:#eef1f4; line-height:1.3; }
-  .lsub { font-size:29px; color:#98a0a8; margin-top:10px; line-height:1.3; }
+  .lname { font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:33px; color:#f2efe4; line-height:1.3; }
+  .lsub { font-size:29px; color:#a8b3aa; margin-top:10px; line-height:1.3; }
   .lsep { display:flex; align-items:center; justify-content:center; width:70px; color:#00FF41; font-size:52px; flex:none; }
 
-  .footer { margin-top:56px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#78828c; line-height:1.5; }
+  .footer { margin-top:56px; font-family:'JetBrains Mono','SF Mono',Menlo,monospace; font-size:30px; color:#8f9a91; line-height:1.5; }
 </style>
 
 <h1>SECURITY <span class="green">BOUNDARIES</span></h1>
-<div class="subtitle">Layered trust model of the platform. Every boundary crossing is named, carries its authentication mechanism, and where the control was proven, the receipt of the forced failure. Verified 2026-08-31.</div>
+<div class="subtitle">Layered trust model of the platform. Every boundary crossing is named, carries its authentication mechanism, and where the control was proven, the receipt of the forced failure. Host read 2026-09-15.</div>
 
 <div class="lanes">
   <!-- HUMAN LANE -->
@@ -129,13 +128,12 @@
   <div class="bsub">Ampere A1 Flex ARM instance, 4 OCPU and 24 GB. Security list is deny-by-default: SSH only from operator allow-listed CIDRs as break-glass, nothing else inbound.</div>
   <div class="inner">
     <div class="icard">
-      <div class="ilabel">LIVE workload</div>
-      <div class="isub">PostgreSQL 16 + pgvector, n8n, Cloudflare tunnel client. The only three running containers.</div>
+      <div class="ilabel">Live workload: the eight running containers</div>
+      <div class="isub">PostgreSQL 16 with pgvector, n8n, the Cloudflare tunnel client, Falco, Falcosidekick, the Datadog agent, Ollama and Whisper.</div>
     </div>
-    <div class="icard">
-      <div class="ilabel">Designed, not running</div>
-      <div class="isub">Vault, Keycloak, Teleport, Falco, Datadog, Langfuse, Ollama, NeMo Guardrails, Squire agent.</div>
-      <span class="pendtag">PENDING ARM REBUILD</span>
+    <div class="icard tier">
+      <div class="ilabel">Identity, secrets and AI tier: defined in Docker Compose</div>
+      <div class="isub">Eleven services in seven groups: Vault, Keycloak, Teleport, the audit log router, Langfuse, NeMo Guardrails, Squire agent.</div>
     </div>
   </div>
 </div>
@@ -199,4 +197,4 @@
   </div>
 </div>
 
-<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript in the private repo.</div>
+<div class="footer">Sanitized public view: no addresses, hostnames, bucket names, or cloud identifiers. Every VERIFIED annotation traces to a saved evidence transcript for that control.</div>

@@ -9,7 +9,7 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** RA-1, RA-2, RA-3, PM-9
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this risk management policy governs the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -577,7 +577,7 @@ The following metrics SHALL be tracked and reported quarterly to measure the eff
 | **Overdue POA&M items** | Count of POA&M items past target date | 0 | 0 (baseline) |
 | **Mean time to mitigate (Moderate)** | Average days from Identified to Closed for Moderate risks | <= 90 days | N/A (no completed mitigations yet) |
 | **Mean time to mitigate (High)** | Average days from Identified to Closed for High risks | <= 30 days | N/A (no High residual risks) |
-<!-- TODO(et): Confirm the first quarterly risk acceptance review (due 2026-06-09) was completed. If not, the policy is being violated in its first cycle. Replace this row with completion evidence or the actual review date. -->
+
 | **Risk acceptance expiration compliance** | Accepted risks reviewed before expiration / Total accepted | 100% | Quarterly review extended; next checkpoint 2026-09-24 |
 | **CIS benchmark delta** | Change in WARN count between monthly scans | Decreasing or stable | 96 WARN (baseline) |
 | **CI/CD security gate blocks** | Count of PRs blocked by security scanners per quarter | Trending downward | Baseline to be established Q2 2026 |

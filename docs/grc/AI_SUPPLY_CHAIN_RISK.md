@@ -491,8 +491,8 @@ BASELINE_PROMPTS = [
 
 ### 8.1 Anthropic PBC
 
-<!-- TODO(et): Funding wording "Series D ($4B+ raised)" understates current cumulative funding ($10B+ as of late 2025 / 2026). Consider rephrasing to "well-funded, market-leading" or update with current figures from Anthropic trust page. -->
-<!-- TODO(et): "SOC 2 Type II certified" is correct but Anthropic also holds ISO 27001 and offers HIPAA BAA. Consider expanding compliance row. -->
+
+
 
 | Category | Assessment |
 |----------|-----------|
@@ -541,7 +541,7 @@ BASELINE_PROMPTS = [
 
 ### 9.1 Prioritized Actions
 
-<!-- TODO(et): P1 through P7 target dates (2026-04-15 through 2026-06-15) all past. Refresh with closure status or revised targets. -->
+
 
 | Priority | Action | Risk(s) Addressed | Gap(s) | Effort | Target Date | Owner |
 |----------|--------|-------------------|--------|--------|-------------|-------|

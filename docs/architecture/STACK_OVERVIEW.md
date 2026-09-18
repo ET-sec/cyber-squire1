@@ -1,12 +1,12 @@
 # CoreDirective Stack Overview
 
-Current as of 2026-09-08, after the Phase 20.1 cloud hardening pass and the first ARM rebuild session. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 instance (ARM, aarch64, 4 OCPU / 24 GB), and that 24 GB is the ceiling on how many of the design's services run at once. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
+Current as of 2026-09-15, after the Phase 20.1 cloud hardening pass, the move onto the Arm host, and the identity tier coming up. The platform runs on a single Oracle Cloud Infrastructure (OCI) Ampere A1 instance (ARM, aarch64, 4 OCPU / 24 GB), and that 24 GB is the ceiling on how many of the design's services run at once. The previous DigitalOcean host died with its account in August 2026 and took the old Terraform state bucket with it; that loss shaped most of the controls below. This document is organized as four security planes layered over a two-tier runtime, and for each control it names the enemy it defeats and how the control was verified.
 
 Acronyms, once: OIDC (OpenID Connect), JWT (JSON Web Token), UPST (user principal session token), KMS (key management service), CMK (customer-managed key), ZTNA (zero trust network access), WAF (web application firewall), SSO (single sign-on), POA&M (Plan of Action and Milestones), IaC (infrastructure as code), CI (continuous integration), PII (personally identifiable information), RAG (retrieval augmented generation), SOC (security operations center), RTO (recovery time objective).
 
 The reasoning behind each control (options weighed, blast radius, verification method) lives in the [decision records](decisions/README.md).
 
-**Multi-cloud posture.** The running platform deliberately splits trust across vendors: OCI holds compute, storage, and keys; Cloudflare holds the edge (Access, WAF, DNS, tunnel); GitHub issues the pipeline's identity. This is the third cloud generation of the same design: generation one ran on AWS (its IaC is archived in `terraform/cd-aws-automation/` and `terraform/simple-ec2/`), generation two on DigitalOcean (`terraform/cd-do-infrastructure/`, archived), and each migration was survivable because the entire system is code. The queued R2 state migration extends the split further, so Terraform state and the compute it describes never share a vendor failure domain.
+**Multi-cloud posture.** The running platform deliberately splits trust across vendors: OCI holds compute, storage, and keys; Cloudflare holds the edge (Access, WAF, DNS, tunnel); GitHub issues the pipeline's identity. This is the third cloud generation of the same design: generation one ran on AWS (its IaC is archived in `terraform/cd-aws-automation/` and `terraform/simple-ec2/`), generation two on DigitalOcean (`terraform/cd-do-infrastructure/`, archived), and each migration was survivable because the entire system is code. Terraform state sits in versioned, locked object storage under a customer-managed key.
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {
@@ -27,7 +27,7 @@ flowchart TB
   classDef data fill:#1f2933,stroke:#f2cc60,color:#cdd9e5
   classDef sec fill:#1c2c3a,stroke:#f97583,color:#f97583,stroke-width:2px
   classDef ci fill:#1f2933,stroke:#a371f7,color:#cdd9e5
-  classDef pending fill:#0d1117,stroke:#8b949e,color:#8b949e,stroke-dasharray:6 4
+  classDef tier fill:#161b22,stroke:#39d98a,color:#cdd9e5
 
   OPERATOR["OPERATOR (human)"]:::user
   ENDUSER["Browser users"]:::user
@@ -36,7 +36,7 @@ flowchart TB
   subgraph LOCALBOX["LOCAL · Mac workstation"]
     direction TB
     CC["Claude Code CLI<br/>Doppler-injected secrets<br/>terraform CLI"]:::live
-    HOOK1["pre-commit hook<br/>gitleaks (defaults + tripwires)<br/>AI-tell sweep · metric rebuild<br/>fail-closed"]:::sec
+    HOOK1["pre-commit hook<br/>gitleaks (defaults + tripwires)<br/>AI-tell sweep, metric rebuild<br/>fail-closed"]:::sec
     HOOK2["pre-push hook<br/>gitleaks over every unpushed commit<br/>catches no-verify and API commits<br/>fail-closed"]:::sec
   end
 
@@ -59,7 +59,7 @@ flowchart TB
 
   subgraph OCIBOX["COMPUTE · OCI Ampere A1 (ARM · aarch64 · 4 OCPU / 24 GB)"]
     direction TB
-    subgraph LIVEBOX["LIVE (8 containers)"]
+    subgraph LIVEBOX["LIVE (13 containers)"]
       direction LR
       PG[("PostgreSQL 16<br/>+ pgvector")]:::live
       N8N["n8n<br/>workflow engine"]:::live
@@ -67,23 +67,23 @@ flowchart TB
       FALCO["Falco + Falcosidekick<br/>eBPF sensor, events to the SIEM"]:::live
       DDP["Datadog agent<br/>logs + metrics to the SIEM"]:::live
       OLL["Ollama + Whisper<br/>sealed network, no route out"]:::live
+      VAULT2["HashiCorp Vault<br/>cloud KMS seal, two engines"]:::live
+      KC["Keycloak<br/>production mode, edge login provider"]:::live
+      TP["Teleport<br/>+ event handler"]:::live
+      FLU["Vector<br/>audit log shipper"]:::live
     end
-    subgraph PENDBOX["DESIGNED · pending ARM rebuild (11 of 19 compose services)"]
+    subgraph TIERBOX["AI TIER (6 of 19 compose services)"]
       direction LR
-      VAULT2["HashiCorp Vault"]:::pending
-      KC["Keycloak"]:::pending
-      TP["Teleport<br/>+ event handler"]:::pending
-      FLU["Fluentd<br/>audit log router"]:::pending
-      LFP["Langfuse<br/>web · worker · ClickHouse · Redis"]:::pending
-      NEMO["NeMo Guardrails"]:::pending
-      SQ["Squire<br/>LangGraph SOC agent"]:::pending
+      LFP["Langfuse<br/>web, worker, ClickHouse, Redis"]:::tier
+      NEMO["NeMo Guardrails"]:::tier
+      SQ["Squire<br/>LangGraph SOC agent"]:::tier
     end
   end
 
   subgraph STOREBOX["DATA · OCI Object Storage + KMS"]
     direction TB
     KMS["OCI Vault KMS<br/>customer-managed key<br/>envelope encryption: rotation re-wraps"]:::sec
-    STATE[("State bucket<br/>versioned · native locking<br/>R2 migration queued")]:::data
+    STATE[("State bucket<br/>versioned, native locking<br/>customer-managed key")]:::data
     BAK[("Backup bucket<br/>30-day retention lock<br/>deletes refused, even for admin")]:::data
   end
 
@@ -112,13 +112,13 @@ flowchart TB
   KMS -->|wraps| BAK
 ```
 
-## Runtime: live versus designed
+## Runtime: what runs on the host
 
-**LIVE (verified against `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` and `docker ps` on 2026-09-08):** 8 containers run on the OCI instance.
+**LIVE (verified against `COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml` and `docker ps` on 2026-09-15):** 13 containers run on the OCI instance.
 
 | Container | Role |
 |-----------|------|
-| PostgreSQL 16 + pgvector | Workflow state and the future RAG store |
+| PostgreSQL 16 + pgvector | Workflow state and the retrieval store for the governance corpus |
 | n8n | Workflow engine, reachable only through the Cloudflare Access gate |
 | cloudflared | Tunnel sidecar, outbound-only connection to the edge |
 | Falco 0.43, modern eBPF | Kernel-level runtime detection; custom rules and the public showcase rule loaded from the host |
@@ -126,10 +126,15 @@ flowchart TB
 | Datadog agent | Host metrics, container logs, and the SSH auth log to the SIEM |
 | Ollama | Local model server on the sealed network (qwen3.5:9b pulled 2026-09-10 after a seven-model benchmark on the host, inference verified on ARM; qwen3:8b and llama3.1:8b remain on the volume) |
 | Whisper (faster-whisper-server) | Speech to text on the sealed network, small model, transcription verified |
+| HashiCorp Vault 2.1 | Secrets manager, unsealed by the cloud KMS through the instance identity; dynamic database credentials and transit of the workflow engine's key |
+| Keycloak 26.7 | Identity provider in production mode; the edge login's second provider beside the email code |
+| Teleport 18.11 | Access gateway, local auth with a second factor, one requestable role, sessions recorded |
+| Teleport event handler | Streams the gateway's audit events over mutual TLS to the shipper |
+| Vector 0.58 | Audit log shipper to the SIEM from a bounded memory buffer; its exporter is scraped for discards and restarts |
 
 Also live outside the instance: the Cloudflare edge (Access ZTNA, WAF, DNS, tunnel), the Terraform remote state bucket, the KMS key, the backup bucket, the nightly drift check, the scanner-to-POA&M pipeline, and both local git hooks.
 
-**DESIGNED, PENDING ARM REBUILD:** the remaining 11 services of the 19-service master compose file (`COREDIRECTIVE_ENGINE/docker-compose.yaml`) are codified but not running. That list: HashiCorp Vault, Keycloak, Teleport plus its event handler, Fluentd, Langfuse (web, worker, ClickHouse, Redis), NeMo Guardrails, and Squire. Every registry image publishes an arm64 manifest at its pinned index digest (checked 2026-09-08), so the remaining blockers are the three locally built images (Fluentd, NeMo, Squire) that need arm64 builds and the identity material (Teleport certs, Keycloak realm, Vault data) that died with the old host and must be regenerated. The compose file is the design record. Nothing in this document claims those services are running.
+**THE REST OF THE PLATFORM:** the AI tier of the 19-service master compose file (`COREDIRECTIVE_ENGINE/docker-compose.yaml`). That list: Langfuse (web, worker, ClickHouse, Redis), NeMo Guardrails, and Squire. Every registry image publishes an arm64 manifest at its pinned index digest (the five identity-tier images re-resolved on the host 2026-09-15, the rest checked 2026-09-08); two images are built locally (NeMo, Squire) and the identity material (Teleport certificates and identities, the Keycloak realm, Vault data) is machine-specific and is issued on the host it runs on. The compose file is the definition of record.
 
 ## Identity plane: two trust boundaries
 
@@ -140,7 +145,7 @@ Two different actors authenticate, through two different mechanisms.
 | Edge | Humans in browsers | Cloudflare Access (ZTNA) federates end users to an SSO identity provider at the edge; WAF in front; the origin is reachable only through the outbound-only tunnel and exposes nothing inbound | Direct-to-origin scanning and credential stuffing; there is no listening surface to attack | Anonymous requests to the edge hostname get bounced to the Access gate in front of a live origin |
 | Pipeline | The GitHub Actions runner (a robot) | OIDC token exchange: the workflow presents GitHub's signed JWT to an OCI Identity Domain, which checks the `sub` claim against a trust rule pinned to this repo and the main branch, then issues a UPST that lives minutes and maps to a read-only principal. GitHub's secret store holds zero cloud keys | Stolen long-lived CI credentials, the classic supply chain pivot; there is no key to steal, and even a minted token can only read | An accepted exchange on the pinned branch, and a deliberate wrong-branch attempt refused with HTTP 401 (both on public CI runs) |
 
-Secrets management around both boundaries: Doppler is the single operational secrets manager, 1Password is rotation-only, and HashiCorp Vault is reserved for dynamic per-agent secrets once the ARM rebuild lands. The host itself stores no cloud credentials; its backup uploads authenticate by instance principal (the cloud recognizes the machine, not a key file).
+Secrets management around both boundaries: Doppler is the single operational secrets manager, 1Password is rotation-only, and HashiCorp Vault holds two roles, dynamic database credentials and the transit key. The host itself stores no cloud credentials; its backup uploads authenticate by instance principal (the cloud recognizes the machine, not a key file).
 
 ## Data plane: encryption, immutable backups, proven restore
 
@@ -150,7 +155,7 @@ Secrets management around both boundaries: Doppler is the single operational sec
 | Backup bucket retention rule (30 days): objects can be written and read but not modified or deleted until the window passes | Ransomware's first move, deleting the backups | Delete attempted as tenancy admin, refused with a 403 retention violation; delete attempted from the instance, refused because the policy grants no delete permission at all |
 | Nightly pg_dump plus the n8n volume upload to the retention-locked bucket by instance principal; backup-failure alerting fires to Telegram | Silent backup rot, and harvested host credentials (the host has none to harvest) | Nightly cron installed and alert path wired; upload principal holds create/read/inspect only |
 | Monthly timed restore test to a scratch target, RTO logged | The untested-backup hypothesis | First run restored 76 tables in 5 seconds |
-| Terraform state in a versioned bucket with native locking (atomic create-if-absent); the backend address lives in a gitignored file, and migration to Cloudflare R2 is queued so state and compute stop sharing a vendor | State loss (this exact failure killed the old environment), state clobbering by concurrent runs, and secrets leaking through a public backend block | Lock contention proven live: a second plan lost with HTTP 412 while an apply held the lock; the first remote plan also caught real console drift |
+| Terraform state in a versioned bucket with native locking (atomic create-if-absent); the backend address lives in a gitignored file, and the key that encrypts it is customer-managed | State loss (this exact failure killed the old environment), state clobbering by concurrent runs, and secrets leaking through a public backend block | Lock contention proven live: a second plan lost with HTTP 412 while an apply held the lock; the first remote plan also caught real console drift |
 
 ## Detection plane: drift, findings, alerting
 
@@ -160,7 +165,7 @@ Secrets management around both boundaries: Doppler is the single operational sec
 | Scanner findings pipeline: Trivy, Checkov, and Gitleaks output is parsed by `scripts/poam_sync.py` into a script-owned POA&M ledger, keyed by a fingerprint of source, rule, and location so reruns update instead of duplicate. The curated register stays human-owned; rows graduate only on triage | POA&M rot, the compliance document someone forgets to edit | Idempotency proven: rerunning on the same input is a no-op, a new finding appears as exactly one new row |
 | Backup-failure alerting on the host | A detection plane that watches the cloud but not its own safety net | Wired during Phase 20.1, alert path to Telegram |
 
-Falco (kernel-level detection through the modern eBPF probe), Falcosidekick, and the Datadog agent returned to the current host on 2026-09-08 in the first ARM rebuild session: Falco events reach Datadog through Falcosidekick, the agent ships container logs and host metrics, and the first hour of events drove one documented tuning file (`detections/falco/`). The Teleport audit pipeline (event handler, Fluentd) waits on the identity session of the rebuild. Falcosidekick ships to Datadog; the Splunk destination named in an earlier plan is not configured.
+Falco (kernel-level detection through the modern eBPF probe), Falcosidekick, and the Datadog agent came up on the current host on 2026-09-08: Falco events reach Datadog through Falcosidekick, the agent ships container logs and host metrics, and the first hour of events drove one documented tuning file (`detections/falco/`). The Teleport audit pipeline (event handler, log router) carries the session records off the host over mutual TLS. Falcosidekick ships to Datadog; the Splunk destination named in an earlier plan is not configured.
 
 ## Pipeline plane: six layers between a keyboard and main
 
@@ -177,7 +182,7 @@ Each layer exists because the previous one can be bypassed.
 
 A secret that reaches a pushed commit stays fetchable by SHA even after a force-push, which is why layers 1 through 3 are fail-closed rather than advisory.
 
-## Security plane: AWS custody split (designed, apply scheduled)
+## Security plane: AWS custody split, held behind an apply gate
 
 The newest plane extends the multi-cloud posture from lineage to live
 custody: AWS holds what must survive the other two vendors. Evidence vault
@@ -203,14 +208,14 @@ exists. The receipt checklist ships in the module README.
 3. **CI to the cloud**: OIDC token exchange only, minutes-lived, read-only, pinned to repo and branch. No stored keys on either side.
 4. **Host to storage**: instance principal with create/read/inspect only. The host cannot delete its own backups even if fully compromised.
 5. **Repo to public**: the layered pipeline above, plus sanitization convention (illustrative addresses like 10.100.1.10 only, no real hostnames, buckets, or identifiers in public docs).
-6. **Workload cloud to security plane** (designed, apply scheduled): evidence flows one way into the AWS vault through a write-only identity; nothing in AWS can reach back into OCI, and the only OCI material there is the sealed break-glass secret whose access alerts.
+6. **Workload cloud to security plane** (held behind the apply gate): evidence flows one way into the AWS vault through a write-only identity; nothing in AWS can reach back into OCI, and the only OCI material there is the sealed break-glass secret whose access alerts.
 
-## Counts, with the source checked (2026-09-08)
+## Counts, with the source checked (2026-09-15)
 
 | What | Count | Source checked |
 |------|-------|----------------|
-| Containers live on OCI | 8 | `docker-compose.oci-core.yaml`, `docker ps` |
-| Services designed in the master compose | 19 | `docker-compose.yaml` service list |
+| Containers live on OCI | 13 | `docker-compose.oci-core.yaml`, `docker ps` |
+| Services in the master compose | 19 | `docker-compose.yaml` service list |
 | GitHub Actions workflows (SHA-pinned, permissions blocks) | 16 | `.github/workflows/` |
 | OPA Rego policies on the IaC | 8 | `terraform/cd-oci-infrastructure/policy/` |
 | Restore test result | 76 tables, 5 seconds | Phase 20.1 status log |

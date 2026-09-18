@@ -15,10 +15,10 @@ of the automation host is never recreated underneath the operator.
 | Rate limit ruleset (/webhook/*) | adopted 2026-09-02 | unchanged |
 | Access: n8n host app, admin policy, service-token policy, shared token | adopted 2026-09-02 | unchanged |
 | Access: Telegram webhook bypass (path + IP scoped) | created 2026-09-02 | the one new resource |
-| Access: langfuse, squire, ssh apps | pending import | dormant until the ARM rebuild brings those services back |
-| Per-agent service tokens | pending | design in the archived `cloudflare-adopt` notes |
-| DNS records, tunnel ingress config | pending import | tunnel ingress edits through the dashboard cause drift once imported; import when ready to commit to code-only changes |
-| Zone security settings | pending | import shows a wide diff on defaults; reconcile separately |
+| Access: langfuse, squire, ssh apps | dashboard managed | the applications the tunnel fronts beside n8n |
+| Per-agent service tokens | dashboard managed | the shape is in the archived `cloudflare-adopt` notes |
+| DNS records, tunnel ingress config | dashboard managed | tunnel ingress edits through the dashboard cause drift once these are in code, so they move together with the code-only rule |
+| Zone security settings | dashboard managed | a read shows a wide diff on provider defaults, so these are reconciled on their own |
 
 ## Why the Telegram carve-out exists
 

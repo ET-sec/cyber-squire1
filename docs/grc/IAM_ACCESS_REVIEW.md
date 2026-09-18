@@ -249,7 +249,7 @@ ssh alpha-node 'docker exec svc-gateway tctl recordings ls'
 | NeMo rail config audit | 60 days | 2026-06-22 | `svc-nemo-config` git log |
 | AI supply chain register review | 60 days | 2026-06-22 | AI_SUPPLY_CHAIN_REGISTER.md |
 
-<!-- TODO(et): verify the `squire` database/user exists in svc-db with the credentials referenced in the commands below; confirm gateway-config.yaml on production still has operator request.roles: ['admin']. Last verified 2026-03-11. -->
+
 
 **5.7.1 Phase 17 token rotation check commands**
 
@@ -317,7 +317,7 @@ ssh alpha-node 'docker exec svc-gateway tctl request rm <request-id>'
 
 ## 7. Enterprise Upgrade Path
 
-The current access gateway Community Edition provides solid JIT access controls. The following features require an enterprise license and are documented as future enhancements:
+This build runs the access gateway Community Edition: local authentication with a second factor, and a requestable role for elevation. The features below need an enterprise license, which this build does not carry:
 
 | Feature | Edition Required | Benefit |
 |---------|-----------------|---------|

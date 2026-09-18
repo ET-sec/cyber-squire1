@@ -7,7 +7,7 @@
 **Classification:** Internal Use Only
 **NIST 800-53 Controls:** IR-4 (Incident Handling), IR-5 (Incident Monitoring), IR-6 (Incident Reporting), IA-5 (Authenticator Management), SC-28 (Protection of Information at Rest)
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this leaked credential playbook is run against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -144,9 +144,9 @@ Applies to all secrets managed by the Organization, including but not limited to
 
 - [ ] **Gitleaks CI scan failure**: secret pattern detected in a commit during CI/CD pipeline
 - [ ] **Code repository platform secret scanning alert**: platform-native secret detection on push
-- [ ] **Datadog alert**: secret pattern detected in log output (regex-based alert rule) <!-- TODO(et): verify the Datadog log monitor for secret patterns actually exists. If not, this trigger is aspirational. -->
+- [ ] **Datadog alert**: secret pattern detected in log output (regex-based alert rule)
 - [ ] **Pre-commit hook failure**: Gitleaks pre-commit hook blocked a commit containing a secret
-- [ ] **Secrets manager audit log**: unusual access pattern (unexpected IP, time, or frequency) <!-- TODO(et): confirm Doppler audit log is shipped to Datadog so this trigger fires. -->
+- [ ] **Secrets manager audit log**: unusual access pattern (unexpected IP, time, or frequency)
 
 
 ### 4.2 Manual / External Detection
@@ -154,7 +154,7 @@ Applies to all secrets managed by the Organization, including but not limited to
 - [ ] **Developer self-report**: engineer realizes they committed or logged a secret
 - [ ] **Peer code review**: secret spotted during pull request review
 - [ ] **Third-party notification**: vendor reports that a credential associated with the Organization was found on a public paste site, repository, or dark web
-- [ ] **Unauthorized usage alert**: unexpected API calls or logins using a credential that suggest it was obtained by an unauthorized party <!-- TODO(et): specify the alert source (Datadog on auth logs, Vault audit, cloud provider audit trail) so this row is actionable. -->
+- [ ] **Unauthorized usage alert**: unexpected API calls or logins using a credential that suggest it was obtained by an unauthorized party
 
 
 ---

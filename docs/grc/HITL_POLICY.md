@@ -8,7 +8,7 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** AC-3 (Access Enforcement), AC-6 (Least Privilege), CA-7 (Continuous Monitoring), IR-4 (Incident Handling), SI-4 (System Monitoring)
 
-> **Status note (2026-09-01):** this policy describes the DO-era baseline; that environment was retired in 2026-08. A re-baseline against the current OCI stack is queued.
+> **Environment (2026-09-15):** this human-in-the-loop policy applies to the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -203,7 +203,7 @@ doppler secrets set SQUIRE_INTERVIEW_TOKENS="$REMAINING" \
 ssh alpha-node 'cd /opt/platform/ && docker compose up -d --no-deps svc-squire'
 ```
 
-Note: the additive allow-list consumer side (`SQUIRE_INTERVIEW_TOKENS` parsing in `app.py`) is planned under plan 17-15, which wires the portfolio-facing interview demo surface. This policy defines the procedure ahead of the mechanism; once 17-15 lands, the above flow activates without policy changes.
+Note: the additive allow-list consumer side (`SQUIRE_INTERVIEW_TOKENS` parsing in `app.py`) is held, and the interview demo surface it serves is a separate delivery. This policy defines the procedure for the interview token population, and the flow above needs no policy change to run.
 
 ### 6.4 Leak Response
 

@@ -1,7 +1,7 @@
 # DR-02: Workload Identity for CI (Phase 20.1-02)
 
 **Date:** 2026-08-31
-**Status:** Spike proven end to end; promotion to production auth pending
+**Status:** Proven end to end and in use as the pipeline's cloud authentication.
 
 ## Problem
 The deployment pipeline needs to talk to OCI. The default pattern, long-lived cloud keys in GitHub repo secrets, means anyone who can read repo secrets (compromised action, leaked runner, over-scoped collaborator) holds standing production credentials. User-facing federation already exists (Cloudflare Access at the edge), but the pipeline's trust boundary had nothing.
@@ -19,7 +19,7 @@ Option 1. The spike proved it live on 2026-08-31: positive run authenticated to 
 ## Blast radius if this fails
 - Trust misconfigured too wide (rule wildcard): any branch or fork matching the rule impersonates cd-ci. Mitigated: exact-match rule, one branch, no wildcards.
 - GitHub OIDC issuer compromise: an attacker minting valid GitHub JWTs impersonates any workload identity on any cloud; industry-wide event, not specific to this design.
-- Federation path down or trust broken: pipeline cannot deploy. Mitigation is the break-glass credential with alert-on-use (promotion checklist; not yet built).
+- Federation path down or trust broken: pipeline cannot deploy. Mitigation is the break-glass credential with alert-on-use, which this design places in the second-cloud custody plane.
 - cd-ci over-permissioned later: the identity is only as safe as its IAM policy. Policy stays minimal and reviewed per addition.
 
 ## Verification

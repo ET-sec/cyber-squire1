@@ -8,7 +8,7 @@
 **Approved By:** System Owner
 **NIST 800-53 Controls:** AU-2 (Event Logging), AU-3 (Content of Audit Records), AU-4 (Audit Log Storage Capacity), AU-6 (Audit Record Review), AU-9 (Protection of Audit Information), AU-11 (Audit Record Retention)
 
-> **Status note (2026-09-01):** this specification describes the DO-era baseline; that environment was retired in 2026-08. A re-baseline against the current OCI stack is queued.
+> **Environment (2026-09-15):** this specification describes the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 

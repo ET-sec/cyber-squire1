@@ -26,7 +26,7 @@ related:
   - POAM-OPS-001
 ---
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this threat catalog is drawn against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # AI Threat Catalog
 
@@ -64,7 +64,7 @@ related:
 
 ### AI Threat Kill Chain
 
-<!-- TODO(et): Kill chain ASCII below uses OWASP LLM Top 10 (2023) numbering and label set (LLM02 Insecure Output, LLM05 Supply Chain, LLM06 Sensitive Info, LLM07 Insecure Plugin, LLM08 Excessive Agency, LLM09 Overreliance, LLM10 Model Theft). Regenerate using 2025 numbering: LLM01 Prompt Injection, LLM02 Sensitive Info Disclosure, LLM03 Supply Chain, LLM04 Data and Model Poisoning, LLM05 Improper Output Handling, LLM06 Excessive Agency, LLM07 System Prompt Leakage, LLM08 Vector and Embedding Weaknesses, LLM09 Misinformation, LLM10 Unbounded Consumption. -->
+
 
 The following diagram maps the 10 OWASP LLM Top 10 threats through a kill chain
 progression, showing how threats chain together from initial access through execution

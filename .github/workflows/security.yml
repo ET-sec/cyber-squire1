@@ -62,8 +62,8 @@ jobs:
       # Snyk Open Source dependency scan, entry plan (monthly test quota applies).
       # Runs alongside Trivy. Trivy covers OS packages and image layers.
       # Snyk covers application dependency manifests (pip, poetry, npm, go.mod)
-      # with reachability scoring. continue-on-error keeps the pipeline green
-      # while the baseline is tuned. Flip to false once the baseline is clean.
+      # with reachability scoring. The step is advisory: continue-on-error is
+      # true, so its findings feed the vulnerability register and fail no job.
       - name: Detect Snyk token
         id: snyk_token
         run: |

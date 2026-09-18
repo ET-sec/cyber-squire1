@@ -11,7 +11,7 @@ set -euo pipefail
 # deletes anything older than 90 days, and logs what was removed.
 #
 # NOTE: Google Drive archival is deferred (OAuth not connected). Logs older
-# than 90 days are deleted with a log note that archival is pending.
+# than 90 days are deleted with a log note that archival is deferred.
 ###############################################################################
 
 SPACES_BUCKET="s3://${AUDIT_LOGS_BUCKET:-audit-logs-bucket}"

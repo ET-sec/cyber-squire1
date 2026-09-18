@@ -1,0 +1,199 @@
+{
+  "realm": "coredirective",
+  "enabled": true,
+  "displayName": "CoreDirective",
+  "displayNameHtml": "<strong>CoreDirective</strong>",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "passwordPolicy": "length(12) and upperCase(1) and lowerCase(1) and digits(1) and specialChars(1) and notUsername(undefined)",
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "cd-admin",
+        "description": "Full administrative access to all CoreDirective services",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "cd-operator",
+        "description": "Day-to-day operational access, can manage workflows and containers",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "cd-auditor",
+        "description": "Read-only access to audit logs, session recordings, and compliance data",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:soc-tier1",
+        "description": "Tier 1 squire: read-only Datadog alert triage. No write capability.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:soc-defensive",
+        "description": "Tier 3 blue_squire: production write tools (isolate, block, revoke), approval-gated.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:soc-offensive",
+        "description": "Tier 4 red_squire: adversarial probing in sandboxed ephemeral container with egress allow-list.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:grc-corpus",
+        "description": "Tier 2 grc_librarian: public sanitized GRC corpus, PR comment write only.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:audit",
+        "description": "Tier 2.5 keeper_squire: internal sensitive corpus read, local filesystem write only.",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "agent:drift-detector",
+        "description": "Non-LLM drift observer: read-only access to facts and audit logs.",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "squire",
+      "name": "Squire - Tier 1 SOC triage agent",
+      "description": "Read-only Datadog alert triage. Token role: agent:soc-tier1. Secret in Doppler KC_CLIENT_SECRET_SQUIRE.",
+      "enabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": {
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "roles"
+      ]
+    },
+    {
+      "clientId": "blue-squire",
+      "name": "Blue Squire - Tier 3 incident responder",
+      "description": "Production write tools, approval-gated. Token role: agent:soc-defensive. Secret in Doppler KC_CLIENT_SECRET_BLUE_SQUIRE. Lifespan tightened to 60s (eBook step-up for high-risk).",
+      "enabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": {
+        "access.token.lifespan": "60"
+      },
+      "defaultClientScopes": [
+        "roles"
+      ]
+    },
+    {
+      "clientId": "red-squire",
+      "name": "Red Squire - Tier 4 adversarial probe",
+      "description": "Sandboxed ephemeral container, egress allow-list. Token role: agent:soc-offensive. Secret in Doppler KC_CLIENT_SECRET_RED_SQUIRE.",
+      "enabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": {
+        "access.token.lifespan": "120"
+      },
+      "defaultClientScopes": [
+        "roles"
+      ]
+    },
+    {
+      "clientId": "grc-librarian",
+      "name": "GRC Librarian - Tier 2 standards lookup",
+      "description": "Public corpus retrieval, PR comment write only. Token role: agent:grc-corpus. Secret in Doppler KC_CLIENT_SECRET_GRC_LIBRARIAN.",
+      "enabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": {
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "roles"
+      ]
+    },
+    {
+      "clientId": "keeper-squire",
+      "name": "Keeper Squire - Tier 2.5 internal threat modeling",
+      "description": "Internal sensitive corpus, local filesystem write only. Token role: agent:audit. Secret in Doppler KC_CLIENT_SECRET_KEEPER_SQUIRE.",
+      "enabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": {
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "roles"
+      ]
+    },
+    {
+      "clientId": "drift-detector",
+      "name": "Drift Detector - non-LLM observer",
+      "description": "Read-only facts and audit logs. Token role: agent:drift-detector. Secret in Doppler KC_CLIENT_SECRET_DRIFT_DETECTOR.",
+      "enabled": false,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "attributes": {
+        "access.token.lifespan": "300"
+      },
+      "defaultClientScopes": [
+        "roles"
+      ]
+    }
+  ],
+  "scopeMappings": [],
+  "eventsEnabled": true,
+  "eventsListeners": [
+    "jboss-logging"
+  ],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true
+}

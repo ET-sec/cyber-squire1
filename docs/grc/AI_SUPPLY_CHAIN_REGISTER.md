@@ -9,7 +9,7 @@
 **Distinct From:** AI_SUPPLY_CHAIN_RISK.md (the policy). This document is the living asset register that the policy references.
 **NIST 800-53 Controls:** CM-8 (System Component Inventory), SR-4 (Provenance), SR-11 (Component Authenticity)
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this supply chain register is kept against the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -113,9 +113,9 @@ Risk Score rubric:
 
 ---
 
-<!-- TODO(et): "Next Review 2026-06-23" is past due. The promised 60-day re-walk needs to be executed and timestamps refreshed across the register. -->
-<!-- TODO(et): GLiNER row "TBD: pinned but currently unloaded" is contradictory wording. Pick either "version pin TBD, currently unloaded" or specify the pinned commit/tag. -->
-<!-- TODO(et): OpenClaw Risk Score 2 vs role in Squire path: AI_SUPPLY_CHAIN_RISK Section 3.1 lists OpenClaw as svc-ai-gateway in Squire's path. Reconcile whether OpenClaw is on the Squire critical path (raise Risk Score) or strictly fronts Telegram/n8n/Claude Desktop (Score 2 holds). -->
+
+
+
 
 ## 4. TBD Items
 

@@ -4,7 +4,7 @@
 # Four tiers by criticality and update behavior.
 #
 # Tier 1: security boundary and identity (digest pinned)
-#   Vault, Keycloak, Teleport, Teleport event handler, cloudflared.
+#   Vault, Keycloak, Teleport, Teleport event handler, Vector, cloudflared.
 #   Format: image: name:semver@sha256:digest
 #   Update path: Renovate PR. Review every bump. No automerge.
 #
@@ -21,7 +21,7 @@
 #   Update path: Renovate PR (grouped). Automerge waits on Cosign fail-closed.
 #
 # Tier 0: locally built images (separate pipeline)
-#   cd-service-nemo, cd-service-squire, cd-service-fluentd.
+#   cd-service-nemo, cd-service-squire.
 #   Format: image: name:tag with `build:` block above.
 #   Update path: Dockerfile change + rebuild + tag bump in this file.
 #   Tag convention going forward: name:YYYYMMDD-<short-sha> instead of :dev.
@@ -57,25 +57,25 @@
 #    values pass through literally. See docker-compose.oci-core.yaml for the
 #    working pattern and stack.env.template for the variable names.
 #
-# 3. STACK CHANGES decided for the OCI rebuild:
-#      - DROP cd-service-whisper (removed from scope).
-#      - Keep cd-service-falco as the sensor, but reroute cd-service-
-#        falcosidekick output from Datadog to Splunk HEC (Splunk = SIEM).
+# 3. STACK NOTES for the Arm host:
+#      - cd-service-whisper stays in scope and runs on the sealed network.
+#      - cd-service-falco is the sensor and cd-service-falcosidekick routes
+#        its events to Datadog, the SIEM every diagram on the site names.
 #      - cd-service-nemo -> a smaller model to fit the 24GB ARM budget.
 #
 # 4. HOST PERMISSIONS: n8n runs as uid 1000; its bind-mounted data dir must be
 #    `chown -R 1000:1000 CD_VOL_N8N` or it crashes with EACCES on
 #    /home/node/.n8n/config. Postgres (uid 999) self-initializes fine.
 #
-# CURRENTLY LIVE ON OCI (via docker-compose.oci-core.yaml, NOT this file yet):
-#   cd-service-db + cd-service-n8n + tunnel-cyber-squire, ARM-clean, fronted
-#   by the Cloudflare Access gate through the tunnel.
-# The remaining 15 services in THIS file are pending the four fixes above.
+# THE LIVE DEFINITION IS docker-compose.oci-core.yaml, which the host copy
+#   mirrors; this file is the full service list the platform is built from,
+#   fronted by the Cloudflare Access gate through the tunnel. Read the two
+#   together: this one for the design, that one for what the host carries.
 #
 # STATE + BACKUPS (updated 2026-08-31, Phase 20.1): Terraform state lives in
-# versioned OCI Object Storage with native locking (Cloudflare R2 remains the
-# eventual home for vendor decoupling, pending a one-time R2 enable in the CF
-# dashboard). Nightly backups of PostgreSQL + the n8n volume upload to a
+# versioned OCI Object Storage with native locking, under the customer-managed
+# key, and the backend address sits in a gitignored file rather than in this
+# repository. Nightly backups of PostgreSQL + the n8n volume upload to a
 # retention-locked bucket via instance principal, with a monthly timed restore
 # test. See terraform/cd-oci-infrastructure/README.md for the full state.
 # ============================================================================
@@ -214,7 +214,7 @@ services:
     # Tier 3: stateless inference. Pinned 2026-09-06 to the image :latest-cpu
     # resolved to (0.5.0-cpu, multi-arch index, arm64 present); a floating tag
     # changes under the Trivy scan and leaves nothing to roll back to. Upstream
-    # is archived (renamed speaches); ARM rebuild session A decides the move.
+    # is archived (renamed speaches); this digest stays the reviewed pin.
     image: fedirz/faster-whisper-server:0.5.0-cpu@sha256:760e5e43d427dc6cfbbc4731934b908b7de9c7e6d5309c6a1f0c8c923a5b6030
     container_name: cd-service-whisper
     restart: unless-stopped
@@ -258,36 +258,40 @@ services:
   # HashiCorp Vault (Secrets Management)
   # ==========================================
   # Purpose: Centralized secrets management: eliminates hardcoded .env values
-  # - AppRole auth for n8n, Keycloak, and services to fetch creds at runtime
-  # - Short-lived leases (1hr TTL) for Postgres dynamic credentials
+  # - Database engine: dynamic Postgres credentials on a one hour lease (role cd-app-readwrite)
+  # - Transit engine: wraps the orchestration engine's encryption key; the token backend is the only auth method
   # - Full audit log of every secret access
-  # - Init/unseal MUST be done OFF-STREAM (root token exposed)
+  # - Initialized once off-stream; the root token and the recovery shares went to Doppler, not to a file
   #
   cd-service-vault:
-    # Tier 1: secrets boundary. Digest pinned. NOTE: v1.15 reached EOL.
-    # Renovate will surface 1.18+ LTS upgrade as a major bump PR.
-    image: hashicorp/vault:1.15@sha256:0450896c43b13879b19442b204ce29dd19b5a10fce43d5cf38af17da20f56f4d
+    # Tier 1: secrets boundary. Digest pinned (multi-arch index, re-resolved on the
+    # Arm host 2026-09-15). One configuration source: CD_VOL_VAULT/config/vault.hcl.
+    # The seal is OCI KMS through the instance principal; the seal key id and the
+    # two KMS endpoints are read from the environment (identity.env on the host).
+    image: hashicorp/vault:2.1.0@sha256:5520cc26271c024e6ffa45cdf95255bd26b70d71ba4b7e0bc18925bef4128adb
     container_name: cd-service-vault
     restart: unless-stopped
     ports:
       - "127.0.0.1:8200:8200"
-    cap_add:
-      - IPC_LOCK
     environment:
       - VAULT_ADDR=http://127.0.0.1:8200
-      - VAULT_API_ADDR=http://127.0.0.1:8200
-      - VAULT_LOCAL_CONFIG={"storage":{"file":{"path":"/vault/data"}},"listener":[{"tcp":{"address":"0.0.0.0:8200","tls_disable":true}}],"disable_mlock":true,"ui":true}
+      - SKIP_SETCAP=true   # mlock is disabled in vault.hcl, so no IPC_LOCK is granted
+      - VAULT_OCIKMS_SEAL_KEY_ID=${VAULT_OCIKMS_SEAL_KEY_ID}
+      - VAULT_OCIKMS_CRYPTO_ENDPOINT=${VAULT_OCIKMS_CRYPTO_ENDPOINT}
+      - VAULT_OCIKMS_MANAGEMENT_ENDPOINT=${VAULT_OCIKMS_MANAGEMENT_ENDPOINT}
     volumes:
-      - ./CD_VOL_VAULT/config:/vault/config:z
-      - ./CD_VOL_VAULT/data:/vault/data:z
-      - ./CD_VOL_VAULT/logs:/vault/logs:z
+      - ./CD_VOL_VAULT/config/vault.hcl:/vault/config/vault.hcl:ro
+      - ./CD_VOL_VAULT/data:/vault/data
+      - ./CD_VOL_VAULT/logs:/vault/logs
     command: server
     healthcheck:
-      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      # An HTTP read of the health endpoint: 200 only when initialized, unsealed
+      # and active, so a sealed server reads unhealthy and says so.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8200/v1/sys/health?standbyok=true"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     security_opt:
       - no-new-privileges:true
     deploy:
@@ -307,39 +311,48 @@ services:
   # ==========================================
   # Keycloak v26 (Identity & SSO)
   # ==========================================
-  # Purpose: Centralized identity: SSO for n8n, Vault UI, and future services
+  # Purpose: Centralized identity: SSO for n8n, the Vault UI, and the consoles
   # - Realm: coredirective (imported from CD_VOL_KEYCLOAK_IMPORT)
   # - Roles: cd-admin, cd-operator, cd-auditor
-  # - OIDC client for Teleport (Enterprise upgrade path)
+  # - The client is the Cloudflare Access edge; Teleport federation is Enterprise
   # - Admin password stored in 1Password → Core Infra → "Keycloak Admin"
   # - Upgraded v23 → v26.5.2 (2026-03-11, Phase 08-04)
-  # - In production: switch command to `start` (remove start-dev)
+  # - `command:` sets the start mode and realm import; hostname from env; loopback port
   #
   cd-service-keycloak:
-    # Tier 1: identity provider. Digest pinned.
-    image: quay.io/keycloak/keycloak:26.5.2@sha256:fb31a59deb46f746f2aaa25adc5da39ceccac4fd22d36a519562b0bf02e8df20
+    # Tier 1: identity provider. Digest pinned (multi-arch index, re-resolved on
+    # the Arm host 2026-09-15). Production mode with a strict hostname behind a
+    # terminating tunnel: KC_PROXY_HEADERS and KC_HTTP_ENABLED are what let the
+    # plain listener serve the right scheme. Its tables sit in their own schema
+    # of the shared database, under a database role scoped to that schema. The heap rides JAVA_OPTS_APPEND, never JAVA_OPTS,
+    # which would replace the image's whole default option set.
+    image: quay.io/keycloak/keycloak:26.7.3@sha256:29be7252db0a106f1cd2ac17b9a56ff2668073da645638a38b9fc67deeb2d6c4
     container_name: cd-service-keycloak
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"
     environment:
-      - KEYCLOAK_ADMIN=${KC_ADMIN_USER}
-      - KEYCLOAK_ADMIN_PASSWORD=${KC_ADMIN_PASS}
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_ADMIN_USER}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_ADMIN_PASS}
       - KC_DB=postgres
       - KC_DB_URL=jdbc:postgresql://cd-service-db:5432/${CD_DB_NAME}
-      - KC_DB_USERNAME=${CD_DB_USER}
-      - KC_DB_PASSWORD=${CD_DB_PASS}
-      - KC_HOSTNAME=${KC_HOSTNAME:-localhost}
+      - KC_DB_USERNAME=${KC_DB_USER}
+      - KC_DB_PASSWORD=${KC_DB_PASS}
+      - KC_DB_SCHEMA=keycloak
+      - KC_HOSTNAME=${KC_HOSTNAME}
+      - KC_HOSTNAME_STRICT=true
       - KC_PROXY_HEADERS=xforwarded
       - KC_HTTP_ENABLED=true
       - KC_HEALTH_ENABLED=true
-      - JAVA_OPTS_APPEND=-Xms256m -Xmx512m
+      - JAVA_OPTS_APPEND=-Xms256m -Xmx640m
     volumes:
       - ./CD_VOL_KEYCLOAK_IMPORT:/opt/keycloak/data/import:ro
     depends_on:
       cd-service-db:
         condition: service_healthy
-    command: start-dev --import-realm
+    # `--import-realm` runs on the first boot only, which imports the tracked
+    # realm template; the service then runs a bare `start`, recreated without it.
+    command: start
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"UP\"' || exit 1"]
       interval: 30s
@@ -368,15 +381,15 @@ services:
   # Purpose: Zero-trust SSH gateway with session recording
   # - All-in-one: auth + proxy + SSH node
   # - Session recording: node-sync (records at the node, syncs to auth)
-  # - MFA: TOTP second factor for all users
-  # - Foundation for JIT access (08-02) and audit log shipping (08-03)
-  # - Admin UI: served on the Teleport web port behind the edge (hostname and port set per deployment)
+  # - MFA: TOTP second factor for all users; one requestable role (operator asks for admin)
+  # - Audit log shipping through the event handler to the Vector pipeline
+  # - Federation (OIDC, SAML) is an Enterprise feature: local auth is the design here
+  # - Admin UI: served on the Teleport web port inside the host; not routed through the edge
   #
   cd-service-teleport:
     # Tier 1: PAM and audit. Digest pinned.
-    image: public.ecr.aws/gravitational/teleport-distroless:18.7.2@sha256:d66c30cae352a3a07d0207f42cb0e392f09e6cdc2a7e286875f9b76802d31eab
+    image: public.ecr.aws/gravitational/teleport-distroless:18.11.0@sha256:66a368cd1c480a9261c5271a410bd9a3ea159401f8633c2942523284a80c32c4
     container_name: cd-service-teleport
-    hostname: ${TELEPORT_HOSTNAME:-teleport.internal}
     restart: unless-stopped
     ports:
       - "127.0.0.1:3080:3080"
@@ -572,31 +585,41 @@ services:
       - net-monitoring
 
   # ==========================================
-  # Fluentd (Log Router for Teleport Events)
+  # Vector (Audit Log Shipper for Teleport Events)
   # ==========================================
-  # Purpose: Receives Teleport audit events from Event Handler via mTLS
-  # - Forwards to Datadog Logs API (us5 site)
-  # - fluent-plugin-datadog installed via custom Dockerfile
-  # - mTLS: client_cert_auth for Event Handler connections
+  # Purpose: Receives the event handler's audit and session streams over mutual TLS
+  # - Path route: audit events and session events carry different tags into the SIEM
+  # - Memory buffer that blocks under back-pressure; the discard counters are the stop condition
+  # - Health read over the network from the exporter on 9598 (distroless image: no shell)
+  # - Replaced the locally built Fluentd image on 2026-09-15 (plan 24-02)
   #
-  cd-service-fluentd:
-    # Tier 0: locally built (fluent-plugin-datadog wrapped). Renovate cannot watch.
-    # Rebuild: docker compose build cd-service-fluentd
-    # See docs/runbook/image-rollback.md for the versioning convention.
-    build: ./CD_VOL_FLUENTD
-    container_name: cd-service-fluentd
+  cd-service-vector:
+    # Tier 1: the audit log shipper. Digest pinned (multi-arch index, re-resolved
+    # on the Arm host 2026-09-15). Replaces the locally built log shipper: a
+    # mutual TLS listener for the event handler, a memory buffer that blocks
+    # rather than drops, and an exporter on 9598 that the health scrape reads
+    # from a neighbour on net-core (the image is distroless: no shell, no client).
+    image: timberio/vector:0.58.0-distroless-static@sha256:f41132f3675185e4b63ef608ba3d6b6406727d8fe57169c495696ac610a7d1dc
+    container_name: cd-service-vector
     restart: unless-stopped
     environment:
       - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=${DD_SITE}
+      # 0.58 refuses to expand ${VAR} in its configuration unless told to; the two
+      # values above are the only ones vector.yaml reads from the environment
+      - VECTOR_DANGEROUSLY_ALLOW_ENV_VAR_INTERPOLATION=true
     volumes:
-      - ./CD_VOL_FLUENTD/fluent.conf:/fluentd/etc/fluent.conf:ro
-      - ./CD_VOL_FLUENTD/certs:/etc/fluentd/certs:ro
+      - ./CD_VOL_VECTOR/vector.yaml:/etc/vector/vector.yaml:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/ca.crt:/etc/vector/certs/ca.crt:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/server.crt:/etc/vector/certs/server.crt:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/server.key:/etc/vector/certs/server.key:ro
     healthcheck:
-      test: ["CMD-SHELL", "ruby -e \"require 'socket'; TCPSocket.new('127.0.0.1', 8888).close\""]
-      interval: 30s
-      timeout: 10s
+      # the only binary in the image validates the configuration it runs
+      test: ["CMD", "vector", "validate", "--skip-healthchecks", "/etc/vector/vector.yaml"]
+      interval: 60s
+      timeout: 20s
       retries: 3
-      start_period: 15s
+      start_period: 20s
     security_opt:
       - no-new-privileges:true
     deploy:
@@ -611,20 +634,21 @@ services:
         max-size: "10m"
         max-file: "3"
     networks:
+      - net-core
       - net-monitoring
 
   # ==========================================
   # Teleport Event Handler (Audit Log Shipper)
   # ==========================================
-  # Purpose: Streams Teleport audit events via gRPC to Fluentd
+  # Purpose: Streams Teleport audit events over mutual TLS to the Vector pipeline
   # - Connects to Teleport auth on port 3025
-  # - mTLS client certs for Fluentd connection
+  # - mTLS client certs for the Vector connection
   # - Identity file with 1-year TTL (event-handler user)
   # - Events: session.start, session.end, user.login, access_request
   #
   cd-service-teleport-event-handler:
     # Tier 1: audit log shipper. Digest pinned.
-    image: public.ecr.aws/gravitational/teleport-plugin-event-handler:18.7.2@sha256:4887da85cc7dfa1065b5e599bbc33bed6ff064589113aef7d7d03e46f4d545a7
+    image: public.ecr.aws/gravitational/teleport-plugin-event-handler:18.11.0@sha256:68dec7230299b106b45ab897d85ad843bb4df8c863c3ba63ef2debbf51e3ae64
     container_name: cd-service-teleport-event-handler
     restart: unless-stopped
     volumes:
@@ -635,7 +659,7 @@ services:
     command: start --config /etc/teleport-event-handler/teleport-event-handler.toml
     depends_on:
       - cd-service-teleport
-      - cd-service-fluentd
+      - cd-service-vector
     security_opt:
       - no-new-privileges:true
     deploy:
@@ -689,9 +713,9 @@ services:
   # ============================================================================
   # LANGFUSE v3 (Phase 17-04): LLM tracing + observability for Squire agent
   # 4 containers (~2.75 GiB cap). Shares cd-service-db (new `langfuse` database).
-  # Blob store: S3-compatible bucket via LANGFUSE_S3_* env vars. The original
-  # DO Spaces bucket died with that account (2026-08); point these at OCI
-  # Object Storage's S3 compat layer or Cloudflare R2 during the ARM rebuild.
+  # Blob store: S3-compatible object storage credentials, read from the
+  # environment through the LANGFUSE_S3_* variables; endpoint, bucket, and
+  # keys all arrive in the deploy-time environment file.
   # ============================================================================
 
   cd-service-langfuse-clickhouse:

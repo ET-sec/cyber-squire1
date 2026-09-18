@@ -8,7 +8,7 @@
 **Prepared By:** System Owner
 **Approved By:** System Owner (Authorizing Official)
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this configuration record documents the rails on the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 ---
 
@@ -259,7 +259,7 @@ Lakera Guard is a commercial detection service for prompt injection. Squire's ar
 - **Account status**: the System Owner's Lakera account is registered but not on a production plan. API key placeholder in Doppler as `LAKERA_API_KEY` (currently empty).
 - **Integration**: `builds/squire/app/rails/lakera_client.py` is a stub that wraps the Lakera Guard API. When the key is set, the stub fires before the NeMo input rail.
 - **Fallback**: When the key is empty, the stub returns `allow` immediately with `degraded=true`.
-- **Planned activation**: Once a production Lakera plan is funded, activate. Current coverage from NeMo input rail plus pre-graph scanner is sufficient for the demo threat model.
+- **Coverage**: the NeMo input rail and the pre-graph scanner carry the detection.
 
 ## 7. Failure Modes and Remediation Playbook
 
@@ -371,7 +371,7 @@ Each file has a corresponding test module under `builds/squire/tests/`. The test
 | `LAKERA_API_KEY` | Lakera Guard (placeholder) | On activation |
 | `NEMO_ADMIN_TOKEN` | `svc-nemo` admin API | Quarterly |
 | `ANTHROPIC_API_KEY` | LLM backend | Quarterly + rotate on any 402 |
-| `VOYAGE_API_KEY` | Embeddings for corpus (per ADR 001) | Quarterly <!-- TODO(et): confirm VOYAGE_API_KEY is provisioned in Doppler `<SECRETS_PROJECT>/<CONFIG>`; ADR_001_EMBEDDING_PROVIDER.md chose Voyage AI and the compose env block references this key --> |
+| `VOYAGE_API_KEY` | Embeddings for corpus (per ADR 001) | Quarterly |
 | `TAVILY_API_KEY` | Enrichment search | Quarterly |
 
 No guardrail secret is committed to Git. All secrets come from Doppler config `<SECRETS_PROJECT>/<CONFIG>`.

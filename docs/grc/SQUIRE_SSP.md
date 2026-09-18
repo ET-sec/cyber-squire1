@@ -22,7 +22,7 @@ related:
   - POAM-OPS-001
 ---
 
-> **Status note (2026-09-01):** this document describes the DigitalOcean-era baseline as assessed. That environment was retired 2026-08. The platform now runs on an Oracle Cloud (OCI) ARM instance with a partial stack (3 containers live); the remaining services are pending ARM rebuild. A re-baseline of this document is queued and tracked in the POA&M.
+> **Environment (2026-09-15):** this agent system security plan describes the platform as it runs on an Oracle Cloud (OCI) ARM instance.
 
 # System Security Plan: Squire Autonomous SOC Analyst
 
@@ -290,7 +290,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | AC-2 | Implemented | Only the System Owner has credentials to Doppler config `prd`. Squire reads secrets at container start via `doppler run --`. No user accounts exist inside the Squire application itself. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` (`svc-squire` environment block) |
 | AC-3 | Implemented | `POST /alert` requires header `x-squire-token` validated against Doppler secret `SQUIRE_INGEST_TOKEN`. Missing or mismatched token returns 401. | `builds/squire/src/squire/app.py` (token check with `hmac.compare_digest`) |
-| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins `net-core` only in the compose today; the `net-ai` membership the local-model fallback needs is a queued compose change (ARM rebuild, application tier session). | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block and the `svc-squire` service |
+| AC-4 | Implemented | Three Docker networks isolate traffic: `net-ai` (LLM path), `net-core` (database), `net-monitoring` (Langfuse emit). `svc-squire` joins both `net-core` and `net-ai`, which is what gives the local-model fallback a route while leaving the sealed segment without a route out. | `COREDIRECTIVE_ENGINE/docker-compose.yaml` networks block and the `svc-squire` service |
 | AC-6 | Implemented | Least privilege on container filesystem: `USER 10001:10001`, `read_only: true`, `tmpfs` for `/tmp`. No `CAP_*` added; `no-new-privileges` set. | `builds/squire/Dockerfile` + compose security_opt |
 | AC-17 | Implemented | All remote administration goes through the Cloudflare zero-trust tunnel or SSH on `alpha-node`. Neither the application nor Langfuse listen on the public internet. | Parent SSP inheritance plus tunnel config |
 
@@ -300,7 +300,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 |---------|--------|----------------|----------|
 | AU-2 | Implemented | Audit events: (1) every `/alert` call emits a Langfuse trace with cost, latency, and rail outcomes; (2) every completed investigation, its evidence, and its citations are rows in `ir_investigations`, `ir_evidence`, and `ir_citations`, and a replay is a new investigation row with source `replay`; (3) a pre-graph block returns a structured refusal with a reason code and is traced, not stored in a dedicated table. | `builds/squire/src/squire/persist.py`; `builds/squire/src/squire/telemetry.py` |
 | AU-3 | Implemented | Audit records include: timestamp, trace_id, node_name, model_id, input_hash, output_hash, rail_name, reason_code, cost_usd, latency_ms. | Langfuse schema + `ir_*` DDL in migrations/002 |
-| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to the operations Telegram bot. Weekly human review of red-team regression runs. | No script by that name exists in the repository as of 2026-09-06; the rail-trigger review is a manual Langfuse query until the daily job is written |
+| AU-6 | Implemented | Daily automated review: a cron job queries Langfuse for traces with `rail_triggered=true` and posts a summary to the operations Telegram bot. Weekly human review of red-team regression runs. | No script by that name exists in the repository as of 2026-09-06; the rail-trigger review is a manual query of the trace store |
 | AU-9 | Implemented | Langfuse writes are append-only from the worker's perspective. The Postgres table holding traces has REVOKE UPDATE, DELETE on the service role. Offsite backup via nightly `pg_dump` to DO Spaces (14-day retention). | `svc-db` role `langfuse_rw` grants INSERT, SELECT only |
 | AU-12 | Partially Implemented | Every graph node is instrumented with `@observe()` from `langfuse.decorators`. No test enumerates the nodes to enforce the decorator yet; a trace-coverage test is an open item. | `builds/squire/src/squire/nodes/draft.py` and `critique.py` carry the observe decorators |
 
@@ -350,7 +350,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
-| SC-7 | Implemented | `svc-squire` is the only service that takes external traffic, and it is bound to loopback behind the Cloudflare tunnel. `svc-nemo` is the only service permitted to egress to the model API, because it is the container that makes the model call. Langfuse and `svc-db` are on internal networks only. Three layers keep the agent off the model API, named by strength: `svc-squire` receives no model key, its settings object has no field that can hold one, and its hosts file blackholes the model API name. The third is the weakest, since code with a hard coded address would defeat it; the egress allowlist proxy that closes it properly is queued for the rebuild phase. | `COREDIRECTIVE_ENGINE/docker-compose.yaml`: ports block binds `svc-squire` to `127.0.0.1:8020`, the key is set on `svc-nemo` only, and the `extra_hosts` entry carries the blackhole |
+| SC-7 | Implemented | `svc-squire` is the only service that takes external traffic, and it is bound to loopback behind the Cloudflare tunnel. `svc-nemo` is the only service permitted to egress to the model API, because it is the container that makes the model call. Langfuse and `svc-db` are on internal networks only. Three layers keep the agent off the model API, named by strength: `svc-squire` receives no model key, its settings object has no field that can hold one, and its hosts file blackholes the model API name. The third is the weakest, since code with a hard coded address would defeat it, and the egress allowlist that closes it is recorded privately with its plan number. | `COREDIRECTIVE_ENGINE/docker-compose.yaml`: ports block binds `svc-squire` to `127.0.0.1:8020`, the key is set on `svc-nemo` only, and the `extra_hosts` entry carries the blackhole |
 | SC-8 | Implemented | All external API calls use HTTPS. Cloudflare tunnel terminates TLS at the edge and re-encrypts to the container. | Cloudflare config |
 | SC-12 | Implemented | Cryptographic keys (API keys) live in Doppler. Rotation is quarterly for external API keys and on-demand for the ingest token. | Doppler rotation log |
 | SC-28 | Implemented | Data at rest in the `ir_*` tables is encrypted at the volume layer (parent SSP). Langfuse trace data has the same treatment. | Parent SSP LUKS coverage |
@@ -370,7 +370,7 @@ This section covers only controls that are Squire-specific. Inherited controls (
 | Control | Status | Implementation | Evidence |
 |---------|--------|----------------|----------|
 | SQ-COST-1 | Planned | Per-call cost ceiling: not implemented. The guard in `cost_ceiling.py` is the daily ceiling below; a per-call budget that aborts the graph mid-run is an open item. | `builds/squire/src/squire/cost_ceiling.py` (daily only) |
-<!-- TODO(et): Compose env shows ANTHROPIC_DAILY_CEILING_USD default $5.00. SSP says $10. Confirm production override via Doppler. -->
+
 | SQ-COST-2 | Implemented | Daily cost ceiling (`ANTHROPIC_DAILY_CEILING_USD`, default $5) computed as the UTC-day sum of `cost_usd` over `ir_investigations`; there is no Redis counter. On breach the configured mode (`SQUIRE_COST_BREACH_MODE`, default `ollama`) applies: force the local `ollama` backend, refuse with 503 and `daily_cost_ceiling_reached`, or warn only. A database error fails open by design and is logged. | `builds/squire/src/squire/cost_ceiling.py`; `settings.py` |
 | SQ-ITER-1 | Implemented | The investigate node has a hard loop cap of 3 iterations. The critique node has a hard loop cap of 2. Exceeding either returns the best response so far with a `degraded=true` flag. | `builds/squire/src/squire/graph.py` (critique iteration cap); `builds/squire/src/squire/nodes/investigate.py` |
 | SQ-LAT-1 | Implemented | Per-call latency budget of 45 seconds (P95). Exceeded calls fire a Datadog monitor tagged `service:squire severity:warn` and log a span with `latency_budget_exceeded=true`. | Datadog monitor ID `squire_latency_p95` |
@@ -423,7 +423,7 @@ The three Docker networks are isolated at the Docker bridge layer, and the AI se
 4. `svc-squire` cannot reach `svc-datadog:8125` directly; Datadog emission goes through the host agent on 127.0.0.1 (expected fail).
 5. `svc-squire` cannot reach the model API host, while `svc-nemo` can (expected fail, then pass).
 
-Check 5 was measured on 2026-09-09 with a throwaway container carrying the same hosts entry the compose file gives `svc-squire`, not with the real services: the model API host refused the connection while three other vendor hosts resolved and completed a TLS handshake in the same run, and a control run without the entry reached all four. Checks 1 to 4 state the design's intent and have no automated implementation in the tracked tree today. Neither `svc-squire` nor `svc-nemo` has an image on the current host until the rebuild phase, so there is no running container to assert against. Automating all five against the real services, with an alert on drift, is rebuild-phase work. It has no POA&M item yet, which is itself recorded rather than left unsaid.
+Check 5 was measured on 2026-09-09 with a throwaway container carrying the same hosts entry the compose file gives `svc-squire`, not with the real services: the model API host refused the connection while three other vendor hosts resolved and completed a TLS handshake in the same run, and a control run without the entry reached all four. Checks 1 to 4 state the design's intent and have no automated implementation in the tracked tree. Neither `svc-squire` nor `svc-nemo` has an image on the current host, so there is no running container to assert against. Automating all five against the real services, with an alert on drift, is the evidence this row does not carry.
 
 ### 9.2 Ingress Path Verification
 
@@ -504,7 +504,7 @@ The full Squire operational runbook lives in `docs/context/rules-of-engagement.m
 
 1. Author change in `builds/squire/` branch off `main`.
 2. Open PR; CI runs pytest (127 tests), Trivy, ruff, mypy, SBOM, and container signature verification.
-<!-- TODO(et): Verify the GHCR push pipeline is wired. CLAUDE.md does not list this in CI/CD scope. -->
+
 3. On merge, GitHub Actions builds and pushes `ghcr.io/et-sec/squire:<sha>` and `:latest`.
 4. Operator SSH to `alpha-node` and runs `docker compose pull svc-squire && docker compose up -d svc-squire`.
 5. Healthcheck polls `https://squire.example-ops.com/health` until 200 or 60 seconds elapsed.

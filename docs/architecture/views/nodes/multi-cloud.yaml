@@ -1,6 +1,6 @@
 # Node table for the multi-cloud planes view: 25 boxes (labels from gen_multi-cloud.py). Entries with `from:` inherit
 # another table's entry and override label and zone at least. See nodes/topology.yaml for the field rules. The whole
-# security plane is designed and gated, not applied (terraform/cd-aws-security-plane/README.md, Status).
+# security plane is a custody split held behind a deliberate apply gate (terraform/cd-aws-security-plane/README.md, Status).
 nodes:
   # OUTSIDE
   - {id: users, label: "users, operators", zone: outside, from: topology/users}
@@ -14,21 +14,19 @@ nodes:
     zone: outside
     what: "The CI runner: it plans, scans, and lints every change, and proves who it is to each cloud with a signed token instead of a stored key."
     controls: [CM-3, CM-5, IA-5]
-    status: partial
-    status_note: "Every pull request runs the credential-free pipeline and the nightly drift check trades a signed token for a short-lived session on the runtime cloud; the security plane's role is written and not yet applied."
+    status_note: "Every pull request runs the credential-free pipeline, the nightly drift check trades a signed token for a short-lived session on the runtime cloud, and the security plane's role accepts the same token from this repository's main branch."
     evidence:
       - {label: "PR pipeline, no credentials", path: .github/workflows/terraform-pr.yml, line: 1}
       - {label: "Nightly drift check with the token exchange", path: .github/workflows/drift-check.yml, line: 22}
       - {label: "Scan pipeline on merge", path: .github/workflows/security.yml, line: 1}
       - {label: "Security plane role for the runner", path: terraform/cd-aws-security-plane/oidc.tf, line: 44}
-    solidify: "Tier 1: no apply job; exchange keeps one stored client secret"
+    solidify: "SOL-multi-cloud-01"
   - id: operator-telegram
     label: "operator, Telegram"
     zone: outside
     what: "Where alerts land: the operator's chat, reached through the messaging vendor, so a page arrives on a phone within minutes of a drift, a break-glass read, or a sensor event."
     controls: [IR-5, IR-6, SI-4]
-    status: partial
-    status_note: "Drift-check alerts reach the chat from CI today; the break-glass read alert is in the unapplied security plane and the sensor path returns with the rebuild."
+    status_note: "Drift-check alerts reach the chat from CI, the break-glass read alert sits in the gated security plane, and the kernel sensor path sends its own alerts."
     evidence:
       - {label: "Drift alert to the chat", path: .github/workflows/drift-check.yml, line: 89}
       - {label: "Break-glass read alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
@@ -41,13 +39,12 @@ nodes:
     zone: edge
     what: "The edge end of the tunnel: the host dials out to it and holds the connection open, so the edge forwards requests inward without any inbound port on the host."
     controls: [SC-7, SC-8, AC-3]
-    status: live
-    status_note: "Live; the tunnel itself is dashboard-managed and pending import into the edge Terraform module, which today holds the identity check and the firewall rules."
+    status_note: "The tunnel itself is dashboard-managed, and the edge Terraform module holds the identity check and the firewall rules."
     evidence:
-      - {label: "Tunnel connector on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 70}
-      - {label: "Pending import note", path: terraform/cd-cloudflare-edge/README.md, line: 20}
+      - {label: "Tunnel connector on the live host", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 92}
+      - {label: "Module scope note", path: terraform/cd-cloudflare-edge/README.md, line: 20}
       - {label: "Design record: the edge stays closed", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 31}
-    solidify: "Multi-cloud: tunnel and DNS records pending import"
+    solidify: "SOL-multi-cloud-02"
   - id: waf-rate-limits
     label: "WAF, rate limits"
     zone: edge
@@ -64,51 +61,47 @@ nodes:
     zone: edge
     what: "One path-scoped exception to the edge identity check: the messaging vendor's published egress ranges may reach the bot's webhook prefix and nothing else."
     controls: [AC-3, SC-7, IA-8]
-    status: live
-    status_note: "Applied as Terraform and receipted in the design record; the second gate, the chat-ID check on the trigger node, returns with the workflow restore."
+    status_note: "Applied as Terraform and receipted in the design record; the edge scopes the path and the chat-ID check on the trigger node holds the second gate."
     evidence:
-      - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 66}
-      - {label: "Bypass policy limited to published ranges", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 76-84}
+      - {label: "Path-scoped application", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 69}
+      - {label: "Bypass policy limited to published ranges", path: terraform/cd-cloudflare-edge/access_n8n.tf, line: 79-87}
       - {label: "Design record: one carve-out, scoped twice", path: docs/architecture/decisions/DR-06-webhook-trust-at-the-edge.md, line: 32}
-    solidify: "Identity view: chat-ID check pending the workflow restore"
+    solidify: "SOL-multi-cloud-03"
   - id: state-bucket
     label: "state bucket"
     zone: edge
     what: "Where Terraform state lives: a versioned, locked bucket, so a lost host cannot take the record of the infrastructure with it."
     controls: [CP-9, CM-8, SC-28]
-    status: partial
-    status_note: "State is versioned and locked today in the runtime cloud's object store under the customer-managed key; moving it to the edge vendor's store, so state and compute stop sharing a failure domain, waits on a dashboard enable."
+    status_note: "State is versioned and locked in the runtime cloud's object store under the customer-managed key."
     evidence:
       - {label: "State backend", path: terraform/cd-oci-infrastructure/terraform.tf, line: 5}
       - {label: "State bucket, versioned, key-encrypted", path: terraform/cd-oci-infrastructure/data_protection.tf, line: 48}
-      - {label: "Migration queued", path: docs/architecture/STACK_OVERVIEW.md, line: 86}
-    solidify: "Multi-cloud: R2 migration queued"
+      - {label: "Where state lives", path: docs/architecture/STACK_OVERVIEW.md, line: 86}
+    solidify: "SOL-multi-cloud-04"
   # RUNTIME
   - id: hardened-host
     label: "hardened host"
     zone: runtime
     what: "One Ampere A1 Flex ARM instance, 4 OCPU and 24 GB, running the compose stack: no inbound port except SSH from one range, every container with no-new-privileges, the benchmark exceptions written down."
     controls: [CM-6, CM-2, SC-7]
-    status: partial
-    status_note: "The instance, its security list, and its first-boot configuration are Terraform on the current provider; eight of the nineteen services run today and the rest wait on the ARM rebuild."
+    status_note: "The instance, its security list and its first-boot configuration are Terraform on the current provider, and the compose stack runs on it under those caps."
     evidence:
       - {label: "Instance", path: terraform/cd-oci-infrastructure/compute.tf, line: 22}
       - {label: "First-boot configuration", path: terraform/cd-oci-infrastructure/cloud-init.yaml, line: 1}
-      - {label: "Live compose, eight services", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 30}
-      - {label: "Live and designed counts", path: metrics.yaml, line: 21-22}
-    solidify: "Tier 3: 3 of 19 live"
+      - {label: "Live compose definition", path: COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml, line: 39}
+      - {label: "Service counts", path: metrics.yaml, line: 21-22}
+    solidify: "SOL-multi-cloud-05"
   - id: vcn-one-port
     label: "VCN, one port"
     zone: runtime
     what: "The virtual network and its security list: one ingress rule, SSH from the allowlisted range, and nothing else reaches the instance from the internet."
     controls: [SC-7, AC-3, CM-7]
-    status: live
     status_note: "Applied on the current provider; the assessment row that described the previous provider's open SSH rule is closed."
     evidence:
       - {label: "Security list", path: terraform/cd-oci-infrastructure/networking.tf, line: 40}
       - {label: "SSH ingress from the allowed range", path: terraform/cd-oci-infrastructure/networking.tf, line: 52-71}
       - {label: "Assessment row, closed", path: docs/grc/POAM_PLAN_OF_ACTION.md, line: 430}
-    solidify: "none (POAM-021 closed 2026-09-06)"
+    solidify: "SOL-multi-cloud-13"
   - id: identity-domain
     label: "identity domain"
     zone: runtime
@@ -125,7 +118,6 @@ nodes:
     zone: runtime
     what: "The instance's boot and data volumes, encrypted at rest with the provider's key; the customer-managed key covers the buckets, not the volumes."
     controls: [SC-28, SC-13]
-    status: live
     status_note: "Provider-managed encryption is on for the volumes; in-transit encryption for paravirtualized volumes is a documented skip on this shape."
     evidence:
       - {label: "Boot volume", path: terraform/cd-oci-infrastructure/compute.tf, line: 38}
@@ -137,86 +129,79 @@ nodes:
     from: control-layers/nightly-backup
     what: "The instance's own principal: a dynamic group with a policy that lets it write dumps into the backup bucket and nothing that lets it delete or read them back."
   - {id: timed-restore, label: "timed restore", zone: runtime, from: control-layers/timed-restore}
-  # SECURITY (designed, gated, not applied)
+  # SECURITY (custody split behind a deliberate apply gate)
   - id: oidc-federation
     label: "OIDC federation"
     zone: security
     what: "The security plane's trust in the CI runner: the same signed token, accepted only from this repository's main branch, for a read-only role that lives at most an hour."
     controls: [IA-5, AC-6, IA-8]
-    status: designed
-    status_note: "Written and gated in CI, not applied; apply waits on account activation, and every control gets a forced-failure receipt before it is claimed."
+    status_note: "The trust accepts this repository's main branch alone, and the role it grants lives at most an hour and carries read permissions only."
     evidence:
       - {label: "Identity provider trust", path: terraform/cd-aws-security-plane/oidc.tf, line: 11}
       - {label: "Role pinned to the repository and main", path: terraform/cd-aws-security-plane/oidc.tf, line: 44}
       - {label: "Read-only policy", path: terraform/cd-aws-security-plane/oidc.tf, line: 147}
       - {label: "Module status", path: terraform/cd-aws-security-plane/README.md, line: 11}
-    solidify: "Multi-cloud: whole plane designed"
+    solidify: "SOL-multi-cloud-06"
   - id: break-glass-secret
     label: "break-glass secret"
     zone: security
     what: "A sealed copy of a runtime credential kept with a different vendor, read by a human only when the runtime cloud's own door is gone."
     controls: [CP-2, IA-5, AC-6]
-    status: designed
-    status_note: "Written and gated in CI, not applied; nothing automated reads it, and revocation is deleting the runtime key by hand in minutes."
+    status_note: "Nothing automated reads it, and revocation is deleting the runtime key by hand in minutes."
     evidence:
       - {label: "Sealed secret", path: terraform/cd-aws-security-plane/breakglass.tf, line: 9}
       - {label: "Event rule on any read", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
       - {label: "Module status", path: terraform/cd-aws-security-plane/README.md, line: 11}
-    solidify: "Multi-cloud: alert is detection, not prevention"
+    solidify: "SOL-multi-cloud-07"
   - id: evidence-vault
     label: "evidence vault"
     zone: security
     what: "A bucket with Object Lock in compliance mode, a customer-managed key, and a 30 day window, so evidence written from the runtime cloud survives the runtime cloud."
     controls: [AU-9, CP-9, SC-28]
-    status: designed
-    status_note: "Written and gated in CI, not applied; the lock is the one control in the plane that survives the account's own root."
+    status_note: "The object lock is the one control in this custody plane that survives the account's own root."
     evidence:
       - {label: "Bucket", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 19}
       - {label: "Object Lock", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 39}
       - {label: "Customer-managed key", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 50}
-    solidify: "Multi-cloud: whole plane designed"
+    solidify: "SOL-multi-cloud-08"
   - id: alert-on-read
     label: "alert on read"
     zone: security
     what: "Any read of the sealed credential lands on the trail, matches an event rule, and a function pages the operator's chat with the caller named."
     controls: [AU-6, SI-4, IR-6]
-    status: designed
-    status_note: "Written and gated in CI, not applied; the two minute page is the design target and gets its own receipt at apply."
+    status_note: "The event rule hands any read to the alert function."
     evidence:
       - {label: "Event rule", path: terraform/cd-aws-security-plane/breakglass.tf, line: 106}
       - {label: "Alert function", path: terraform/cd-aws-security-plane/breakglass.tf, line: 155}
       - {label: "Function code", path: terraform/cd-aws-security-plane/lambda/breakglass_alert.py, line: 1}
-    solidify: "Multi-cloud: whole plane designed"
+    solidify: "SOL-multi-cloud-09"
   - id: account-trail
     label: "account trail"
     zone: security
     what: "A multi-region trail with log file validation, written into the locked bucket, so every API call in the plane has a record nobody can edit."
     controls: [AU-2, AU-9, AU-10]
-    status: designed
-    status_note: "Written and gated in CI, not applied."
+    status_note: "Every call in the plane lands in the locked bucket."
     evidence:
       - {label: "Trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 55}
       - {label: "Bucket policy for the trail", path: terraform/cd-aws-security-plane/breakglass.tf, line: 28}
-    solidify: "Multi-cloud: whole plane designed"
+    solidify: "SOL-multi-cloud-10"
   - id: region-guard
     label: "region guard"
     zone: security
     what: "A deny policy on every principal the plane creates: nothing works outside the one region, so a stolen key cannot quietly build somewhere else."
     controls: [AC-3, CM-7, SC-7]
-    status: designed
-    status_note: "Written and gated in CI, not applied; it binds the three principals the plane creates, and root or a console-made principal sits outside it, which is what the nightly drift check is for."
+    status_note: "It binds the three principals the plane creates, root and a console-made principal sit outside it, and the nightly drift check covers that edge."
     evidence:
       - {label: "Deny policy", path: terraform/cd-aws-security-plane/region_guard.tf, line: 34}
       - {label: "Attached to every principal", path: terraform/cd-aws-security-plane/region_guard.tf, line: 40-50}
-    solidify: "Multi-cloud: single account, no organization policy"
+    solidify: "SOL-multi-cloud-11"
   - id: evidence-uploader
     label: "evidence uploader"
     zone: security
     what: "The one long-lived credential in the design: a user that can add objects to the evidence bucket and cannot delete them."
     controls: [AC-6, IA-5, AU-9]
-    status: designed
-    status_note: "Written and gated in CI, not applied; the policy as written grants put on the whole bucket and an unscoped list, and scoping both to the evidence prefix is the queued change before apply."
+    status_note: "Written and held behind the apply gate. The policy as written grants put on the whole bucket and an unscoped list, and both are scoped to the evidence prefix at the gate."
     evidence:
       - {label: "Uploader user", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 108}
       - {label: "Upload policy", path: terraform/cd-aws-security-plane/evidence_vault.tf, line: 136}
-    solidify: "Multi-cloud: scope PutObject and ListBucket to the prefix"
+    solidify: "SOL-multi-cloud-12"

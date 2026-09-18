@@ -102,7 +102,7 @@ entries:
     reason: "It is the first thing a reviewer or a hiring manager reads, and it links every directory a reader needs."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "Two stale counts, both from plan 21-06. Lines 127 and 234 say 16 workflows while metrics.yaml says 17 and .github/workflows/ holds 17 files (measured 2026-09-09); this is the document that names metrics.yaml as the single source of numeric truth. Line 100 lists three live services while docs/architecture/STACK_OVERVIEW.md records 8 live containers verified on 2026-09-08, so the front door understates what is running."
+    rewrite_later: "Re-read 2026-09-15: line 233 names 18 pipelines, matching the 18 files in .github/workflows/ and the count metrics.yaml carries"
 
   - path: "SECURITY.md"
     purpose: "The vulnerability disclosure contact and the response expectation."
@@ -288,25 +288,75 @@ entries:
   - path: "COREDIRECTIVE_ENGINE/docker-compose.yaml"
     purpose: "The full nineteen service stack definition: databases, orchestration, identity, secrets, inference, observability, and the runtime detection agents."
     status: active
-    reason: "The most referenced file in the repository, with fifty three evidence anchors on the published views plus the renovate matcher, the image smoke test, and the image signature check. It is the design of record even where a service is not running today."
-    last_verified: 2026-09-09
+    reason: "The most referenced file in the repository, with fifty three evidence anchors on the published views plus the renovate matcher, the image smoke test, and the image signature check. It is the definition of record for every service on the host."
+    last_verified: 2026-09-15
     review: {every: 90d}
-    rewrite_later: "One finding from phase 22. The api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent, which is rebuild phase work."
+    rewrite_later: "The api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent."
 
   - path: "COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml"
-    purpose: "The definition of what actually runs on the instance today: the database, the automation service, and the tunnel."
+    purpose: "The definition of what runs on the instance: the database, the orchestration engine, the tunnel, the model and speech servers, the kernel sensor and its router, the monitoring agent, the secrets manager, the identity provider, the access gateway, its event handler, and the audit log shipper."
     status: active
     reason: "The live host file is a copy of this one, so this is the only honest answer to what is running. Kept separate from the full design so neither file has to lie."
-    last_verified: 2026-09-09
+    last_verified: 2026-09-15
     review: {event: provider_terms_change, flag: TRIGGER_PROVIDER_TERMS}
 
-  - path: "COREDIRECTIVE_ENGINE/CD_VOL_FLUENTD/Dockerfile"
-    purpose: "The build context for the Fluentd log shipper, one of the three Tier 0 images the stack builds locally rather than pulling."
+  # Every configuration a service reads is tracked (plan 24-02). Each path sits
+  # under the CD_VOL_ data rule and comes in through a per-level re-include.
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_VECTOR/vector.yaml"
+    purpose: "The audit log shipper's pipeline: a mutual TLS listener for the access gateway's event handler, a path route for audit and session streams, the SIEM sink with a bounded memory buffer, and the metrics exporter the health scrape reads."
     status: active
-    reason: "Tracked by plan 22-03 through a narrow gitignore re-include. The CD_VOL_ rule that keeps volume data out had also been keeping this build source out, so a Tier 0 image compose builds had no source in any clone. Reviewed on the compose cycle because it carries a base image pin, and that pin is what has to move when upstream drops or adds an architecture."
-    last_verified: 2026-09-09
+    reason: "Bind mounted read only by the shipper's compose block. The stop conditions for the audit path (a discard or a restart) are read from the exporter this file declares, so the file is the source of both the pipeline and its own health signal."
+    last_verified: 2026-09-15
     review: {every: 90d}
-    rewrite_later: "fluent.conf sits in the same directory, is still untracked, and is bind mounted at compose line 592, so the runtime configuration of a Tier 0 service has no source in the repository while its build context does. certs/ stays out on purpose. Recorded by plan 22-03."
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_VAULT/config/vault.hcl"
+    purpose: "The secrets manager's single server configuration: file storage, the plain listener with its written TLS decision, the cloud KMS seal through the instance principal, and the lease bounds."
+    status: active
+    reason: "Bind mounted read only by the secrets manager's compose block, which no longer carries a second configuration in an environment variable. The seal key id and endpoints are read from the host environment file, so the file carries no identifier."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/teleport.yaml"
+    purpose: "The access gateway's configuration: auth, proxy and node in one process, local authentication with a second factor, session recording at the node."
+    status: active
+    reason: "Bind mounted read only by the gateway's compose block. Carries no public address because the proxy is not routed through the edge in this build; the decision record for the identity tier says why federation is a recorded upgrade."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT/config/roles.yaml"
+    purpose: "The two gateway roles: the requestable administrative role and the operator role that may request it."
+    status: active
+    reason: "Loaded into the gateway with tctl after the first start. The identity tier proves the request and approval loop on exactly this pair."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_TELEPORT_EVENTS/teleport-event-handler.toml"
+    purpose: "The event handler's forwarder table: where the audit stream goes, over which certificates, and which gateway it reads from."
+    status: active
+    reason: "Bind mounted read only by the handler's compose block. Only the table is tracked; the certificates, the client key and the identity file beside it are generated on the host and stay ignored."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_KEYCLOAK_IMPORT/coredirective-realm.json"
+    purpose: "The realm template the identity provider imports on its first start: realm settings, the human and agent roles, and the service account clients."
+    status: active
+    reason: "Tracked as a redacted template, never as a live export: it carries no user record and no client secret. A client that needs a known secret is created through the admin interface after the import and its value goes to the secrets manager of record, so the file never holds a placeholder that could be imported literally."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_DATADOG/conf.d/**"
+    purpose: "The monitoring agent's check configurations, mounted over the image's drop-in path: today the host authentication log tail."
+    status: active
+    reason: "Bind mounted read only by the agent's compose block since the stateless set came up. Tracked by plan 24-02 because the untracked configuration defect was the same one the identity tier had, not because that plan promotes the agent."
+    last_verified: 2026-09-15
+    review: {every: 90d}
+
+  - path: "COREDIRECTIVE_ENGINE/CD_VOL_FALCO/**"
+    purpose: "The kernel sensor's configuration overlay and the platform's own detection rules."
+    status: active
+    reason: "Bind mounted read only by the sensor's compose block since the stateless set came up. The rules file is the detection content the threat model cites, and it had no source in any clone until plan 24-02 tracked it; the runtime log directory beside it stays ignored."
+    last_verified: 2026-09-15
+    review: {every: 90d}
 
   # ----------------------------------------------------------------------
   # builds: the Squire agent, and nothing else
@@ -347,7 +397,7 @@ entries:
     reason: "The input and output rails are the enforcement point for prompt injection and data leakage, and the block signal the application parses is defined here."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "Two findings from plan 22-03, both about the Dockerfile and both owned by the rebuild phase. Line 28 sets TRANSFORMERS_CACHE, which the library supersedes with HF_HOME, and line 27 already sets HF_HOME. The spacy en_core_web_lg download needs network at build time and about 560 MB, which is why this image was not built in the buildx window; budget the rebuild for it."
+    rewrite_later: "Two findings from plan 22-03, both about the Dockerfile and both owned by the image work. Line 28 sets TRANSFORMERS_CACHE, which the library supersedes with HF_HOME, and line 27 already sets HF_HOME. The spacy en_core_web_lg download needs network at build time and about 560 MB, which is why this image was not built in the buildx window; budget for it."
 
   - path: "builds/squire/config/actions.yml"
     purpose: "The action allow list the agent is bound to, currently recommend only."
@@ -440,10 +490,10 @@ entries:
     reason: "The fallback row for the architecture tree, which explains the platform to a reader who is not going to read the compose file."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "Three findings from plan 21-06. INFORMATION_FLOWS.md is headed 2026-08-31 and says 3 live containers while STACK_OVERVIEW.md, headed 2026-09-08, says 8, so the two architecture documents disagree about the live count. INFORMATION_FLOWS.md line 45 and INFORMATION_FLOWS_1.mmd line 30 both leave a bare dollar zero in a diagram label; it is a real measured result for the Redis dedup rail rather than a price claim, and Phase 28 owns whether a measured zero belongs in a label at all. The rendered docs/architecture/STACK_OVERVIEW.png on disk is stale after the mermaid edit; it is untracked, so no gate sees it, and the render command is in INFORMATION_FLOWS.md lines 331 to 338."
+    rewrite_later: "Three findings from plan 21-06. INFORMATION_FLOWS.md is headed 2026-08-31 and describes the host before the stateless set and the identity tier came up, while STACK_OVERVIEW.md was re-read on 2026-09-15 and says 13, so the two architecture documents disagree about the live count; the flows document is the one to refresh. INFORMATION_FLOWS.md line 45 and INFORMATION_FLOWS_1.mmd line 30 both leave a bare dollar zero in a diagram label; it is a real measured result for the Redis dedup rail rather than a price claim, and Phase 28 owns whether a measured zero belongs in a label at all. The rendered docs/architecture/STACK_OVERVIEW.png on disk is stale after the mermaid edit; it is untracked, so no gate sees it, and the render command is in INFORMATION_FLOWS.md lines 331 to 338."
 
   - path: "docs/architecture/decisions/**"
-    purpose: "Six decision records, each naming the control it satisfies and the artifact that proves it."
+    purpose: "Seven decision records, each naming the control it satisfies and the artifact that proves it."
     status: active
     reason: "The record of why the platform is shaped this way. Each row states what proves the decision, so a reviewer can check rather than take it on trust."
     last_verified: 2026-09-09
@@ -470,7 +520,7 @@ entries:
     reason: "The public evidence package, and the corpus the retrieval side of Squire indexes. The fallback row for this tree."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "Two findings from plan 22-04. SQUIRE_MODEL_CARD.md sections 3.1, 3.2 and 4 carry latency and cost figures measured on the direct provider backend that phase 22 deleted; they are labelled as historical now, and the rebuild phase should re-measure them through the rails rather than carry a number nobody can reproduce. SQUIRE_SSP.md section 9.1 lists five network reachability checks, of which only the model egress check has been measured and none has an automated implementation, because there is no test_network_isolation.py in the tracked tree and no POA and M item for writing one. Older finding: ADR_001_EMBEDDING_PROVIDER.md still reads MongoDB repositions Voyage into paid-only tier in its risk table. That names a paid tier, which the price rule does not forbid, and it describes a possible vendor action rather than what this platform costs, so plan 21-06 left it deliberately. Phase 28 decides whether the rule extends to naming any tier at all."
+    rewrite_later: "Two findings from plan 22-04. SQUIRE_MODEL_CARD.md sections 3.1, 3.2 and 4 carry latency and cost figures measured on the direct provider backend that phase 22 deleted; they are labelled as historical now, and they are re-measured through the rails rather than carried as a number nobody can reproduce. SQUIRE_SSP.md section 9.1 lists five network reachability checks, of which only the model egress check has been measured and none has an automated implementation, because there is no test_network_isolation.py in the tracked tree and no POA and M item for writing one. Older finding: ADR_001_EMBEDDING_PROVIDER.md still reads MongoDB repositions Voyage into paid-only tier in its risk table. That names a paid tier, which the price rule does not forbid, and it describes a possible vendor action rather than what this platform costs, so plan 21-06 left it deliberately. Phase 28 decides whether the rule extends to naming any tier at all."
 
   - path: "docs/grc/README.md"
     purpose: "The library index: reading order, framework alignment, a table per category, the review schedule, and the reproducible statistics."
@@ -486,7 +536,7 @@ entries:
     reason: "Policy is what a control maps back to. Each carries the frontmatter that grc-validate.yml enforces, so a policy cannot lose its owner or its review date without failing a pull request."
     last_verified: 2026-09-09
     review: {every: 180d}
-    rewrite_later: "POLICY_BUSINESS_CONTINUITY.md is a retired provider era baseline by its own status note at line 11, and its rewritten support entitlement item at line 207 still asks a question about an account retired in 2026-08. The real fix is the re-baseline the document already queues, which the item now points at. Recorded by plan 21-06."
+    rewrite_later: "POLICY_BUSINESS_CONTINUITY.md is a retired provider era baseline by its own status note at line 11, and its rewritten support entitlement item at line 207 still asks a question about an account retired in 2026-08. The real fix is the re-read the document already names, which the item now points at. Recorded by plan 21-06."
 
   - path: "docs/grc/PLAYBOOK_*.md"
     purpose: "Five incident response playbooks: compromised container, leaked credential, unauthorized access, service degradation, and an AI specific incident."
@@ -548,10 +598,10 @@ entries:
   # keycloak: the identity tier
   # ----------------------------------------------------------------------
   - path: "keycloak/**"
-    purpose: "The realm export: clients, roles, and scopes for the identity tier."
+    purpose: "Notes for the identity provider's realm: where the imported template lives and how the agent clients are applied."
     status: active
-    reason: "Three evidence anchors on the published views cite it, so removing it breaks the publish. What is inside it depends on the Phase 24 identity tier coming up."
-    last_verified: 2026-09-09
+    reason: "The realm template the provider imports is tracked beside the compose file; the copy that used to sit here carried a user record and an Enterprise-only client and was retired on 2026-09-15 with the provider running from the tracked template."
+    last_verified: 2026-09-15
     review: {event: identity_tier_live, flag: TRIGGER_IDENTITY_TIER}
 
   # ----------------------------------------------------------------------
@@ -727,9 +777,9 @@ entries:
     review: {event: provider_terms_change, flag: TRIGGER_PROVIDER_TERMS}
 
   - path: "terraform/cd-aws-security-plane/**"
-    purpose: "The designed second cloud plane: OIDC federation, an immutable evidence vault, region guard, and a break glass path."
+    purpose: "The second cloud plane: OIDC federation, an immutable evidence vault, region guard, and a break glass path, held behind an apply gate."
     status: active
-    reason: "Written, reviewed, and held at plan. It applies when credits land, and until then it is the design that Phase 29 executes rather than invents."
+    reason: "Written, reviewed, and clean at plan. It is held behind a deliberate apply gate."
     last_verified: 2026-09-09
     review: {event: aws_credits_landed, flag: TRIGGER_AWS_CREDITS}
 

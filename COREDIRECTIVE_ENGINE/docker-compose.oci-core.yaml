@@ -1,10 +1,10 @@
 # ============================================================================
 # OCI CORE STACK: the minimal live environment on Oracle Ampere A1 (ARM)
 # ============================================================================
-# This is the ARM-clean subset that is actually running on the OCI host as of
-# 2026-09-08: database, n8n, tunnel, plus rebuild session A's stateless set
-# (Falco, Falcosidekick, Datadog agent, Whisper, Ollama). The rest of the full
-# docker-compose.yaml (19 services) returns in sessions B and C.
+# This is the subset the OCI host carries as of 2026-09-15: the database, n8n,
+# the tunnel, the stateless set (Falco, Falcosidekick, the Datadog agent,
+# Whisper, Ollama) and the identity tier (Vault, Keycloak, Teleport, its event
+# handler, Vector). The master docker-compose.yaml is the definition of record.
 #
 # DESIGN NOTES (differences from the master docker-compose.yaml, on purpose):
 #   - Images are pinned tag@digest (re-pinned 2026-09-06). The digest is the
@@ -20,8 +20,8 @@
 #     env_file passes values literally. Generate stack.env from Doppler; it is
 #     chmod 600 on the host and never committed. See stack.env.template.
 #   - n8n data dir must be chown 1000:1000 on the host (n8n runs as uid 1000).
-#   - Tunnel is token-based; its ingress routing lives in the Cloudflare
-#     dashboard and reconnects automatically wherever cloudflared runs.
+#   - Tunnel is token-based; its ingress routing is Terraform (tunnel_ingress.tf
+#     in the edge root) and it reconnects automatically wherever cloudflared runs.
 #
 # DEPLOY:
 #   The host runs this file as /opt/coredirective/docker-compose.yaml (the
@@ -109,7 +109,7 @@ services:
           pids: 64
 
   # --------------------------------------------------------------------------
-  # ARM rebuild session A (2026-09-08): the stateless set. Same images, index
+  # The stateless set (added 2026-09-08). Same images, index
   # digests, and limits as the master file (Ollama memory raised, see below).
   # Falco and the Datadog agent carry the documented accepted risks (CIS 5.25
   # and 5.15: SYS_ADMIN, host pid, read-only container socket). Off-host
@@ -155,7 +155,7 @@ services:
     volumes:
       - ./CD_VOL_WHISPER:/root/.cache/huggingface
     environment:
-      # Setting names the 0.5.0 image reads; the master file's WHISPER_MODEL is ignored (fix at rebuild).
+      # Setting names the 0.5.0 image reads; the master file's WHISPER_MODEL has no effect here.
       - WHISPER__MODEL=Systran/faster-whisper-small
       - WHISPER__INFERENCE_DEVICE=cpu
     healthcheck:
@@ -263,7 +263,7 @@ services:
       - /var/log:/host/var/log:ro
       # /conf.d is the image's drop-in path: the entrypoint copies it over the
       # defaults. Mounting /etc/datadog-agent/conf.d directly (the master file)
-      # would replace the built-in check configs; fix the master at rebuild.
+      # would replace the built-in check configs, so this file mounts /conf.d.
       - ./CD_VOL_DATADOG/conf.d:/conf.d:ro
     healthcheck:
       test: ["CMD-SHELL", "agent health"]
@@ -279,6 +279,167 @@ services:
           memory: 512M
           pids: 256
     networks: [ net-monitoring ]
+
+  # --------------------------------------------------------------------------
+  # The identity tier (added 2026-09-15): the secrets manager, the identity
+  # provider, the access gateway, its event handler, and the audit log shipper.
+  # Same images and limits as the master file, index digests re-resolved on this
+  # host. Deployment identifiers and secrets come from identity.env (the seal key
+  # id and the KMS endpoints, the identity provider's bootstrap admin and database
+  # values, its public hostname, the gateway's address), chmod 600, read only by
+  # these blocks; the shipper reads its SIEM key from monitoring.env.
+  # --------------------------------------------------------------------------
+  cd-service-vault:
+    image: hashicorp/vault:2.1.0@sha256:5520cc26271c024e6ffa45cdf95255bd26b70d71ba4b7e0bc18925bef4128adb
+    container_name: cd-service-vault
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8200:8200"
+    # VAULT_OCIKMS_SEAL_KEY_ID, VAULT_OCIKMS_CRYPTO_ENDPOINT and
+    # VAULT_OCIKMS_MANAGEMENT_ENDPOINT come from identity.env: the seal reads
+    # them, and vault.hcl is the single configuration source.
+    env_file: [ identity.env ]
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - SKIP_SETCAP=true   # mlock is disabled in vault.hcl, so no IPC_LOCK is granted
+    volumes:
+      - ./CD_VOL_VAULT/config/vault.hcl:/vault/config/vault.hcl:ro
+      - ./CD_VOL_VAULT/data:/vault/data
+      - ./CD_VOL_VAULT/logs:/vault/logs
+    command: server
+    healthcheck:
+      # 200 only when initialized, unsealed and active: a sealed server reads unhealthy
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8200/v1/sys/health?standbyok=true"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+          pids: 128
+    networks: [ net-core ]
+
+  cd-service-keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3@sha256:29be7252db0a106f1cd2ac17b9a56ff2668073da645638a38b9fc67deeb2d6c4
+    container_name: cd-service-keycloak
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    # KC_BOOTSTRAP_ADMIN_USERNAME, KC_BOOTSTRAP_ADMIN_PASSWORD, KC_DB_URL,
+    # KC_DB_USERNAME, KC_DB_PASSWORD and KC_HOSTNAME come from identity.env.
+    env_file: [ identity.env ]
+    environment:
+      - KC_DB=postgres
+      - KC_DB_SCHEMA=keycloak   # its own schema in the shared database
+      - KC_HOSTNAME_STRICT=true
+      - KC_PROXY_HEADERS=xforwarded   # scheme and host from the terminating tunnel
+      - KC_HTTP_ENABLED=true          # production mode disables the plain listener otherwise
+      - KC_HEALTH_ENABLED=true
+      - JAVA_OPTS_APPEND=-Xms256m -Xmx640m   # appends; JAVA_OPTS would replace the image's option set
+    volumes:
+      - ./CD_VOL_KEYCLOAK_IMPORT:/opt/keycloak/data/import:ro
+    depends_on:
+      cd-service-db:
+        condition: service_healthy
+    command: start
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '\"UP\"' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+          pids: 256
+    networks: [ net-core ]
+
+  cd-service-teleport:
+    image: public.ecr.aws/gravitational/teleport-distroless:18.11.0@sha256:66a368cd1c480a9261c5271a410bd9a3ea159401f8633c2942523284a80c32c4
+    container_name: cd-service-teleport
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3080:3080"
+      - "127.0.0.1:3023:3023"
+      - "127.0.0.1:3025:3025"
+    volumes:
+      - ./CD_VOL_TELEPORT/config:/etc/teleport:ro
+      - ./CD_VOL_TELEPORT/data:/var/lib/teleport
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/tctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 512M
+          pids: 256
+    networks: [ net-core ]
+
+  cd-service-vector:
+    image: timberio/vector:0.58.0-distroless-static@sha256:f41132f3675185e4b63ef608ba3d6b6406727d8fe57169c495696ac610a7d1dc
+    container_name: cd-service-vector
+    restart: unless-stopped
+    env_file: [ monitoring.env ]   # DD_API_KEY and DD_SITE, the same file the monitoring agent reads
+    environment:
+      # 0.58 refuses to expand ${VAR} in its configuration unless told to; the
+      # API key and the site are the only values vector.yaml reads that way
+      - VECTOR_DANGEROUSLY_ALLOW_ENV_VAR_INTERPOLATION=true
+    volumes:
+      - ./CD_VOL_VECTOR/vector.yaml:/etc/vector/vector.yaml:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/ca.crt:/etc/vector/certs/ca.crt:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/server.crt:/etc/vector/certs/server.crt:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs/server.key:/etc/vector/certs/server.key:ro
+    healthcheck:
+      # the only binary in the image; validates the configuration it runs
+      test: ["CMD", "vector", "validate", "--skip-healthchecks", "/etc/vector/vector.yaml"]
+      interval: 60s
+      timeout: 20s
+      retries: 3
+      start_period: 20s
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    # net-core as well as net-monitoring: the health scrape of the exporter on
+    # 9598 runs from the orchestration engine's container, which lives on net-core
+    networks: [ net-core, net-monitoring ]
+
+  cd-service-teleport-event-handler:
+    image: public.ecr.aws/gravitational/teleport-plugin-event-handler:18.11.0@sha256:68dec7230299b106b45ab897d85ad843bb4df8c863c3ba63ef2debbf51e3ae64
+    container_name: cd-service-teleport-event-handler
+    restart: unless-stopped
+    volumes:
+      - ./CD_VOL_TELEPORT_EVENTS/teleport-event-handler.toml:/etc/teleport-event-handler/teleport-event-handler.toml:ro
+      - ./CD_VOL_TELEPORT_EVENTS/identity:/etc/teleport-event-handler/identity:ro
+      - ./CD_VOL_TELEPORT_EVENTS/certs:/etc/teleport-event-handler/certs:ro
+      - ./CD_VOL_TELEPORT_EVENTS/storage:/var/lib/teleport-event-handler/storage
+    command: start --config /etc/teleport-event-handler/teleport-event-handler.toml
+    depends_on:
+      - cd-service-teleport
+      - cd-service-vector
+    security_opt: [ "no-new-privileges:true" ]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+          pids: 128
+    networks: [ net-core, net-monitoring ]
 
 networks:
   net-core:
