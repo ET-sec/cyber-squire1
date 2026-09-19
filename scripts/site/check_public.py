@@ -161,9 +161,9 @@ def main():
         ids, repo = ssp_ids(), tracked()
         for f in files(pf):
             text = f.read_text(encoding="utf-8"); rel = f.relative_to(pf)
-            # 1. OPSEC over the whole file, Credly badge ids excluded from the hex check
+            # 1. OPSEC over the whole file, Credly badge ids excluded from the hex check (HTML href or markdown link)
             for name, pat in OPSEC:
-                allow = (lambda m, line, rule: any(on_domain(h, "credly.com") for h in re.findall(r'href="([^"]+)"', line))) if name == "long hex id" else None
+                allow = (lambda m, line, rule: any(on_domain(h, "credly.com") for h in re.findall(r'(?:href="|\]\()(https?://[^")\s]+)', line))) if name == "long hex id" else None
                 for n, m, ctx in hits(pat, text, allow): print(f"FAIL opsec {name}: {rel}:{n}: {m}   | {ctx}"); fails += 1
             # 1b. price tier over the whole file
             for name, pat in PRICE:
@@ -205,7 +205,7 @@ def main():
                 continue  # binary or unreadable, nothing for a text pattern to match
             rel = f.relative_to(ROOT)
             for name, pat in (OPSEC if run_opsec else []):
-                allow = (lambda m, line, rule: any(on_domain(h, "credly.com") for h in re.findall(r'href="([^"]+)"', line))) if name == "long hex id" else None
+                allow = (lambda m, line, rule: any(on_domain(h, "credly.com") for h in re.findall(r'(?:href="|\]\()(https?://[^")\s]+)', line))) if name == "long hex id" else None
                 for n, m, ctx in hits(pat, text, allow): print(f"FAIL opsec {name}: {rel}:{n}: {m}   | {ctx}"); repo_fails += 1
             for name, pat in PRICE:
                 for n, m, ctx in hits(pat, text): print(f"FAIL {name}: {rel}:{n}: {m}   | {ctx}"); repo_fails += 1
