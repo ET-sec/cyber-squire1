@@ -18,7 +18,7 @@ COLS=[
    ("p","no ports, dials out","Host   SC-7","S"),
    ("p","SSH allowlist only","Host   SC-7","D")],
   {-1:"TB-1"},
-  ["the edge login page and the","public webhook paths, never","the host or its address"],"LOW","D-01  S-05"),
+  ["the edge login page and the","public webhook paths, never","the host or its address"],"Low","D-01  S-05"),
  ("webhook caller","knows a public webhook path",
   [("p","WAF and per-IP limit","Edge   SC-5","D"),
    ("p","edge auth, 1 carve-out","Edge   AC-3","S"),
@@ -53,14 +53,14 @@ COLS=[
    ("p","quarterly role review","Identity   AC-2","E"),
    ("g","recorded, shipped mTLS","Identity   AU-9","R")],
   {-1:"TB-1",0:"TB-2"},
-  ["a recorded session with a","four hour clock; evidence","lands beyond their reach"],"LOW","R-02  E-03"),
+  ["a recorded session with a","four hour clock; evidence","lands beyond their reach"],"Low","R-02  E-03"),
  ("poisoned image","a tag nobody here built",
   [("p","digest pinned, Tier 1","Delivery   CM-5","T"),
    ("p","reviewed PR to change","Delivery   CM-3","T"),
    ("p","scan, SBOM, signature","Delivery   RA-5","T"),
    ("p","sealed: no route home","Runtime   AC-4","I")],
   {},
-  ["a poisoned tag needs a","reviewed PR; a bad runtime","has no route home"],"LOW","T-05  T-03"),
+  ["a poisoned tag needs a","reviewed PR; a bad runtime","has no route home"],"Low","T-05  T-03"),
 ]
 svg=[]; a=svg.append
 a(f'<defs><marker id="m-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="{RED}"/></marker></defs>')
@@ -92,7 +92,7 @@ for i,(name,starts,walls,ticks,reach,res,ids) in enumerate(COLS):
     # reaches
     a(t(x,RY,"Reaches",11.5,RED,700,"start",2))
     for j,l in enumerate(reach): a(t(x,RY+19+17*j,l,12,DIM))
-    cy=RY+68; rc=GREEN if res=="LOW" else AMBER
+    cy=RY+68; rc=GREEN if res=="Low" else AMBER
     a(f'<rect x="{x}" y="{cy}" width="64" height="20" rx="3" fill="none" stroke="{rc}" stroke-width="1.5"/>')
     a(t(x+32,cy+14,res,11,rc,700,"middle"))
     a(t(x+74,cy+14,ids,11,DIM))
