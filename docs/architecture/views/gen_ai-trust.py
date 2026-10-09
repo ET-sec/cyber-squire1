@@ -1,9 +1,9 @@
 import os
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)), "ai-trust.html")
-INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#a3ada1"; EXT="#4a5a4e"
-RED="#ff6b5e"; GREEN="#3dff8b"; BONE="#e8dcc0"; ORANGE="#ff9b3d"; GRAY="#a3ada1"
+INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#e6ebe4"; EXT="#4a5a4e"
+RED="#ff6b5e"; GREEN="#3dff8b"; BONE="#e8dcc0"; ORANGE="#ff9b3d"; GRAY="#e6ebe4"
 def t(x,y,s,size,color,weight=None,anchor="start",ls=None,halo=False):
-    a=f' font-weight="{weight}"' if weight else ''; l=f' letter-spacing="{ls}"' if ls else ''
+    a=f' font-weight="{weight}"' if weight else ''; l=''
     h=f' paint-order="stroke" stroke="{INK}" stroke-width="4" stroke-linejoin="round"' if halo else ''
     return f'<text x="{x:g}" y="{y:g}" font-size="{size}" fill="{color}"{a}{l} text-anchor="{anchor}"{h}>{s}</text>'
 def node(x,y,w,label,sub=None,stroke=NSTROKE,ext=False):
@@ -22,18 +22,18 @@ C=[48+180*i for i in range(9)]; NW=150
 R1,R2,RB=272,392,580
 # zones
 a(f'<rect x="28" y="56" width="1644" height="118" rx="9" fill="rgba(232,220,192,0.03)" stroke="{EXT}" stroke-width="1.5" stroke-dasharray="5 4"/>')
-a(t(46,78,"VENDOR MODELS, OUTSIDE THE HOST",12,BONE,700,"start",2)); a(t(46,94,"frontier reasoning and classification, embeddings, search; DPA on file for the model and embeddings vendors, terms of service for search",11.5,DIM))
-a(t(1654,78,"TRUSTED VENDOR, UNTRUSTED NETWORK PATH",12,DIM,700,"end",2))
+a(t(46,78,"Vendor models, outside the host",12,BONE,700,"start",2)); a(t(46,94,"frontier reasoning and classification, embeddings, search; DPA on file for the model and embeddings vendors, terms of service for search",11.5,DIM))
+a(t(1654,78,"Trusted vendor, untrusted network path",12,DIM,700,"end",2))
 a(f'<rect x="28" y="214" width="1644" height="280" rx="9" fill="rgba(255,155,61,0.03)" stroke="{LINE}" stroke-width="2"/>')
-a(t(46,236,"NET-CORE, GUARDRAILS IN FRONT OF THE MODEL CALLS",12,ORANGE,700,"start",2)); a(t(46,252,"on host, screened, traced; PII model baked into the image, offline enforced, cannot fetch at runtime",11.5,DIM))
+a(t(46,236,"net-core, guardrails in front of the model calls",12,ORANGE,700,"start",2)); a(t(46,252,"on host, screened, traced; PII model baked into the image, offline enforced, cannot fetch at runtime",11.5,DIM))
 a(f'<rect x="28" y="530" width="1644" height="118" rx="9" fill="rgba(163,173,161,0.04)" stroke="{DIM}" stroke-width="1.5" stroke-dasharray="7 5"/>')
-a(t(46,552,"NET-AI, SEALED SEGMENT",12,TEXT,700,"start",2)); a(t(46,568,"local models for anything that touches raw personal data; reached only over the bridge",11.5,DIM))
-a(t(1654,552,"ON HOST, NO ROUTE OUT",12,DIM,700,"end",2))
+a(t(46,552,"net-ai, sealed segment",12,TEXT,700,"start",2)); a(t(46,568,"local models for anything that touches raw personal data; reached only over the bridge",11.5,DIM))
+a(t(1654,552,"On host, no route out",12,DIM,700,"end",2))
 # boundaries
 a(f'<line x1="28" y1="196" x2="1672" y2="196" stroke="{BONE}" stroke-width="2" stroke-dasharray="10 6"/>')
-a(t(46,191,"HOST BOUNDARY",12,BONE,700,"start",2,True)); a(t(178,191,"five crossings out, each one drawn",11.5,DIM,None,"start",None,True))
+a(t(46,191,"Host boundary",12,BONE,700,"start",2,True)); a(t(178,191,"five crossings out, each one drawn",11.5,DIM,None,"start",None,True))
 a(f'<line x1="28" y1="514" x2="1672" y2="514" stroke="{DIM}" stroke-width="2" stroke-dasharray="10 6"/>')
-a(t(46,509,"SEALED BOUNDARY",12,TEXT,700,"start",2,True)); a(t(190,509,"audio never comes back up; only text does",11.5,DIM,None,"start",None,True))
+a(t(46,509,"Sealed boundary",12,TEXT,700,"start",2,True)); a(t(190,509,"audio never comes back up; only text does",11.5,DIM,None,"start",None,True))
 # vendor nodes
 V=[(575,"frontier model","three reasoning nodes"),(763,"classifier","one structured call"),(1123,"embeddings","1024-dim vectors"),(1303,"web search","enrich node only")]
 for x,l,s in V: n(node(x,112,160,l,s,ext=True))
@@ -109,13 +109,13 @@ html=f'''<title>CoreDirective AI Trust</title>
   .page{{max-width:1720px;margin:0 auto;padding:16px 26px 16px}}
   .head{{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}}
   .head h1{{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}}
-  .head p{{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}}
-  .head .tag{{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}}
+  .head p{{font-family:var(--sans);font-size:13px;color:var(--text);margin:0;letter-spacing:.02em}}
+  .head .tag{{margin-left:auto;font-family:var(--sans);font-size:13px;color:var(--text)}}
   figure{{margin:10px 0 0}}
-  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}}
-  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}}
+  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--sans)}}
+  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--sans);font-size:13px;color:var(--text)}}
   @media (max-width:1100px){{figcaption{{grid-template-columns:repeat(2,1fr)}}}}
-  figcaption b{{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}}
+  figcaption b{{display:block;font-size:13px;margin-bottom:2px;font-weight:700}}
   .g b{{color:var(--green)}} .o b{{color:var(--orange)}} .c b{{color:var(--bone)}} .d b{{color:var(--dim)}}
 </style>
 

@@ -1,24 +1,24 @@
 import os
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)), "identity-access.html")
-INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#a3ada1"; EXT="#4a5a4e"
+INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#e6ebe4"; EXT="#4a5a4e"
 RED="#ff6b5e"; GREEN="#3dff8b"; BONE="#e8dcc0"; ORANGE="#ff9b3d"
 P_X,P_W=60,190; D_X,D_W=675,200; D1_X,D1_W=600,140; D2_X,D2_W=810,140; R_X,R_W=1180,200; B_X=1410
 # tier: (title, subtitle, color, tint, y, rows)
 # row: (principal, decisions[(label,ext)], resource, res_ext, labels[p2d, d2d(optional), d2r], principal_ext)
 TIERS=[
- dict(t="TIER 0  BREAK-GLASS", sub="static key, source-restricted, last resort, no broker in the path", c=RED, tint="rgba(255,107,94,0.035)", y=44, dash=True,
+ dict(t="Tier 0  break-glass", sub="static key, source-restricted, last resort, no broker in the path", c=RED, tint="rgba(255,107,94,0.035)", y=44, dash=True,
   rows=[dict(p="allowlisted source", d=[("host sshd",False)], r="host shell", rext=False, pext=False, l=["Ed25519 key, static","root path, no broker"])],
   blast=["whole host, from one source range","Falco sees the session after the fact"]),
- dict(t="TIER 1  OPERATOR", sub="humans, three realm roles: admin, operator, auditor", c=GREEN, tint="rgba(61,255,139,0.03)", y=142, dash=False,
+ dict(t="Tier 1  operator", sub="humans, three realm roles: admin, operator, auditor", c=GREEN, tint="rgba(61,255,139,0.03)", y=142, dash=False,
   rows=[dict(p="operator", d=[("Access",False),("Keycloak",False)], r="admin consoles", rext=False, pext=False, l=["email one-time PIN or the identity provider, 24h session","OIDC code with PKCE, lockout on failed logins","identity checked before origin"]),
         dict(p="operator", d=[("Teleport",False)], r="host SSH", rext=False, pext=False, l=["local user, TOTP, sessions recorded","elevation by request, ends at 4h"])],
   blast=["consoles until the 24h session ends","SSH recorded, elevation ends at 4h"]),
- dict(t="TIER 2  SERVICE", sub="machines trade one bootstrap secret for a short-lived credential", c=BONE, tint="rgba(232,220,192,0.03)", y=300, dash=False,
+ dict(t="Tier 2  service", sub="machines trade one bootstrap secret for a short-lived credential", c=BONE, tint="rgba(232,220,192,0.03)", y=300, dash=False,
   rows=[dict(p="n8n and services", d=[("Vault DB engine",False)], r="Postgres", rext=False, pext=False, l=["service token to the engine","dynamic creds, 1h lease"]),
         dict(p="CI runner", d=[("OIDC exchange",False)], r="cloud API", rext=True, pext=False, l=["signed JWT, main branch only","minutes-lived token, read-only"]),
         dict(p="Telegram", d=[("Access bypass",False)], r="one webhook path", rext=False, pext=True, l=["published egress ranges only","chat ID checked, rate limited"])],
   blast=["one database, for one hour","no stored cloud key exists to leak"]),
- dict(t="TIER 3  AGENT", sub="six agent roles in the realm, five-minute tokens, screened on the way out", c=ORANGE, tint="rgba(255,155,61,0.03)", y=518, dash=False,
+ dict(t="Tier 3  agent", sub="six agent roles in the realm, five-minute tokens, screened on the way out", c=ORANGE, tint="rgba(255,155,61,0.03)", y=518, dash=False,
   rows=[dict(p="alert source", d=[("webhook token",False)], r="Squire", rext=False, pext=True, l=["shared-secret header, rotated","typed payload, schema checked"]),
         dict(p="Squire", d=[("Guardrails",False)], r="Claude API", rext=True, pext=False, l=["no model key in the agent","API key held here, spend cap"]),
         dict(p="Squire", d=[("actions allowlist",False)], r="Telegram notify", rext=True, pext=False, l=["typed actions, deny by default","webhook token, one chat ID"])],
@@ -33,13 +33,13 @@ def label(x,y,t,c): return f'<text x="{x:g}" y="{y}" font-size="11.5" fill="{c}"
 svg=[]; a=svg.append
 mk={"red":RED,"green":GREEN,"bone":BONE,"orange":ORANGE}
 a('<defs>'+''.join(f'<marker id="m-{k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="{v}"/></marker>' for k,v in mk.items())+'</defs>')
-a(f'<g font-size="12" font-weight="700" letter-spacing="2" fill="{DIM}"><text x="{P_X}" y="24">PRINCIPAL</text><text x="{D_X}" y="24">DECISION POINT</text><text x="{R_X}" y="24">RESOURCE</text><text x="{B_X}" y="24">IF THE CREDENTIAL IS STOLEN</text></g>')
+a(f'<g font-size="12" font-weight="700" fill="{DIM}"><text x="{P_X}" y="24">Principal</text><text x="{D_X}" y="24">Decision point</text><text x="{R_X}" y="24">Resource</text><text x="{B_X}" y="24">If the credential is stolen</text></g>')
 inv={v:k for k,v in mk.items()}
 for T in TIERS:
     y=T["y"]; rows=T["rows"]; c=T["c"]; h=30+60*len(rows)-20+18; m=inv[c]; dash=' stroke-dasharray="6 5"' if T["dash"] else ''
     a(f'<!-- ===== {T["t"]} ===== -->')
     a(f'<rect x="28" y="{y}" width="1644" height="{h}" rx="7" fill="{T["tint"]}" stroke="{LINE}" stroke-width="1.5"/>')
-    a(f'<text x="44" y="{y+18}" font-size="12" font-weight="700" fill="{c}" letter-spacing="2">{T["t"]}</text>')
+    a(f'<text x="44" y="{y+18}" font-size="12" font-weight="700" fill="{c}">{T["t"]}</text>')
     a(f'<text x="{44+round(len(T["t"])*9.2)+18}" y="{y+18}" font-size="11.5" fill="{DIM}">{T["sub"]}</text>')
     for k,r in enumerate(rows):
         top=y+30+60*k; mid=top+20
@@ -87,13 +87,13 @@ html=f'''<title>CoreDirective Identity and Access</title>
   .page{{max-width:1720px;margin:0 auto;padding:16px 26px 16px}}
   .head{{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}}
   .head h1{{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}}
-  .head p{{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}}
-  .head .tag{{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}}
+  .head p{{font-family:var(--sans);font-size:13px;color:var(--text);margin:0;letter-spacing:.02em}}
+  .head .tag{{margin-left:auto;font-family:var(--sans);font-size:13px;color:var(--text)}}
   figure{{margin:10px 0 0}}
-  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}}
-  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}}
+  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--sans)}}
+  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--sans);font-size:13px;color:var(--text)}}
   @media (max-width:1100px){{figcaption{{grid-template-columns:repeat(2,1fr)}}}}
-  figcaption b{{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}}
+  figcaption b{{display:block;font-size:13px;margin-bottom:2px;font-weight:700}}
   .g b{{color:var(--green)}} .c b{{color:var(--bone)}} .o b{{color:var(--orange)}} .r b{{color:var(--red)}}
 </style>
 
