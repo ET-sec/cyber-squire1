@@ -1,10 +1,10 @@
 import os
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)), "authorization-boundary.html")
-INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#a3ada1"; EXT="#4a5a4e"
+INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#e6ebe4"; EXT="#4a5a4e"
 RED="#ff6b5e"; GREEN="#3dff8b"; BONE="#e8dcc0"; AMBER="#ffc247"; ORANGE="#ff9b3d"
 def t(x,y,s,size,color,weight=None,anchor="start",ls=None,halo=False):
     a=f' font-weight="{weight}"' if weight else ''
-    l=f' letter-spacing="{ls}"' if ls else ''
+    l=''
     h=f' paint-order="stroke" stroke="{INK}" stroke-width="4" stroke-linejoin="round"' if halo else ''
     return f'<text x="{x:g}" y="{y:g}" font-size="{size}" fill="{color}"{a}{l} text-anchor="{anchor}"{h}>{s}</text>'
 def node(x,y,w,label,sub=None,h=32,stroke=NSTROKE,ext=False,size=12.5):
@@ -26,55 +26,55 @@ BX,BY,BW,BH=350,30,900,660
 crossings=0
 # ===== boundary =====
 a(f'<rect x="{BX}" y="{BY}" width="{BW}" height="{BH}" rx="10" fill="rgba(232,220,192,0.015)" stroke="{BONE}" stroke-width="3" stroke-dasharray="18 9"/>')
-a(t(BX+22,58,"AUTHORIZATION BOUNDARY",13,BONE,700,"start",2))
+a(t(BX+22,58,"Authorization boundary",13,BONE,700,"start",2))
 a(t(BX+22,76,"one hardened host, 19 services, three Terraform modules, the configuration that changes them; Moderate baseline, 140 controls cited in the SSP",11.5,DIM))
 # ===== configuration plane =====
 a(f'<rect x="370" y="88" width="860" height="88" rx="7" fill="rgba(255,255,255,0.015)" stroke="{LINE}" stroke-width="1.5"/>')
-a(t(382,106,"CONFIGURATION ITEMS",12,TEXT,700,"start",2)); a(t(382,142,"versioned here  CM-2 CM-3",11.5,DIM)); a(t(382,157,"executed by the providers",11.5,DIM))
+a(t(382,106,"Configuration items",12,TEXT,700,"start",2)); a(t(382,142,"versioned here  CM-2 CM-3",11.5,DIM)); a(t(382,157,"executed by the providers",11.5,DIM))
 CFG=[(560,"edge policy","Access, WAF, tokens"),(730,"workflows","14 definitions, pinned"),(900,"policy gates","8 OPA, 4 deny, 4 warn"),(1070,"drift check","nightly re-plan, alerts")]
 for x,l,s in CFG:
     a(node(x,104,150,l,h=40,size=13)); a(t(x+75,161,s,11.5,DIM,None,"middle"))
 # ===== host =====
 a(f'<rect x="370" y="186" width="860" height="294" rx="7" fill="rgba(255,255,255,0.015)" stroke="{LINE}" stroke-width="1.5"/>')
-a(t(382,204,"HOST",12,TEXT,700,"start",2)); a(t(440,204,"one hardened VM, published to loopback only, three segments",11.5,DIM))
+a(t(382,204,"Host",12,TEXT,700,"start",2)); a(t(440,204,"one hardened VM, published to loopback only, three segments",11.5,DIM))
 a(node(402,212,150,"tunnel connector",stroke=GREEN)); a(t(562,232,"host network, read-only root; dials out, listens on nothing public",11.5,DIM))
 # sshd tag on the line
 a(f'<rect x="358" y="300" width="80" height="22" rx="3" fill="{INK}" stroke="{RED}" stroke-width="1.5" stroke-dasharray="4 3"/>'); a(t(398,315,"host sshd",11.5,RED,None,"middle"))
 # segments
 a(f'<rect x="448" y="270" width="380" height="198" rx="6" fill="rgba(255,255,255,0.015)" stroke="{LINE}" stroke-width="1.5"/>')
-a(t(460,288,"NET-CORE",11.5,TEXT,700,"start",2)); a(t(548,288,"state, identity, orchestration",11.5,DIM))
+a(t(460,288,"net-core",11.5,TEXT,700,"start",2)); a(t(548,288,"state, identity, orchestration",11.5,DIM))
 core=["n8n","Squire","Guardrails","Postgres","Vault","Keycloak","Teleport","event shipper","Langfuse web","Langfuse worker","ClickHouse","Redis"]
 for i,l in enumerate(core):
     a(node(460+(i%3)*126,300+(i//3)*38,112,l,h=30,size=12))
 a(f'<rect x="840" y="270" width="150" height="198" rx="6" fill="rgba(232,220,192,0.03)" stroke="{BONE}" stroke-width="1.5" stroke-dasharray="7 5"/>')
-a(t(850,288,"NET-AI",11.5,BONE,700,"start",2)); a(t(917,288,"sealed",11.5,DIM))
+a(t(850,288,"net-ai",11.5,BONE,700,"start",2)); a(t(917,288,"sealed",11.5,DIM))
 a(node(850,300,130,"Whisper",h=30)); a(node(850,338,130,"Ollama",h=30))
 a(t(915,394,"no route out",11.5,DIM,None,"middle")); a(t(915,410,"bridged by n8n",11.5,DIM,None,"middle")); a(t(915,426,"audio never leaves",11.5,DIM,None,"middle"))
 a(f'<rect x="1004" y="270" width="226" height="198" rx="6" fill="rgba(255,255,255,0.015)" stroke="{LINE}" stroke-width="1.5"/>')
-a(t(1014,288,"NET-MONITORING",11.5,TEXT,700,"start",2))
+a(t(1014,288,"net-monitoring",11.5,TEXT,700,"start",2))
 for i,l in enumerate(["Falco, eBPF","Falcosidekick","Vector","Datadog agent"]):
     a(node(1014,300+i*38,206,l,h=30,stroke=AMBER if i==0 else NSTROKE))
 a(t(1117,458,"reads the kernel below every container",11,DIM,None,"middle"))
 # ===== cloud resources =====
 a(f'<rect x="370" y="496" width="430" height="172" rx="7" fill="rgba(232,220,192,0.02)" stroke="{LINE}" stroke-width="1.5"/>')
-a(t(382,516,"RUNTIME CLOUD",12,BONE,700,"start",2)); a(t(382,532,"compute, network, keys, state and backups under Terraform",11.5,DIM))
+a(t(382,516,"Runtime cloud",12,BONE,700,"start",2)); a(t(382,532,"compute, network, keys, state and backups under Terraform",11.5,DIM))
 for i,l in enumerate(["compute, 1 host","VCN, one port","object storage","KMS, CMK","identity domain","instance identity"]):
     a(node(382+(i%3)*142,544+(i//3)*40,130,l,h=32,stroke=(RED if l=="VCN, one port" else BONE if l=="identity domain" else NSTROKE)))
 a(t(382,640,"instance identity writes backups and cannot delete them",11.5,DIM)); a(t(382,656,"state versioned, backups on a retention rule, both under the CMK",11.5,DIM))
 a(f'<rect x="816" y="496" width="414" height="172" rx="7" fill="rgba(255,194,71,0.02)" stroke="{LINE}" stroke-width="1.5"/>')
-a(t(828,516,"SECURITY PLANE",12,AMBER,700,"start",2)); a(t(828,532,"what must survive the runtime cloud, on a second provider",11.5,DIM))
+a(t(828,516,"Security plane",12,AMBER,700,"start",2)); a(t(828,532,"what must survive the runtime cloud, on a second provider",11.5,DIM))
 for i,l in enumerate(["OIDC federation","evidence vault","break-glass key","alert on read","account trail","region guard"]):
     a(node(828+(i%3)*134,544+(i//3)*40,124,l,h=32,stroke=(AMBER if l in("evidence vault","alert on read") else RED if l=="break-glass key" else BONE if l=="OIDC federation" else NSTROKE)))
 a(t(828,640,"evidence and backup replicas arrive one way, write-only",11.5,DIM)); a(t(828,656,"no automatic path back; a secret read pages on-call",11.5,DIM))
 # ===== left column: outside =====
-a(t(20,44,"OUTSIDE",12,BONE,700,"start",2)); a(t(96,44,"people and the front door",11.5,DIM))
+a(t(20,44,"Outside",12,BONE,700,"start",2)); a(t(96,44,"people and the front door",11.5,DIM))
 a(node(20,106,160,"users","browsers, any network",h=44))
 a(node(20,196,160,"edge platform","Access, WAF, tunnel",h=44,ext=True,stroke=EXT))
 a(node(20,290,160,"operators","workstation, SSH, IaC",h=44))
 a(node(20,380,160,"Telegram","bot API, on-call channel",h=44,ext=True,stroke=EXT))
 # users to edge
 a(arrow("M100,150 V195",GREEN,"green")); a(t(108,178,"HTTPS, one-time PIN  IA-2",11.5,GREEN,None,"start",None,True))
-a(arrow("M100,290 V241",GREEN,"green")); a(t(108,270,"recorded SSH, TOTP  IA-2",11.5,GREEN,None,"start",None,True))
+a(arrow("M100,290 V241",GREEN,"green")); a(t(108,285,"recorded SSH, TOTP  IA-2",11.5,GREEN,None,"start",None,True))
 # tunnel: host dials out to the edge, requests ride it in
 a(arrow(f"M401,228 H181",GREEN,"green")); a(cross(BX,228)); crossings+=1
 a(t(190,250,"out: tunnel, TLS  SC-7 SC-8",11.5,GREEN,None,"start",None,True)); a(t(190,265,"requests ride it in",11.5,DIM,None,"start",None,True))
@@ -90,12 +90,12 @@ a(t(190,384,"in: carve-out, IP ranges  AC-3",11.5,GREEN,None,"start",None,True))
 a(arrow("M370,412 H181",ORANGE,"orange")); a(cross(BX,412)); crossings+=1
 a(t(190,428,"out: notify, TLS  SC-8",11.5,ORANGE,None,"start",None,True))
 # inherited list
-a(t(20,470,"INHERITED",12,BONE,700,"start",2)); a(t(112,470,"controls the providers carry",11.5,DIM))
+a(t(20,470,"Inherited",12,BONE,700,"start",2)); a(t(112,470,"controls the providers carry",11.5,DIM))
 inh=[("Oracle Cloud and AWS, IaaS","physical, hypervisor, backbone, resolver","PE family  MP-4  MP-6  SC-21"),("Cloudflare, edge","DDoS, WAF engine, tunnel edge, DNS","SC-20  SC-22")]
 for j,(l1,l2,l3) in enumerate(inh):
     y=494+j*58; a(t(20,y,l1,12.5,TEXT,500)); a(t(20,y+15,l2,11.5,DIM)); a(t(20,y+30,l3,11.5,DIM))
 # ===== right column: external services =====
-a(t(1480,44,"OUTSIDE",12,BONE,700,"start",2)); a(t(1556,44,"external services",11.5,DIM)); a(t(1480,60,"commercial, no federal data",11,DIM)); a(t(1480,74,"SA-9 providers, CA-3 documented",11,DIM))
+a(t(1480,44,"Outside",12,BONE,700,"start",2)); a(t(1556,44,"external services",11.5,DIM)); a(t(1480,60,"commercial, no federal data",11,DIM)); a(t(1480,74,"SA-9 providers, CA-3 documented",11,DIM))
 EXTS=[(170,"image registries","upstream images, pinned",BONE,"bone","in",1230,"in: image pull, TLS, by digest","signatures checked  CM-5 SI-7"),
       (227,"secrets manager","deploy-time injection",BONE,"bone","in",1230,"in at deploy: TLS, env vars","chmod 600, none in git  IA-5"),
       (284,"Datadog","SIEM, events, logs",AMBER,"amber","out",1230,"out: TLS, agent key","audit off-host  AU-9 SI-4"),
@@ -112,7 +112,7 @@ for y,l,s,c,m,d,xin,l1,l2 in EXTS:
     a(t(1262,ay-7,l1,11.5,c,None,"start",None,True)); a(t(1262,ay+16,l2,11.5,DIM,None,"start",None,True))
 # legend
 LX,LY=1480,590
-a(t(LX,LY,"READING THE PAGE",11,DIM,700,"start",2))
+a(t(LX,LY,"Reading the page",11,DIM,700,"start",2))
 rows=[("line",BONE,3,"18 9","authorization boundary"),("cross",None,0,"","crossing point"),
       ("line",GREEN,2.5,"","human request path"),("line",ORANGE,2.5,"","agent path, screened"),("line",AMBER,2.5,"","audit, telemetry out"),
       ("line",BONE,2,"","machine identity"),("line",RED,2.5,"6 5","inbound exception"),("line",DIM,2,"","configures")]
@@ -141,13 +141,13 @@ html=f'''<title>CoreDirective Authorization Boundary</title>
   .page{{max-width:1720px;margin:0 auto;padding:14px 26px 10px}}
   .head{{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}}
   .head h1{{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}}
-  .head p{{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}}
-  .head .tag{{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}}
+  .head p{{font-family:var(--sans);font-size:13px;color:var(--text);margin:0;letter-spacing:.02em}}
+  .head .tag{{margin-left:auto;font-family:var(--sans);font-size:13px;color:var(--text)}}
   figure{{margin:10px 0 0}}
-  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}}
-  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}}
+  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--sans)}}
+  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--sans);font-size:13px;color:var(--text)}}
   @media (max-width:1100px){{figcaption{{grid-template-columns:repeat(2,1fr)}}}}
-  figcaption b{{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}}
+  figcaption b{{display:block;font-size:13px;margin-bottom:2px;font-weight:700}}
   .g b{{color:var(--green)}} .c b{{color:var(--bone)}} .a b{{color:var(--amber)}} .r b{{color:var(--red)}}
 </style>
 

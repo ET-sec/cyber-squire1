@@ -1,64 +1,64 @@
 import os
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)), "threat-model.html")
-INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#a3ada1"; EXT="#4a5a4e"
+INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#e6ebe4"; EXT="#4a5a4e"
 RED="#ff6b5e"; GREEN="#3dff8b"; BONE="#e8dcc0"; AMBER="#ffc247"
 W=206; PITCH=226; X0=28; XC=lambda i: X0+i*PITCH
 NY=30; NH=40; W0=122; WP=66; WH=44
 def t(x,y,s,size,color,weight=None,anchor="start",ls=None,halo=False):
     a=f' font-weight="{weight}"' if weight else ''
-    l=f' letter-spacing="{ls}"' if ls else ''
+    l=''
     h=f' paint-order="stroke" stroke="{INK}" stroke-width="4" stroke-linejoin="round"' if halo else ''
     return f'<text x="{x:g}" y="{y:g}" font-size="{size}" fill="{color}"{a}{l} text-anchor="{anchor}"{h}>{s}</text>'
 # columns: (node label, starts-with, [walls], tb ticks {slot_after: label}, reaches lines, residual, ids)
 # wall = (kind, line1, tag, stride)  kind: p=prevent g=detect
 COLS=[
  ("internet scanner","any host, no credential",
-  [("p","no origin IP in DNS","EDGE   SC-7","I"),
-   ("p","WAF, DDoS absorbed","EDGE   SC-5","D"),
-   ("p","no ports, dials out","HOST   SC-7","S"),
-   ("p","SSH allowlist only","HOST   SC-7","D")],
+  [("p","no origin IP in DNS","Edge   SC-7","I"),
+   ("p","WAF, DDoS absorbed","Edge   SC-5","D"),
+   ("p","no ports, dials out","Host   SC-7","S"),
+   ("p","SSH allowlist only","Host   SC-7","D")],
   {-1:"TB-1"},
   ["the edge login page and the","public webhook paths, never","the host or its address"],"LOW","D-01  S-05"),
  ("webhook caller","knows a public webhook path",
-  [("p","WAF and per-IP limit","EDGE   SC-5","D"),
-   ("p","edge auth, 1 carve-out","EDGE   AC-3","S"),
-   ("p","token header on Squire","APP   IA-5","S"),
-   ("p","typed payload, schema","APP   SI-10","T"),
-   ("p","recommend-only actions","APP   AC-6","E"),
-   ("g","traced, human on HIGH","APP   AU-12","R")],
+  [("p","WAF and per-IP limit","Edge   SC-5","D"),
+   ("p","edge auth, 1 carve-out","Edge   AC-3","S"),
+   ("p","token header on Squire","App   IA-5","S"),
+   ("p","typed payload, schema","App   SI-10","T"),
+   ("p","recommend-only actions","App   AC-6","E"),
+   ("g","traced, human on HIGH","App   AU-12","R")],
   {1:"TB-2, TB-7"},
-  ["one forged alert into a","recommend-only pipeline; a","human reads anything HIGH"],"MEDIUM","S-01"),
+  ["one forged alert into a","recommend-only pipeline; a","human reads anything HIGH"],"Medium","S-01"),
  ("hostile prompt","attacker text in an alert",
-  [("p","PII scrubbed pre-graph","APP   SI-10","I"),
-   ("p","jailbreak and PII rail","APP   SI-4","T"),
-   ("p","output rail, citations","APP   SI-7","T"),
-   ("p","forbidden-verb filter","APP   AC-6","E"),
-   ("p","human gate on HIGH","APP   IR-4","E"),
-   ("g","spend cap, traced","APP   AU-12","R")],
+  [("p","PII scrubbed pre-graph","App   SI-10","I"),
+   ("p","jailbreak and PII rail","App   SI-4","T"),
+   ("p","output rail, citations","App   SI-7","T"),
+   ("p","forbidden-verb filter","App   AC-6","E"),
+   ("p","human gate on HIGH","App   IR-4","E"),
+   ("g","spend cap, traced","App   AU-12","R")],
   {1:"TB-5"},
-  ["the allowlist: text advice,","no action executes; 20 cases","fired, 0 bypasses"],"MEDIUM","T-01  I-01"),
+  ["the allowlist: text advice,","no action executes; 20 cases","fired, 0 bypasses"],"Medium","T-01  I-01"),
  ("compromised container","code running in one service",
-  [("p","three bridge networks","RUNTIME   AC-4","E"),
-   ("p","no-new-privs, 1 exempt","RUNTIME   CM-7","E"),
-   ("p","socket: 2 sensors only","RUNTIME   AC-6","E"),
-   ("g","Falco reads the kernel","RUNTIME   SI-4","E"),
-   ("p","secrets need a token","IDENTITY   IA-5","I"),
-   ("p","DB needs a credential","DATA   AC-3","I")],
+  [("p","three bridge networks","Runtime   AC-4","E"),
+   ("p","no-new-privs, 1 exempt","Runtime   CM-7","E"),
+   ("p","socket: 2 sensors only","Runtime   AC-6","E"),
+   ("g","Falco reads the kernel","Runtime   SI-4","E"),
+   ("p","secrets need a token","Identity   IA-5","I"),
+   ("p","DB needs a credential","Data   AC-3","I")],
   {3:"TB-4"},
-  ["its own segment and env;","host escape needs a kernel","zero-day and lands in Falco"],"MEDIUM","E-04  E-01  S-03"),
+  ["its own segment and env;","host escape needs a kernel","zero-day and lands in Falco"],"Medium","E-04  E-01  S-03"),
  ("stolen credential","a password or a laptop",
-  [("p","one-time PIN at edge","EDGE   IA-2","S"),
-   ("p","second factor on SSH","HOST   IA-2","S"),
-   ("p","JIT expires in 4h","IDENTITY   AC-12","E"),
-   ("p","quarterly role review","IDENTITY   AC-2","E"),
-   ("g","recorded, shipped mTLS","IDENTITY   AU-9","R")],
+  [("p","one-time PIN at edge","Edge   IA-2","S"),
+   ("p","second factor on SSH","Host   IA-2","S"),
+   ("p","JIT expires in 4h","Identity   AC-12","E"),
+   ("p","quarterly role review","Identity   AC-2","E"),
+   ("g","recorded, shipped mTLS","Identity   AU-9","R")],
   {-1:"TB-1",0:"TB-2"},
   ["a recorded session with a","four hour clock; evidence","lands beyond their reach"],"LOW","R-02  E-03"),
  ("poisoned image","a tag nobody here built",
-  [("p","digest pinned, Tier 1","DELIVERY   CM-5","T"),
-   ("p","reviewed PR to change","DELIVERY   CM-3","T"),
-   ("p","scan, SBOM, signature","DELIVERY   RA-5","T"),
-   ("p","sealed: no route home","RUNTIME   AC-4","I")],
+  [("p","digest pinned, Tier 1","Delivery   CM-5","T"),
+   ("p","reviewed PR to change","Delivery   CM-3","T"),
+   ("p","scan, SBOM, signature","Delivery   RA-5","T"),
+   ("p","sealed: no route home","Runtime   AC-4","I")],
   {},
   ["a poisoned tag needs a","reviewed PR; a bad runtime","has no route home"],"LOW","T-05  T-03"),
 ]
@@ -90,7 +90,7 @@ for i,(name,starts,walls,ticks,reach,res,ids) in enumerate(COLS):
         a(f'<line x1="{xc-16:g}" y1="{y:g}" x2="{xc+16:g}" y2="{y:g}" stroke="{BONE}" stroke-width="2"/>')
         a(t(xc+22,y+4,lab,12,BONE,700,"start",None,True))
     # reaches
-    a(t(x,RY,"REACHES",11.5,RED,700,"start",2))
+    a(t(x,RY,"Reaches",11.5,RED,700,"start",2))
     for j,l in enumerate(reach): a(t(x,RY+19+17*j,l,12,DIM))
     cy=RY+68; rc=GREEN if res=="LOW" else AMBER
     a(f'<rect x="{x}" y="{cy}" width="64" height="20" rx="3" fill="none" stroke="{rc}" stroke-width="1.5"/>')
@@ -98,7 +98,7 @@ for i,(name,starts,walls,ticks,reach,res,ids) in enumerate(COLS):
     a(t(x+74,cy+14,ids,11,DIM))
 # right rail
 RX=1400
-a(t(RX,48,"BY THE NUMBERS",11,DIM,700,"start",2))
+a(t(RX,48,"By the numbers",11,DIM,700,"start",2))
 nums=[("29","STRIDE threats across","8 trust boundaries"),("7","attack paths,","4 platform, 3 AI"),("10","AI threats cataloged,","OWASP LLM and ATLAS"),
       ("20","red-team cases fired,","0 bypasses"),("11","pentest findings,","0 critical, 4 accepted"),("0","application ports","open to the internet")]
 for j,(n,l1,l2) in enumerate(nums):
@@ -107,7 +107,7 @@ for j,(n,l1,l2) in enumerate(nums):
 a(t(RX,372,"STRIDE",11,DIM,700,"start",2))
 for j,(L,w) in enumerate([("S","spoofing"),("T","tampering"),("R","repudiation"),("I","information disclosure"),("D","denial of service"),("E","elevation of privilege")]):
     y=392+j*18; a(t(RX,y,L,11.5,TEXT,700)); a(t(RX+22,y,w,11.5,DIM))
-a(t(RX,524,"READING THE PAGE",11,DIM,700,"start",2))
+a(t(RX,524,"Reading the page",11,DIM,700,"start",2))
 ly=542
 a(f'<line x1="{RX}" y1="{ly}" x2="{RX+34}" y2="{ly}" stroke="{RED}" stroke-width="2.5"/>'+t(RX+44,ly+4,"the attack, top to bottom",11.5,DIM))
 a(f'<line x1="{RX}" y1="{ly+20}" x2="{RX+34}" y2="{ly+20}" stroke="{RED}" stroke-width="2" stroke-dasharray="5 5"/>'+t(RX+44,ly+24,"what remains after a wall",11.5,DIM))
@@ -133,13 +133,13 @@ html=f'''<title>CoreDirective Threat Model</title>
   .page{{max-width:1720px;margin:0 auto;padding:16px 26px 16px}}
   .head{{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}}
   .head h1{{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}}
-  .head p{{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}}
-  .head .tag{{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}}
+  .head p{{font-family:var(--sans);font-size:13px;color:var(--text);margin:0;letter-spacing:.02em}}
+  .head .tag{{margin-left:auto;font-family:var(--sans);font-size:13px;color:var(--text)}}
   figure{{margin:10px 0 0}}
-  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}}
-  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}}
+  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--sans)}}
+  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--sans);font-size:13px;color:var(--text)}}
   @media (max-width:1100px){{figcaption{{grid-template-columns:repeat(2,1fr)}}}}
-  figcaption b{{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}}
+  figcaption b{{display:block;font-size:13px;margin-bottom:2px;font-weight:700}}
   .g b{{color:var(--green)}} .c b{{color:var(--bone)}} .a b{{color:var(--amber)}} .r b{{color:var(--red)}}
 </style>
 
