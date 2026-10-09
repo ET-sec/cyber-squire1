@@ -1,6 +1,6 @@
 import os
 OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)), "multi-cloud.html")
-INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#a3ada1"; EXT="#4a5a4e"
+INK="#0a0d0b"; NODE="#141b16"; NSTROKE="#2c3a30"; LINE="#27342b"; LINESOFT="#1b241e"; TEXT="#e6ebe4"; DIM="#e6ebe4"; EXT="#4a5a4e"
 RED="#ff6b5e"; GREEN="#3dff8b"; BONE="#e8dcc0"; AMBER="#ffc247"
 def fs(l): n=len(l); return 16 if n<=12 else (15 if n<=14 else 14)
 def node(x,y,w,label,sub=None,ext=False,stroke=NSTROKE,pitch=None):
@@ -17,12 +17,12 @@ a('<defs>'+''.join(f'<marker id="m-{k}" viewBox="0 0 10 10" refX="9" refY="5" ma
 PY0,PH=150,460
 R=[235,335,435,535]
 # planes
-planes=[(28,472,"EDGE  CLOUDFLARE","identity, ingress, state","Terraform: cd-cloudflare-edge",GREEN,"rgba(61,255,139,0.03)"),
-        (530,630,"RUNTIME  ORACLE CLOUD","compute, data, keys","Terraform: cd-oci-infrastructure",BONE,"rgba(232,220,192,0.03)"),
-        (1190,482,"SECURITY  AWS","what must survive the other two","Terraform: cd-aws-security-plane",AMBER,"rgba(255,194,71,0.03)")]
+planes=[(28,472,"Edge  Cloudflare","identity, ingress, state","Terraform: cd-cloudflare-edge",GREEN,"rgba(61,255,139,0.03)"),
+        (530,630,"Runtime  Oracle Cloud","compute, data, keys","Terraform: cd-oci-infrastructure",BONE,"rgba(232,220,192,0.03)"),
+        (1190,482,"Security  AWS","what must survive the other two","Terraform: cd-aws-security-plane",AMBER,"rgba(255,194,71,0.03)")]
 for x,w,t,s1,s2,c,tint in planes:
     a(f'<rect x="{x}" y="{PY0}" width="{w}" height="{PH}" rx="9" fill="{tint}" stroke="{LINE}" stroke-width="2"/>')
-    a(f'<text x="{x+18}" y="{PY0+24}" font-size="12" font-weight="700" fill="{c}" letter-spacing="2">{t}</text>')
+    a(f'<text x="{x+18}" y="{PY0+24}" font-size="12" font-weight="700" fill="{c}">{t}</text>')
     a(f'<text x="{x+18}" y="{PY0+41}" font-size="11.5" fill="{DIM}">{s1}</text>')
     a(f'<text x="{x+w-18}" y="{PY0+PH-12}" font-size="11.5" fill="{DIM}" text-anchor="end">{s2}</text>')
 # top row principals
@@ -65,7 +65,7 @@ strip=[(28,GREEN,["the front door and its policies fall, not the host; revoke th
        (530,BONE,["data and keys live here; the host cannot delete its own backups, and the","evidence copy and the break-glass credential sit with another vendor"]),
        (1190,AMBER,["no automation here reaches the runtime; the uploader can only","add, Object Lock refuses deletes even for root, and every","access lands on a validated trail"])]
 for x,c,lines in strip:
-    a(f'<text x="{x+18}" y="{SY}" font-size="12" font-weight="700" fill="{c}" letter-spacing="2">IF THIS ACCOUNT FALLS</text>')
+    a(f'<text x="{x+18}" y="{SY}" font-size="12" font-weight="700" fill="{c}">If this account falls</text>')
     for k,l in enumerate(lines): a(f'<text x="{x+18}" y="{SY+18+16*k}" font-size="11.5" fill="{DIM}">{l}</text>')
 # legend
 ly=728; x=44
@@ -92,13 +92,13 @@ html=f'''<title>CoreDirective Multi-Cloud Planes</title>
   .page{{max-width:1720px;margin:0 auto;padding:16px 26px 16px}}
   .head{{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;padding-bottom:10px;border-bottom:1px solid var(--line-soft)}}
   .head h1{{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}}
-  .head p{{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}}
-  .head .tag{{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}}
+  .head p{{font-family:var(--sans);font-size:13px;color:var(--text);margin:0;letter-spacing:.02em}}
+  .head .tag{{margin-left:auto;font-family:var(--sans);font-size:13px;color:var(--text)}}
   figure{{margin:10px 0 0}}
-  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--mono)}}
-  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.01em}}
+  svg{{display:block;width:100%;height:auto;max-width:100%;max-height:calc(100vh - 150px);margin:0 auto;color:var(--text);font-family:var(--sans)}}
+  figcaption{{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 22px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--sans);font-size:13px;color:var(--text)}}
   @media (max-width:1100px){{figcaption{{grid-template-columns:repeat(2,1fr)}}}}
-  figcaption b{{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px;font-weight:700}}
+  figcaption b{{display:block;font-size:13px;margin-bottom:2px;font-weight:700}}
   .g b{{color:var(--green)}} .c b{{color:var(--bone)}} .a b{{color:var(--amber)}} .r b{{color:var(--red)}}
 </style>
 
