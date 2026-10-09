@@ -70,30 +70,43 @@ jobs:
           docker inspect "${{ matrix.image }}" --format 'Id: {{.Id}}{{println}}Size: {{.Size}}{{println}}Created: {{.Created}}{{println}}Cmd: {{.Config.Cmd}}'
       - name: Start container
         if: steps.skip.outputs.skip == 'false'
+        env:
+          IMAGE: ${{ matrix.image }}
         run: |
           # Start with the image's default command. Many services need
           # environment to fully start; that is the job of a full integration
-          # test, not this smoke test. Here we only verify the image can
-          # boot far enough to expose a process.
-          CID=$(docker run -d --rm "${{ matrix.image }}" 2>/dev/null || true)
-          if [ -z "$CID" ]; then
-            # Image needs a command or args. Acceptable for some images.
-            echo "Image requires runtime args — image-only smoke pass."
-            exit 0
-          fi
-          sleep 5
-          if docker ps --filter id=$CID --format '{{.Status}}' | grep -q Up; then
-            echo "Container running."
-            docker logs $CID | tail -20 || true
-            docker stop $CID >/dev/null 2>&1 || true
-          else
-            echo "Container exited. Logs:"
-            docker logs $CID || true
-            docker stop $CID >/dev/null 2>&1 || true
-            # Exit nonzero only if the image refused to start at all.
-            # A clean exit (status 0) is acceptable for run-to-completion images.
-            EXIT_CODE=$(docker inspect $CID --format '{{.State.ExitCode}}' 2>/dev/null || echo 1)
-            if [ "$EXIT_CODE" != "0" ]; then
-              exit 1
+          # test, not this smoke test. Here we only verify the image boots far
+          # enough to run its own binary.
+          CID=$(docker run -d "$IMAGE" 2>/dev/null || true)
+          if [ -n "$CID" ]; then
+            sleep 5
+            if docker ps --filter id="$CID" --format '{{.Status}}' | grep -q Up; then
+              echo "Container running."
+              docker logs "$CID" 2>&1 | tail -20 || true
+              docker rm -f "$CID" >/dev/null 2>&1 || true
+              exit 0
             fi
+            EXIT_CODE=$(docker inspect "$CID" --format '{{.State.ExitCode}}' 2>/dev/null || echo 1)
+            echo "Container exited with $EXIT_CODE. Logs:"
+            docker logs "$CID" 2>&1 | tail -20 || true
+            docker rm -f "$CID" >/dev/null 2>&1 || true
+            # A clean exit is fine for run-to-completion images.
+            [ "$EXIT_CODE" = "0" ] && exit 0
           fi
+          # Services such as Keycloak, Vector and Teleport stop at once without
+          # their config. Prove the binary itself runs by asking for its version.
+          case "$IMAGE" in
+            *teleport-distroless*) PROBES=("--entrypoint /usr/local/bin/teleport|version") ;;
+            *) PROBES=("|--version" "|version") ;;
+          esac
+          for p in "${PROBES[@]}"; do
+            OPTS="${p%%|*}"; ARGS="${p#*|}"
+            # shellcheck disable=SC2086
+            if OUT=$(timeout 60 docker run --rm $OPTS "$IMAGE" $ARGS 2>&1); then
+              echo "Version probe passed ($OPTS $ARGS):"
+              echo "$OUT" | tail -5
+              exit 0
+            fi
+          done
+          echo "Image neither stays up, exits cleanly, nor answers a version probe."
+          exit 1
