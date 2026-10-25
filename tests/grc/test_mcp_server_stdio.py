@@ -8,6 +8,9 @@ Covers:
   - sanitize() applied on every tool return path (IP literal redacted)
   - response size cap (>100KB doc truncated)
   - JSON-RPC stdio smoke: pure JSON on stdout, logs on stderr only
+  - over stdio, each tool's input schema carries its real parameters and
+    tools/call with those parameters returns a real answer
+  - the server starts under python -I from a foreign cwd with no PYTHONPATH
 
 Tests do not call any real Claude Desktop process.
 """
@@ -20,6 +23,8 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
+import threading
 import tokenize
 from pathlib import Path
 
@@ -240,3 +245,148 @@ def test_must_have_sanitize_import():
     """Source must import sanitize from scripts.grc.sanitize_output."""
     source = SERVER_PATH.read_text(encoding="utf-8")
     assert "from scripts.grc.sanitize_output import sanitize" in source
+
+
+# --- Over MCP stdio, the way a client sees the server -------------------------
+
+_INITIALIZE = {
+    "jsonrpc": "2.0",
+    "id": 0,
+    "method": "initialize",
+    "params": {
+        "protocolVersion": "2025-06-18",
+        "capabilities": {},
+        "clientInfo": {"name": "pytest", "version": "0"},
+    },
+}
+_INITIALIZED = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+
+
+def _stdio_session(cmd, cwd, env, requests, timeout=20):
+    """Run one MCP stdio session: initialize, then each request in turn.
+
+    Returns (initialize reply, list of replies to `requests`, stderr). A reply
+    is None when the server exited or stopped answering first. stdin stays open
+    until every reply is in, so no request is cut off by EOF, and a watchdog
+    kills a server that hangs.
+    """
+    with tempfile.TemporaryFile("w+", encoding="utf-8") as err:
+        proc = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=err,
+            cwd=str(cwd),
+            env=env,
+            text=True,
+        )
+        watchdog = threading.Timer(timeout, proc.kill)
+        watchdog.start()
+
+        def ask(frame):
+            try:
+                proc.stdin.write(json.dumps(frame) + "\n")
+                proc.stdin.flush()
+            except (BrokenPipeError, OSError):
+                return None
+            if "id" not in frame:
+                return None
+            while True:
+                line = proc.stdout.readline()
+                if not line:
+                    return None
+                if not line.strip():
+                    continue
+                msg = json.loads(line)
+                if msg.get("id") == frame["id"]:
+                    return msg
+
+        try:
+            init = ask(_INITIALIZE)
+            replies = []
+            if init is not None:
+                ask(_INITIALIZED)
+                replies = [ask(frame) for frame in requests]
+            replies += [None] * (len(requests) - len(replies))
+        finally:
+            watchdog.cancel()
+            try:
+                proc.stdin.close()
+            except OSError:
+                pass
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait()
+            err.seek(0)
+            stderr = err.read()
+    return init, replies, stderr
+
+
+def _call(req_id, name, arguments):
+    return {
+        "jsonrpc": "2.0",
+        "id": req_id,
+        "method": "tools/call",
+        "params": {"name": name, "arguments": arguments},
+    }
+
+
+def test_tools_take_their_real_parameters_over_stdio(tmp_path):
+    """tools/list must publish each tool's own parameters, and tools/call must accept them.
+
+    The audit decorator hid each tool's signature behind (*args, **kwargs), so
+    FastMCP published {args, kwargs} as the schema and refused the real names.
+    """
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(REPO_ROOT)
+    env["GRC_MCP_AUDIT_LOG"] = str(tmp_path / "audit.jsonl")
+    init, (listed, poam, doc), stderr = _stdio_session(
+        [sys.executable, str(SERVER_PATH)],
+        REPO_ROOT,
+        env,
+        [
+            {"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+            _call(2, "get_poam", {"poam_id": "P17-15"}),
+            _call(3, "read_doc", {"filename": "POAM_PLAN_OF_ACTION.md"}),
+        ],
+    )
+    assert init is not None and listed is not None, f"no reply; stderr={stderr[-800:]}"
+
+    schemas = {t["name"]: t["inputSchema"] for t in listed["result"]["tools"]}
+    expected = {
+        "list_docs": (set(), []),
+        "read_doc": ({"filename"}, ["filename"]),
+        "search_corpus": ({"query", "limit"}, ["query"]),
+        "get_poam": ({"poam_id"}, ["poam_id"]),
+        "get_threat_model_entry": ({"threat_id"}, ["threat_id"]),
+    }
+    for name, (params, required) in expected.items():
+        schema = schemas[name]
+        assert set(schema.get("properties", {})) == params, f"{name} schema: {schema}"
+        assert sorted(schema.get("required", [])) == required, f"{name} schema: {schema}"
+
+    assert poam is not None and "result" in poam, f"get_poam reply: {poam}"
+    assert not poam["result"].get("isError"), f"get_poam refused: {poam['result']}"
+    row = json.loads(poam["result"]["content"][0]["text"])
+    assert row["poam_id"].startswith("POAM-P17-15"), row
+
+    assert doc is not None and "result" in doc, f"read_doc reply: {doc}"
+    assert not doc["result"].get("isError"), f"read_doc refused: {doc['result']}"
+    assert "POAM-P17-15" in doc["result"]["content"][0]["text"]
+
+
+def test_server_starts_isolated_from_a_foreign_cwd(tmp_path):
+    """python -I from an unrelated directory with no PYTHONPATH must still start and answer initialize.
+
+    The scripts.grc imports used to resolve only because a PYTHONPATH that
+    starts with ":" put the launching shell's cwd on sys.path.
+    """
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    env["GRC_MCP_AUDIT_LOG"] = str(tmp_path / "audit.jsonl")
+    foreign = tmp_path / "elsewhere"
+    foreign.mkdir()
+    init, _, stderr = _stdio_session([sys.executable, "-I", str(SERVER_PATH)], foreign, env, [])
+    assert init is not None, f"no initialize reply; stderr={stderr[-800:]}"
+    assert init["result"]["serverInfo"]["name"] == "grc_corpus"
