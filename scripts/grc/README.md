@@ -25,7 +25,7 @@ GRC corpus tooling for the AI-Native GRC Pipeline (Phase 19).
 ### 1. Install dependencies (one-time, host-side)
 
 ```bash
-python3 -m pip install --user --break-system-packages "mcp[cli]" python-frontmatter pydantic
+python3 -m pip install --break-system-packages "mcp[cli]" python-frontmatter pydantic
 ```
 
 ### 2. Wire Claude Desktop
@@ -36,12 +36,14 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json` and merge
 {
   "mcpServers": {
     "grc_corpus": {
-      "command": "python3",
-      "args": ["/path/to/cyber-squire-ops/scripts/grc/grc_mcp_server.py"]
+      "command": "/absolute/path/to/python3",
+      "args": ["-I", "/absolute/path/to/cyber-squire-ops/scripts/grc/grc_mcp_server.py"]
     }
   }
 }
 ```
+
+`-I` runs Python in isolated mode, which keeps the launching directory, `PYTHONPATH` and the user site-packages off `sys.path` (CWE-427), so `command` is the absolute path of the interpreter step 1 installed into (`command -v python3`) and the server finds its repo from its own absolute path.
 
 ### 3. Restart Claude Desktop
 

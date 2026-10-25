@@ -5,13 +5,14 @@ Add to ~/Library/Application Support/Claude/claude_desktop_config.json:
     {
       "mcpServers": {
         "grc_corpus": {
-          "command": "python3",
-          "args": ["/path/to/cyber-squire-ops/scripts/grc/grc_mcp_server.py"]
+          "command": "/absolute/path/to/python3",
+          "args": ["-I", "/absolute/path/to/cyber-squire-ops/scripts/grc/grc_mcp_server.py"]
         }
       }
     }
 
-Restart Claude Desktop to load.
+Restart Claude Desktop to load. `-I` keeps the caller's cwd off sys.path; the
+repo root is inserted explicitly below instead (see scripts/grc/README.md).
 
 Phase 20 Plan 20-06 hardening (see docs/grc/OWASP_MCP_TOP10_AUDIT.md):
 - MCP01 (Token Mismanagement and Secret Exposure): _SanitizingFilter on the
@@ -41,6 +42,7 @@ Phase 20 Plan 20-06 hardening (see docs/grc/OWASP_MCP_TOP10_AUDIT.md):
 
 from __future__ import annotations
 
+import functools
 import hashlib as _hashlib
 import json as _json
 import logging
@@ -55,6 +57,14 @@ log = logging.getLogger("grc_corpus")
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# The scripts.grc imports below used to resolve only when the launching shell
+# exported a PYTHONPATH starting with ":", which puts the cwd on sys.path
+# (CWE-427). Anchor on this file's own repo root instead, so the server also
+# starts under `python -I` from any directory.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from mcp.server.fastmcp import FastMCP
 
@@ -103,9 +113,15 @@ def _audit_log(tool_name: str):
 
     Closes OWASP MCP Top 10 2025 beta v0.1 MCP08 (Lack of Audit and
     Telemetry) gap identified in docs/grc/OWASP_MCP_TOP10_AUDIT.md.
+
+    functools.wraps is load-bearing: FastMCP builds each tool's input schema
+    from the signature it sees through __wrapped__. Without it FastMCP saw
+    (*args, **kwargs), published both as required strings, and no client
+    could call a tool with its real parameters.
     """
 
     def deco(fn):
+        @functools.wraps(fn)
         def wrapper(*args, **kwargs):
             t0 = _time.time()
             # args_hash is logged, NOT raw args; this prevents PII / secret leakage
@@ -138,8 +154,6 @@ def _audit_log(tool_name: str):
                     # audit log write failure must not break the tool call
                     pass
 
-        wrapper.__name__ = fn.__name__
-        wrapper.__doc__ = fn.__doc__
         return wrapper
 
     return deco
