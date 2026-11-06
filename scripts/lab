@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# lab: one switch for one lab day on the Lenovo. 32 GB runs one profile at a time.
+#   lab up <profile>      start the profile's VMs (virsh) and containers (compose --profile)
+#   lab down <profile>    stop them (VMs get a graceful shutdown, then a 90 s destroy)
+#   lab status            what is running now and the RAM it holds
+#   lab profiles          the profile table
+# Profiles mirror terraform/cd-lab-infrastructure/vms.tf and docker-compose.lab.yaml.
+# Runs on the Lenovo. From the Mac: ssh lab lab up ad
+set -euo pipefail
+
+COMPOSE_FILE="${LAB_COMPOSE:-/opt/coredirective/docker-compose.lab.yaml}"
+DRY="${LAB_DRY_RUN:-0}"
+
+# profile -> VMs (space separated)
+declare -A VMS=(
+  [ad]="opnsense dc01 ca01 ws01 kali"
+  [web]="opnsense kali rocky k8s01"
+  [blue]="opnsense"
+  [re]="opnsense flare remnux capevm"
+  [air]="opnsense"
+  [knight]=""
+)
+# profile -> compose profiles (space separated, may be empty)
+declare -A STACKS=(
+  [ad]="ad"
+  [web]="web"
+  [blue]="blue"
+  [re]=""
+  [air]=""
+  [knight]=""
+)
+# VM -> MiB, from vms.tf
+declare -A MEM=(
+  [opnsense]=1024 [dc01]=4096 [ca01]=3072 [ws01]=4096 [ws02]=4096 [win11pro]=4096
+  [kali]=4096 [rocky]=2048 [k8s01]=3072 [flare]=8192 [remnux]=4096 [capevm]=4096
+)
+
+run() { if [[ "$DRY" == 1 ]]; then echo "+ $*"; else "$@"; fi; }
+die() { echo "lab: $*" >&2; exit 1; }
+need_profile() { [[ -n "${1:-}" && -v "VMS[$1]" ]] || die "unknown profile '${1:-}'. Profiles: ${!VMS[*]}"; }
+
+profile_mem() { local t=0 v; for v in ${VMS[$1]}; do t=$((t + MEM[$v])); done; echo $t; }
+
+free_mib() { awk '/MemAvailable/ {printf "%d", $2/1024}' /proc/meminfo 2>/dev/null || echo 0; }
+
+cmd_profiles() {
+  printf '%-8s %-8s %s\n' PROFILE RAM_MiB VMS
+  local p; for p in ad web blue re air knight; do
+    printf '%-8s %-8s %s\n' "$p" "$(profile_mem "$p")" "${VMS[$p]:-(containers only)} / compose: ${STACKS[$p]:-none}"
+  done
+}
+
+cmd_up() {
+  need_profile "$1"
+  local need; need=$(profile_mem "$1"); local have; have=$(free_mib)
+  if [[ "$DRY" != 1 && "$have" -gt 0 && "$need" -gt $((have - 2048)) ]]; then
+    die "profile $1 needs ${need} MiB of VM RAM, only ${have} MiB available. Run 'lab down <other>' first."
+  fi
+  local v; for v in ${VMS[$1]}; do
+    if virsh domstate "$v" 2>/dev/null | grep -q running; then echo "$v already running"; else run virsh start "$v"; fi
+  done
+  local s; for s in ${STACKS[$1]}; do run docker compose -f "$COMPOSE_FILE" --profile "$s" up -d; done
+  echo "lab $1 up"
+}
+
+cmd_down() {
+  need_profile "$1"
+  local s; for s in ${STACKS[$1]}; do run docker compose -f "$COMPOSE_FILE" --profile "$s" down; done
+  local v; for v in ${VMS[$1]}; do
+    if virsh domstate "$v" 2>/dev/null | grep -q running; then
+      run virsh shutdown "$v"
+      if [[ "$DRY" != 1 ]]; then
+        local i; for i in $(seq 1 18); do sleep 5; virsh domstate "$v" | grep -q running || break; done
+        virsh domstate "$v" | grep -q running && virsh destroy "$v"
+      fi
+    fi
+  done
+  echo "lab $1 down"
+}
+
+cmd_status() {
+  echo "VMs running:"; virsh list --name 2>/dev/null | sed '/^$/d' | sed 's/^/  /' || echo "  (virsh unavailable)"
+  local t=0 v; for v in $(virsh list --name 2>/dev/null); do t=$((t + ${MEM[$v]:-0})); done
+  echo "VM RAM held: ${t} MiB; available: $(free_mib) MiB"
+  echo "Containers:"; docker compose -f "$COMPOSE_FILE" ps --format '  {{.Name}}  {{.Status}}' 2>/dev/null || echo "  (compose unavailable)"
+}
+
+case "${1:-}" in
+  up)       cmd_up "${2:-}" ;;
+  down)     cmd_down "${2:-}" ;;
+  status)   cmd_status ;;
+  profiles) cmd_profiles ;;
+  *)        sed -n '2,8p' "$0"; exit 2 ;;
+esac

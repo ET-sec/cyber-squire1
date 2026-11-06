@@ -314,3 +314,8 @@ terraform/cd-cloudflare-edge/terraform.tfvars
 # Literal gitleaks tripwires (the hooks refuse to run without this file)
 .gitleaks.local.toml
 .githooks/authors.allow
+
+# Lab host root: account topology stays out of the public repo, same as the cloud roots
+terraform/cd-lab-infrastructure/backend.hcl
+COREDIRECTIVE_ENGINE/lab.env
+COREDIRECTIVE_ENGINE/lab/wazuh/certs/

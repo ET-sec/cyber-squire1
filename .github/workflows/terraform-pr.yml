@@ -17,6 +17,7 @@ on:
       - 'terraform/cd-oci-infrastructure/**'
       - 'terraform/cd-aws-security-plane/**'
       - 'terraform/cd-cloudflare-edge/**'
+      - 'terraform/cd-lab-infrastructure/**'
       - '.github/workflows/terraform-pr.yml'
 
 permissions:
@@ -37,6 +38,7 @@ jobs:
           - terraform/cd-oci-infrastructure
           - terraform/cd-aws-security-plane
           - terraform/cd-cloudflare-edge
+          - terraform/cd-lab-infrastructure
     env:
       TF_DIR: ${{ matrix.dir }}
 

@@ -1,0 +1,221 @@
+# ============================================================================
+# LAB STACK: the containers the Lenovo lab host runs beside its VMs
+# ============================================================================
+# Same rules as docker-compose.oci-core.yaml: images pinned tag@digest, secrets
+# from env_file (lab.env, chmod 600, generated from Doppler, never committed),
+# every port bound to loopback or a lab bridge, never 0.0.0.0.
+#
+# Compose profiles match scripts/lab:  docker compose --profile ad up -d
+#   ad     BloodHound (with its Postgres and Neo4j) and Wazuh
+#   blue   Wazuh and Velociraptor
+#   web    Juice Shop, Keycloak, LocalStack
+#   cloud  LocalStack alone
+# Sliver's C2 server runs inside the Kali VM in phase 1, not here. The airspace
+# parser is built from /Volumes/CyberLab/airspace-lab and added when the Alfa
+# adapter is on the box.
+#
+# Pins resolved from the registries 2026-11-06. Wazuh 4.14.8 (released
+# 2026-10-01) is chosen over 4.14.10 (2026-11-05) on purpose: the seven day
+# cooldown. Wazuh's single-node layout needs its config folder and
+# certificates generated once from the upstream wazuh-docker 4.14.8 tree
+# (COREDIRECTIVE_ENGINE/lab/wazuh/, not committed until generated).
+# ============================================================================
+name: lab
+
+# Production posture for every container: no privilege escalation, capped logs,
+# a restart policy, a memory limit (per service below). Add read_only per
+# service once its writable paths are known on the box.
+x-hardened: &hardened
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "20m"
+      max-file: "5"
+
+services:
+  wazuh-indexer:
+    <<: *hardened
+    image: wazuh/wazuh-indexer:4.14.8@sha256:6a9c1e3827da627a70859213b3e9cfe43193a492e358953de332b94de33b07de
+    container_name: lab-wazuh-indexer
+    profiles: ["ad", "blue"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9200:9200"
+    env_file: lab.env
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile: { soft: 65536, hard: 65536 }
+    volumes:
+      - lab-wazuh-indexer:/var/lib/wazuh-indexer
+      - ./lab/wazuh/certs:/usr/share/wazuh-indexer/certs:ro
+      - ./lab/wazuh/indexer.yml:/usr/share/wazuh-indexer/opensearch.yml:ro
+    deploy:
+      resources:
+        limits: { memory: 3g }
+
+  wazuh-manager:
+    <<: *hardened
+    image: wazuh/wazuh-manager:4.14.8@sha256:412f665c77af5497780d29d0d9f069d7a169c5eca45e9a3a47a587d9cfc99b55
+    container_name: lab-wazuh-manager
+    profiles: ["ad", "blue"]
+    restart: unless-stopped
+    depends_on: [wazuh-indexer]
+    ports:
+      - "10.90.8.10:1514:1514"
+      - "10.90.8.10:1515:1515"
+      - "127.0.0.1:55000:55000"
+    env_file: lab.env
+    volumes:
+      - lab-wazuh-manager:/var/ossec/data
+      - ./lab/wazuh/certs:/etc/ssl/certs/wazuh:ro
+      - ./lab/wazuh/ossec.conf:/wazuh-config-mount/etc/ossec.conf:ro
+    deploy:
+      resources:
+        limits: { memory: 2g }
+
+  wazuh-dashboard:
+    <<: *hardened
+    image: wazuh/wazuh-dashboard:4.14.8@sha256:dd338d22355e8f0cdf8cc97d5b928539d56061b83c3274a79059e60ad5b8ac14
+    container_name: lab-wazuh-dashboard
+    profiles: ["ad", "blue"]
+    restart: unless-stopped
+    depends_on: [wazuh-indexer, wazuh-manager]
+    ports:
+      - "127.0.0.1:5601:5601"
+    env_file: lab.env
+    volumes:
+      - ./lab/wazuh/certs:/usr/share/wazuh-dashboard/certs:ro
+    deploy:
+      resources:
+        limits: { memory: 1g }
+
+  velociraptor:
+    <<: *hardened
+    image: wlambert/velociraptor:0.76.3@sha256:7ee80e7e4c5bd0ec8cab6900fae4e7671849dbcd592906931cfb4e038b78931e
+    container_name: lab-velociraptor
+    profiles: ["blue"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8889:8889"
+      - "10.90.8.10:8000:8000"
+    env_file: lab.env
+    volumes:
+      - lab-velociraptor:/velociraptor
+    deploy:
+      resources:
+        limits: { memory: 1g }
+
+  lab-db:
+    # One Postgres, two databases (bloodhound, keycloak), each under its own
+    # role, created on first start by lab/db/init.sh from values in lab.env.
+    <<: *hardened
+    image: postgres:16.15-bookworm@sha256:5264710be20f409750ac6dc4e5706dcef929c87e241605463f0f9aefa932a8d9
+    container_name: lab-db
+    profiles: ["ad", "web"]
+    restart: unless-stopped
+    env_file: lab.env
+    volumes:
+      - lab-db:/var/lib/postgresql/data
+      - ./lab/db/init.sh:/docker-entrypoint-initdb.d/10-lab-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+  bloodhound-graph:
+    <<: *hardened
+    image: neo4j:4.4.48-community@sha256:bb4a6efb3fc5349dbfe2b2601e48c4056c1ff4c4ecbcd36c12f5bd0a346a596b
+    container_name: lab-bloodhound-graph
+    profiles: ["ad"]
+    restart: unless-stopped
+    env_file: lab.env
+    volumes:
+      - lab-bloodhound-graph:/data
+    deploy:
+      resources:
+        limits: { memory: 2g }
+
+  bloodhound:
+    <<: *hardened
+    image: specterops/bloodhound:9.8.0@sha256:88aeb60228d8ad09a8ac1cdcea8218b4aabe3d9ac642f2f66d50a6b144f4d301
+    container_name: lab-bloodhound
+    profiles: ["ad"]
+    restart: unless-stopped
+    depends_on:
+      lab-db: { condition: service_healthy }
+      bloodhound-graph: { condition: service_started }
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file: lab.env
+    deploy:
+      resources:
+        limits: { memory: 1g }
+
+  juice-shop:
+    <<: *hardened
+    image: bkimminich/juice-shop:v20.3.0@sha256:cea5a4af4aacee498c491491af0408934ec81d004035c0a02ef3e54395e3bf27
+    container_name: lab-juice-shop
+    profiles: ["web"]
+    restart: unless-stopped
+    ports:
+      - "10.90.4.10:3000:3000"
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+  keycloak:
+    # Same pin and the same production shape as the OCI stack (cd-service-keycloak):
+    # production mode, Postgres behind it, strict hostname, TLS terminated by
+    # OPNsense's reverse proxy in front. KC_* values come from lab.env.
+    <<: *hardened
+    image: quay.io/keycloak/keycloak:26.7.3@sha256:29be7252db0a106f1cd2ac17b9a56ff2668073da645638a38b9fc67deeb2d6c4
+    container_name: lab-keycloak
+    profiles: ["web"]
+    restart: unless-stopped
+    depends_on:
+      lab-db: { condition: service_healthy }
+    command: ["start"]
+    ports:
+      - "127.0.0.1:8180:8080"
+    env_file: lab.env
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://lab-db:5432/keycloak
+      - KC_HOSTNAME_STRICT=true
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_HTTP_ENABLED=true
+      - KC_HEALTH_ENABLED=true
+      - JAVA_OPTS_APPEND=-Xms256m -Xmx640m
+    deploy:
+      resources:
+        limits: { memory: 1g }
+
+  localstack:
+    <<: *hardened
+    image: localstack/localstack:2026.9.1@sha256:0c644ede65c2d0c95737e09a39007828bd381bdb07ca8200c6bf17d66a4ed191
+    container_name: lab-localstack
+    profiles: ["web", "cloud"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - SERVICES=s3,iam,sts,lambda,secretsmanager,kms,cloudtrail
+    volumes:
+      - lab-localstack:/var/lib/localstack
+    deploy:
+      resources:
+        limits: { memory: 2g }
+
+volumes:
+  lab-wazuh-indexer:
+  lab-wazuh-manager:
+  lab-velociraptor:
+  lab-db:
+  lab-bloodhound-graph:
+  lab-localstack:

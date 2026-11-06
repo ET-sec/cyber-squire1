@@ -293,6 +293,27 @@ entries:
     review: {every: 90d}
     rewrite_later: "The api.anthropic.com entry in the cd-service-squire extra_hosts block is a name resolution control that code with a hard coded address would defeat, so it is the weakest of the three layers keeping the agent off the model API; the real close is an egress allowlist proxy in front of the agent."
 
+  - path: "COREDIRECTIVE_ENGINE/docker-compose.lab.yaml"
+    purpose: "The containers the Lenovo lab host runs beside its virtual machines: Wazuh, Velociraptor, BloodHound with its databases, the lab identity provider, a vulnerable web target and a cloud emulator, each behind a compose profile."
+    status: reference
+    reason: "Written before the lab host arrived so the host is built from code, the same way the cloud host is. It becomes active the day the host runs it."
+    last_verified: 2026-11-06
+    review: {by: 2027-01-31}
+
+  - path: "COREDIRECTIVE_ENGINE/lab.env.template"
+    purpose: "The variable names the lab compose file reads, with no values."
+    status: reference
+    reason: "The real lab.env is generated on the host from the secrets store and never tracked; this file says what it must hold."
+    last_verified: 2026-11-06
+    review: {by: 2027-01-31}
+
+  - path: "COREDIRECTIVE_ENGINE/lab/**"
+    purpose: "Files the lab compose file mounts into its containers, starting with the database init script that creates one database and role per service."
+    status: reference
+    reason: "Mounted read only by docker-compose.lab.yaml. Generated certificates and per-host config stay untracked."
+    last_verified: 2026-11-06
+    review: {by: 2027-01-31}
+
   - path: "COREDIRECTIVE_ENGINE/docker-compose.oci-core.yaml"
     purpose: "The definition of what runs on the instance: the database, the orchestration engine, the tunnel, the model and speech servers, the kernel sensor and its router, the monitoring agent, the secrets manager, the identity provider, the access gateway, its event handler, and the audit log shipper."
     status: active
@@ -753,6 +774,13 @@ entries:
     reason: "Written by plan 21-08 (SWEEP-05). The tree above it is described row by row with no fallback, so this file needs its own row, and a terraform/** fallback would pre-authorize a cloud plane nobody reviewed."
     last_verified: 2026-09-09
     review: {every: 180d}
+
+  - path: "terraform/cd-lab-infrastructure/**"
+    purpose: "The on-premises lab host as code: the isolated network segments behind one firewall virtual machine, every lab virtual machine defined and left stopped, and the remote state backend example."
+    status: reference
+    reason: "terraform-pr.yml checks it on every pull request. It has never been applied: the lab host had not arrived when it was written, so it is a design until the first apply makes it live."
+    last_verified: 2026-11-06
+    review: {by: 2027-01-31}
 
   - path: "terraform/cd-oci-infrastructure/**"
     purpose: "The live infrastructure: compute, networking, data protection, outputs, the remote state backend example, and the cloud init that builds the host."

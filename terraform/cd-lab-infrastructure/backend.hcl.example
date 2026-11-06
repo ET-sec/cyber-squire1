@@ -1,0 +1,5 @@
+# Copy to backend.hcl (gitignored) and fill in. Same bucket as the cloud root, its own key.
+bucket    = "<state-bucket>"
+namespace = "<tenancy-namespace>"
+region    = "<region>"
+key       = "cd-lab-infrastructure/terraform.tfstate"
