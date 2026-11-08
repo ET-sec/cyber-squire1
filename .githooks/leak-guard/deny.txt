@@ -1,0 +1,30 @@
+# Leak guard, generic rules (published copy). Refuses a push whose new commits add secret file
+# types, a file over 5 MB, or a private IPv4 address; gitleaks runs over the same commits.
+#
+# Syntax, one rule per line:
+#   deny  <id> <python regex>   refuse a pushed commit that adds or changes a path matching it
+#   allow <deny ids> <regex>    a path matching it is exempt from the named deny rules only (comma list)
+#   line  <id> <python regex>   refuse a pushed commit whose added lines match it
+#   maxbytes <n>                refuse a pushed commit that adds or changes a file over n bytes
+#   baseline <file>             exact lines already public before the guard (repo, line sha256, path); exempt from line rules
+# Paths are repo-relative with forward slashes; regexes use re.search.
+
+allow dotenv,star-env     (^|/)\.env\.example$
+allow star-env           (^|/)[^/]*\.env\.template$
+allow tfvars             \.tfvars\.example$
+
+deny pem                 \.pem$
+deny dotenv              (^|/)\.env($|\.)
+deny star-env            \.env($|\.)
+deny env-sh              (^|/)env\.sh$
+deny tfvars              \.tfvars$
+deny tfstate             \.tfstate($|\.)
+deny tf-plan             \.plan$
+
+# RFC 1918 and 100.64/10 refused everywhere, CIDR in *.tf included. Allowed: the sanitized example
+# block 10.100.0.0/16 and the RFC 5737 documentation ranges, which are not private and so never match.
+line private-ipv4        (?<![0-9.])(10\.(?!100\.)\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3})(?![0-9])
+
+baseline ip-baseline.txt
+
+maxbytes 5242880

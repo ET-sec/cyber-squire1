@@ -15,6 +15,13 @@
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Leak guard (.githooks/leak-guard/): refuses pushed commits that add secret file types (.pem, .env,
+# env.sh, .tfvars, .tfstate, plan files), a file over 5 MB, or a private IPv4 address, and runs
+# gitleaks over exactly those commits. Fails closed. The stdin refs are kept for the gates below.
+PUSH_REFS="$(cat)"
+printf '%s\n' "$PUSH_REFS" | python3 -I "$REPO_ROOT/.githooks/leak-guard/leak_guard.py" \
+  --deny "$REPO_ROOT/.githooks/leak-guard/deny.txt" || exit 1
 GL_CONFIG="$REPO_ROOT/.gitleaks.local.toml"
 if [ ! -f "$GL_CONFIG" ]; then
   echo "BLOCKED. $GL_CONFIG is missing. It holds the literal tripwires that must not live in the public config; restore it from the private store before committing."
@@ -53,7 +60,7 @@ while read -r _lref lsha _rref rsha; do
   else
     bash "$REPO_ROOT/scripts/repo/check_authorship.sh" "$rsha..$lsha" || authorship_fail=1
   fi
-done
+done < <([ -n "$PUSH_REFS" ] && printf '%s\n' "$PUSH_REFS")
 if [ "$authorship_fail" -ne 0 ]; then
   echo "pre-push: BLOCKED by the authorship gate above."
   exit 1
