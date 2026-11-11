@@ -1,6 +1,6 @@
 # Squire
 
-Autonomous SOC analyst for CoreDirective Engine. Phase 17 scaffold.
+AI SOC analyst for CoreDirective Engine.
 
 ## What it is
 
@@ -19,9 +19,9 @@ builds/squire/
     app.py               FastAPI app factory with /health
     actions_allowlist.py Recommend-only response sanitizer
     dedup.py             Redis-backed 5-minute sliding dedup
-    nodes/               LangGraph nodes (later plan)
-    retrievers/          pgvector + keyword retrievers (later plan)
-    tools/               Action tools (later plan)
+    nodes/               LangGraph nodes: classify, enrich, retrieve, investigate, draft, critique, route
+    retrievers/          GRC document retriever (pgvector)
+    tools/               Web search and Telegram notice tools
   config/actions.yml     Recommend-only allow-list
   migrations/            Raw SQL migrations
   tests/                 pytest suite
@@ -39,19 +39,19 @@ pip install -e '.[dev]'
 
 # With Doppler:
 doppler run --project coredirective-engine --config prd --command "pytest tests/ -q"
-doppler run --project coredirective-engine --config prd --command "uvicorn squire.app:app --port 8020"
+doppler run --project coredirective-engine --config prd --command "uvicorn squire.app:app --port <port>"
 ```
 
 ## Container
 
 ```bash
-docker build -t cd-service-squire:dev -f Dockerfile .
-docker run --rm -p 8020:8020 \
+docker build -t squire:dev -f Dockerfile .
+docker run --rm -p <port>:<port> \
   -e CD_DB_USER=x -e CD_DB_PASS=x -e CD_DB_NAME=x \
   -e LANGFUSE_PUBLIC_KEY=pk -e LANGFUSE_SECRET_KEY=sk \
   -e SQUIRE_WEBHOOK_TOKEN=x \
-  cd-service-squire:dev
-curl http://127.0.0.1:8020/health
+  squire:dev
+curl http://localhost:<port>/health
 ```
 
 ## Environment (via Doppler)
@@ -60,7 +60,7 @@ curl http://127.0.0.1:8020/health
 |----------|---------|
 | `CD_DB_USER` / `CD_DB_PASS` / `CD_DB_NAME` | Postgres connection |
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_HOST` | Tracing |
-| `ANTHROPIC_API_KEY` | Not set on Squire and not read by it. The model credential lives on the guardrails container `cd-service-nemo`, which is the container that calls the model (Phase 22, AI-02) |
+| `ANTHROPIC_API_KEY` | Not set on Squire and not read by it. The model credential lives on the guardrails container, which is the container that calls the model (Phase 22, AI-02) |
 | `SQUIRE_WEBHOOK_TOKEN` | Shared-secret for webhook auth |
 | `LANGFUSE_REDIS_PASSWORD` | Dedup Redis auth |
 | `ANTHROPIC_DAILY_CEILING_USD` | Cost ceiling (default 5.00) |
@@ -78,9 +78,9 @@ Phase 17 and requires a later phase with explicit approval flow.
 ```bash
 # Apply the initial schema to the target database (name from CD_DB_NAME) on the host
 doppler run --project coredirective-engine --config prd --command '
-  scp migrations/001_squire_tables.sql cd-alpha:/tmp/
-  ssh cd-alpha "docker cp /tmp/001_squire_tables.sql cd-service-db:/tmp/ && \
-    docker exec -e PGPASSWORD=\"\$CD_DB_PASS\" cd-service-db \
+  scp migrations/001_squire_tables.sql <host>:/tmp/
+  ssh <host> "docker cp /tmp/001_squire_tables.sql <db-container>:/tmp/ && \
+    docker exec -e PGPASSWORD=\"\$CD_DB_PASS\" <db-container> \
       psql -U \"\$CD_DB_USER\" -d \"\$CD_DB_NAME\" -f /tmp/001_squire_tables.sql"
 '
 ```
